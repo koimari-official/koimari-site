@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ご予約・お問合せ｜こいまり</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg: #fbf7f2;
+  --color-bg-soft: #f5ede2;
+  --color-bg-deep: #efe3d2;
+  --color-paper: #fefcf8;
+  --color-text: #2e2118;
+  --color-text-soft: #5a4538;
+  --color-text-mute: #856e58;
+  --color-accent: #b03b48;
+  --color-accent-dark: #8a2d38;
+  --color-gold: #a98554;
+  --color-gold-light: #c9a872;
+  --color-line: #d8c8b3;
+  --color-error: #c0392b;
+  --font-mincho: "Shippori Mincho", "游明朝", "Yu Mincho", serif;
+  --font-sans: "Noto Sans JP", "ヒラギノ角ゴ ProN", "Hiragino Kaku Gothic ProN", sans-serif;
+  --font-en: "Cormorant Garamond", serif;
+  --max-w: 880px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.9;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(184,153,104,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(176,59,72,0.03) 0%, transparent 40%);
+}
+a { color: inherit; text-decoration: none; }
+
+.header { background: var(--color-paper); border-bottom: 1px solid var(--color-line); }
+.header__inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.header__logo { display: flex; flex-direction: column; line-height: 1; }
+.header__logo-en {
+  font-family: var(--font-en);
+  font-size: 32px;
+  font-style: italic;
+  letter-spacing: 0.18em;
+  color: var(--color-accent);
+  font-weight: 500;
+}
+.header__logo-jp {
+  font-family: var(--font-mincho);
+  font-size: 15px;
+  letter-spacing: 0.4em;
+  color: var(--color-text-soft);
+  margin-top: 8px;
+}
+.back-link {
+  font-family: var(--font-mincho);
+  font-size: 16px;
+  color: var(--color-text-soft);
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.back-link:hover { color: var(--color-accent); }
+
+.page-head {
+  position: relative;
+  text-align: center;
+  padding: 100px 24px 90px;
+  background: linear-gradient(180deg, var(--color-bg-soft) 0%, var(--color-bg-deep) 100%);
+  overflow: hidden;
+}
+.page-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(60deg, transparent 0 38px, rgba(184,153,104,0.05) 38px 39px),
+    repeating-linear-gradient(-60deg, transparent 0 38px, rgba(184,153,104,0.05) 38px 39px),
+    repeating-linear-gradient(0deg, transparent 0 38px, rgba(184,153,104,0.04) 38px 39px);
+  pointer-events: none;
+  opacity: 0.7;
+}
+.page-head__inner { position: relative; z-index: 1; }
+.page-head__mark {
+  font-family: var(--font-en);
+  font-size: 60px;
+  font-style: italic;
+  color: var(--color-gold);
+  opacity: 0.5;
+  line-height: 1;
+  margin-bottom: 22px;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+.page-head__en {
+  font-family: var(--font-en);
+  font-style: italic;
+  color: var(--color-accent);
+  letter-spacing: 0.3em;
+  font-size: 17px;
+  display: inline-block;
+  margin-bottom: 16px;
+  position: relative;
+  padding: 0 40px;
+  font-weight: 500;
+}
+.page-head__en::before, .page-head__en::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 1px;
+  background: var(--color-gold);
+}
+.page-head__en::before { left: 0; }
+.page-head__en::after { right: 0; }
+.page-head__title {
+  font-family: var(--font-mincho);
+  font-size: clamp(28px, 3.8vw, 38px);
+  letter-spacing: 0.2em;
+  font-weight: 600;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+}
+.page-head__title::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 52px;
+  height: 1px;
+  background: var(--color-gold);
+}
+.page-head__lead {
+  color: var(--color-text);
+  font-size: 16px;
+  font-family: var(--font-mincho);
+  letter-spacing: 0.04em;
+  line-height: 2;
+}
+
+main { padding: 90px 24px 110px; }
+.form-wrap {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  background: var(--color-paper);
+  padding: 80px clamp(28px, 5vw, 70px);
+  position: relative;
+  box-shadow: 0 1px 2px rgba(58,42,35,0.04), 0 12px 40px rgba(58,42,35,0.07);
+}
+.form-wrap::before, .form-wrap::after,
+.form-wrap > .corner-tr, .form-wrap > .corner-br {
+  content: "";
+  position: absolute;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-gold);
+  pointer-events: none;
+}
+.form-wrap::before { top: 14px; left: 14px; border-right: none; border-bottom: none; }
+.form-wrap::after { bottom: 14px; left: 14px; border-right: none; border-top: none; }
+.form-wrap .corner-tr { top: 14px; right: 14px; border-left: none; border-bottom: none; }
+.form-wrap .corner-br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
+
+.form-section + .form-section { margin-top: 60px; }
+.form-section__title {
+  font-family: var(--font-mincho);
+  font-size: 22px;
+  letter-spacing: 0.16em;
+  margin-bottom: 32px;
+  padding-bottom: 16px;
+  color: var(--color-text);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-weight: 600;
+}
+.form-section__title::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 22px;
+  background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-gold) 100%);
+  flex-shrink: 0;
+}
+.form-section__title::after {
+  content: "";
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--color-line) 0%, var(--color-line) 60%, transparent 100%);
+}
+.form-section__num {
+  font-family: var(--font-en);
+  font-style: italic;
+  color: var(--color-gold);
+  font-size: 26px;
+  margin-left: auto;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+}
+
+.field { margin-bottom: 30px; }
+.field:last-child { margin-bottom: 0; }
+.field__label {
+  display: block;
+  font-family: var(--font-mincho);
+  font-size: 17px;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+.field__label .req,
+.field__label .opt {
+  display: inline-block;
+  font-size: 13px;
+  padding: 4px 10px;
+  letter-spacing: 0.12em;
+  margin-left: 12px;
+  vertical-align: 3px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+}
+.field__label .req { background: var(--color-accent); color: #fff; }
+.field__label .opt { background: transparent; color: var(--color-text-mute); border: 1px solid var(--color-line); }
+.field__hint {
+  font-size: 14px;
+  color: var(--color-text-mute);
+  margin-top: 10px;
+  font-family: var(--font-mincho);
+  letter-spacing: 0.04em;
+}
+
+.input, .select, .textarea {
+  width: 100%;
+  padding: 16px 16px;
+  border: 1px solid var(--color-line);
+  background: #fdfaf6;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  color: var(--color-text);
+  transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+  border-radius: 0;
+}
+.input:hover, .select:hover, .textarea:hover { border-color: var(--color-gold); }
+.input:focus, .select:focus, .textarea:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(176,59,72,0.07);
+}
+.textarea { resize: vertical; min-height: 130px; line-height: 1.8; }
+
+.select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'><path d='M1 1l6 6 6-6' stroke='%23a98554' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 18px center;
+  padding-right: 44px;
+}
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.radio-group, .checkbox-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding-top: 6px;
+}
+.radio-group label, .checkbox-group label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 14px 22px;
+  border: 1px solid var(--color-line);
+  background: #fdfaf6;
+  transition: all 0.2s;
+  font-family: var(--font-mincho);
+  letter-spacing: 0.04em;
+  user-select: none;
+  font-weight: 500;
+}
+.radio-group label:hover, .checkbox-group label:hover {
+  border-color: var(--color-gold);
+  background: #fff;
+}
+.radio-group input, .checkbox-group input {
+  margin-right: 10px;
+  accent-color: var(--color-accent);
+  width: 18px;
+  height: 18px;
+}
+.radio-group label:has(input:checked),
+.checkbox-group label:has(input:checked) {
+  border-color: var(--color-accent);
+  background: rgba(176,59,72,0.06);
+  color: var(--color-accent);
+}
+
+.error {
+  display: block;
+  color: var(--color-error);
+  font-size: 14px;
+  margin-top: 8px;
+  min-height: 1px;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+}
+.error:not(:empty)::before { content: "※ "; }
+.input.invalid, .select.invalid, .textarea.invalid {
+  border-color: var(--color-error);
+  background: #fef5f4;
+}
+.input.invalid:focus, .select.invalid:focus, .textarea.invalid:focus {
+  box-shadow: 0 0 0 3px rgba(192,57,43,0.08);
+}
+
+.notice {
+  background: var(--color-bg-soft);
+  padding: 26px 30px;
+  font-size: 16px;
+  color: var(--color-text);
+  margin: 50px 0;
+  position: relative;
+  line-height: 2.1;
+  border-left: 4px solid var(--color-gold);
+}
+
+/* ===== のし・贈答対応セクション ===== */
+.gift-section {
+  margin-bottom: 30px;
+  border: 1px solid var(--color-line);
+  background: linear-gradient(135deg, #fff8f3 0%, #fdfaf6 100%);
+}
+.gift-section__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px;
+  cursor: pointer;
+  font-family: var(--font-mincho);
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-text);
+  user-select: none;
+  transition: background 0.2s;
+}
+.gift-section__toggle:hover { background: rgba(176,59,72,0.04); }
+.gift-section__toggle::before {
+  content: "🎁";
+  margin-right: 12px;
+  font-size: 18px;
+}
+.gift-section__toggle::after {
+  content: "+";
+  color: var(--color-accent);
+  font-size: 24px;
+  font-weight: 300;
+  transition: transform 0.25s;
+}
+.gift-section.open .gift-section__toggle::after { transform: rotate(45deg); }
+.gift-section__hint {
+  margin-left: auto;
+  margin-right: 14px;
+  font-size: 12px;
+  color: var(--color-text-soft);
+  font-weight: 400;
+  letter-spacing: 0.04em;
+}
+.gift-section__body {
+  display: none;
+  padding: 8px 24px 24px;
+  border-top: 1px solid var(--color-line);
+}
+.gift-section.open .gift-section__body { display: block; }
+.gift-section .field { margin-bottom: 22px; }
+.gift-section .field:last-child { margin-bottom: 0; }
+.gift-section__season-banner {
+  background: linear-gradient(135deg, #c75a6e 0%, #9a3d50 100%);
+  color: #fff;
+  padding: 14px 24px;
+  text-align: center;
+  font-family: var(--font-mincho);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+/* ===== 当日予約お電話案内 ===== */
+.same-day {
+  margin-bottom: 50px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #fff8f3 0%, #fdf0e7 100%);
+  border: 1px solid var(--color-gold);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  flex-wrap: wrap;
+}
+.same-day::before {
+  content: "";
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 4px; height: calc(100% + 2px);
+  background: var(--color-accent);
+}
+.same-day__icon {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.same-day__icon svg {
+  width: 26px; height: 26px;
+  fill: #fff;
+}
+.same-day__body { flex: 1; min-width: 200px; }
+.same-day__label {
+  font-family: var(--font-mincho);
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 6px;
+  display: block;
+}
+.same-day__sub {
+  font-size: 14px;
+  color: var(--color-text-soft);
+  line-height: 1.7;
+}
+.same-day__tel {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-en);
+  font-size: 28px;
+  letter-spacing: 0.05em;
+  color: var(--color-accent);
+  font-weight: 500;
+  text-decoration: none;
+  padding: 12px 24px;
+  border: 1.5px solid var(--color-accent);
+  background: #fff;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+  flex-shrink: 0;
+}
+.same-day__tel:hover {
+  background: var(--color-accent);
+  color: #fff;
+  transform: translateY(-2px);
+}
+.same-day__tel small {
+  font-family: var(--font-mincho);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  display: block;
+  font-weight: 500;
+  margin-top: 2px;
+}
+.notice strong {
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--font-mincho);
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+.notice ul { list-style: none; }
+.notice li { padding-left: 18px; position: relative; }
+.notice li::before {
+  content: "・";
+  position: absolute;
+  left: 0;
+  color: var(--color-gold);
+  font-weight: 700;
+}
+
+.actions { text-align: center; margin-top: 56px; position: relative; padding: 36px 0 0; }
+.actions::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 90px; height: 1px;
+  background: var(--color-gold);
+}
+.btn {
+  display: inline-block;
+  padding: 20px 70px;
+  font-family: var(--font-mincho);
+  font-size: 17px;
+  letter-spacing: 0.28em;
+  color: #fff;
+  background: var(--color-accent);
+  border: none;
+  cursor: pointer;
+  transition: background 0.25s, transform 0.25s, box-shadow 0.25s, letter-spacing 0.25s;
+  position: relative;
+  text-indent: 0.28em;
+  box-shadow: 0 4px 14px rgba(176,59,72,0.18);
+  font-weight: 500;
+}
+.btn:hover {
+  background: var(--color-accent-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(138,45,56,0.28);
+  letter-spacing: 0.32em;
+}
+
+.thanks { text-align: center; padding: 40px 0 14px; }
+.thanks__icon {
+  width: 84px;
+  height: 84px;
+  margin: 0 auto 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-bg-deep) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-gold);
+  position: relative;
+}
+.thanks__icon::after {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  border: 1px solid var(--color-gold-light);
+  opacity: 0.5;
+}
+.thanks__icon svg {
+  width: 36px; height: 36px;
+  stroke: var(--color-accent);
+  fill: none;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.thanks__title {
+  font-family: var(--font-mincho);
+  font-size: 26px;
+  letter-spacing: 0.18em;
+  margin-bottom: 10px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+.thanks__title-en {
+  font-family: var(--font-en);
+  font-style: italic;
+  color: var(--color-accent);
+  letter-spacing: 0.22em;
+  font-size: 17px;
+  margin-bottom: 32px;
+  display: block;
+  font-weight: 500;
+}
+.thanks p {
+  margin-bottom: 16px;
+  color: var(--color-text);
+  font-family: var(--font-mincho);
+  letter-spacing: 0.04em;
+  font-size: 16px;
+  line-height: 2;
+}
+.thanks .actions::before { display: none; }
+.hidden { display: none !important; }
+
+.footer {
+  background: #2b1f1a;
+  color: #e3d5c2;
+  padding: 44px 24px;
+  text-align: center;
+  font-family: var(--font-en);
+  font-size: 14px;
+  letter-spacing: 0.18em;
+}
+.footer__mark {
+  font-family: var(--font-mincho);
+  font-size: 13px;
+  letter-spacing: 0.4em;
+  color: #b09a82;
+  margin-bottom: 10px;
+}
+
+@media (max-width: 700px) {
+  body { font-size: 16px; }
+  .page-head { padding: 70px 22px 64px; }
+  .page-head__mark { font-size: 48px; }
+  main { padding: 60px 16px 80px; }
+  .form-wrap { padding: 56px 22px; }
+  .form-wrap::before, .form-wrap::after,
+  .form-wrap .corner-tr, .form-wrap .corner-br { width: 18px; height: 18px; }
+  .form-wrap::before { top: 8px; left: 8px; }
+  .form-wrap::after { bottom: 8px; left: 8px; }
+  .form-wrap .corner-tr { top: 8px; right: 8px; }
+  .form-wrap .corner-br { bottom: 8px; right: 8px; }
+  .row { grid-template-columns: 1fr; gap: 0; }
+  .actions { display: flex; flex-direction: column; gap: 14px; }
+  .btn { padding: 18px 36px; font-size: 16px; letter-spacing: 0.22em; }
+  .btn:hover { letter-spacing: 0.26em; }
+  .form-section__title { font-size: 19px; }
+  .radio-group label, .checkbox-group label { padding: 12px 18px; font-size: 15px; }
+  .input, .select, .textarea { font-size: 16px; padding: 14px 14px; }
+  .same-day { padding: 20px 22px; gap: 18px; }
+  .same-day__tel { font-size: 22px; padding: 12px 18px; width: 100%; justify-content: center; }
+  .same-day__icon { width: 44px; height: 44px; }
+  .same-day__icon svg { width: 20px; height: 20px; }
+  .same-day__label { font-size: 16px; }
+}
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={corePlugins:{preflight:false}}</script>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="index.html" class="header__logo">
+      <span class="header__logo-en">Koimari</span>
+      <span class="header__logo-jp">こ い ま り</span>
+    </a>
+    <a href="index.html" class="back-link">← トップへ戻る</a>
+  </div>
+</header>
+
+<div class="page-head">
+  <div class="page-head__inner">
+    <div class="page-head__mark">℘</div>
+    <span class="page-head__en">Reservation &amp; Inquiry</span>
+    <h1 class="page-head__title">ご予約・お問合せ</h1>
+    <p class="page-head__lead">
+      ホールケーキのご予約は3日前までにお願いいたします。<br>
+      お問合せのみの場合は備考欄にその旨ご記入ください。
+    </p>
+  </div>
+</div>
+
+<main>
+  <div class="form-wrap">
+    <span class="corner-tr"></span>
+    <span class="corner-br"></span>
+
+    <div class="same-day">
+      <div class="same-day__icon">
+        <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"/></svg>
+      </div>
+      <div class="same-day__body">
+        <span class="same-day__label">当日予約はお電話にて承ります</span>
+        <span class="same-day__sub">フォームでのご予約は前日までにお願いいたします。<br>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
+      </div>
+      <a href="tel:0000000000" class="same-day__tel">
+        <span>000-0000-0000<small>火-土 10:00-20:00 / 日 10:00-19:00</small></span>
+      </a>
+    </div>
+
+    <form id="reservationForm" novalidate>
+      <div class="form-section">
+        <h2 class="form-section__title">お客様情報<span class="form-section__num">01</span></h2>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="name">お名前 <span class="req">必須</span></label>
+            <input type="text" id="name" name="name" class="input" autocomplete="name">
+            <span class="error" data-for="name"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="furigana">ふりがな <span class="req">必須</span></label>
+            <input type="text" id="furigana" name="furigana" class="input" placeholder="ひらがなでご記入ください">
+            <span class="error" data-for="furigana"></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="tel">電話番号 <span class="req">必須</span></label>
+            <input type="tel" id="tel" name="tel" class="input" autocomplete="tel" placeholder="例: 090-1234-5678">
+            <span class="error" data-for="tel"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="email">メールアドレス <span class="req">必須</span></label>
+            <input type="email" id="email" name="email" class="input" autocomplete="email" placeholder="例: name@example.com">
+            <span class="error" data-for="email"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="form-section__title">ご予約内容<span class="form-section__num">02</span></h2>
+
+        <div class="field">
+          <label class="field__label">お問合せ種別 <span class="req">必須</span></label>
+          <div class="radio-group">
+            <label><input type="radio" name="type" value="ホールケーキ予約" checked> ホールケーキのご予約</label>
+            <label><input type="radio" name="type" value="焼き菓子予約"> 焼き菓子・ギフトのご予約</label>
+            <label><input type="radio" name="type" value="その他"> その他お問合せ</label>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="pickupDate">引き取り希望日 <span id="pickupDateBadge" class="req">必須</span></label>
+            <input type="date" id="pickupDate" name="pickupDate" class="input">
+            <span class="error" data-for="pickupDate"></span>
+            <span class="field__hint">3日以上先のお日にちでご指定ください</span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="pickupTime">引き取り希望時間 <span id="pickupTimeBadge" class="req">必須</span></label>
+            <select id="pickupTime" name="pickupTime" class="select">
+              <option value="">選択してください</option>
+              <option value="10:00">10:00</option><option value="11:00">11:00</option>
+              <option value="12:00">12:00</option><option value="13:00">13:00</option>
+              <option value="14:00">14:00</option><option value="15:00">15:00</option>
+              <option value="16:00">16:00</option><option value="17:00">17:00</option>
+              <option value="18:00">18:00</option>
+            </select>
+            <span class="error" data-for="pickupTime"></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="cakeType">ケーキの種類 <span class="opt">任意</span></label>
+            <select id="cakeType" name="cakeType" class="select">
+              <option value="">選択してください</option>
+              <option value="苺のショートケーキ">苺のショートケーキ</option>
+              <option value="ガトーショコラ">ガトーショコラ</option>
+              <option value="モンブラン">モンブラン</option>
+              <option value="フルーツタルト">フルーツタルト</option>
+              <option value="チーズケーキ">チーズケーキ</option>
+              <option value="その他">その他（備考欄にご記入ください）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="field__label" for="size">サイズ <span class="opt">任意</span></label>
+            <select id="size" name="size" class="select">
+              <option value="">選択してください</option>
+              <option value="4号(直径12cm/2-3名)">4号（直径12cm / 2〜3名）</option>
+              <option value="5号(直径15cm/4-6名)">5号（直径15cm / 4〜6名）</option>
+              <option value="6号(直径18cm/6-8名)">6号（直径18cm / 6〜8名）</option>
+              <option value="7号(直径21cm/8-10名)">7号（直径21cm / 8〜10名）</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="message">メッセージプレート <span class="opt">任意</span></label>
+          <input type="text" id="message" name="message" class="input" placeholder="例: Happy Birthday Mari (15文字以内)" maxlength="15">
+          <span class="field__hint">15文字以内でご記入ください（記号含む）</span>
+        </div>
+
+        <div class="field">
+          <label class="field__label">アレルギー <span class="opt">任意</span></label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="allergy" value="卵"> 卵</label>
+            <label><input type="checkbox" name="allergy" value="乳"> 乳</label>
+            <label><input type="checkbox" name="allergy" value="小麦"> 小麦</label>
+            <label><input type="checkbox" name="allergy" value="ナッツ類"> ナッツ類</label>
+            <label><input type="checkbox" name="allergy" value="その他"> その他</label>
+          </div>
+        </div>
+
+        <!-- ===== のし・ギフト対応 ===== -->
+        <div id="seasonBanner" class="gift-section__season-banner" style="display:none;"></div>
+
+        <div class="gift-section" id="giftSection">
+          <div class="gift-section__toggle" id="giftToggle">
+            <span>のし・贈答用ラッピング</span>
+            <span class="gift-section__hint">クリックで開閉</span>
+          </div>
+          <div class="gift-section__body">
+
+            <div class="field">
+              <label class="field__label">のしの有無 <span class="opt">任意</span></label>
+              <div class="radio-group">
+                <label><input type="radio" name="noshi" value="不要" checked> のしは不要</label>
+                <label><input type="radio" name="noshi" value="内のし"> のしを付ける（内のし）</label>
+                <label><input type="radio" name="noshi" value="外のし"> のしを付ける（外のし）</label>
+              </div>
+              <span class="field__hint">内のし=包装紙の中／外のし=包装紙の外。改まった贈答や郵送には内のし、手渡しには外のしが一般的です。</span>
+            </div>
+
+            <div class="row">
+              <div class="field">
+                <label class="field__label" for="noshiTitle">表書き <span class="opt">任意</span></label>
+                <select id="noshiTitle" name="noshiTitle" class="select">
+                  <option value="">選択してください</option>
+                  <option value="母の日">母の日</option>
+                  <option value="父の日">父の日</option>
+                  <option value="御祝">御祝</option>
+                  <option value="寿">寿</option>
+                  <option value="内祝">内祝</option>
+                  <option value="御礼">御礼</option>
+                  <option value="御中元">御中元</option>
+                  <option value="御歳暮">御歳暮</option>
+                  <option value="御挨拶">御挨拶</option>
+                  <option value="開店祝">開店祝</option>
+                  <option value="記念品">記念品</option>
+                  <option value="その他">その他（備考欄に記入）</option>
+                </select>
+              </div>
+              <div class="field">
+                <label class="field__label" for="noshiName">名入れ（贈り主のお名前） <span class="opt">任意</span></label>
+                <input type="text" id="noshiName" name="noshiName" class="input" placeholder="例: 田中 / 田中太郎・花子">
+                <span class="field__hint">空欄の場合は名入れなしになります</span>
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field__label" for="messageCard">メッセージカード文面 <span class="opt">任意</span></label>
+              <textarea id="messageCard" name="messageCard" class="textarea" rows="3" placeholder="例: お母さん、いつも本当にありがとう。&#10;これからも元気でいてね。"></textarea>
+              <span class="field__hint">無料でカードをお付けし、ご記入の文面を手書きまたは印字でお入れします。</span>
+            </div>
+
+            <div class="field">
+              <label class="field__label">ラッピング希望 <span class="opt">任意</span></label>
+              <div class="radio-group">
+                <label><input type="radio" name="wrapping" value="標準" checked> 標準ラッピング</label>
+                <label><input type="radio" name="wrapping" value="贈答用"> 贈答用（上品なラッピング）</label>
+                <label><input type="radio" name="wrapping" value="希望なし"> 希望なし</label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="note">備考・お問合せ内容 <span id="noteBadge" class="opt">任意</span></label>
+          <textarea id="note" name="note" class="textarea" placeholder="ご質問やご要望がございましたらこちらにご記入ください"></textarea>
+          <span class="error" data-for="note"></span>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>ご予約に関するご注意</strong>
+        <ul>
+          <li>ご予約内容の確認のため、当店よりお電話またはメールにてご連絡を差し上げます。</li>
+          <li>ご予約確定後のキャンセルは2日前までにご連絡ください。</li>
+          <li>送信いただいた個人情報は、ご予約・お問合せ対応のみに使用いたします。</li>
+        </ul>
+      </div>
+
+      <div class="actions"><button type="submit" class="btn">送信する</button></div>
+    </form>
+
+    <div id="thanksScreen" class="thanks hidden">
+      <div class="thanks__icon"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 7"/></svg></div>
+      <span class="thanks__title-en">Thank you</span>
+      <h2 class="thanks__title">ご送信ありがとうございました</h2>
+      <p>ご予約・お問合せ内容を承りました。</p>
+      <p>確認のため、当店よりお電話またはメールにて<br>ご連絡を差し上げますので、しばらくお待ちくださいませ。</p>
+      <div class="actions"><a href="index.html" class="btn">トップへ戻る</a></div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer__mark">こ い ま り</div>
+  © 2026 Koimari. All Rights Reserved.
+</footer>
+
+<script>
+const form = document.getElementById("reservationForm");
+const thanks = document.getElementById("thanksScreen");
+
+function setError(name, msg) {
+  const el = document.querySelector(`[data-for="${name}"]`);
+  const input = document.querySelector(`[name="${name}"]`);
+  if (el) el.textContent = msg || "";
+  if (input) {
+    if (msg) input.classList.add("invalid");
+    else input.classList.remove("invalid");
+  }
+}
+
+function validate(data) {
+  let ok = true;
+  ["name", "furigana", "tel", "email", "pickupDate", "pickupTime", "note"].forEach(k => setError(k, ""));
+  if (!data.name.trim()) { setError("name", "お名前をご入力ください"); ok = false; }
+  if (!data.furigana.trim()) { setError("furigana", "ふりがなをご入力ください"); ok = false; }
+  else if (!/^[ぁ-んー\s　]+$/.test(data.furigana)) { setError("furigana", "ひらがなでご入力ください"); ok = false; }
+  if (!data.tel.trim()) { setError("tel", "電話番号をご入力ください"); ok = false; }
+  else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setError("tel", "正しい電話番号をご入力ください"); ok = false; }
+  if (!data.email.trim()) { setError("email", "メールアドレスをご入力ください"); ok = false; }
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { setError("email", "正しいメールアドレスをご入力ください"); ok = false; }
+
+  // 種別ごとの必須切り替え
+  const isReservation = data.type === "ホールケーキ予約" || data.type === "焼き菓子予約";
+  const isInquiry = data.type === "その他";
+  if (isReservation) {
+    if (!data.pickupDate) { setError("pickupDate", "引き取り希望日をご入力ください"); ok = false; }
+    else {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const pick = new Date(data.pickupDate);
+      if ((pick - today) / 86400000 < 3) { setError("pickupDate", "ご予約は3日以上先のお日にちでお願いいたします（当日・前日はお電話にて承ります）"); ok = false; }
+    }
+    if (!data.pickupTime) { setError("pickupTime", "引き取り希望時間をご選択ください"); ok = false; }
+  }
+  if (isInquiry) {
+    if (!data.note.trim()) { setError("note", "お問合せ内容をご記入ください"); ok = false; }
+  }
+  return ok;
+}
+
+// 種別変更で必須/任意のバッジと表示を切り替え
+function updateRequiredFields() {
+  const type = (document.querySelector('input[name="type"]:checked')||{}).value;
+  const isReservation = type === "ホールケーキ予約" || type === "焼き菓子予約";
+  const isInquiry = type === "その他";
+  const dateBadge = document.getElementById("pickupDateBadge");
+  const timeBadge = document.getElementById("pickupTimeBadge");
+  const noteBadge = document.getElementById("noteBadge");
+  if (dateBadge) { dateBadge.className = isReservation ? "req" : "opt"; dateBadge.textContent = isReservation ? "必須" : "任意"; }
+  if (timeBadge) { timeBadge.className = isReservation ? "req" : "opt"; timeBadge.textContent = isReservation ? "必須" : "任意"; }
+  if (noteBadge) { noteBadge.className = isInquiry ? "req" : "opt"; noteBadge.textContent = isInquiry ? "必須" : "任意"; }
+}
+document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener("change", updateRequiredFields));
+updateRequiredFields();
+
+// ===== メール通知設定 =====
+// Formspreeに登録後、ここに発行されたエンドポイントを設定してください
+// 例: "https://formspree.io/f/xxxxxxxx"
+// 空の場合はメール送信されず、localStorage保存のみとなります(開発中の動作)
+const FORMSPREE_ENDPOINT = "";
+
+async function sendToFormspree(data) {
+  if (!FORMSPREE_ENDPOINT) return true; // 未設定時はスキップして成功扱い
+  try {
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        _subject: `【こいまり】新規ご予約: ${data.name} 様 (${data.type})`,
+        _replyto: data.email,
+        お名前: data.name, ふりがな: data.furigana,
+        電話番号: data.tel, メールアドレス: data.email,
+        種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
+        ケーキ種類: data.cakeType, サイズ: data.size,
+        メッセージプレート: data.message,
+        アレルギー: (data.allergy||[]).join(", "),
+        備考: data.note,
+        受信日時: data.submittedAt
+      })
+    });
+    return res.ok;
+  } catch (err) { console.warn("Formspree送信失敗:", err); return false; }
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fd = new FormData(form);
+  const data = {
+    name: fd.get("name") || "", furigana: fd.get("furigana") || "",
+    tel: fd.get("tel") || "", email: fd.get("email") || "",
+    type: fd.get("type") || "", pickupDate: fd.get("pickupDate") || "",
+    pickupTime: fd.get("pickupTime") || "", cakeType: fd.get("cakeType") || "",
+    size: fd.get("size") || "", message: fd.get("message") || "",
+    allergy: fd.getAll("allergy"), note: fd.get("note") || "",
+    submittedAt: new Date().toISOString()
+  };
+  if (!validate(data)) {
+    const firstInvalid = document.querySelector(".invalid");
+    if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  // 送信中ボタン表示
+  const btn = form.querySelector("button[type=submit]");
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = "送信中...";
+
+  // 1. メール通知
+  await sendToFormspree(data);
+  // 2. localStorage保存
+  try {
+    const list = JSON.parse(localStorage.getItem("koimari_reservations") || "[]");
+    list.unshift(data);
+    localStorage.setItem("koimari_reservations", JSON.stringify(list.slice(0, 500)));
+  } catch (err) { console.warn(err); }
+
+  btn.disabled = false; btn.textContent = originalText;
+  form.classList.add("hidden");
+  thanks.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+form.querySelectorAll(".input").forEach(el => {
+  el.addEventListener("input", () => {
+    if (el.classList.contains("invalid")) {
+      el.classList.remove("invalid");
+      const err = document.querySelector(`[data-for="${el.name}"]`);
+      if (err) err.textContent = "";
+    }
+  });
+});
+</script>
+</body>
+</html>

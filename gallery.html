@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>作品ギャラリー・お客様の声｜こいまり</title>
+<meta name="description" content="こいまりでお作りしたオーダーケーキの作品集と、ご利用いただいたお客様の声をシーン別にご紹介します。誕生日・記念日・季節限定など。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--color-bg:#fbf7f2;--color-bg-soft:#f5ede2;--color-paper:#fefcf8;--color-text:#2e2118;--color-text-soft:#5a4538;--color-accent:#b03b48;--color-accent-dark:#8a2d38;--color-gold:#a98554;--color-line:#d8c8b3;--font-mincho:"Shippori Mincho",serif;--font-sans:"Noto Sans JP",sans-serif;--font-en:"Cormorant Garamond",serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.85;font-size:17px;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:inherit;text-decoration:none}
+.header{background:var(--color-paper);border-bottom:1px solid var(--color-line)}
+.header__inner{max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.header__logo{display:flex;flex-direction:column;line-height:1}
+.header__logo-en{font-family:var(--font-en);font-size:32px;font-style:italic;letter-spacing:.18em;color:var(--color-accent);font-weight:500}
+.header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:var(--color-text-soft);margin-top:8px}
+.back-link{font-family:var(--font-mincho);font-size:16px;color:var(--color-text-soft);letter-spacing:.08em;font-weight:500}
+.back-link:hover{color:var(--color-accent)}
+.page-head{position:relative;text-align:center;padding:90px 24px 80px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#efe3d2 100%);overflow:hidden}
+.page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none;opacity:.7}
+.page-head__inner{position:relative;z-index:1}
+.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:17px;display:inline-block;margin-bottom:14px;font-weight:500}
+.page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
+.page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
+.page-head__lead{color:var(--color-text);font-size:16px;font-family:var(--font-mincho);letter-spacing:.04em;line-height:2}
+main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
+
+/* ===== カテゴリタブ ===== */
+.cat-tabs{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:50px;padding-bottom:30px;border-bottom:1px solid var(--color-line)}
+.cat-tab{padding:13px 24px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.08em;background:transparent;border:1px solid var(--color-line);color:var(--color-text-soft);cursor:pointer;font-weight:500;transition:all .25s}
+.cat-tab:hover{border-color:var(--color-accent);color:var(--color-accent)}
+.cat-tab.active{background:var(--color-accent);border-color:var(--color-accent);color:#fff}
+.cat-tab__count{display:inline-block;margin-left:8px;font-size:12px;opacity:.7;font-family:var(--font-en);font-weight:500}
+
+/* ===== ギャラリーグリッド ===== */
+.gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-bottom:60px}
+.gal-card{background:var(--color-paper);overflow:hidden;border:1px solid var(--color-line);transition:transform .3s,box-shadow .3s,border-color .3s;display:flex;flex-direction:column}
+.gal-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(58,42,35,.12);border-color:var(--color-gold)}
+.gal-card__img{aspect-ratio:1/1;overflow:hidden;background:var(--color-bg-soft);cursor:zoom-in;position:relative}
+.gal-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+.gal-card:hover .gal-card__img img{transform:scale(1.06)}
+.gal-card__cat{position:absolute;top:12px;left:12px;background:rgba(176,59,72,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
+.gal-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
+.gal-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:8px;font-weight:600;line-height:1.5}
+.gal-card__desc{font-size:13px;color:var(--color-text-soft);line-height:1.85;margin-bottom:14px;flex:1}
+.gal-card__meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--color-text-soft);font-family:var(--font-mincho);padding-top:12px;border-top:1px dashed var(--color-line);align-items:center}
+.gal-card__meta-item{display:inline-flex;align-items:center;gap:5px}
+.gal-card__meta-item strong{color:var(--color-accent);font-family:var(--font-en);font-weight:500;font-size:14px}
+.gal-card__date{font-family:var(--font-en);font-size:13px;color:var(--color-gold);letter-spacing:.1em;margin-left:auto;font-weight:500}
+.gal-card__cta{margin-top:14px;padding:11px;background:var(--color-bg-soft);border:1px solid var(--color-line);text-align:center;font-family:var(--font-mincho);font-size:13px;letter-spacing:.08em;color:var(--color-accent);font-weight:500;transition:all .2s;display:block}
+.gal-card__cta:hover{background:var(--color-accent);color:#fff;border-color:var(--color-accent)}
+
+.empty{background:var(--color-paper);padding:60px 20px;text-align:center;color:var(--color-text-soft);border:1px dashed var(--color-line);grid-column:1/-1}
+
+/* ===== お客様の声（充実版）===== */
+.voices-section{margin-top:80px;padding-top:60px;border-top:1px solid var(--color-line)}
+.voices-section__head{text-align:center;margin-bottom:50px}
+.voices-section__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:16px;margin-bottom:12px;display:block;font-weight:500}
+.voices-section__title{font-family:var(--font-mincho);font-size:clamp(24px,3vw,30px);letter-spacing:.16em;font-weight:600}
+.voices-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+.voice-card{background:var(--color-paper);padding:34px 32px;border:1px solid var(--color-line);position:relative;display:flex;flex-direction:column}
+.voice-card::before{content:"\201C";position:absolute;top:-8px;left:18px;font-family:var(--font-en);font-size:80px;color:var(--color-gold);opacity:.4;line-height:1;font-weight:500}
+.voice-card__stars{color:var(--color-accent);font-size:16px;letter-spacing:.15em;margin-bottom:14px;position:relative;z-index:1;padding-top:14px}
+.voice-card__text{font-size:15px;line-height:2;margin-bottom:22px;color:var(--color-text);position:relative;z-index:1;flex:1}
+.voice-card__author{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--color-text-soft);padding-top:16px;border-top:1px dashed var(--color-line);font-family:var(--font-mincho);letter-spacing:.06em}
+.voice-card__name{font-weight:600;color:var(--color-text);font-size:14px}
+
+/* ===== 大きなCTAバナー ===== */
+.cta-banner{margin-top:90px;background:linear-gradient(135deg,#2b1f1a 0%,#3d2c25 100%);color:#fff;padding:70px 50px;text-align:center;position:relative;overflow:hidden}
+.cta-banner::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 60px,rgba(245,214,168,.06) 60px 61px),repeating-linear-gradient(-60deg,transparent 0 60px,rgba(245,214,168,.06) 60px 61px);opacity:.6}
+.cta-banner__inner{position:relative;z-index:1}
+.cta-banner__en{font-family:var(--font-en);font-style:italic;font-size:18px;letter-spacing:.3em;color:#f5d6a8;margin-bottom:18px;display:block;font-weight:500}
+.cta-banner__title{font-family:var(--font-mincho);font-size:clamp(24px,3.4vw,32px);letter-spacing:.12em;margin-bottom:20px;font-weight:600;line-height:1.5}
+.cta-banner__desc{color:#e3d5c2;font-size:16px;line-height:1.95;margin-bottom:36px;max-width:640px;margin-left:auto;margin-right:auto;font-family:var(--font-mincho);letter-spacing:.04em}
+.cta-banner__btns{display:flex;gap:16px;justify-content:center;flex-wrap:wrap}
+.cta-banner__btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;padding:18px 44px;font-family:var(--font-mincho);font-size:16px;letter-spacing:.18em;font-weight:500;transition:all .25s}
+.cta-banner__btn--primary{background:var(--color-accent);color:#fff}
+.cta-banner__btn--primary:hover{background:var(--color-accent-dark);transform:translateY(-2px)}
+.cta-banner__btn--ghost{background:transparent;color:#f5d6a8;border:1px solid #f5d6a8}
+.cta-banner__btn--ghost:hover{background:#f5d6a8;color:#2b1f1a}
+
+/* ===== Lightbox ===== */
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:1000;padding:30px;cursor:pointer}
+.lightbox.show{display:flex}
+.lightbox img{max-width:100%;max-height:85vh;object-fit:contain}
+.lightbox__close{position:absolute;top:20px;right:24px;font-size:38px;color:#fff;cursor:pointer;background:none;border:none;line-height:1}
+
+.footer{background:#2b1f1a;color:#e3d5c2;padding:44px 24px;text-align:center;font-family:var(--font-en);font-size:14px;letter-spacing:.18em}
+.footer__mark{font-family:var(--font-mincho);font-size:13px;letter-spacing:.4em;color:#b09a82;margin-bottom:10px}
+
+@media(max-width:900px){.gallery-grid{grid-template-columns:repeat(2,1fr);gap:16px}.voices-grid{grid-template-columns:1fr}.cta-banner{padding:50px 26px}.cat-tab{padding:10px 18px;font-size:14px}.gal-card__body{padding:16px 18px 18px}.gal-card__title{font-size:15px}}
+@media(max-width:700px){body{font-size:16px}.page-head{padding:70px 22px 64px}main{padding:60px 16px 60px}.gallery-grid{grid-template-columns:1fr;gap:18px}.cat-tabs{gap:6px}.cat-tab{padding:9px 14px;font-size:13px}.cta-banner__btns{flex-direction:column;align-items:stretch}.cta-banner__btn{padding:16px 30px;font-size:15px}}
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={corePlugins:{preflight:false}}</script>
+</head>
+<body>
+<header class="header">
+  <div class="header__inner">
+    <a href="index.html" class="header__logo"><span class="header__logo-en">Koimari</span><span class="header__logo-jp">こ い ま り</span></a>
+    <a href="index.html" class="back-link">← トップへ戻る</a>
+  </div>
+</header>
+<div class="page-head">
+  <div class="page-head__inner">
+    <span class="page-head__en">Gallery &amp; Voices</span>
+    <h1 class="page-head__title">作品ギャラリー</h1>
+    <p class="page-head__lead">
+      これまでお作りしてきたオーダーケーキを、シーン別にご紹介します。<br>
+      お客様のご希望に合わせて、世界にひとつのケーキをお作りいたします。
+    </p>
+  </div>
+</div>
+<main>
+
+  <!-- カテゴリタブ -->
+  <div class="cat-tabs" id="catTabs"></div>
+
+  <!-- ギャラリーグリッド -->
+  <div class="gallery-grid" id="galleryGrid"></div>
+
+  <!-- お客様の声 -->
+  <section class="voices-section">
+    <div class="voices-section__head">
+      <span class="voices-section__en">Customer Voices</span>
+      <h2 class="voices-section__title">お客様の声</h2>
+    </div>
+    <div class="voices-grid" id="voicesGrid"></div>
+  </section>
+
+  <!-- 大きなCTA -->
+  <section class="cta-banner">
+    <div class="cta-banner__inner">
+      <span class="cta-banner__en">Make Your Own</span>
+      <h2 class="cta-banner__title">あなたの大切な日のケーキも、<br>こいまりで。</h2>
+      <p class="cta-banner__desc">
+        誕生日、記念日、お祝いごと、季節のイベント。<br>
+        ご希望をお聞きしながら、世界にひとつのケーキをお作りします。<br>
+        まずはお気軽にご相談ください。
+      </p>
+      <div class="cta-banner__btns">
+        <a href="reservation.html" class="cta-banner__btn cta-banner__btn--primary">ご予約・ご相談はこちら</a>
+        <a href="faq.html" class="cta-banner__btn cta-banner__btn--ghost">よくあるご質問</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox__close" id="lightboxClose">×</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<footer class="footer">
+  <div class="footer__mark">こ い ま り</div>
+  © 2026 Koimari. All Rights Reserved.
+</footer>
+
+<script>
+const CATEGORIES = [
+  { key: "all", name: "すべて" },
+  { key: "birthday", name: "誕生日" },
+  { key: "anniversary", name: "記念日・お祝い" },
+  { key: "wedding", name: "結婚・出産" },
+  { key: "seasonal", name: "季節限定" },
+  { key: "other", name: "その他オーダー" }
+];
+
+const DEFAULT_GALLERY = [
+  { img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80", category:"birthday", title:"お子様のキャラクターケーキ", desc:"お好きなキャラクターをモチーフにしたデコレーション", size:"5号", price:"¥4,800〜", lead:"3日前", date:"2026.04" },
+  { img:"https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=800&q=80", category:"anniversary", title:"結婚記念日のケーキ", desc:"季節のフルーツをふんだんに使ったホールケーキ", size:"6号", price:"¥5,200〜", lead:"3日前", date:"2026.03" },
+  { img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80", category:"seasonal", title:"母の日のフラワーケーキ", desc:"お花のような絞りで彩った特別な一品", size:"5号", price:"¥4,200〜", lead:"3日前", date:"2026.05" },
+  { img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80", category:"wedding", title:"ベビーシャワーケーキ", desc:"パステルカラーで仕上げたやさしい雰囲気", size:"6号", price:"¥5,500〜", lead:"5日前", date:"2026.02" },
+  { img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80", category:"anniversary", title:"還暦祝いのガトーショコラ", desc:"赤い花と金箔をあしらった大人のケーキ", size:"6号", price:"¥5,800〜", lead:"3日前", date:"2026.01" },
+  { img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80", category:"seasonal", title:"季節限定 苺のショート", desc:"地元産の朝採れ苺を贅沢に使用しました", size:"5号", price:"¥4,000〜", lead:"3日前", date:"2026.04" },
+  { img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80", category:"birthday", title:"大人のお誕生日ケーキ", desc:"シックで上品な雰囲気のホールケーキ", size:"6号", price:"¥5,000〜", lead:"3日前", date:"2026.03" },
+  { img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80", category:"wedding", title:"出産祝いのケーキ", desc:"赤ちゃんの誕生をお祝いする可愛らしい一品", size:"5号", price:"¥4,500〜", lead:"3日前", date:"2026.02" },
+  { img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=800&q=80", category:"other", title:"オリジナルロールケーキ", desc:"お名前入りのメッセージロールケーキ", size:"1本", price:"¥3,200〜", lead:"2日前", date:"2026.04" }
+];
+
+const DEFAULT_VOICES = [
+  { stars:5, text:"娘の誕生日にオーダーしました。本人がとても気に入っていたキャラクターを丁寧に再現していただき、家族みんなで感動しました。お味も上品で大満足です。", name:"M.S.様", attr:"お子様のお誕生日 / 30代女性" },
+  { stars:5, text:"職場へのお礼の品として焼き菓子の詰め合わせをお願いしました。包装も上品で、皆さんからとても好評でした。リピートさせていただきます。", name:"K.T.様", attr:"贈答品 / 40代男性" },
+  { stars:5, text:"小学生の娘が一日店長体験に参加させていただきました。帰宅してから「ケーキ屋さんになりたい」と目を輝かせていました。素敵な体験をありがとうございました。", name:"Y.N.様", attr:"一日店長体験 / 30代女性" },
+  { stars:5, text:"母の傘寿のお祝いに、特別なケーキをご相談しました。希望をしっかり聞いてくださり、想像以上の出来栄えに感激しました。", name:"H.K.様", attr:"記念日のお祝い / 50代女性" }
+];
+
+function loadList(key, fallback){try{const r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return fallback}
+function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+
+const gallery = loadList("koimari_gallery", DEFAULT_GALLERY);
+const voices = loadList("koimari_voices", DEFAULT_VOICES);
+
+let currentCat = "all";
+
+function getCount(catKey){ return catKey === "all" ? gallery.length : gallery.filter(g => g.category === catKey).length; }
+
+function renderTabs(){
+  const wrap = document.getElementById("catTabs");
+  wrap.innerHTML = "";
+  CATEGORIES.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "cat-tab" + (c.key === currentCat ? " active" : "");
+    const count = getCount(c.key);
+    btn.innerHTML = `${escape(c.name)}<span class="cat-tab__count">${count}</span>`;
+    btn.addEventListener("click", () => { currentCat = c.key; renderTabs(); renderGrid(); });
+    wrap.appendChild(btn);
+  });
+}
+
+function renderGrid(){
+  const grid = document.getElementById("galleryGrid");
+  grid.innerHTML = "";
+  const filtered = currentCat === "all" ? gallery : gallery.filter(g => g.category === currentCat);
+  if (!filtered.length) {
+    grid.innerHTML = '<div class="empty">このカテゴリの作品は現在準備中です。</div>';
+    return;
+  }
+  filtered.forEach(g => {
+    const card = document.createElement("article");
+    card.className = "gal-card";
+    const catName = (CATEGORIES.find(c => c.key === g.category) || {}).name || "";
+    card.innerHTML = `
+      <div class="gal-card__img">
+        ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
+        <img src="${escape(g.img)}" alt="${escape(g.title)}">
+      </div>
+      <div class="gal-card__body">
+        <h3 class="gal-card__title">${escape(g.title)}</h3>
+        <p class="gal-card__desc">${escape(g.desc||"")}</p>
+        <div class="gal-card__meta">
+          ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong></span>` : ""}
+          ${g.price ? `<span class="gal-card__meta-item">価格: <strong>${escape(g.price)}</strong></span>` : ""}
+          ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
+          ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
+        </div>
+        <a href="reservation.html?ref=${encodeURIComponent(g.title)}" class="gal-card__cta">同じテイストでご相談する →</a>
+      </div>`;
+    card.querySelector(".gal-card__img").addEventListener("click", () => {
+      document.getElementById("lightboxImg").src = g.img;
+      document.getElementById("lightbox").classList.add("show");
+    });
+    grid.appendChild(card);
+  });
+}
+
+renderTabs();
+renderGrid();
+
+const voicesGrid = document.getElementById("voicesGrid");
+if (!voices.length) voicesGrid.innerHTML = '<div class="empty" style="grid-column:1/-1;">お客様の声は現在準備中です。</div>';
+else voices.forEach(v => {
+  const card = document.createElement("article"); card.className = "voice-card";
+  const stars = v.stars || 5;
+  card.innerHTML = `<div class="voice-card__stars">${"★".repeat(stars)}${"☆".repeat(5-stars)}</div><p class="voice-card__text">${escape(v.text).replace(/\n/g,"<br>")}</p><div class="voice-card__author"><span class="voice-card__name">${escape(v.name)}</span><span>${escape(v.attr||"")}</span></div>`;
+  voicesGrid.appendChild(card);
+});
+
+document.getElementById("lightbox").addEventListener("click", () => document.getElementById("lightbox").classList.remove("show"));
+document.getElementById("lightboxClose").addEventListener("click", e => { e.stopPropagation(); document.getElementById("lightbox").classList.remove("show"); });
+</script>
+</body>
+</html>

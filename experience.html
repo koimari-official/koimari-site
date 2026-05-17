@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>体験プログラム応募｜こいまり</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --color-bg: #fbf7f2;
+  --color-bg-soft: #f5ede2;
+  --color-bg-deep: #efe3d2;
+  --color-paper: #fefcf8;
+  --color-text: #2e2118;
+  --color-text-soft: #5a4538;
+  --color-text-mute: #856e58;
+  --color-accent: #b03b48;
+  --color-accent-dark: #8a2d38;
+  --color-gold: #a98554;
+  --color-gold-light: #c9a872;
+  --color-line: #d8c8b3;
+  --color-error: #c0392b;
+  --font-mincho: "Shippori Mincho", "游明朝", "Yu Mincho", serif;
+  --font-sans: "Noto Sans JP", "ヒラギノ角ゴ ProN", sans-serif;
+  --font-en: "Cormorant Garamond", serif;
+  --max-w: 880px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: var(--font-sans);
+  color: var(--color-text);
+  background: var(--color-bg);
+  line-height: 1.9;
+  font-size: 17px;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    radial-gradient(circle at 20% 10%, rgba(184,153,104,0.04) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(176,59,72,0.03) 0%, transparent 40%);
+}
+a { color: inherit; text-decoration: none; }
+
+.header { background: var(--color-paper); border-bottom: 1px solid var(--color-line); }
+.header__inner {
+  max-width: 1180px; margin: 0 auto; padding: 22px 24px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header__logo { display: flex; flex-direction: column; line-height: 1; }
+.header__logo-en { font-family: var(--font-en); font-size: 32px; font-style: italic; letter-spacing: 0.18em; color: var(--color-accent); font-weight: 500; }
+.header__logo-jp { font-family: var(--font-mincho); font-size: 15px; letter-spacing: 0.4em; color: var(--color-text-soft); margin-top: 8px; }
+.back-link { font-family: var(--font-mincho); font-size: 16px; color: var(--color-text-soft); letter-spacing: 0.08em; font-weight: 500; }
+.back-link:hover { color: var(--color-accent); }
+
+.page-head {
+  position: relative; text-align: center;
+  padding: 100px 24px 90px;
+  background: linear-gradient(180deg, var(--color-bg-soft) 0%, var(--color-bg-deep) 100%);
+  overflow: hidden;
+}
+.page-head::before {
+  content: ""; position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(60deg, transparent 0 38px, rgba(184,153,104,0.05) 38px 39px),
+    repeating-linear-gradient(-60deg, transparent 0 38px, rgba(184,153,104,0.05) 38px 39px),
+    repeating-linear-gradient(0deg, transparent 0 38px, rgba(184,153,104,0.04) 38px 39px);
+  pointer-events: none; opacity: 0.7;
+}
+.page-head__inner { position: relative; z-index: 1; }
+.page-head__mark { font-family: var(--font-en); font-size: 60px; font-style: italic; color: var(--color-gold); opacity: 0.5; line-height: 1; margin-bottom: 22px; font-weight: 500; }
+.page-head__en { font-family: var(--font-en); font-style: italic; color: var(--color-accent); letter-spacing: 0.3em; font-size: 17px; display: inline-block; margin-bottom: 16px; position: relative; padding: 0 40px; font-weight: 500; }
+.page-head__en::before, .page-head__en::after { content: ""; position: absolute; top: 50%; width: 28px; height: 1px; background: var(--color-gold); }
+.page-head__en::before { left: 0; } .page-head__en::after { right: 0; }
+.page-head__title { font-family: var(--font-mincho); font-size: clamp(28px, 3.8vw, 38px); letter-spacing: 0.2em; font-weight: 600; position: relative; display: inline-block; padding-bottom: 24px; margin-bottom: 28px; }
+.page-head__title::after { content: ""; position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); width: 52px; height: 1px; background: var(--color-gold); }
+.page-head__lead { color: var(--color-text); font-size: 16px; font-family: var(--font-mincho); letter-spacing: 0.04em; line-height: 2; }
+
+main { padding: 90px 24px 110px; }
+.form-wrap { max-width: var(--max-w); margin: 0 auto; background: var(--color-paper); padding: 80px clamp(28px, 5vw, 70px); position: relative; box-shadow: 0 1px 2px rgba(58,42,35,0.04), 0 12px 40px rgba(58,42,35,0.07); }
+.form-wrap::before, .form-wrap::after, .form-wrap > .corner-tr, .form-wrap > .corner-br { content: ""; position: absolute; width: 28px; height: 28px; border: 1px solid var(--color-gold); pointer-events: none; }
+.form-wrap::before { top: 14px; left: 14px; border-right: none; border-bottom: none; }
+.form-wrap::after { bottom: 14px; left: 14px; border-right: none; border-top: none; }
+.form-wrap .corner-tr { top: 14px; right: 14px; border-left: none; border-bottom: none; }
+.form-wrap .corner-br { bottom: 14px; right: 14px; border-left: none; border-top: none; }
+
+.form-section + .form-section { margin-top: 60px; }
+.form-section__title { font-family: var(--font-mincho); font-size: 22px; letter-spacing: 0.16em; margin-bottom: 32px; padding-bottom: 16px; color: var(--color-text); position: relative; display: flex; align-items: center; gap: 14px; font-weight: 600; }
+.form-section__title::before { content: ""; display: inline-block; width: 7px; height: 22px; background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-gold) 100%); flex-shrink: 0; }
+.form-section__title::after { content: ""; position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, var(--color-line) 0%, var(--color-line) 60%, transparent 100%); }
+.form-section__num { font-family: var(--font-en); font-style: italic; color: var(--color-gold); font-size: 26px; margin-left: auto; letter-spacing: 0.1em; font-weight: 500; }
+
+.field { margin-bottom: 30px; }
+.field:last-child { margin-bottom: 0; }
+.field__label { display: block; font-family: var(--font-mincho); font-size: 17px; letter-spacing: 0.08em; margin-bottom: 12px; color: var(--color-text); font-weight: 600; }
+.field__label .req, .field__label .opt { display: inline-block; font-size: 13px; padding: 4px 10px; letter-spacing: 0.12em; margin-left: 12px; vertical-align: 3px; font-family: var(--font-sans); font-weight: 500; }
+.field__label .req { background: var(--color-accent); color: #fff; }
+.field__label .opt { background: transparent; color: var(--color-text-mute); border: 1px solid var(--color-line); }
+.field__hint { font-size: 14px; color: var(--color-text-mute); margin-top: 10px; font-family: var(--font-mincho); letter-spacing: 0.04em; }
+
+.input, .select, .textarea { width: 100%; padding: 16px; border: 1px solid var(--color-line); background: #fdfaf6; font-family: var(--font-sans); font-size: 17px; color: var(--color-text); transition: border-color 0.25s, background 0.25s, box-shadow 0.25s; border-radius: 0; }
+.input:hover, .select:hover, .textarea:hover { border-color: var(--color-gold); }
+.input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--color-accent); background: #fff; box-shadow: 0 0 0 3px rgba(176,59,72,0.07); }
+.textarea { resize: vertical; min-height: 130px; line-height: 1.8; }
+.select { appearance: none; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'><path d='M1 1l6 6 6-6' stroke='%23a98554' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>"); background-repeat: no-repeat; background-position: right 18px center; padding-right: 44px; }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+.radio-group, .checkbox-group { display: flex; flex-wrap: wrap; gap: 14px; padding-top: 6px; }
+.radio-group label, .checkbox-group label { display: inline-flex; align-items: center; font-size: 16px; cursor: pointer; padding: 14px 22px; border: 1px solid var(--color-line); background: #fdfaf6; transition: all 0.2s; font-family: var(--font-mincho); letter-spacing: 0.04em; user-select: none; font-weight: 500; }
+.radio-group label:hover, .checkbox-group label:hover { border-color: var(--color-gold); background: #fff; }
+.radio-group input, .checkbox-group input { margin-right: 10px; accent-color: var(--color-accent); width: 18px; height: 18px; }
+.radio-group label:has(input:checked), .checkbox-group label:has(input:checked) { border-color: var(--color-accent); background: rgba(176,59,72,0.06); color: var(--color-accent); }
+
+.radio-group--vertical { flex-direction: column; gap: 12px; }
+.radio-group--vertical label { width: 100%; padding: 18px 22px; align-items: flex-start; }
+.radio-group--vertical .opt-detail { display: block; font-size: 14px; color: var(--color-text-mute); margin-top: 6px; font-family: var(--font-sans); letter-spacing: 0; line-height: 1.7; font-weight: 400; }
+.radio-group--vertical label:has(input:checked) .opt-detail { color: var(--color-text-soft); }
+
+.error { display: block; color: var(--color-error); font-size: 14px; margin-top: 8px; min-height: 1px; letter-spacing: 0.03em; font-weight: 500; }
+.error:not(:empty)::before { content: "※ "; }
+.input.invalid, .select.invalid, .textarea.invalid { border-color: var(--color-error); background: #fef5f4; }
+
+.notice { background: var(--color-bg-soft); padding: 26px 30px; font-size: 16px; color: var(--color-text); margin: 50px 0; line-height: 2.1; border-left: 4px solid var(--color-gold); }
+.notice strong { color: var(--color-text); display: block; margin-bottom: 10px; font-family: var(--font-mincho); font-size: 17px; letter-spacing: 0.1em; font-weight: 600; }
+.notice ul { list-style: none; }
+.notice li { padding-left: 18px; position: relative; }
+.notice li::before { content: "・"; position: absolute; left: 0; color: var(--color-gold); font-weight: 700; }
+
+.actions { text-align: center; margin-top: 56px; position: relative; padding: 36px 0 0; }
+.actions::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 90px; height: 1px; background: var(--color-gold); }
+.btn { display: inline-block; padding: 20px 70px; font-family: var(--font-mincho); font-size: 17px; letter-spacing: 0.28em; color: #fff; background: var(--color-accent); border: none; cursor: pointer; transition: all 0.25s; text-indent: 0.28em; box-shadow: 0 4px 14px rgba(176,59,72,0.18); font-weight: 500; }
+.btn:hover { background: var(--color-accent-dark); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(138,45,56,0.28); letter-spacing: 0.32em; }
+
+.thanks { text-align: center; padding: 40px 0 14px; }
+.thanks__icon { width: 84px; height: 84px; margin: 0 auto 28px; border-radius: 50%; background: linear-gradient(135deg, var(--color-bg-soft) 0%, var(--color-bg-deep) 100%); display: flex; align-items: center; justify-content: center; border: 1px solid var(--color-gold); position: relative; }
+.thanks__icon::after { content: ""; position: absolute; inset: -10px; border-radius: 50%; border: 1px solid var(--color-gold-light); opacity: 0.5; }
+.thanks__icon svg { width: 36px; height: 36px; stroke: var(--color-accent); fill: none; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.thanks__title { font-family: var(--font-mincho); font-size: 26px; letter-spacing: 0.18em; margin-bottom: 10px; font-weight: 600; }
+.thanks__title-en { font-family: var(--font-en); font-style: italic; color: var(--color-accent); letter-spacing: 0.22em; font-size: 17px; margin-bottom: 32px; display: block; font-weight: 500; }
+.thanks p { margin-bottom: 16px; font-family: var(--font-mincho); letter-spacing: 0.04em; font-size: 16px; line-height: 2; }
+.thanks .actions::before { display: none; }
+.hidden { display: none !important; }
+
+.footer { background: #2b1f1a; color: #e3d5c2; padding: 44px 24px; text-align: center; font-family: var(--font-en); font-size: 14px; letter-spacing: 0.18em; }
+.footer__mark { font-family: var(--font-mincho); font-size: 13px; letter-spacing: 0.4em; color: #b09a82; margin-bottom: 10px; }
+
+@media (max-width: 700px) {
+  body { font-size: 16px; }
+  .page-head { padding: 70px 22px 64px; }
+  .page-head__mark { font-size: 48px; }
+  main { padding: 60px 16px 80px; }
+  .form-wrap { padding: 56px 22px; }
+  .form-wrap::before, .form-wrap::after, .form-wrap .corner-tr, .form-wrap .corner-br { width: 18px; height: 18px; }
+  .form-wrap::before { top: 8px; left: 8px; }
+  .form-wrap::after { bottom: 8px; left: 8px; }
+  .form-wrap .corner-tr { top: 8px; right: 8px; }
+  .form-wrap .corner-br { bottom: 8px; right: 8px; }
+  .row { grid-template-columns: 1fr; gap: 0; }
+  .actions { display: flex; flex-direction: column; gap: 14px; }
+  .btn { padding: 18px 36px; font-size: 16px; letter-spacing: 0.22em; }
+  .form-section__title { font-size: 19px; }
+  .radio-group label, .checkbox-group label { padding: 12px 18px; font-size: 15px; }
+  .radio-group--vertical label { padding: 16px 18px; }
+  .input, .select, .textarea { font-size: 16px; padding: 14px; }
+}
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={corePlugins:{preflight:false}}</script>
+</head>
+<body>
+
+<header class="header">
+  <div class="header__inner">
+    <a href="index.html" class="header__logo">
+      <span class="header__logo-en">Koimari</span>
+      <span class="header__logo-jp">こ い ま り</span>
+    </a>
+    <a href="index.html" class="back-link">← トップへ戻る</a>
+  </div>
+</header>
+
+<div class="page-head">
+  <div class="page-head__inner">
+    <div class="page-head__mark">℘</div>
+    <span class="page-head__en">Experience Programs</span>
+    <h1 class="page-head__title">体験プログラム応募</h1>
+    <p class="page-head__lead">
+      お子様の一日店長体験、中高生の職業体験、製菓訓練・研修にご応募いただけます。<br>
+      お申し込み内容を確認次第、当店よりご連絡を差し上げます。
+    </p>
+  </div>
+</div>
+
+<main>
+  <div class="form-wrap">
+    <span class="corner-tr"></span><span class="corner-br"></span>
+
+    <form id="experienceForm" novalidate>
+      <div class="form-section">
+        <h2 class="form-section__title">ご希望のプログラム<span class="form-section__num">01</span></h2>
+
+        <div class="field">
+          <label class="field__label">プログラム種別 <span class="req">必須</span></label>
+          <div class="radio-group radio-group--vertical">
+            <label>
+              <input type="radio" name="program" value="一日店長体験">
+              <span>お子様 一日店長体験
+                <span class="opt-detail">小学1〜6年生対象 / 約2時間 / 3,000円(材料費込)</span>
+              </span>
+            </label>
+            <label>
+              <input type="radio" name="program" value="中高生職業体験">
+              <span>中高生 職業体験
+                <span class="opt-detail">中学生・高校生対象 / 半日〜1日 / 無料</span>
+              </span>
+            </label>
+            <label>
+              <input type="radio" name="program" value="訓練・研修">
+              <span>製菓 訓練・研修
+                <span class="opt-detail">専門学生・社会人対象 / 1週間〜 / 要相談</span>
+              </span>
+            </label>
+          </div>
+          <span class="error" data-for="program"></span>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="preferredDate">希望日 <span class="opt">任意</span></label>
+            <input type="date" id="preferredDate" name="preferredDate" class="input">
+            <span class="field__hint">第1希望のお日にちをご記入ください</span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="preferredDate2">希望日(第2) <span class="opt">任意</span></label>
+            <input type="date" id="preferredDate2" name="preferredDate2" class="input">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="form-section__title">参加者情報<span class="form-section__num">02</span></h2>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="participantName">お名前 <span class="req">必須</span></label>
+            <input type="text" id="participantName" name="participantName" class="input">
+            <span class="error" data-for="participantName"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="participantFurigana">ふりがな <span class="req">必須</span></label>
+            <input type="text" id="participantFurigana" name="participantFurigana" class="input" placeholder="ひらがなでご記入ください">
+            <span class="error" data-for="participantFurigana"></span>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="grade">学年・年齢 <span class="req">必須</span></label>
+            <input type="text" id="grade" name="grade" class="input" placeholder="例: 小学3年生 / 中学2年生 / 18歳">
+            <span class="error" data-for="grade"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="school">学校名 <span class="opt">任意</span></label>
+            <input type="text" id="school" name="school" class="input" placeholder="例: 〇〇小学校">
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label">アレルギー <span class="opt">任意</span></label>
+          <div class="checkbox-group">
+            <label><input type="checkbox" name="allergy" value="卵"> 卵</label>
+            <label><input type="checkbox" name="allergy" value="乳"> 乳</label>
+            <label><input type="checkbox" name="allergy" value="小麦"> 小麦</label>
+            <label><input type="checkbox" name="allergy" value="ナッツ類"> ナッツ類</label>
+            <label><input type="checkbox" name="allergy" value="その他"> その他</label>
+          </div>
+          <span class="field__hint">食材を扱うため、アレルギーがございましたらご記入ください</span>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2 class="form-section__title">保護者・ご連絡先<span class="form-section__num">03</span></h2>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="guardianName">保護者氏名 <span class="req">必須</span></label>
+            <input type="text" id="guardianName" name="guardianName" class="input" placeholder="ご本人が18歳以上の場合はご本人氏名">
+            <span class="error" data-for="guardianName"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="relation">参加者との関係 <span class="opt">任意</span></label>
+            <select id="relation" name="relation" class="select">
+              <option value="">選択してください</option>
+              <option value="父">父</option><option value="母">母</option>
+              <option value="祖父母">祖父母</option><option value="本人">本人</option>
+              <option value="教員">教員(学校引率)</option><option value="その他">その他</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="tel">電話番号 <span class="req">必須</span></label>
+            <input type="tel" id="tel" name="tel" class="input" autocomplete="tel" placeholder="例: 090-1234-5678">
+            <span class="error" data-for="tel"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="email">メールアドレス <span class="req">必須</span></label>
+            <input type="email" id="email" name="email" class="input" autocomplete="email" placeholder="例: name@example.com">
+            <span class="error" data-for="email"></span>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="motivation">志望動機・お聞きしたいこと <span class="opt">任意</span></label>
+          <textarea id="motivation" name="motivation" class="textarea" placeholder="ご応募のきっかけや、当日聞いてみたいことなどがあればご記入ください"></textarea>
+        </div>
+      </div>
+
+      <div class="notice">
+        <strong>応募に関するご注意</strong>
+        <ul>
+          <li>お申し込み後、内容確認のため当店よりご連絡を差し上げます。</li>
+          <li>定員・営業状況によりご希望日に添えない場合がございます。</li>
+          <li>食材を扱うプログラムのため、当日の体調管理にご配慮ください。</li>
+          <li>送信いただいた個人情報は、応募対応のみに使用いたします。</li>
+        </ul>
+      </div>
+
+      <div class="actions"><button type="submit" class="btn">応募する</button></div>
+    </form>
+
+    <div id="thanksScreen" class="thanks hidden">
+      <div class="thanks__icon"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 7"/></svg></div>
+      <span class="thanks__title-en">Thank you</span>
+      <h2 class="thanks__title">ご応募ありがとうございました</h2>
+      <p>応募内容を承りました。</p>
+      <p>確認のため、当店よりお電話またはメールにて<br>ご連絡を差し上げますので、しばらくお待ちくださいませ。</p>
+      <div class="actions"><a href="index.html" class="btn">トップへ戻る</a></div>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer__mark">こ い ま り</div>
+  © 2026 Koimari. All Rights Reserved.
+</footer>
+
+<script>
+const form = document.getElementById("experienceForm");
+const thanks = document.getElementById("thanksScreen");
+
+const urlParams = new URLSearchParams(window.location.search);
+const typeParam = urlParams.get("type");
+const typeMap = { "ichinichi-tencho": "一日店長体験", "shokugyo-taiken": "中高生職業体験", "kunren-kenshu": "訓練・研修" };
+if (typeParam && typeMap[typeParam]) {
+  const radio = document.querySelector(`input[name="program"][value="${typeMap[typeParam]}"]`);
+  if (radio) radio.checked = true;
+}
+
+function setError(name, msg) {
+  const el = document.querySelector(`[data-for="${name}"]`);
+  const input = document.querySelector(`[name="${name}"]`);
+  if (el) el.textContent = msg || "";
+  if (input && input.classList) {
+    if (msg) input.classList.add("invalid");
+    else input.classList.remove("invalid");
+  }
+}
+
+function validate(d) {
+  let ok = true;
+  ["program","participantName","participantFurigana","grade","guardianName","tel","email"].forEach(k => setError(k, ""));
+  if (!d.program) { setError("program", "プログラムをお選びください"); ok = false; }
+  if (!d.participantName.trim()) { setError("participantName", "お名前をご入力ください"); ok = false; }
+  if (!d.participantFurigana.trim()) { setError("participantFurigana", "ふりがなをご入力ください"); ok = false; }
+  else if (!/^[ぁ-んー\s　]+$/.test(d.participantFurigana)) { setError("participantFurigana", "ひらがなでご入力ください"); ok = false; }
+  if (!d.grade.trim()) { setError("grade", "学年・年齢をご入力ください"); ok = false; }
+  if (!d.guardianName.trim()) { setError("guardianName", "保護者氏名をご入力ください"); ok = false; }
+  if (!d.tel.trim()) { setError("tel", "電話番号をご入力ください"); ok = false; }
+  else if (!/^[\d\-+()\s]{8,}$/.test(d.tel)) { setError("tel", "正しい電話番号をご入力ください"); ok = false; }
+  if (!d.email.trim()) { setError("email", "メールアドレスをご入力ください"); ok = false; }
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) { setError("email", "正しいメールアドレスをご入力ください"); ok = false; }
+  return ok;
+}
+
+// ===== メール通知設定 =====
+// Formspreeに登録後、ここに発行されたエンドポイントを設定してください
+// 例: "https://formspree.io/f/xxxxxxxx"
+const FORMSPREE_ENDPOINT = "";
+
+async function sendToFormspree(data) {
+  if (!FORMSPREE_ENDPOINT) return true;
+  try {
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      body: JSON.stringify({
+        _subject: `【こいまり】体験プログラム応募: ${data.participantName} 様 (${data.program})`,
+        _replyto: data.email,
+        プログラム: data.program,
+        希望日1: data.preferredDate, 希望日2: data.preferredDate2,
+        参加者氏名: data.participantName, ふりがな: data.participantFurigana,
+        学年年齢: data.grade, 学校: data.school,
+        アレルギー: (data.allergy||[]).join(", "),
+        保護者氏名: data.guardianName, 続柄: data.relation,
+        電話番号: data.tel, メールアドレス: data.email,
+        志望動機: data.motivation,
+        受信日時: data.submittedAt
+      })
+    });
+    return res.ok;
+  } catch (err) { console.warn("Formspree送信失敗:", err); return false; }
+}
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const fd = new FormData(form);
+  const data = {
+    program: fd.get("program") || "",
+    preferredDate: fd.get("preferredDate") || "", preferredDate2: fd.get("preferredDate2") || "",
+    participantName: fd.get("participantName") || "", participantFurigana: fd.get("participantFurigana") || "",
+    grade: fd.get("grade") || "", school: fd.get("school") || "",
+    allergy: fd.getAll("allergy"),
+    guardianName: fd.get("guardianName") || "", relation: fd.get("relation") || "",
+    tel: fd.get("tel") || "", email: fd.get("email") || "",
+    motivation: fd.get("motivation") || "",
+    submittedAt: new Date().toISOString()
+  };
+  if (!validate(data)) {
+    const firstInvalid = document.querySelector(".invalid");
+    if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
+    return;
+  }
+  const btn = form.querySelector("button[type=submit]");
+  const originalText = btn.textContent;
+  btn.disabled = true; btn.textContent = "送信中...";
+
+  await sendToFormspree(data);
+  try {
+    const list = JSON.parse(localStorage.getItem("koimari_experiences") || "[]");
+    list.unshift(data);
+    localStorage.setItem("koimari_experiences", JSON.stringify(list.slice(0, 500)));
+  } catch (err) { console.warn(err); }
+
+  btn.disabled = false; btn.textContent = originalText;
+  form.classList.add("hidden");
+  thanks.classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+form.querySelectorAll(".input").forEach(el => {
+  el.addEventListener("input", () => {
+    if (el.classList.contains("invalid")) {
+      el.classList.remove("invalid");
+      const err = document.querySelector(`[data-for="${el.name}"]`);
+      if (err) err.textContent = "";
+    }
+  });
+});
+form.querySelectorAll('input[name="program"]').forEach(el => {
+  el.addEventListener("change", () => setError("program", ""));
+});
+</script>
+</body>
+</html>

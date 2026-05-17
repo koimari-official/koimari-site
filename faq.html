@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>よくあるご質問｜こいまり</title>
+<meta name="description" content="こいまりへのよくあるご質問にお答えしております。賞味期限・配送・アレルギー対応など、お問合せの多い内容をまとめました。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--color-bg:#fbf7f2;--color-bg-soft:#f5ede2;--color-paper:#fefcf8;--color-text:#2e2118;--color-text-soft:#5a4538;--color-accent:#b03b48;--color-gold:#a98554;--color-line:#d8c8b3;--font-mincho:"Shippori Mincho",serif;--font-sans:"Noto Sans JP",sans-serif;--font-en:"Cormorant Garamond",serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.95;font-size:17px;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.header{background:var(--color-paper);border-bottom:1px solid var(--color-line)}
+.header__inner{max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.header__logo{display:flex;flex-direction:column;line-height:1}
+.header__logo-en{font-family:var(--font-en);font-size:32px;font-style:italic;letter-spacing:.18em;color:var(--color-accent);font-weight:500}
+.header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:var(--color-text-soft);margin-top:8px}
+.back-link{font-family:var(--font-mincho);font-size:16px;color:var(--color-text-soft);letter-spacing:.08em;font-weight:500}
+.back-link:hover{color:var(--color-accent)}
+.page-head{position:relative;text-align:center;padding:90px 24px 80px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#efe3d2 100%);overflow:hidden}
+.page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none;opacity:.7}
+.page-head__inner{position:relative;z-index:1}
+.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:17px;display:inline-block;margin-bottom:14px;font-weight:500}
+.page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
+.page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
+.page-head__lead{color:var(--color-text);font-size:16px;font-family:var(--font-mincho);letter-spacing:.04em;line-height:2}
+main{max-width:880px;margin:0 auto;padding:80px 24px 100px}
+.faq-cat{margin-bottom:60px}
+.faq-cat__title{font-family:var(--font-mincho);font-size:22px;letter-spacing:.12em;margin-bottom:24px;color:var(--color-text);font-weight:600;display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--color-line)}
+.faq-cat__title::before{content:"";display:inline-block;width:6px;height:22px;background:linear-gradient(180deg,var(--color-accent) 0%,var(--color-gold) 100%)}
+.faq-item{background:var(--color-paper);margin-bottom:14px;border:1px solid var(--color-line);transition:border-color .25s}
+.faq-item:hover{border-color:var(--color-gold)}
+.faq-item__q{padding:24px 28px;display:flex;align-items:flex-start;gap:18px;cursor:pointer;font-family:var(--font-mincho);font-size:17px;letter-spacing:.05em;font-weight:600;line-height:1.7;user-select:none;transition:background .2s}
+.faq-item__q:hover{background:var(--color-bg-soft)}
+.faq-item__q::before{content:"Q";font-family:var(--font-en);font-style:italic;color:var(--color-accent);font-size:24px;line-height:1;flex-shrink:0;margin-top:-2px;font-weight:500}
+.faq-item__q::after{content:"+";margin-left:auto;color:var(--color-gold);font-size:24px;font-weight:300;line-height:1;flex-shrink:0;transition:transform .25s}
+.faq-item.open .faq-item__q::after{transform:rotate(45deg)}
+.faq-item__a{display:none;padding:0 28px 28px 70px;font-size:16px;line-height:2;color:var(--color-text)}
+.faq-item.open .faq-item__a{display:block}
+.faq-item__a::before{content:"A";font-family:var(--font-en);font-style:italic;color:var(--color-gold);font-size:22px;display:block;margin-left:-32px;float:left;font-weight:500}
+.empty{background:var(--color-paper);padding:60px 20px;text-align:center;color:var(--color-text-soft);border:1px dashed var(--color-line)}
+.cta{margin-top:80px;text-align:center;background:var(--color-paper);padding:50px 30px;border:1px solid var(--color-line)}
+.cta h3{font-family:var(--font-mincho);font-size:21px;letter-spacing:.12em;margin-bottom:12px;font-weight:600}
+.cta p{color:var(--color-text-soft);font-size:16px;margin-bottom:28px;line-height:1.9}
+.btn{display:inline-block;padding:18px 46px;font-family:var(--font-mincho);font-size:16px;letter-spacing:.18em;color:#fff;background:var(--color-accent);font-weight:500;transition:background .2s}
+.btn:hover{background:#8a2d38}
+.footer{background:#2b1f1a;color:#e3d5c2;padding:44px 24px;text-align:center;font-family:var(--font-en);font-size:14px;letter-spacing:.18em}
+.footer__mark{font-family:var(--font-mincho);font-size:13px;letter-spacing:.4em;color:#b09a82;margin-bottom:10px}
+@media(max-width:700px){body{font-size:16px}.page-head{padding:70px 22px 64px}main{padding:60px 16px 80px}.faq-item__q{padding:20px 22px;font-size:16px;gap:14px}.faq-item__a{padding:0 22px 24px 60px}.faq-item__q::before{font-size:20px}}
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={corePlugins:{preflight:false}}</script>
+</head>
+<body>
+<header class="header">
+  <div class="header__inner">
+    <a href="index.html" class="header__logo">
+      <span class="header__logo-en">Koimari</span>
+      <span class="header__logo-jp">こ い ま り</span>
+    </a>
+    <a href="index.html" class="back-link">← トップへ戻る</a>
+  </div>
+</header>
+<div class="page-head">
+  <div class="page-head__inner">
+    <span class="page-head__en">Frequently Asked Questions</span>
+    <h1 class="page-head__title">よくあるご質問</h1>
+    <p class="page-head__lead">
+      お客様からよくお寄せいただくご質問をまとめております。<br>
+      その他のお問合せはお気軽にご連絡ください。
+    </p>
+  </div>
+</div>
+<main>
+  <div id="faqContainer"></div>
+  <div class="cta">
+    <h3>お問合せはこちら</h3>
+    <p>こちらに掲載のないご質問は、お問合せフォームよりお気軽にお寄せください。</p>
+    <a href="reservation.html" class="btn">お問合せフォーム</a>
+  </div>
+</main>
+<footer class="footer">
+  <div class="footer__mark">こ い ま り</div>
+  © 2026 Koimari. All Rights Reserved.
+</footer>
+
+<script>
+const DEFAULT_FAQ = [
+  { category: "ご予約について", items: [
+    { q: "ホールケーキの予約はいつまでに必要ですか？", a: "ホールケーキは原則として引き取り希望日の3日前までにご予約をお願いしております。混雑時期（クリスマス・母の日・お子様の誕生日シーズンなど）はお早めのご予約をおすすめいたします。" },
+    { q: "予約のキャンセルはできますか？", a: "引き取り希望日の2日前までにご連絡いただければキャンセル可能です。それ以降のキャンセルは商品代金の全額をご負担いただく場合がございますので、あらかじめご了承ください。" },
+    { q: "メッセージプレートは無料ですか？", a: "はい、ホールケーキにはメッセージプレートを無料でお付けしております。15文字以内（記号含む）でご記入ください。漢字・絵文字には対応していない場合がございますので、ご相談ください。" }
+  ]},
+  { category: "商品・アレルギーについて", items: [
+    { q: "賞味期限はどのくらいですか？", a: "ケーキ類は基本的にお引き渡し当日中、焼き菓子は5日〜2週間程度（商品により異なります）です。冷蔵保存をお願いしております。" },
+    { q: "アレルギー対応はしていただけますか？", a: "事前にお申し出いただければ、可能な範囲で対応いたします。ただし、同一の厨房・器具で複数の食材を扱っているため、特定原材料の完全な除去は保証できません。重度のアレルギーをお持ちの方はご相談ください。" },
+    { q: "ヴィーガン・グルテンフリー対応はありますか？", a: "現在は通常メニューのみのご提供となります。今後の商品開発にてご要望にお応えできるよう検討中です。" }
+  ]},
+  { category: "お引き渡し・配送について", items: [
+    { q: "宅配は対応していますか？", a: "店頭でのお引き渡しを基本としておりますが、焼き菓子のギフトについては配送も承っております。生ケーキの配送は品質保持の都合上、お受けしておりません。" },
+    { q: "駐車場はありますか？", a: "店舗前に2台分の駐車場をご用意しております。混雑時はご利用いただけない場合もございますので、近隣のコインパーキングもご案内いたします。" }
+  ]},
+  { category: "体験プログラムについて", items: [
+    { q: "体験プログラムは何歳から参加できますか？", a: "「お子様 一日店長体験」は小学1年生〜6年生が対象です。中学生・高校生は「中高生 職業体験」、それ以上の方は「製菓 訓練・研修」をご検討ください。" },
+    { q: "体験当日の持ち物は？", a: "エプロン・三角巾（バンダナでも可）・タオルをご持参ください。長い髪はまとめてお越しください。詳細はご予約確定後にお送りいたします。" }
+  ]}
+];
+
+function loadFaq() {
+  try { const raw = localStorage.getItem("koimari_faq"); if (raw) return JSON.parse(raw); } catch(e){}
+  return DEFAULT_FAQ;
+}
+function escape(s){ return String(s||"").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+
+const data = loadFaq();
+const container = document.getElementById("faqContainer");
+if (!data.length || !data.some(c => c.items && c.items.length)) {
+  container.innerHTML = '<div class="empty">よくあるご質問は現在準備中です。</div>';
+} else {
+  data.forEach(cat => {
+    if (!cat.items || !cat.items.length) return;
+    const section = document.createElement("section");
+    section.className = "faq-cat";
+    let html = `<h2 class="faq-cat__title">${escape(cat.category)}</h2>`;
+    cat.items.forEach(it => {
+      html += `<div class="faq-item"><div class="faq-item__q">${escape(it.q)}</div><div class="faq-item__a">${escape(it.a).replace(/\n/g,"<br>")}</div></div>`;
+    });
+    section.innerHTML = html;
+    container.appendChild(section);
+  });
+  document.querySelectorAll(".faq-item__q").forEach(q => {
+    q.addEventListener("click", () => q.parentElement.classList.toggle("open"));
+  });
+}
+</script>
+</body>
+</html>

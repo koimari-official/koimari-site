@@ -1,0 +1,1857 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>管理ページ｜こいまり</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --color-bg: #fbf7f2;
+  --color-bg-soft: #f5ede2;
+  --color-text: #2e2118;
+  --color-text-soft: #5a4538;
+  --color-accent: #b03b48;
+  --color-accent-dark: #8a2d38;
+  --color-gold: #a98554;
+  --color-line: #d8c8b3;
+  --color-success: #5d8a4e;
+  --color-info: #4a6f9c;
+  --font-mincho: "Shippori Mincho", serif;
+  --font-sans: "Noto Sans JP", "ヒラギノ角ゴ ProN", sans-serif;
+  --font-en: "Cormorant Garamond", serif;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); color: var(--color-text); background: var(--color-bg); line-height: 1.7; font-size: 15px; }
+a { color: inherit; text-decoration: none; }
+
+/* ===== Login ===== */
+.login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.login__box { background: #fff; padding: 60px 44px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 8px 28px rgba(58,42,35,0.08); }
+.login__logo-en { font-family: var(--font-en); font-size: 36px; font-style: italic; color: var(--color-accent); letter-spacing: 0.18em; font-weight: 500; }
+.login__logo-jp { font-family: var(--font-mincho); font-size: 14px; letter-spacing: 0.4em; color: var(--color-text-soft); margin: 8px 0 32px; }
+.login__title { font-family: var(--font-mincho); font-size: 18px; letter-spacing: 0.12em; margin-bottom: 28px; color: var(--color-text-soft); font-weight: 600; }
+.input { width: 100%; padding: 14px 16px; border: 1px solid var(--color-line); background: #fdfaf6; font-family: inherit; font-size: 16px; color: var(--color-text); margin-bottom: 18px; }
+.input:focus { outline: none; border-color: var(--color-accent); background: #fff; }
+.btn { display: inline-block; padding: 14px 38px; font-family: var(--font-mincho); font-size: 15px; letter-spacing: 0.18em; color: #fff; background: var(--color-accent); border: none; cursor: pointer; transition: background 0.2s; font-weight: 500; }
+.btn:hover { background: var(--color-accent-dark); }
+.btn--small { padding: 9px 22px; font-size: 13px; letter-spacing: 0.12em; }
+.btn--ghost { background: transparent; color: var(--color-text-soft); border: 1px solid var(--color-line); }
+.btn--ghost:hover { background: var(--color-bg-soft); color: var(--color-text); }
+.btn--danger { background: #b94a3a; }
+.btn--danger:hover { background: #973a2d; }
+.login__error { color: var(--color-accent); font-size: 14px; margin-top: 12px; min-height: 22px; font-weight: 500; }
+.login__hint { font-size: 13px; color: var(--color-text-soft); margin-top: 22px; line-height: 1.7; }
+
+/* ===== Admin shell ===== */
+.admin-header { background: #2b1f1a; color: #fff; padding: 18px 26px; display: flex; align-items: center; justify-content: space-between; }
+.admin-header__logo { font-family: var(--font-en); font-size: 24px; font-style: italic; letter-spacing: 0.15em; color: #f5d6a8; font-weight: 500; }
+.admin-header__logo span { font-family: var(--font-mincho); font-size: 13px; letter-spacing: 0.3em; margin-left: 16px; color: #d6c8b9; }
+.admin-header__actions { display: flex; gap: 10px; }
+.admin-header__actions a, .admin-header__actions button { font-size: 13px; padding: 9px 18px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer; font-family: inherit; letter-spacing: 0.08em; transition: background 0.2s; }
+.admin-header__actions a:hover, .admin-header__actions button:hover { background: rgba(255,255,255,0.2); }
+
+main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
+
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--color-line); margin-bottom: 32px; overflow-x: auto; }
+.tab { padding: 16px 22px; font-family: var(--font-mincho); font-size: 15px; letter-spacing: 0.08em; background: none; border: none; color: var(--color-text-soft); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.2s, border-color 0.2s; font-weight: 500; }
+.tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.tab:hover { color: var(--color-accent); }
+.tab__count { display: inline-block; margin-left: 8px; font-family: var(--font-en); background: var(--color-accent); color: #fff; padding: 2px 9px; border-radius: 10px; font-size: 12px; letter-spacing: 0; font-weight: 500; }
+
+.panel { display: none; }
+.panel.active { display: block; }
+.panel__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 14px; }
+.panel__title { font-family: var(--font-mincho); font-size: 22px; letter-spacing: 0.1em; font-weight: 600; }
+.panel__desc { font-size: 14px; color: var(--color-text-soft); margin-bottom: 26px; line-height: 1.8; }
+
+.toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--color-success); color: #fff; padding: 14px 36px; font-size: 14px; letter-spacing: 0.08em; opacity: 0; transition: all 0.3s; z-index: 1000; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== Image management ===== */
+.img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; margin-bottom: 26px; }
+.img-item { background: #fff; border: 1px solid var(--color-line); padding: 18px; }
+.img-item__preview { aspect-ratio: 4/3; background: var(--color-bg-soft); margin-bottom: 14px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--color-text-soft); font-size: 13px; }
+.img-item__preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.img-item__field { margin-bottom: 12px; }
+.img-item__field label { display: block; font-size: 12px; color: var(--color-text-soft); margin-bottom: 5px; letter-spacing: 0.08em; font-weight: 500; }
+.img-item__field input, .img-item__field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--color-line); background: #fdfaf6; font-family: inherit; font-size: 14px; resize: vertical; }
+.img-item__field input:focus, .img-item__field textarea:focus { outline: none; border-color: var(--color-accent); }
+.img-item__actions { display: flex; gap: 10px; margin-top: 12px; }
+.img-item__actions button { flex: 1; padding: 10px; font-size: 12px; letter-spacing: 0.08em; font-family: var(--font-mincho); cursor: pointer; border: 1px solid var(--color-line); background: var(--color-bg-soft); transition: background 0.2s; font-weight: 500; }
+.img-item__actions button:hover { background: #ebe0cf; }
+.img-item__actions .file-btn { background: #fff; position: relative; overflow: hidden; }
+.img-item__actions .file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+.save-bar { position: sticky; bottom: 0; background: #fff; border-top: 1px solid var(--color-line); padding: 18px 26px; display: flex; justify-content: flex-end; gap: 14px; margin: 32px -26px -80px; box-shadow: 0 -4px 16px rgba(0,0,0,0.04); z-index: 50; }
+
+/* ===== Tables ===== */
+.res-table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
+.res-table th, .res-table td { padding: 14px; border-bottom: 1px solid var(--color-line); text-align: left; vertical-align: top; line-height: 1.7; }
+.res-table th { font-family: var(--font-mincho); background: var(--color-bg-soft); font-weight: 600; letter-spacing: 0.04em; }
+.res-table tr:hover { background: var(--color-bg-soft); }
+.res-table .small { font-size: 12px; color: #888; }
+.empty { background: #fff; padding: 70px 20px; text-align: center; color: var(--color-text-soft); font-size: 15px; border: 1px dashed var(--color-line); }
+
+/* ===== Calendar ===== */
+.cal-wrap { background: #fff; padding: 28px; border: 1px solid var(--color-line); }
+.cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+.cal-nav { display: flex; align-items: center; gap: 16px; }
+.cal-nav button { width: 38px; height: 38px; background: var(--color-bg-soft); border: 1px solid var(--color-line); cursor: pointer; font-size: 16px; transition: all 0.2s; }
+.cal-nav button:hover { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.cal-title { font-family: var(--font-mincho); font-size: 22px; letter-spacing: 0.08em; min-width: 200px; text-align: center; font-weight: 600; }
+.cal-legend { display: flex; gap: 18px; font-size: 13px; color: var(--color-text-soft); flex-wrap: wrap; }
+.cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.cal-legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.cal-dow { text-align: center; padding: 10px 0; font-family: var(--font-mincho); font-size: 13px; font-weight: 600; background: var(--color-bg-soft); letter-spacing: 0.05em; }
+.cal-dow.sat { color: var(--color-info); }
+.cal-dow.sun { color: var(--color-accent); }
+.cal-cell { aspect-ratio: 1/0.85; padding: 8px; background: #fdfaf6; border: 1px solid var(--color-line); display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s; min-height: 90px; }
+.cal-cell:hover { background: #fff; border-color: var(--color-gold); }
+.cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
+.cal-cell.today { background: rgba(176,59,72,0.06); border-color: var(--color-accent); }
+.cal-cell.holiday .cal-day { color: var(--color-accent); }
+.cal-cell.saturday .cal-day { color: var(--color-info); }
+.cal-day { font-family: var(--font-en); font-size: 18px; font-weight: 500; margin-bottom: 4px; }
+.cal-badges { display: flex; flex-direction: column; gap: 3px; flex: 1; overflow: hidden; }
+.cal-badge { font-size: 11px; padding: 2px 6px; border-radius: 3px; line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal-badge--res { background: rgba(176,59,72,0.12); color: var(--color-accent-dark); }
+.cal-badge--exp { background: rgba(169,133,84,0.18); color: #6a4f2c; }
+
+/* Calendar detail modal */
+.cal-detail { margin-top: 24px; background: var(--color-bg-soft); padding: 20px 24px; border-left: 4px solid var(--color-accent); display: none; }
+.cal-detail.show { display: block; }
+.cal-detail h3 { font-family: var(--font-mincho); font-size: 18px; margin-bottom: 14px; font-weight: 600; }
+.cal-detail__list { list-style: none; }
+.cal-detail__list li { padding: 10px 0; border-bottom: 1px dashed var(--color-line); font-size: 14px; }
+.cal-detail__list li:last-child { border-bottom: none; }
+.cal-detail__type { display: inline-block; font-size: 11px; padding: 2px 8px; margin-right: 10px; font-weight: 500; }
+.cal-detail__type--res { background: var(--color-accent); color: #fff; }
+.cal-detail__type--exp { background: var(--color-gold); color: #fff; }
+
+/* ===== Statistics ===== */
+.stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 36px; }
+.stat-card { background: #fff; padding: 24px 26px; border: 1px solid var(--color-line); }
+.stat-card__label { font-family: var(--font-mincho); font-size: 13px; color: var(--color-text-soft); letter-spacing: 0.08em; margin-bottom: 8px; }
+.stat-card__value { font-family: var(--font-en); font-size: 36px; color: var(--color-accent); font-weight: 500; line-height: 1.1; }
+.stat-card__unit { font-family: var(--font-mincho); font-size: 14px; color: var(--color-text-soft); margin-left: 4px; }
+.stat-card__sub { font-size: 12px; color: var(--color-text-soft); margin-top: 6px; }
+
+.chart-wrap { background: #fff; padding: 26px 28px; border: 1px solid var(--color-line); margin-bottom: 24px; }
+.chart-title { font-family: var(--font-mincho); font-size: 17px; letter-spacing: 0.08em; margin-bottom: 6px; font-weight: 600; }
+.chart-desc { font-size: 13px; color: var(--color-text-soft); margin-bottom: 18px; }
+.chart-canvas-wrap { position: relative; height: 320px; }
+
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+
+@media (max-width: 900px) {
+  main { padding: 30px 16px 80px; }
+  .admin-header__logo span { display: none; }
+  .save-bar { padding: 14px 18px; margin: 24px -16px -80px; }
+  .stats-row { grid-template-columns: 1fr; }
+  .cal-cell { min-height: 70px; padding: 5px; }
+  .cal-day { font-size: 15px; }
+  .cal-badge { font-size: 10px; padding: 1px 4px; }
+  .cal-grid { gap: 2px; }
+  .cal-dow { font-size: 11px; padding: 6px 0; }
+  .stat-card__value { font-size: 28px; }
+  .res-table { font-size: 13px; }
+  .res-table th, .res-table td { padding: 10px; }
+}
+/* ===== i18n tab styles ===== */
+.section-title { font-family: var(--font-mincho); font-size: 20px; letter-spacing: 0.1em; font-weight: 600; margin-bottom: 10px; }
+.section-desc { font-size: 14px; color: var(--color-text-soft); margin-bottom: 24px; line-height: 1.8; }
+.card { background: #fff; border: 1px solid var(--color-line); margin-bottom: 24px; }
+.card__head { font-family: var(--font-mincho); font-size: 15px; font-weight: 600; padding: 14px 20px; border-bottom: 1px solid var(--color-line); letter-spacing: 0.06em; background: var(--color-bg-soft); }
+.card__body { padding: 20px; }
+</style>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={corePlugins:{preflight:false}}</script>
+</head>
+<body>
+
+<!-- ===== Login ===== -->
+<div class="login" id="loginScreen">
+  <div class="login__box">
+    <div class="login__logo-en">Koimari</div>
+    <div class="login__logo-jp">こ い ま り</div>
+    <div class="login__title">管理ページ ログイン</div>
+    <input type="password" id="loginPass" class="input" placeholder="パスワード" autocomplete="current-password">
+    <button class="btn" id="loginBtn" style="width:100%;">ログイン</button>
+    <div class="login__error" id="loginError"></div>
+    <p class="login__hint">※ 初期パスワード: <code>koimari2026</code><br>(本番運用ではサーバー認証に置き換えてください)</p>
+  </div>
+</div>
+
+<!-- ===== Admin ===== -->
+<div id="adminScreen" style="display:none;">
+  <header class="admin-header">
+    <div class="admin-header__logo">Koimari <span>管理ページ</span></div>
+    <div class="admin-header__actions">
+      <a href="index.html" target="_blank">サイトを表示 ↗</a>
+      <button id="logoutBtn">ログアウト</button>
+    </div>
+  </header>
+
+  <main>
+    <nav class="tabs">
+      <button class="tab active" data-panel="calendar">予約カレンダー</button>
+      <button class="tab" data-panel="stats">統計・分析</button>
+      <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span></button>
+      <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
+      <button class="tab" data-panel="corporate">法人ご相談 <span class="tab__count" id="corpCount">0</span></button>
+      <button class="tab" data-panel="news">お知らせ</button>
+      <button class="tab" data-panel="spotlight">今月の主役</button>
+      <button class="tab" data-panel="instagram">Instagram投稿</button>
+      <button class="tab" data-panel="statsTop">数字で見る</button>
+      <button class="tab" data-panel="holidays">営業日設定</button>
+      <button class="tab" data-panel="faq">FAQ管理</button>
+      <button class="tab" data-panel="galleryAdmin">ギャラリー</button>
+      <button class="tab" data-panel="voicesAdmin">お客様の声</button>
+      <button class="tab" data-panel="blogAdmin">ブログ</button>
+      <button class="tab" data-panel="hero">ヒーロー画像</button>
+      <button class="tab" data-panel="greeting">店舗紹介</button>
+      <button class="tab" data-panel="categories">カテゴリ画像</button>
+      <button class="tab" data-panel="recommended">おすすめ商品</button>
+      <button class="tab" data-panel="experiences">体験プログラム</button>
+      <button class="tab" data-panel="i18n">英語翻訳</button>
+    </nav>
+
+    <!-- ===== カレンダー ===== -->
+    <section class="panel active" id="panel-calendar">
+      <div class="panel__head">
+        <h2 class="panel__title">予約カレンダー</h2>
+      </div>
+      <p class="panel__desc">日別の予約・応募件数をカレンダーで確認できます。日付をクリックすると詳細が表示されます。</p>
+      <div class="cal-wrap">
+        <div class="cal-header">
+          <div class="cal-nav">
+            <button id="calPrev">◀</button>
+            <div class="cal-title" id="calTitle"></div>
+            <button id="calNext">▶</button>
+            <button id="calToday" class="btn btn--small btn--ghost" style="margin-left:8px;">今月</button>
+          </div>
+          <div class="cal-legend">
+            <span><i style="background:rgba(176,59,72,0.5);"></i>ご予約</span>
+            <span><i style="background:rgba(169,133,84,0.5);"></i>体験応募</span>
+          </div>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-detail" id="calDetail"></div>
+      </div>
+    </section>
+
+    <!-- ===== 統計・分析 ===== -->
+    <section class="panel" id="panel-stats">
+      <div class="panel__head"><h2 class="panel__title">統計・分析</h2></div>
+      <p class="panel__desc">予約数・販売数・ビュー数の推移をグラフで確認できます。データ分析にお役立てください。</p>
+
+      <div class="stats-summary" id="statsSummary"></div>
+
+      <div class="chart-wrap">
+        <div class="chart-title">月別予約推移</div>
+        <div class="chart-desc">過去12ヶ月の予約・応募件数の推移です</div>
+        <div class="chart-canvas-wrap"><canvas id="chartMonthly"></canvas></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="chart-wrap">
+          <div class="chart-title">ケーキ別販売数</div>
+          <div class="chart-desc">予約データに基づくケーキ種別の累計件数です</div>
+          <div class="chart-canvas-wrap"><canvas id="chartCake"></canvas></div>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-title">プログラム別応募数</div>
+          <div class="chart-desc">体験プログラムごとの累計応募件数です</div>
+          <div class="chart-canvas-wrap"><canvas id="chartProgram"></canvas></div>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <div class="chart-title">日別ビュー数（過去30日）</div>
+        <div class="chart-desc">トップページのアクセス推移です。※ 現在は同一ブラウザのアクセスのみ計測されます。本番サーバー連携後に全ユーザーのデータが集計されます。</div>
+        <div class="chart-canvas-wrap"><canvas id="chartViews"></canvas></div>
+      </div>
+
+      <div class="panel__head" style="margin-top:30px;">
+        <h2 class="panel__title" style="font-size:18px;">データ管理</h2>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn--small btn--ghost" id="exportAll">全データCSV出力</button>
+          <button class="btn btn--small btn--ghost" id="resetViews">ビュー数をリセット</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 予約一覧 ===== -->
+    <section class="panel" id="panel-reservations">
+      <div class="panel__head">
+        <h2 class="panel__title">予約・お問合せ一覧</h2>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn--small btn--ghost" id="exportRes">CSV出力</button>
+          <button class="btn btn--small btn--danger" id="clearRes">全削除</button>
+        </div>
+      </div>
+      <div id="reservationsArea"></div>
+    </section>
+
+    <!-- ===== 応募一覧 ===== -->
+    <section class="panel" id="panel-applications">
+      <div class="panel__head">
+        <h2 class="panel__title">体験プログラム応募一覧</h2>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn--small btn--ghost" id="exportExp">CSV出力</button>
+          <button class="btn btn--small btn--danger" id="clearExp">全削除</button>
+        </div>
+      </div>
+      <div id="applicationsArea"></div>
+    </section>
+
+    <!-- ===== 法人ご相談一覧 ===== -->
+    <section class="panel" id="panel-corporate">
+      <div class="panel__head">
+        <h2 class="panel__title">法人ご相談一覧</h2>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn--small btn--ghost" id="exportCorp">CSV出力</button>
+          <button class="btn btn--small btn--danger" id="clearCorp">全削除</button>
+        </div>
+      </div>
+      <div id="corporateArea"></div>
+    </section>
+
+    <!-- ===== 画像管理 (既存5タブ) ===== -->
+    <section class="panel" id="panel-hero">
+      <div class="panel__head"><h2 class="panel__title">ヒーロースライダー</h2><button class="btn btn--small" id="addHero">＋ スライドを追加</button></div>
+      <p class="panel__desc">トップページの大きなスライダー画像です。</p>
+      <div class="img-grid" id="heroGrid"></div>
+    </section>
+    <section class="panel" id="panel-greeting">
+      <div class="panel__head"><h2 class="panel__title">店舗紹介画像</h2></div>
+      <p class="panel__desc">「こいまりについて」セクションの1枚です。</p>
+      <div class="img-grid" id="greetingGrid"></div>
+    </section>
+    <section class="panel" id="panel-categories">
+      <div class="panel__head"><h2 class="panel__title">カテゴリ画像</h2><button class="btn btn--small" id="addCategory">＋ カテゴリを追加</button></div>
+      <p class="panel__desc">商品一覧セクションのカテゴリカードです。</p>
+      <div class="img-grid" id="categoriesGrid"></div>
+    </section>
+    <section class="panel" id="panel-recommended">
+      <div class="panel__head"><h2 class="panel__title">おすすめ商品</h2><button class="btn btn--small" id="addRecommended">＋ 商品を追加</button></div>
+      <p class="panel__desc">おすすめ商品セクションのケーキ画像です。</p>
+      <div class="img-grid" id="recommendedGrid"></div>
+    </section>
+    <section class="panel" id="panel-experiences">
+      <div class="panel__head"><h2 class="panel__title">体験プログラム</h2><button class="btn btn--small" id="addExperience">＋ プログラムを追加</button></div>
+      <p class="panel__desc">トップページに表示される体験プログラムの内容と画像を編集できます。</p>
+      <div class="img-grid" id="experiencesGrid"></div>
+    </section>
+
+    <!-- ===== お知らせ管理 ===== -->
+    <section class="panel" id="panel-news">
+      <div class="panel__head"><h2 class="panel__title">お知らせ管理</h2><button class="btn btn--small" id="addNews">＋ お知らせを追加</button></div>
+      <p class="panel__desc">トップページのお知らせ欄に表示される項目を編集できます。日付の新しい順に最大5件まで表示されます。</p>
+      <div id="newsList"></div>
+    </section>
+
+    <!-- ===== 今月の主役 ===== -->
+    <section class="panel" id="panel-spotlight">
+      <div class="panel__head"><h2 class="panel__title">今月の主役（特集）の管理</h2></div>
+      <p class="panel__desc">トップページに大きく掲載される特集枠です。季節限定商品やキャンペーンなどを設定すると、お客様の目に留まりやすくなります。</p>
+      <div id="spotlightForm" style="background:#fff; border:1px solid var(--color-line); padding:30px; max-width:760px;"></div>
+    </section>
+
+    <!-- ===== Instagram投稿 ===== -->
+    <section class="panel" id="panel-instagram">
+      <div class="panel__head"><h2 class="panel__title">Instagram投稿の管理</h2></div>
+      <p class="panel__desc">トップページに表示されるInstagram投稿風カードの内容を編集できます。最新の投稿に合わせて画像と文面を入れ替えてください。</p>
+      <div id="instaForm" style="background:#fff; border:1px solid var(--color-line); padding:30px; max-width:760px;"></div>
+    </section>
+
+    <!-- ===== 数字で見る ===== -->
+    <section class="panel" id="panel-statsTop">
+      <div class="panel__head"><h2 class="panel__title">「数字で見るこいまり」の管理</h2><button class="btn btn--small" id="addStat">＋ 項目を追加</button></div>
+      <p class="panel__desc">創業年数・実績件数・評価などをトップページに表示します。信頼感の獲得に効果的です。</p>
+      <div id="statsAdminList"></div>
+    </section>
+
+    <!-- ===== 営業日設定 ===== -->
+    <section class="panel" id="panel-holidays">
+      <div class="panel__head"><h2 class="panel__title">営業日設定</h2></div>
+      <p class="panel__desc">定休日・臨時休業日を設定できます。トップページの営業日カレンダーに反映されます。</p>
+      <div style="background:#fff; border:1px solid var(--color-line); padding:28px 30px; max-width:760px;">
+        <h3 style="font-family:var(--font-mincho); font-size:17px; margin-bottom:16px; font-weight:600;">基本定休日（毎週）</h3>
+        <div id="weeklyClosed" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:30px;"></div>
+        <h3 style="font-family:var(--font-mincho); font-size:17px; margin-bottom:16px; font-weight:600;">臨時休業日</h3>
+        <div style="display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap;">
+          <input type="date" id="extraDateInput" class="input" style="flex:1; min-width:200px; max-width:280px;">
+          <button class="btn btn--small" id="addExtraDate">＋ 追加</button>
+        </div>
+        <div id="extraClosedList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;"></div>
+        <button class="btn" id="saveHolidays" style="margin-top:10px;">変更を保存</button>
+      </div>
+    </section>
+
+    <!-- ===== FAQ管理 ===== -->
+    <section class="panel" id="panel-faq">
+      <div class="panel__head"><h2 class="panel__title">よくあるご質問の管理</h2><button class="btn btn--small" id="addFaqCat">＋ カテゴリ追加</button></div>
+      <p class="panel__desc">faq.htmlに表示されるよくあるご質問を編集できます。</p>
+      <div id="faqList"></div>
+    </section>
+
+    <!-- ===== ギャラリー管理 ===== -->
+    <section class="panel" id="panel-galleryAdmin">
+      <div class="panel__head"><h2 class="panel__title">ギャラリー作品の管理</h2><button class="btn btn--small" id="addGallery">＋ 作品を追加</button></div>
+      <p class="panel__desc">gallery.htmlの作品ギャラリーに表示される項目を編集できます。</p>
+      <div class="img-grid" id="galleryAdminGrid"></div>
+    </section>
+
+    <!-- ===== お客様の声 管理 ===== -->
+    <section class="panel" id="panel-voicesAdmin">
+      <div class="panel__head"><h2 class="panel__title">お客様の声の管理</h2><button class="btn btn--small" id="addVoice">＋ お声を追加</button></div>
+      <p class="panel__desc">gallery.htmlのお客様の声に表示される項目を編集できます。</p>
+      <div id="voicesAdminList"></div>
+    </section>
+
+    <!-- ===== ブログ管理 ===== -->
+    <section class="panel" id="panel-blogAdmin">
+      <div class="panel__head"><h2 class="panel__title">ブログ記事の管理</h2><button class="btn btn--small" id="addBlog">＋ 記事を追加</button></div>
+      <p class="panel__desc">blog.htmlに表示される記事を編集できます。</p>
+      <div class="img-grid" id="blogAdminGrid"></div>
+    </section>
+
+    <div class="save-bar" id="saveBar" style="display:none;">
+      <button class="btn btn--ghost btn--small" id="resetBtn">変更を破棄</button>
+      <button class="btn" id="saveBtn">変更を保存</button>
+    </div>
+
+    <!-- ===== 英語翻訳タブ ===== -->
+    <section class="panel" id="panel-i18n">
+      <h2 class="section-title">英語翻訳（AI自動生成）</h2>
+      <p class="section-desc">Claude APIを使ってコンテンツの英語翻訳を自動生成します。管理者は日本語でコンテンツを入力するだけで、AIが自然な英語を生成します。</p>
+
+      <div class="card" style="margin-bottom:24px">
+        <div class="card__head">Claude API キー設定</div>
+        <div class="card__body">
+          <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:16px">APIキーはこのブラウザのlocalStorageにのみ保存されます。外部に送信されることはありません。</p>
+          <div style="display:flex;gap:10px;align-items:center">
+            <input type="password" id="i18nApiKey" class="input" placeholder="sk-ant-api03-..." style="flex:1;margin:0">
+            <button class="btn btn--small" onclick="i18nSaveKey()">保存</button>
+          </div>
+          <div id="i18nKeyStatus" style="font-size:13px;margin-top:8px;color:var(--color-text-soft)"></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:24px">
+        <div class="card__head">翻訳実行</div>
+        <div class="card__body">
+          <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:20px">現在のコンテンツ（ニュース・スポットライト・お客様の声・数字で見る）を一括で英語翻訳します。生成後に内容を確認・編集してから保存してください。</p>
+          <button class="btn" id="i18nTranslateBtn" onclick="i18nTranslateAll()">AI翻訳を実行する</button>
+          <span id="i18nProgress" style="font-size:13px;margin-left:16px;color:var(--color-text-soft)"></span>
+        </div>
+      </div>
+
+      <div id="i18nResultArea" style="display:none">
+        <div class="card" style="margin-bottom:24px">
+          <div class="card__head">ニュース</div>
+          <div class="card__body" id="i18nNewsResult"></div>
+        </div>
+        <div class="card" style="margin-bottom:24px">
+          <div class="card__head">今月の主役（スポットライト）</div>
+          <div class="card__body" id="i18nSpotlightResult"></div>
+        </div>
+        <div class="card" style="margin-bottom:24px">
+          <div class="card__head">お客様の声</div>
+          <div class="card__body" id="i18nVoicesResult"></div>
+        </div>
+        <div class="card" style="margin-bottom:24px">
+          <div class="card__head">数字で見る</div>
+          <div class="card__body" id="i18nStatsResult"></div>
+        </div>
+
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <button class="btn" onclick="i18nSaveTranslations()">翻訳を保存する</button>
+          <button class="btn btn--ghost" onclick="i18nClearTranslations()">翻訳をリセット</button>
+        </div>
+        <p style="font-size:12px;color:var(--color-text-soft);margin-top:10px">保存するとサイトの英語表示に反映されます。リセットすると翻訳データを削除し、デフォルト表示に戻ります。</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   設定
+   ============================================================ */
+const ADMIN_PASSWORD = "koimari2026";
+const STORAGE_KEY = "koimari_images";
+const SESSION_KEY = "koimari_admin_session";
+const RES_KEY = "koimari_reservations";
+const EXP_KEY = "koimari_experiences";
+const CORP_KEY = "koimari_corporate";
+const VIEWS_KEY = "koimari_views";
+
+const DEFAULT_IMAGES = {
+  hero: [
+    { src: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=1600&q=80", titleEn: "Seasonal Sweets", titleJp: "季節の素材で<br>つくる、やさしい味わい" },
+    { src: "https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=1600&q=80", titleEn: "Birthday Cake", titleJp: "大切な日に<br>寄り添うケーキを" },
+    { src: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=1600&q=80", titleEn: "Baked Sweets", titleJp: "贈り物にも、<br>自分へのご褒美にも" }
+  ],
+  greeting: "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=900&q=80",
+  categories: [
+    { name: "ホールケーキ", en: "Whole Cake", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80" },
+    { name: "カットケーキ", en: "Cut Cake",   img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80" },
+    { name: "ロールケーキ", en: "Roll Cake",  img: "https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80" },
+    { name: "焼き菓子",     en: "Baked Sweets", img: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80" },
+    { name: "ギフト",       en: "Gift",       img: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&q=80" },
+    { name: "誕生日ケーキ", en: "Birthday",   img: "https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=600&q=80" }
+  ],
+  recommended: [
+    { name: "苺のショートケーキ", price: "¥520",  img: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&q=80" },
+    { name: "ガトーショコラ",     price: "¥480",  img: "https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80" },
+    { name: "モンブラン",         price: "¥560",  img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=500&q=80" },
+    { name: "フルーツタルト",     price: "¥620",  img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80" },
+    { name: "マドレーヌ",         price: "¥220",  img: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=500&q=80" },
+    { name: "フィナンシェ",       price: "¥240",  img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80" },
+    { name: "プリン",             price: "¥380",  img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80" },
+    { name: "アップルパイ",       price: "¥460",  img: "https://images.unsplash.com/photo-1535920527002-b35e96722eb9?w=500&q=80" }
+  ],
+  experiences: [
+    { key: "ichinichi-tencho", title: "お子様 一日店長体験", en: "One Day Manager", target: "対象 / 小学1年生〜6年生", img: "https://images.unsplash.com/photo-1607478900766-efe13248b125?w=800&q=80", desc: "ケーキの飾りつけや、お客様への接客、レジ体験まで。お菓子屋さんのお仕事をひと通り体験していただける、お子様向けのプログラムです。", duration: "約2時間", fee: "3,000円(材料費込)" },
+    { key: "shokugyo-taiken", title: "中高生 職業体験", en: "Career Experience", target: "対象 / 中学生・高校生", img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80", desc: "製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。", duration: "半日〜1日", fee: "無料" },
+    { key: "kunren-kenshu", title: "製菓 訓練・研修", en: "Training Program", target: "対象 / 専門学生・社会人", img: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80", desc: "本格的にお菓子作りを学びたい方向けの研修プログラムです。基礎から応用まで、現場での実践を通して技術を習得していただけます。", duration: "1週間〜", fee: "要相談" }
+  ]
+};
+
+let workingData = null;
+let savedData = null;
+let calMonth = new Date(); // カレンダー表示中の月
+calMonth.setDate(1);
+
+/* ============================================================
+   ユーティリティ
+   ============================================================ */
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      return {
+        hero: p.hero || JSON.parse(JSON.stringify(DEFAULT_IMAGES.hero)),
+        greeting: p.greeting || DEFAULT_IMAGES.greeting,
+        categories: p.categories || JSON.parse(JSON.stringify(DEFAULT_IMAGES.categories)),
+        recommended: p.recommended || JSON.parse(JSON.stringify(DEFAULT_IMAGES.recommended)),
+        experiences: p.experiences || JSON.parse(JSON.stringify(DEFAULT_IMAGES.experiences))
+      };
+    }
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_IMAGES));
+}
+function loadList(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; } }
+function isDirty() { return JSON.stringify(workingData) !== JSON.stringify(savedData); }
+function updateSaveBar() { document.getElementById("saveBar").style.display = isDirty() ? "flex" : "none"; }
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.background = type === "error" ? "#b94a3a" : "var(--color-success)";
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+function escapeHtml(s) {
+  if (!s) return "";
+  return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+}
+function fmtDate(iso) {
+  const d = new Date(iso);
+  return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,"0")}/${d.getDate().toString().padStart(2,"0")} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
+}
+function dateKey(d) {
+  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}-${d.getDate().toString().padStart(2,"0")}`;
+}
+function updateCounts() {
+  document.getElementById("resCount").textContent = loadList(RES_KEY).length;
+  document.getElementById("expCount").textContent = loadList(EXP_KEY).length;
+  const cc = document.getElementById("corpCount");
+  if (cc) cc.textContent = loadList(CORP_KEY).length;
+}
+
+/* ============================================================
+   ログイン
+   ============================================================ */
+function showLogin() {
+  document.getElementById("loginScreen").style.display = "flex";
+  document.getElementById("adminScreen").style.display = "none";
+}
+function showAdmin() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("adminScreen").style.display = "block";
+  workingData = loadData();
+  savedData = JSON.parse(JSON.stringify(workingData));
+  renderAll();
+  renderCalendar();
+  updateCounts();
+}
+function login() {
+  if (document.getElementById("loginPass").value === ADMIN_PASSWORD) {
+    sessionStorage.setItem(SESSION_KEY, "1");
+    showAdmin();
+  } else {
+    document.getElementById("loginError").textContent = "パスワードが正しくありません";
+  }
+}
+document.getElementById("loginBtn").addEventListener("click", login);
+document.getElementById("loginPass").addEventListener("keypress", e => { if (e.key === "Enter") login(); });
+document.getElementById("logoutBtn").addEventListener("click", () => {
+  if (isDirty() && !confirm("未保存の変更があります。ログアウトしますか？")) return;
+  sessionStorage.removeItem(SESSION_KEY);
+  showLogin();
+});
+if (sessionStorage.getItem(SESSION_KEY) === "1") showAdmin();
+
+/* ============================================================
+   タブ
+   ============================================================ */
+document.querySelectorAll(".tab").forEach(t => {
+  t.addEventListener("click", () => {
+    document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("panel-" + t.dataset.panel).classList.add("active");
+    if (t.dataset.panel === "reservations") renderReservations();
+    if (t.dataset.panel === "applications") renderApplications();
+    if (t.dataset.panel === "corporate") renderCorporate();
+    if (t.dataset.panel === "calendar") renderCalendar();
+    if (t.dataset.panel === "stats") renderStats();
+    if (t.dataset.panel === "news") renderNewsAdmin();
+    if (t.dataset.panel === "spotlight") renderSpotlightAdmin();
+    if (t.dataset.panel === "instagram") renderInstaAdmin();
+    if (t.dataset.panel === "statsTop") renderStatsAdmin();
+    if (t.dataset.panel === "holidays") renderHolidaysAdmin();
+    if (t.dataset.panel === "faq") renderFaqAdmin();
+    if (t.dataset.panel === "galleryAdmin") renderGalleryAdmin();
+    if (t.dataset.panel === "voicesAdmin") renderVoicesAdmin();
+    if (t.dataset.panel === "blogAdmin") { blogData = null; renderBlogAdmin(); }
+  });
+});
+
+/* ============================================================
+   画像管理
+   ============================================================ */
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    if (file.size > 2 * 1024 * 1024) { reject(new Error("ファイルサイズは2MB以下にしてください")); return; }
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+}
+function renderAll() {
+  renderHero(); renderGreeting(); renderCategories(); renderRecommended(); renderExperiences();
+  updateSaveBar();
+}
+function refreshPreview(itemEl, src) {
+  const p = itemEl.querySelector(".img-item__preview");
+  p.innerHTML = src ? `<img src="${src}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">` : "画像なし";
+}
+function makeImageItem({ preview, fields, onChange, onFile, onDelete }) {
+  const item = document.createElement("div");
+  item.className = "img-item";
+  const previewEl = document.createElement("div");
+  previewEl.className = "img-item__preview";
+  previewEl.innerHTML = preview ? `<img src="${preview}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">` : "画像なし";
+  item.appendChild(previewEl);
+  fields.forEach(f => {
+    const wrap = document.createElement("div");
+    wrap.className = "img-item__field";
+    const label = document.createElement("label"); label.textContent = f.label; wrap.appendChild(label);
+    let input;
+    if (f.type === "textarea") { input = document.createElement("textarea"); input.rows = 3; }
+    else { input = document.createElement("input"); input.type = "text"; }
+    input.value = f.value || "";
+    input.addEventListener("input", () => onChange(f.key, input.value));
+    wrap.appendChild(input);
+    item.appendChild(wrap);
+  });
+  const actions = document.createElement("div"); actions.className = "img-item__actions";
+  const fileBtn = document.createElement("label"); fileBtn.className = "file-btn"; fileBtn.textContent = "ファイルから選択";
+  const fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.accept = "image/*";
+  fileInput.addEventListener("change", async e => {
+    if (!e.target.files[0]) return;
+    try { onFile(await fileToDataUrl(e.target.files[0])); }
+    catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
+  });
+  fileBtn.appendChild(fileInput); actions.appendChild(fileBtn);
+  if (onDelete) {
+    const delBtn = document.createElement("button"); delBtn.textContent = "削除";
+    delBtn.addEventListener("click", () => { if (confirm("この項目を削除しますか？")) onDelete(); });
+    actions.appendChild(delBtn);
+  }
+  item.appendChild(actions);
+  return item;
+}
+
+function renderHero() {
+  const grid = document.getElementById("heroGrid"); grid.innerHTML = "";
+  workingData.hero.forEach((s, i) => {
+    grid.appendChild(makeImageItem({
+      preview: s.src,
+      fields: [
+        { label: "画像URL", key: "src", value: s.src, type: "input" },
+        { label: "英語タイトル", key: "titleEn", value: s.titleEn || "", type: "input" },
+        { label: "日本語タイトル(<br>で改行可)", key: "titleJp", value: s.titleJp || "", type: "textarea" }
+      ],
+      onChange: (k, v) => { workingData.hero[i][k] = v; if (k === "src") refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: u => { workingData.hero[i].src = u; renderHero(); updateSaveBar(); },
+      onDelete: workingData.hero.length > 1 ? () => { workingData.hero.splice(i,1); renderHero(); updateSaveBar(); } : null
+    }));
+  });
+}
+function renderGreeting() {
+  const grid = document.getElementById("greetingGrid"); grid.innerHTML = "";
+  grid.appendChild(makeImageItem({
+    preview: workingData.greeting,
+    fields: [{ label: "画像URL", key: "src", value: workingData.greeting, type: "input" }],
+    onChange: (k, v) => { workingData.greeting = v; refreshPreview(grid.children[0], v); updateSaveBar(); },
+    onFile: u => { workingData.greeting = u; renderGreeting(); updateSaveBar(); },
+    onDelete: null
+  }));
+}
+function renderCategories() {
+  const grid = document.getElementById("categoriesGrid"); grid.innerHTML = "";
+  workingData.categories.forEach((c, i) => {
+    grid.appendChild(makeImageItem({
+      preview: c.img,
+      fields: [
+        { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
+        { label: "英語表記", key: "en", value: c.en, type: "input" },
+        { label: "画像URL", key: "img", value: c.img, type: "input" }
+      ],
+      onChange: (k, v) => { workingData.categories[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: u => { workingData.categories[i].img = u; renderCategories(); updateSaveBar(); },
+      onDelete: () => { workingData.categories.splice(i,1); renderCategories(); updateSaveBar(); }
+    }));
+  });
+}
+function renderRecommended() {
+  const grid = document.getElementById("recommendedGrid"); grid.innerHTML = "";
+  workingData.recommended.forEach((r, i) => {
+    grid.appendChild(makeImageItem({
+      preview: r.img,
+      fields: [
+        { label: "商品名", key: "name", value: r.name, type: "input" },
+        { label: "価格", key: "price", value: r.price, type: "input" },
+        { label: "画像URL", key: "img", value: r.img, type: "input" }
+      ],
+      onChange: (k, v) => { workingData.recommended[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: u => { workingData.recommended[i].img = u; renderRecommended(); updateSaveBar(); },
+      onDelete: () => { workingData.recommended.splice(i,1); renderRecommended(); updateSaveBar(); }
+    }));
+  });
+}
+function renderExperiences() {
+  const grid = document.getElementById("experiencesGrid"); grid.innerHTML = "";
+  workingData.experiences.forEach((e, i) => {
+    if (e.visible === undefined) e.visible = true; // 既存データの後方互換
+    const item = makeImageItem({
+      preview: e.img,
+      fields: [
+        { label: "プログラム名", key: "title", value: e.title, type: "input" },
+        { label: "英語表記", key: "en", value: e.en, type: "input" },
+        { label: "対象", key: "target", value: e.target, type: "input" },
+        { label: "所要時間", key: "duration", value: e.duration, type: "input" },
+        { label: "参加費用", key: "fee", value: e.fee, type: "input" },
+        { label: "説明文", key: "desc", value: e.desc, type: "textarea" },
+        { label: "画像URL", key: "img", value: e.img, type: "input" }
+      ],
+      onChange: (k, v) => { workingData.experiences[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: u => { workingData.experiences[i].img = u; renderExperiences(); updateSaveBar(); },
+      onDelete: () => { if (confirm("このプログラムを削除しますか？")) { workingData.experiences.splice(i,1); renderExperiences(); updateSaveBar(); } }
+    });
+    // 表示/非表示トグル を追加
+    const toggleBox = document.createElement("div");
+    toggleBox.style.cssText = "padding:12px 14px; margin-top:10px; background:" + (e.visible ? "rgba(93,138,78,0.08)" : "rgba(176,59,72,0.08)") + "; border-left:3px solid " + (e.visible ? "var(--color-success)" : "var(--color-accent)") + "; display:flex; align-items:center; justify-content:space-between; gap:10px;";
+    toggleBox.innerHTML = `<span style="font-family:var(--font-mincho); font-weight:600; font-size:14px;">${e.visible ? "✓ サイトに公開中" : "✕ 非表示（下書き状態）"}</span>`;
+    const toggleBtn = document.createElement("button");
+    toggleBtn.textContent = e.visible ? "非表示にする" : "公開する";
+    toggleBtn.className = "btn btn--small " + (e.visible ? "btn--ghost" : "");
+    toggleBtn.style.fontSize = "12px";
+    toggleBtn.addEventListener("click", () => {
+      workingData.experiences[i].visible = !e.visible;
+      renderExperiences();
+      updateSaveBar();
+    });
+    toggleBox.appendChild(toggleBtn);
+    item.appendChild(toggleBox);
+    if (!e.visible) {
+      item.style.opacity = "0.55";
+      const preview = item.querySelector(".img-item__preview");
+      if (preview) preview.style.filter = "grayscale(0.5)";
+    }
+    grid.appendChild(item);
+  });
+}
+
+document.getElementById("addHero").addEventListener("click", () => { workingData.hero.push({src:"",titleEn:"New Slide",titleJp:"新しいスライド"}); renderHero(); updateSaveBar(); });
+document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:""}); renderCategories(); updateSaveBar(); });
+document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:""}); renderRecommended(); updateSaveBar(); });
+document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
+document.getElementById("saveBtn").addEventListener("click", () => {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); savedData = JSON.parse(JSON.stringify(workingData)); updateSaveBar(); showToast("保存しました"); }
+  catch (e) { showToast("保存に失敗しました（容量超過の可能性があります）", "error"); }
+});
+document.getElementById("resetBtn").addEventListener("click", () => {
+  if (!confirm("保存前の状態に戻しますか？")) return;
+  workingData = JSON.parse(JSON.stringify(savedData)); renderAll();
+});
+window.addEventListener("beforeunload", e => { if (isDirty()) { e.preventDefault(); e.returnValue = ""; } });
+
+/* ============================================================
+   カレンダー
+   ============================================================ */
+function renderCalendar() {
+  const year = calMonth.getFullYear();
+  const month = calMonth.getMonth();
+  document.getElementById("calTitle").textContent = `${year}年 ${month+1}月`;
+
+  const reservations = loadList(RES_KEY);
+  const experiences = loadList(EXP_KEY);
+  // 日付別に集計（引取日基準。なければ受信日）
+  const byDate = {};
+  reservations.forEach(r => {
+    const key = r.pickupDate || dateKey(new Date(r.submittedAt));
+    if (!byDate[key]) byDate[key] = { res: [], exp: [] };
+    byDate[key].res.push(r);
+  });
+  experiences.forEach(e => {
+    const key = e.preferredDate || dateKey(new Date(e.submittedAt));
+    if (!byDate[key]) byDate[key] = { res: [], exp: [] };
+    byDate[key].exp.push(e);
+  });
+
+  const grid = document.getElementById("calGrid");
+  grid.innerHTML = "";
+  // 曜日ヘッダー
+  ["日","月","火","水","木","金","土"].forEach((d, i) => {
+    const dow = document.createElement("div");
+    dow.className = "cal-dow" + (i === 0 ? " sun" : i === 6 ? " sat" : "");
+    dow.textContent = d;
+    grid.appendChild(dow);
+  });
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month+1, 0);
+  const today = new Date();
+  const todayKey = dateKey(today);
+
+  // 月初前の空白
+  for (let i = 0; i < firstDay.getDay(); i++) {
+    const c = document.createElement("div"); c.className = "cal-cell empty"; grid.appendChild(c);
+  }
+  // 各日
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const cellDate = new Date(year, month, d);
+    const key = dateKey(cellDate);
+    const dow = cellDate.getDay();
+    const cell = document.createElement("div");
+    cell.className = "cal-cell";
+    if (dow === 0) cell.classList.add("holiday");
+    else if (dow === 6) cell.classList.add("saturday");
+    if (key === todayKey) cell.classList.add("today");
+
+    const data = byDate[key];
+    let html = `<div class="cal-day">${d}</div><div class="cal-badges">`;
+    if (data) {
+      if (data.res.length) html += `<div class="cal-badge cal-badge--res">予約 ${data.res.length}件</div>`;
+      if (data.exp.length) html += `<div class="cal-badge cal-badge--exp">応募 ${data.exp.length}件</div>`;
+    }
+    html += `</div>`;
+    cell.innerHTML = html;
+    cell.addEventListener("click", () => showDayDetail(key, cellDate, data));
+    grid.appendChild(cell);
+  }
+}
+function showDayDetail(key, date, data) {
+  const detail = document.getElementById("calDetail");
+  if (!data || (!data.res.length && !data.exp.length)) {
+    detail.innerHTML = `<h3>${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日</h3><p style="color:var(--color-text-soft);">この日の予約・応募はありません。</p>`;
+  } else {
+    let html = `<h3>${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日（予約${data.res.length}件・応募${data.exp.length}件）</h3><ul class="cal-detail__list">`;
+    data.res.forEach(r => {
+      html += `<li><span class="cal-detail__type cal-detail__type--res">予約</span>${escapeHtml(r.name)} 様 / ${escapeHtml(r.cakeType||"")} ${escapeHtml(r.size||"")} / ${escapeHtml(r.pickupTime||"時間未指定")} / ${escapeHtml(r.tel)}</li>`;
+    });
+    data.exp.forEach(e => {
+      html += `<li><span class="cal-detail__type cal-detail__type--exp">応募</span>${escapeHtml(e.participantName)} 様 / ${escapeHtml(e.program)} / ${escapeHtml(e.grade||"")} / ${escapeHtml(e.tel)}</li>`;
+    });
+    html += `</ul>`;
+    detail.innerHTML = html;
+  }
+  detail.classList.add("show");
+}
+document.getElementById("calPrev").addEventListener("click", () => { calMonth.setMonth(calMonth.getMonth()-1); renderCalendar(); document.getElementById("calDetail").classList.remove("show"); });
+document.getElementById("calNext").addEventListener("click", () => { calMonth.setMonth(calMonth.getMonth()+1); renderCalendar(); document.getElementById("calDetail").classList.remove("show"); });
+document.getElementById("calToday").addEventListener("click", () => { calMonth = new Date(); calMonth.setDate(1); renderCalendar(); document.getElementById("calDetail").classList.remove("show"); });
+
+/* ============================================================
+   統計・分析
+   ============================================================ */
+let charts = {};
+function destroyCharts() { Object.values(charts).forEach(c => c.destroy && c.destroy()); charts = {}; }
+
+function renderStats() {
+  const reservations = loadList(RES_KEY);
+  const experiences = loadList(EXP_KEY);
+  const views = loadList(VIEWS_KEY);
+
+  // サマリー
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,"0")}`;
+  const last7days = Date.now() - 7*86400000;
+  const last30days = Date.now() - 30*86400000;
+  const resThisMonth = reservations.filter(r => (r.submittedAt||"").startsWith(thisMonth)).length;
+  const expThisMonth = experiences.filter(e => (e.submittedAt||"").startsWith(thisMonth)).length;
+  const views7 = views.filter(t => t > last7days).length;
+  const views30 = views.filter(t => t > last30days).length;
+
+  const summary = document.getElementById("statsSummary");
+  summary.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-card__label">今月の予約</div>
+      <div class="stat-card__value">${resThisMonth}<span class="stat-card__unit">件</span></div>
+      <div class="stat-card__sub">累計 ${reservations.length} 件</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">今月の体験応募</div>
+      <div class="stat-card__value">${expThisMonth}<span class="stat-card__unit">件</span></div>
+      <div class="stat-card__sub">累計 ${experiences.length} 件</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">過去7日のビュー</div>
+      <div class="stat-card__value">${views7}<span class="stat-card__unit">回</span></div>
+      <div class="stat-card__sub">過去30日 ${views30} 回</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-card__label">累計ビュー(90日)</div>
+      <div class="stat-card__value">${views.length}<span class="stat-card__unit">回</span></div>
+      <div class="stat-card__sub">90日以前のデータは自動削除</div>
+    </div>
+  `;
+
+  destroyCharts();
+
+  // ----- 月別予約推移 (last 12 months) -----
+  const months = [];
+  const labels = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    months.push(`${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}`);
+    labels.push(`${d.getFullYear()}/${d.getMonth()+1}`);
+  }
+  const resByMonth = months.map(m => reservations.filter(r => (r.submittedAt||"").startsWith(m)).length);
+  const expByMonth = months.map(m => experiences.filter(e => (e.submittedAt||"").startsWith(m)).length);
+
+  charts.monthly = new Chart(document.getElementById("chartMonthly"), {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        { label: "予約", data: resByMonth, backgroundColor: "rgba(176,59,72,0.75)", borderRadius: 4 },
+        { label: "体験応募", data: expByMonth, backgroundColor: "rgba(169,133,84,0.75)", borderRadius: 4 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+      plugins: { legend: { position: "bottom" } }
+    }
+  });
+
+  // ----- ケーキ別販売数 -----
+  const cakeCounts = {};
+  reservations.forEach(r => { if (r.cakeType) cakeCounts[r.cakeType] = (cakeCounts[r.cakeType]||0) + 1; });
+  const cakeLabels = Object.keys(cakeCounts);
+  const cakeData = cakeLabels.map(k => cakeCounts[k]);
+
+  charts.cake = new Chart(document.getElementById("chartCake"), {
+    type: "bar",
+    data: {
+      labels: cakeLabels.length ? cakeLabels : ["データなし"],
+      datasets: [{
+        label: "件数",
+        data: cakeData.length ? cakeData : [0],
+        backgroundColor: ["#b03b48","#a98554","#8a2d38","#c9a872","#d4906c","#a06b40"],
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: "y", responsive: true, maintainAspectRatio: false,
+      scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  // ----- プログラム別応募 -----
+  const progCounts = {};
+  experiences.forEach(e => { if (e.program) progCounts[e.program] = (progCounts[e.program]||0) + 1; });
+  const progLabels = Object.keys(progCounts);
+  const progData = progLabels.map(k => progCounts[k]);
+
+  charts.program = new Chart(document.getElementById("chartProgram"), {
+    type: "doughnut",
+    data: {
+      labels: progLabels.length ? progLabels : ["データなし"],
+      datasets: [{
+        data: progData.length ? progData : [1],
+        backgroundColor: ["#b03b48","#a98554","#4a6f9c","#5d8a4e"]
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: "bottom" } }
+    }
+  });
+
+  // ----- 日別ビュー数 (last 30 days) -----
+  const days = [];
+  const dayLabels = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate()-i); d.setHours(0,0,0,0);
+    days.push(d.getTime());
+    dayLabels.push(`${d.getMonth()+1}/${d.getDate()}`);
+  }
+  const viewsByDay = days.map(start => {
+    const end = start + 86400000;
+    return views.filter(t => t >= start && t < end).length;
+  });
+
+  charts.views = new Chart(document.getElementById("chartViews"), {
+    type: "line",
+    data: {
+      labels: dayLabels,
+      datasets: [{
+        label: "ビュー数",
+        data: viewsByDay,
+        borderColor: "#b03b48",
+        backgroundColor: "rgba(176,59,72,0.12)",
+        fill: true, tension: 0.3,
+        pointRadius: 3, pointBackgroundColor: "#b03b48"
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+document.getElementById("resetViews").addEventListener("click", () => {
+  if (!confirm("ビュー数のデータをリセットしますか？")) return;
+  localStorage.removeItem(VIEWS_KEY); renderStats(); showToast("リセットしました");
+});
+
+/* ============================================================
+   予約・応募一覧
+   ============================================================ */
+function renderReservations() {
+  const area = document.getElementById("reservationsArea");
+  const list = loadList(RES_KEY);
+  if (!list.length) { area.innerHTML = '<div class="empty">予約データはまだありません</div>'; return; }
+  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
+  html += '<th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先</th><th>引取日時</th><th>商品</th><th>備考</th>';
+  html += '</tr></thead><tbody>';
+  list.forEach(r => {
+    html += `<tr>
+      <td>${fmtDate(r.submittedAt)}</td>
+      <td>${escapeHtml(r.type)}</td>
+      <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
+      <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span></td>
+      <td>${escapeHtml(r.pickupDate)} ${escapeHtml(r.pickupTime)}</td>
+      <td>${escapeHtml(r.cakeType)}<br>${escapeHtml(r.size)}<br><span class="small">${escapeHtml(r.message)}</span></td>
+      <td><span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br>${escapeHtml(r.note)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  area.innerHTML = html;
+}
+function renderApplications() {
+  const area = document.getElementById("applicationsArea");
+  const list = loadList(EXP_KEY);
+  if (!list.length) { area.innerHTML = '<div class="empty">応募データはまだありません</div>'; return; }
+  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
+  html += '<th>受信日時</th><th>プログラム</th><th>参加者</th><th>学年/学校</th><th>保護者</th><th>連絡先</th><th>希望日</th><th>動機・備考</th>';
+  html += '</tr></thead><tbody>';
+  list.forEach(r => {
+    html += `<tr>
+      <td>${fmtDate(r.submittedAt)}</td>
+      <td>${escapeHtml(r.program)}</td>
+      <td>${escapeHtml(r.participantName)}<br><span class="small">${escapeHtml(r.participantFurigana)}</span></td>
+      <td>${escapeHtml(r.grade)}<br><span class="small">${escapeHtml(r.school)}</span></td>
+      <td>${escapeHtml(r.guardianName)}<br><span class="small">${escapeHtml(r.relation)}</span></td>
+      <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span></td>
+      <td>${escapeHtml(r.preferredDate)}${r.preferredDate2?"<br>(2)"+escapeHtml(r.preferredDate2):""}</td>
+      <td><span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br>${escapeHtml(r.motivation)}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  area.innerHTML = html;
+}
+
+document.getElementById("clearRes").addEventListener("click", () => {
+  if (!confirm("すべての予約データを削除します。よろしいですか？")) return;
+  localStorage.removeItem(RES_KEY); renderReservations(); updateCounts(); showToast("削除しました");
+});
+document.getElementById("clearExp").addEventListener("click", () => {
+  if (!confirm("すべての応募データを削除します。よろしいですか？")) return;
+  localStorage.removeItem(EXP_KEY); renderApplications(); updateCounts(); showToast("削除しました");
+});
+
+/* ============ 法人ご相談一覧 ============ */
+function renderCorporate() {
+  const area = document.getElementById("corporateArea");
+  const list = loadList(CORP_KEY);
+  if (!list.length) { area.innerHTML = '<div class="empty">法人ご相談はまだありません</div>'; return; }
+  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
+  html += '<th>受信日時</th><th>会社名</th><th>ご担当者</th><th>連絡先</th><th>用途・グレード</th><th>数量・予算</th><th>納期/対応希望</th><th>ご相談内容</th>';
+  html += '</tr></thead><tbody>';
+  list.forEach(r => {
+    html += `<tr>
+      <td>${fmtDate(r.submittedAt)}</td>
+      <td>${escapeHtml(r.company)}<br><span class="small">${escapeHtml(r.department||"")}</span></td>
+      <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.position||"")}</span></td>
+      <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span></td>
+      <td>${escapeHtml(r.purpose)}<br><span class="small">${escapeHtml(r.grade||"")}</span></td>
+      <td>${escapeHtml(r.quantity||"")}<br><span class="small">${escapeHtml(r.budget||"")}</span></td>
+      <td>${escapeHtml(r.deadline||"")}<br><span class="small">${(r.addons||[]).map(escapeHtml).join("/")}</span></td>
+      <td>${escapeHtml(r.message||"")}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  area.innerHTML = html;
+}
+document.getElementById("clearCorp").addEventListener("click", () => {
+  if (!confirm("すべての法人ご相談データを削除します。よろしいですか？")) return;
+  localStorage.removeItem(CORP_KEY); renderCorporate(); updateCounts(); showToast("削除しました");
+});
+document.getElementById("exportCorp").addEventListener("click", () => {
+  const list = loadList(CORP_KEY);
+  if (!list.length) { showToast("出力するデータがありません", "error"); return; }
+  const headers = ["受信日時","会社名","部署","ご担当者","役職","電話","メール","用途","数量","予算","グレード","納期","対応希望","ご相談内容"];
+  const rows = list.map(r => [r.submittedAt,r.company,r.department,r.name,r.position,r.tel,r.email,r.purpose,r.quantity,r.budget,r.grade,r.deadline,(r.addons||[]).join("/"),(r.message||"").replace(/\n/g," ")]);
+  downloadCsv(`koimari_corporate_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
+});
+
+function downloadCsv(filename, headers, rows) {
+  const csv = [headers, ...rows].map(r => r.map(c => `"${String(c||"").replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+document.getElementById("exportRes").addEventListener("click", () => {
+  const list = loadList(RES_KEY);
+  if (!list.length) { showToast("出力するデータがありません", "error"); return; }
+  const headers = ["受信日時","種別","お名前","ふりがな","電話","メール","引取日","引取時間","ケーキ","サイズ","メッセージ","アレルギー","備考"];
+  const rows = list.map(r => [r.submittedAt,r.type,r.name,r.furigana,r.tel,r.email,r.pickupDate,r.pickupTime,r.cakeType,r.size,r.message,(r.allergy||[]).join("/"),(r.note||"").replace(/\n/g," ")]);
+  downloadCsv(`koimari_reservations_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
+});
+document.getElementById("exportExp").addEventListener("click", () => {
+  const list = loadList(EXP_KEY);
+  if (!list.length) { showToast("出力するデータがありません", "error"); return; }
+  const headers = ["受信日時","プログラム","参加者氏名","ふりがな","学年・年齢","学校","アレルギー","保護者氏名","続柄","電話","メール","希望日1","希望日2","志望動機"];
+  const rows = list.map(r => [r.submittedAt,r.program,r.participantName,r.participantFurigana,r.grade,r.school,(r.allergy||[]).join("/"),r.guardianName,r.relation,r.tel,r.email,r.preferredDate,r.preferredDate2,(r.motivation||"").replace(/\n/g," ")]);
+  downloadCsv(`koimari_experiences_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
+});
+document.getElementById("exportAll").addEventListener("click", () => {
+  const r = loadList(RES_KEY), e = loadList(EXP_KEY), v = loadList(VIEWS_KEY);
+  if (!r.length && !e.length && !v.length) { showToast("出力するデータがありません", "error"); return; }
+  // 統合サマリーCSV
+  const headers = ["項目","件数"];
+  const rows = [
+    ["予約合計", r.length],
+    ["体験応募合計", e.length],
+    ["ビュー数(90日)", v.length],
+  ];
+  downloadCsv(`koimari_summary_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
+});
+
+/* ============================================================
+   コンテンツ管理（お知らせ・営業日・FAQ・ギャラリー・お客様の声・ブログ）
+   ============================================================ */
+const NEWS_KEY = "koimari_news";
+const HOLIDAYS_KEY = "koimari_holidays";
+const FAQ_KEY = "koimari_faq";
+const GALLERY_KEY = "koimari_gallery";
+const VOICES_KEY = "koimari_voices";
+const BLOG_KEY = "koimari_blog";
+
+const DEFAULT_NEWS_LIST = [
+  {date:"2026.04.20",tag:"NEW",title:"春限定 苺のショートケーキ販売中",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。",img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",url:"#recommended"},
+  {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なホールケーキ。大切なお母様への感謝を込めて。",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
+  {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
+];
+const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };
+const DEFAULT_FAQ = [
+  { category: "ご予約について", items: [
+    { q: "ホールケーキの予約はいつまでに必要ですか？", a: "ホールケーキは原則として引き取り希望日の3日前までにご予約をお願いしております。" }
+  ]}
+];
+const DEFAULT_GALLERY = [];
+const DEFAULT_VOICES = [];
+const DEFAULT_BLOG = [];
+
+function loadByKey(key, fallback) {
+  try { const r = localStorage.getItem(key); if (r) return JSON.parse(r); } catch(e){}
+  return JSON.parse(JSON.stringify(fallback));
+}
+function saveByKey(key, data) {
+  try { localStorage.setItem(key, JSON.stringify(data)); return true; }
+  catch(e) { showToast("保存に失敗しました", "error"); return false; }
+}
+
+/* ============ お知らせ管理 ============ */
+let newsData = null;
+function renderNewsAdmin() {
+  newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
+  const wrap = document.getElementById("newsList");
+  if (!newsData.length) { wrap.innerHTML = '<div class="empty">お知らせはまだありません。「＋ お知らせを追加」から作成してください。</div>'; }
+  else {
+    wrap.innerHTML = "";
+    const grid = document.createElement("div");
+    grid.className = "img-grid";
+    newsData.forEach((n, i) => {
+      grid.appendChild(makeImageItem({
+        preview: n.img,
+        fields: [
+          { label: "日付（例: 2026.04.20）", key: "date", value: n.date||"", type: "input" },
+          { label: "タグ（NEW・おすすめ・お知らせ等）", key: "tag", value: n.tag||"", type: "input" },
+          { label: "タイトル", key: "title", value: n.title||"", type: "input" },
+          { label: "概要文（カードに表示されます）", key: "excerpt", value: n.excerpt||"", type: "textarea" },
+          { label: "リンク先URL（例: reservation.html / #recommended / https://...）", key: "url", value: n.url||"", type: "input" },
+          { label: "アイキャッチ画像URL", key: "img", value: n.img||"", type: "input" }
+        ],
+        onChange: (k, v) => { newsData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
+        onFile: u => { newsData[i].img = u; renderNewsAdmin(); },
+        onDelete: () => { if (confirm("削除しますか？")) { newsData.splice(i,1); renderNewsAdmin(); } }
+      }));
+    });
+    wrap.appendChild(grid);
+    // 並べ替えボタン群を別途追加
+    const orderBox = document.createElement("div");
+    orderBox.style.cssText = "background:var(--color-bg-soft);padding:14px 18px;margin-top:14px;font-size:13px;color:var(--color-text-soft);";
+    orderBox.innerHTML = `※ トップページには上から3件まで表示されます（${newsData.length}件中）。並べ替えは下のボタンで:`;
+    const orderRow = document.createElement("div");
+    orderRow.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;";
+    newsData.forEach((n, i) => {
+      const card = document.createElement("div");
+      card.style.cssText = "display:flex;align-items:center;gap:6px;padding:6px 10px;background:#fff;border:1px solid var(--color-line);font-size:12px;";
+      card.innerHTML = `<span style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(n.title)}</span>`;
+      const up = document.createElement("button"); up.textContent = "↑"; up.style.cssText = "padding:2px 8px;cursor:pointer;border:1px solid var(--color-line);background:#fff;";
+      const dn = document.createElement("button"); dn.textContent = "↓"; dn.style.cssText = "padding:2px 8px;cursor:pointer;border:1px solid var(--color-line);background:#fff;";
+      up.addEventListener("click", () => { if (i>0) { [newsData[i-1], newsData[i]] = [newsData[i], newsData[i-1]]; renderNewsAdmin(); } });
+      dn.addEventListener("click", () => { if (i<newsData.length-1) { [newsData[i], newsData[i+1]] = [newsData[i+1], newsData[i]]; renderNewsAdmin(); } });
+      card.appendChild(up); card.appendChild(dn);
+      orderRow.appendChild(card);
+    });
+    orderBox.appendChild(orderRow);
+    wrap.appendChild(orderBox);
+  }
+  const sb = document.createElement("div"); sb.style.marginTop = "20px";
+  sb.innerHTML = '<button class="btn" id="saveNewsBtn">変更を保存</button>';
+  wrap.appendChild(sb);
+  document.getElementById("saveNewsBtn").addEventListener("click", () => {
+    if (saveByKey(NEWS_KEY, newsData)) showToast("お知らせを保存しました");
+  });
+}
+document.getElementById("addNews").addEventListener("click", () => {
+  if (!newsData) newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
+  const today = new Date();
+  const ds = `${today.getFullYear()}.${(today.getMonth()+1).toString().padStart(2,"0")}.${today.getDate().toString().padStart(2,"0")}`;
+  newsData.unshift({ date: ds, tag: "NEW", title: "新しいお知らせ", excerpt: "", url: "#", img: "" });
+  renderNewsAdmin();
+});
+
+/* ============ 今月の主役 管理 ============ */
+const SPOTLIGHT_KEY = "koimari_spotlight";
+const STATS_KEY = "koimari_stats";
+const DEFAULT_SPOTLIGHT = {
+  badge: "今月の主役",
+  period: "2026.05.01 - 05.31",
+  en: "Pick of the Month",
+  title: "母の日の<br>フラワーケーキ",
+  sub: "感謝のひと皿に、季節の花を咲かせて。",
+  desc: "苺と季節のフルーツを花のように飾った、母の日限定のホールケーキです。生クリームをそっと絞ってお花のかたちに。お母様への「ありがとう」を、ひと皿のお菓子に込めて。",
+  price: "¥4,200",
+  priceNote: "5号(直径15cm)/4〜6名様",
+  cta: "ご予約はこちら",
+  ctaUrl: "reservation.html",
+  img: "https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=1000&q=80"
+};
+const DEFAULT_STATS_LIST = [
+  { num: "12", unit: "年", label: "創業からの年月" },
+  { num: "3,000", unit: "件＋", label: "オーダーケーキ実績" },
+  { num: "92", unit: "%", label: "リピートのお客様" },
+  { num: "4.8", unit: "/5.0", label: "Googleレビュー評価" }
+];
+
+let spotlightData = null;
+function renderSpotlightAdmin() {
+  spotlightData = loadByKey(SPOTLIGHT_KEY, DEFAULT_SPOTLIGHT);
+  const wrap = document.getElementById("spotlightForm");
+  const fields = [
+    { k: "badge", l: "バッジ（左上の小さなラベル / 例: 今月の主役、限定）", t: "input" },
+    { k: "period", l: "期間表示（右下の小さなラベル / 例: 2026.05.01 - 05.31）", t: "input" },
+    { k: "en", l: "英語サブタイトル", t: "input" },
+    { k: "title", l: "メインタイトル（&lt;br&gt;で改行可）", t: "input" },
+    { k: "sub", l: "サブコピー（タイトル下のひと言）", t: "input" },
+    { k: "desc", l: "説明文", t: "textarea" },
+    { k: "price", l: "価格（例: ¥4,200）", t: "input" },
+    { k: "priceNote", l: "価格の補足（例: 5号/4〜6名様）", t: "input" },
+    { k: "cta", l: "ボタン文言（例: ご予約はこちら）", t: "input" },
+    { k: "ctaUrl", l: "ボタンのリンク先（reservation.html / #experience / https://...）", t: "input" },
+    { k: "img", l: "画像URL", t: "input" }
+  ];
+  let html = `<div style="margin-bottom:20px; aspect-ratio:5/3; background:var(--color-bg-soft); overflow:hidden;"><img id="spotlightPreview" src="${escapeHtml(spotlightData.img||"")}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>`;
+  fields.forEach(f => {
+    html += `<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:5px;letter-spacing:.05em;">${f.l}</label>`;
+    if (f.t === "textarea") html += `<textarea data-k="${f.k}" rows="3" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-family:inherit;font-size:14px;resize:vertical;">${escapeHtml(spotlightData[f.k]||"")}</textarea>`;
+    else html += `<input type="text" data-k="${f.k}" value="${escapeHtml(spotlightData[f.k]||"")}" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-size:14px;">`;
+    html += `</div>`;
+  });
+  html += `<div style="margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;">
+    <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
+    <button class="btn" id="saveSpotlight">変更を保存</button>
+  </div>`;
+  wrap.innerHTML = html;
+  wrap.querySelectorAll("input[data-k], textarea[data-k]").forEach(el => {
+    el.addEventListener("input", () => {
+      spotlightData[el.dataset.k] = el.value;
+      if (el.dataset.k === "img") { const p = document.getElementById("spotlightPreview"); if (p) { p.src = el.value; p.style.display = "block"; } }
+    });
+  });
+  document.getElementById("spotlightFile").addEventListener("change", async e => {
+    if (!e.target.files[0]) return;
+    try {
+      const url = await fileToDataUrl(e.target.files[0]);
+      spotlightData.img = url;
+      renderSpotlightAdmin();
+    } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
+  });
+  document.getElementById("saveSpotlight").addEventListener("click", () => {
+    if (saveByKey(SPOTLIGHT_KEY, spotlightData)) showToast("特集を保存しました");
+  });
+}
+
+/* ============ Instagram投稿 管理 ============ */
+const INSTA_KEY = "koimari_insta";
+const DEFAULT_INSTA = {
+  img: "assets/insta-tart.png",
+  imgCount: 3,
+  likes: 25,
+  date: "4月17日",
+  caption: "こいまり城東店です！\n\nフルーツがキラキラしていて宝石箱のようなタルトのホールケーキです♪\n\nこちらは6号サイズでございます🌼\nタルトの上にカスタードを絞り、色々なフルーツを飾りました☺️",
+  hashtags: "#こいまり #城東区スイーツ #大阪スイーツ #大阪ケーキ屋 #フルーツタルト",
+  url: "https://www.instagram.com/_koimari_"
+};
+let instaData = null;
+function renderInstaAdmin() {
+  instaData = loadByKey(INSTA_KEY, DEFAULT_INSTA);
+  const wrap = document.getElementById("instaForm");
+  const fields = [
+    { k: "img", l: "投稿画像URL（または下のボタンからアップロード）", t: "input" },
+    { k: "imgCount", l: "画像枚数（1枚なら1、複数枚投稿なら 2, 3, 4 など）", t: "input" },
+    { k: "likes", l: "いいね数", t: "input" },
+    { k: "date", l: "投稿日（例: 4月17日）", t: "input" },
+    { k: "caption", l: "本文（改行可・絵文字可）", t: "textarea" },
+    { k: "hashtags", l: "ハッシュタグ（スペース区切り）", t: "input" },
+    { k: "url", l: "Instagram投稿のリンク先URL", t: "input" }
+  ];
+  let html = `<div style="margin-bottom:20px; aspect-ratio:1/1; background:var(--color-bg-soft); overflow:hidden; max-width:400px;"><img id="instaPreview" src="${escapeHtml(instaData.img||"")}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>`;
+  fields.forEach(f => {
+    html += `<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:5px;letter-spacing:.05em;">${f.l}</label>`;
+    if (f.t === "textarea") html += `<textarea data-k="${f.k}" rows="6" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-family:inherit;font-size:14px;resize:vertical;line-height:1.7;">${escapeHtml(instaData[f.k]||"")}</textarea>`;
+    else html += `<input type="text" data-k="${f.k}" value="${escapeHtml(instaData[f.k]||"")}" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-size:14px;">`;
+    html += `</div>`;
+  });
+  html += `<div style="margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;">
+    <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="instaFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
+    <button class="btn" id="saveInsta">変更を保存</button>
+  </div>`;
+  wrap.innerHTML = html;
+  wrap.querySelectorAll("input[data-k], textarea[data-k]").forEach(el => {
+    el.addEventListener("input", () => {
+      let v = el.value;
+      if (el.dataset.k === "imgCount" || el.dataset.k === "likes") v = parseInt(v) || 0;
+      instaData[el.dataset.k] = v;
+      if (el.dataset.k === "img") { const p = document.getElementById("instaPreview"); if (p) { p.src = el.value; p.style.display = "block"; } }
+    });
+  });
+  document.getElementById("instaFile").addEventListener("change", async e => {
+    if (!e.target.files[0]) return;
+    try {
+      const url = await fileToDataUrl(e.target.files[0]);
+      instaData.img = url;
+      renderInstaAdmin();
+    } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
+  });
+  document.getElementById("saveInsta").addEventListener("click", () => {
+    if (saveByKey(INSTA_KEY, instaData)) showToast("Instagram投稿を保存しました");
+  });
+}
+
+/* ============ 数字で見る 管理 ============ */
+let statsTopData = null;
+function renderStatsAdmin() {
+  statsTopData = loadByKey(STATS_KEY, DEFAULT_STATS_LIST);
+  const wrap = document.getElementById("statsAdminList"); wrap.innerHTML = "";
+  if (!statsTopData.length) {
+    wrap.innerHTML = '<div class="empty">項目はまだありません。「＋ 項目を追加」から作成してください。</div>';
+  }
+  statsTopData.forEach((s, i) => {
+    const item = document.createElement("div");
+    item.style.cssText = "background:#fff;border:1px solid var(--color-line);padding:18px 22px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:12px;align-items:end;max-width:760px;";
+    item.innerHTML = `
+      <div><label style="display:block;font-size:11px;color:var(--color-text-soft);margin-bottom:4px;">数字（例: 12, 3,000）</label><input type="text" data-k="num" value="${escapeHtml(s.num||"")}" style="width:100%;padding:8px 10px;border:1px solid var(--color-line);font-family:var(--font-en);font-size:18px;color:var(--color-accent);"></div>
+      <div><label style="display:block;font-size:11px;color:var(--color-text-soft);margin-bottom:4px;">単位（例: 年, 件＋, %）</label><input type="text" data-k="unit" value="${escapeHtml(s.unit||"")}" style="width:100%;padding:8px 10px;border:1px solid var(--color-line);"></div>
+      <div><label style="display:block;font-size:11px;color:var(--color-text-soft);margin-bottom:4px;">ラベル</label><input type="text" data-k="label" value="${escapeHtml(s.label||"")}" style="width:100%;padding:8px 10px;border:1px solid var(--color-line);"></div>
+      <button class="btn btn--small btn--ghost" style="font-size:12px;padding:8px 14px;">削除</button>`;
+    item.querySelectorAll("input").forEach(inp => inp.addEventListener("input", () => { statsTopData[i][inp.dataset.k] = inp.value; }));
+    item.querySelector("button").addEventListener("click", () => { if (confirm("削除しますか？")) { statsTopData.splice(i,1); renderStatsAdmin(); } });
+    wrap.appendChild(item);
+  });
+  const sb = document.createElement("div"); sb.style.marginTop = "20px";
+  sb.innerHTML = '<button class="btn" id="saveStatsBtn">変更を保存</button>';
+  wrap.appendChild(sb);
+  document.getElementById("saveStatsBtn").addEventListener("click", () => {
+    if (saveByKey(STATS_KEY, statsTopData)) showToast("数字を保存しました");
+  });
+}
+document.getElementById("addStat").addEventListener("click", () => {
+  if (!statsTopData) statsTopData = loadByKey(STATS_KEY, DEFAULT_STATS_LIST);
+  statsTopData.push({ num: "0", unit: "", label: "新しい項目" });
+  renderStatsAdmin();
+});
+
+/* ============ 営業日設定 ============ */
+let holidaysData = null;
+const DOW_NAMES = ["日","月","火","水","木","金","土"];
+function renderHolidaysAdmin() {
+  holidaysData = loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS);
+  const w = document.getElementById("weeklyClosed");
+  w.innerHTML = "";
+  for (let d = 0; d < 7; d++) {
+    const label = document.createElement("label");
+    label.style.cssText = "display:inline-flex; align-items:center; padding:10px 16px; border:1px solid var(--color-line); background:#fdfaf6; cursor:pointer; user-select:none; font-family:var(--font-mincho);";
+    const checked = (holidaysData.weeklyClosed||[]).includes(d);
+    if (checked) { label.style.borderColor = "var(--color-accent)"; label.style.background = "rgba(176,59,72,0.06)"; label.style.color = "var(--color-accent)"; }
+    label.innerHTML = `<input type="checkbox" ${checked?"checked":""} style="margin-right:8px; accent-color:var(--color-accent);">${DOW_NAMES[d]}曜日`;
+    label.querySelector("input").addEventListener("change", e => {
+      if (e.target.checked) { if (!holidaysData.weeklyClosed.includes(d)) holidaysData.weeklyClosed.push(d); }
+      else { holidaysData.weeklyClosed = holidaysData.weeklyClosed.filter(x => x !== d); }
+      renderHolidaysAdmin();
+    });
+    w.appendChild(label);
+  }
+  const list = document.getElementById("extraClosedList");
+  list.innerHTML = "";
+  if (!holidaysData.extraClosed || !holidaysData.extraClosed.length) {
+    list.innerHTML = '<span style="color:var(--color-text-soft); font-size:14px;">臨時休業日は設定されていません</span>';
+  } else {
+    holidaysData.extraClosed.sort();
+    holidaysData.extraClosed.forEach(date => {
+      const tag = document.createElement("span");
+      tag.style.cssText = "display:inline-flex; align-items:center; gap:8px; padding:8px 14px; background:rgba(176,59,72,0.08); color:var(--color-accent-dark); font-family:var(--font-mincho); font-size:14px;";
+      tag.innerHTML = `${escapeHtml(date)} <button style="background:none; border:none; color:var(--color-accent); cursor:pointer; font-size:16px; line-height:1;">×</button>`;
+      tag.querySelector("button").addEventListener("click", () => {
+        holidaysData.extraClosed = holidaysData.extraClosed.filter(d => d !== date);
+        renderHolidaysAdmin();
+      });
+      list.appendChild(tag);
+    });
+  }
+}
+document.getElementById("addExtraDate").addEventListener("click", () => {
+  const v = document.getElementById("extraDateInput").value;
+  if (!v) { showToast("日付を選択してください", "error"); return; }
+  if (!holidaysData) holidaysData = loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS);
+  if (!holidaysData.extraClosed) holidaysData.extraClosed = [];
+  if (!holidaysData.extraClosed.includes(v)) holidaysData.extraClosed.push(v);
+  document.getElementById("extraDateInput").value = "";
+  renderHolidaysAdmin();
+});
+document.getElementById("saveHolidays").addEventListener("click", () => {
+  if (saveByKey(HOLIDAYS_KEY, holidaysData)) showToast("営業日設定を保存しました");
+});
+
+/* ============ FAQ管理 ============ */
+let faqData = null;
+function renderFaqAdmin() {
+  faqData = loadByKey(FAQ_KEY, DEFAULT_FAQ);
+  const wrap = document.getElementById("faqList");
+  wrap.innerHTML = "";
+  faqData.forEach((cat, ci) => {
+    const sec = document.createElement("div");
+    sec.style.cssText = "background:#fff; border:1px solid var(--color-line); padding:24px 28px; margin-bottom:16px;";
+    let html = `<div style="display:flex; gap:12px; align-items:center; margin-bottom:18px;"><input type="text" data-cat="${ci}" value="${escapeHtml(cat.category)}" style="flex:1; font-family:var(--font-mincho); font-size:17px; font-weight:600; padding:8px 12px; border:1px solid var(--color-line);"><button class="btn btn--small btn--ghost faq-add-q" data-ci="${ci}">＋ Q追加</button><button class="btn btn--small btn--danger faq-del-cat" data-ci="${ci}">カテゴリ削除</button></div>`;
+    (cat.items||[]).forEach((it, ii) => {
+      html += `<div style="border-top:1px dashed var(--color-line); padding:14px 0;">
+        <div style="margin-bottom:8px;"><label style="font-size:12px; color:var(--color-text-soft);">Q. 質問</label><input type="text" data-ci="${ci}" data-ii="${ii}" data-k="q" value="${escapeHtml(it.q)}" style="width:100%; padding:9px 12px; border:1px solid var(--color-line); margin-top:4px;"></div>
+        <div><label style="font-size:12px; color:var(--color-text-soft);">A. 回答</label><textarea data-ci="${ci}" data-ii="${ii}" data-k="a" rows="3" style="width:100%; padding:9px 12px; border:1px solid var(--color-line); margin-top:4px; font-family:inherit; resize:vertical;">${escapeHtml(it.a)}</textarea></div>
+        <div style="text-align:right; margin-top:8px;"><button class="btn btn--small btn--ghost faq-del-q" data-ci="${ci}" data-ii="${ii}" style="font-size:12px; padding:6px 14px;">この項目を削除</button></div>
+      </div>`;
+    });
+    sec.innerHTML = html;
+    wrap.appendChild(sec);
+  });
+  // ハンドラ
+  wrap.querySelectorAll('input[data-cat]').forEach(inp => inp.addEventListener("input", e => { faqData[+e.target.dataset.cat].category = e.target.value; }));
+  wrap.querySelectorAll('input[data-k], textarea[data-k]').forEach(inp => inp.addEventListener("input", e => {
+    const ci = +e.target.dataset.ci, ii = +e.target.dataset.ii, k = e.target.dataset.k;
+    faqData[ci].items[ii][k] = e.target.value;
+  }));
+  wrap.querySelectorAll(".faq-add-q").forEach(b => b.addEventListener("click", e => {
+    const ci = +e.target.dataset.ci;
+    if (!faqData[ci].items) faqData[ci].items = [];
+    faqData[ci].items.push({ q: "新しい質問", a: "回答を入力" });
+    renderFaqAdmin();
+  }));
+  wrap.querySelectorAll(".faq-del-q").forEach(b => b.addEventListener("click", e => {
+    if (!confirm("この質問を削除しますか？")) return;
+    const ci = +e.target.dataset.ci, ii = +e.target.dataset.ii;
+    faqData[ci].items.splice(ii, 1); renderFaqAdmin();
+  }));
+  wrap.querySelectorAll(".faq-del-cat").forEach(b => b.addEventListener("click", e => {
+    if (!confirm("このカテゴリごと削除しますか？")) return;
+    faqData.splice(+e.target.dataset.ci, 1); renderFaqAdmin();
+  }));
+  // 保存ボタン
+  const sb = document.createElement("div"); sb.style.marginTop = "20px";
+  sb.innerHTML = '<button class="btn" id="saveFaqBtn">変更を保存</button>';
+  wrap.appendChild(sb);
+  document.getElementById("saveFaqBtn").addEventListener("click", () => {
+    if (saveByKey(FAQ_KEY, faqData)) showToast("FAQを保存しました");
+  });
+}
+document.getElementById("addFaqCat").addEventListener("click", () => {
+  if (!faqData) faqData = loadByKey(FAQ_KEY, DEFAULT_FAQ);
+  faqData.push({ category: "新規カテゴリ", items: [] });
+  renderFaqAdmin();
+});
+
+/* ============ ギャラリー管理 ============ */
+let galleryData = null;
+function renderGalleryAdmin() {
+  galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
+  const grid = document.getElementById("galleryAdminGrid"); grid.innerHTML = "";
+  galleryData.forEach((g, i) => {
+    const item = makeImageItem({
+      preview: g.img,
+      fields: [
+        { label: "タイトル", key: "title", value: g.title||"", type: "input" },
+        { label: "説明", key: "desc", value: g.desc||"", type: "textarea" },
+        { label: "サイズ（例: 5号、6号、1本）", key: "size", value: g.size||"", type: "input" },
+        { label: "価格目安（例: ¥4,800〜）", key: "price", value: g.price||"", type: "input" },
+        { label: "納期（例: 3日前）", key: "lead", value: g.lead||"", type: "input" },
+        { label: "日付（例: 2026.04）", key: "date", value: g.date||"", type: "input" },
+        { label: "画像URL", key: "img", value: g.img||"", type: "input" }
+      ],
+      onChange: (k, v) => { galleryData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
+      onFile: u => { galleryData[i].img = u; renderGalleryAdmin(); },
+      onDelete: () => { galleryData.splice(i,1); renderGalleryAdmin(); }
+    });
+    // カテゴリ選択を追加
+    const catBox = document.createElement("div");
+    catBox.className = "img-item__field";
+    catBox.innerHTML = `<label>カテゴリ</label>`;
+    const sel = document.createElement("select");
+    sel.style.cssText = "width:100%;padding:10px 12px;border:1px solid var(--color-line);background:#fdfaf6;font-family:inherit;font-size:14px;";
+    [
+      ["birthday","誕生日"], ["anniversary","記念日・お祝い"],
+      ["wedding","結婚・出産"], ["seasonal","季節限定"], ["other","その他オーダー"]
+    ].forEach(([k,n]) => {
+      const o = document.createElement("option"); o.value = k; o.textContent = n;
+      if ((g.category||"birthday") === k) o.selected = true;
+      sel.appendChild(o);
+    });
+    sel.addEventListener("change", () => { galleryData[i].category = sel.value; });
+    catBox.appendChild(sel);
+    // 最初のフィールド(タイトル)の前に挿入
+    const firstField = item.querySelector(".img-item__field");
+    item.insertBefore(catBox, firstField);
+    grid.appendChild(item);
+  });
+  const sb = document.createElement("div"); sb.style.cssText = "grid-column:1/-1; margin-top:10px;";
+  sb.innerHTML = '<button class="btn" id="saveGalleryBtn">変更を保存</button>';
+  grid.appendChild(sb);
+  document.getElementById("saveGalleryBtn").addEventListener("click", () => {
+    if (saveByKey(GALLERY_KEY, galleryData)) showToast("ギャラリーを保存しました");
+  });
+}
+document.getElementById("addGallery").addEventListener("click", () => {
+  if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
+  galleryData.unshift({ title: "新規作品", category: "birthday", desc: "", size: "", price: "", lead: "", date: "", img: "" });
+  renderGalleryAdmin();
+});
+
+/* ============ お客様の声 管理 ============ */
+let voicesData = null;
+function renderVoicesAdmin() {
+  voicesData = loadByKey(VOICES_KEY, DEFAULT_VOICES);
+  const wrap = document.getElementById("voicesAdminList"); wrap.innerHTML = "";
+  voicesData.forEach((v, i) => {
+    const item = document.createElement("div"); item.className = "img-item"; item.style.maxWidth = "720px";
+    item.innerHTML = `
+      <div class="img-item__field"><label>本文</label><textarea data-k="text" rows="4" style="width:100%; padding:10px 12px; border:1px solid var(--color-line); font-family:inherit; resize:vertical;">${escapeHtml(v.text||"")}</textarea></div>
+      <div class="img-item__field"><label>お名前（例: M.S.様）</label><input type="text" data-k="name" value="${escapeHtml(v.name||"")}"></div>
+      <div class="img-item__field"><label>属性（例: 30代女性 / お子様の誕生日）</label><input type="text" data-k="attr" value="${escapeHtml(v.attr||"")}"></div>
+      <div class="img-item__actions"><button class="voice-del">削除</button></div>`;
+    item.querySelectorAll("input[data-k], textarea[data-k]").forEach(inp => {
+      inp.addEventListener("input", () => { voicesData[i][inp.dataset.k] = inp.value; });
+    });
+    item.querySelector(".voice-del").addEventListener("click", () => { if (confirm("削除しますか？")) { voicesData.splice(i,1); renderVoicesAdmin(); } });
+    wrap.appendChild(item);
+  });
+  const sb = document.createElement("div"); sb.style.marginTop = "20px";
+  sb.innerHTML = '<button class="btn" id="saveVoicesBtn">変更を保存</button>';
+  wrap.appendChild(sb);
+  document.getElementById("saveVoicesBtn").addEventListener("click", () => {
+    if (saveByKey(VOICES_KEY, voicesData)) showToast("お客様の声を保存しました");
+  });
+}
+document.getElementById("addVoice").addEventListener("click", () => {
+  if (!voicesData) voicesData = loadByKey(VOICES_KEY, DEFAULT_VOICES);
+  voicesData.unshift({ text: "", name: "", attr: "" });
+  renderVoicesAdmin();
+});
+
+/* ============ ブログ管理 ============ */
+let blogData = null;
+function renderBlogAdmin() {
+  if (!blogData) blogData = loadByKey(BLOG_KEY, DEFAULT_BLOG);
+  const grid = document.getElementById("blogAdminGrid"); grid.innerHTML = "";
+  blogData.forEach((p, i) => {
+    grid.appendChild(makeImageItem({
+      preview: p.img,
+      fields: [
+        { label: "タイトル", key: "title", value: p.title||"", type: "input" },
+        { label: "カテゴリ", key: "category", value: p.category||"", type: "input" },
+        { label: "日付（例: 2026.04.20）", key: "date", value: p.date||"", type: "input" },
+        { label: "抜粋（一覧表示用）", key: "excerpt", value: p.excerpt||"", type: "textarea" },
+        { label: "本文（改行で段落）", key: "body", value: p.body||"", type: "textarea" },
+        { label: "アイキャッチ画像URL", key: "img", value: p.img||"", type: "input" }
+      ],
+      onChange: (k, v) => { blogData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
+      onFile: u => { blogData[i].img = u; renderBlogAdmin(); },
+      onDelete: () => { if (confirm("削除しますか？")) { blogData.splice(i,1); renderBlogAdmin(); } }
+    }));
+  });
+  const sb = document.createElement("div"); sb.style.cssText = "grid-column:1/-1; margin-top:10px;";
+  sb.innerHTML = '<button class="btn" id="saveBlogBtn">変更を保存</button>';
+  grid.appendChild(sb);
+  document.getElementById("saveBlogBtn").addEventListener("click", () => {
+    if (saveByKey(BLOG_KEY, blogData)) showToast("ブログを保存しました");
+  });
+}
+document.getElementById("addBlog").addEventListener("click", () => {
+  if (!blogData) blogData = loadByKey(BLOG_KEY, DEFAULT_BLOG);
+  const today = new Date();
+  const ds = `${today.getFullYear()}.${(today.getMonth()+1).toString().padStart(2,"0")}.${today.getDate().toString().padStart(2,"0")}`;
+  blogData.unshift({ id: "b" + Date.now(), title: "新規記事", category: "スタッフ日記", date: ds, excerpt: "", body: "", img: "" });
+  renderBlogAdmin();
+});
+</script>
+
+<script>
+// ===== 英語翻訳タブ JS =====
+function i18nSaveKey(){
+  const k=document.getElementById('i18nApiKey').value.trim();
+  if(!k){alert('APIキーを入力してください');return;}
+  localStorage.setItem('koimari_admin_claude_key',k);
+  document.getElementById('i18nApiKey').value='';
+  document.getElementById('i18nKeyStatus').textContent='✓ APIキーを保存しました';
+}
+
+// 翻訳対象データを収集
+function i18nCollectData(){
+  const news=JSON.parse(localStorage.getItem('koimari_news')||'null')||[
+    {date:"2026.04.20",tag:"NEW",title:"春限定 苺のショートケーキ販売中",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。"},
+    {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なホールケーキ。大切なお母様への感謝を込めて。"},
+    {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。"}
+  ];
+  const sp=JSON.parse(localStorage.getItem('koimari_spotlight')||'null')||{badge:"今月の主役",title:"母の日の フラワーケーキ",sub:"感謝のひと皿に、季節の花を咲かせて。",desc:"苺と季節のフルーツを花のように飾った母の日限定のホールケーキです。",priceNote:"5号(直径15cm)/4〜6名様",cta:"ご予約はこちら"};
+  const voices=JSON.parse(localStorage.getItem('koimari_voices')||'null')||[
+    {text:"娘の誕生日にオーダーしました。本人がとても気に入っていたキャラクターを丁寧に再現していただき、家族みんなで感動しました。",attr:"お子様のお誕生日"},
+    {text:"職場へのお礼の品として焼き菓子の詰め合わせをお願いしました。包装も上品で、皆さんからとても好評でした。",attr:"贈答品"},
+    {text:"母の傘寿のお祝いに、特別なケーキをご相談しました。希望をしっかり聞いてくださり、想像以上の出来栄えに感激しました。",attr:"記念日のお祝い"}
+  ];
+  const stats=JSON.parse(localStorage.getItem('koimari_stats')||'null')||[
+    {label:"創業からの年月"},{label:"オーダーケーキ実績"},{label:"リピートのお客様"},{label:"Googleレビュー評価"}
+  ];
+  return {news,sp,voices,stats};
+}
+
+async function i18nTranslateAll(){
+  const key=localStorage.getItem('koimari_admin_claude_key');
+  if(!key){alert('先にClaude APIキーを設定してください');return;}
+  const btn=document.getElementById('i18nTranslateBtn');
+  const prog=document.getElementById('i18nProgress');
+  btn.disabled=true;
+  prog.textContent='翻訳中…（30秒ほどかかる場合があります）';
+
+  const data=i18nCollectData();
+
+  const prompt=`You are translating content for a Japanese artisan cake and pastry shop in Osaka called "Koimari" (こいまり). The shop specializes in handcrafted cakes and seasonal baked sweets. The tone is warm, elegant, and artisan — like a small European patisserie with Japanese sensibilities.
+
+Translate the following Japanese content to natural, sophisticated English. Use elegant but accessible language. Avoid overly casual expressions. Keep product names natural (e.g. 苺のショートケーキ → "Strawberry Shortcake"). For labels like tags, use concise English.
+
+Return ONLY valid JSON with exactly this structure (no extra text, no markdown):
+{
+  "news": [{"tagEn":"...","titleEn":"...","excerptEn":"..."}],
+  "spotlight": {"badgeEn":"...","titleEn":"...","subEn":"...","descEn":"...","priceNoteEn":"...","ctaEn":"..."},
+  "voices": [{"textEn":"...","attrEn":"..."}],
+  "stats": [{"labelEn":"...","unitEn":"..."}]
+}
+
+Japanese content:
+${JSON.stringify(data,null,2)}`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:4096,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.statusText);}
+    const resp=await res.json();
+    const text=resp.content[0].text;
+    const jsonMatch=text.match(/\{[\s\S]*\}/);
+    if(!jsonMatch)throw new Error('JSONが見つかりませんでした');
+    const result=JSON.parse(jsonMatch[0]);
+    i18nShowResults(result,data);
+    prog.textContent='✓ 翻訳完了';
+  }catch(e){
+    prog.textContent='エラー: '+e.message;
+    alert('翻訳エラー: '+e.message);
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+let i18nTranslated={};
+function i18nShowResults(result,original){
+  i18nTranslated=result;
+  document.getElementById('i18nResultArea').style.display='block';
+
+  // News
+  const newsHtml=original.news.map((n,i)=>`
+    <div style="border-bottom:1px solid var(--color-line);padding:14px 0">
+      <div style="font-size:12px;color:var(--color-text-soft);margin-bottom:6px">${n.date} [${n.tag}]</div>
+      <div style="font-size:14px;margin-bottom:4px"><strong>${n.title}</strong></div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:8px;font-size:13px">
+        <span style="color:var(--color-text-soft)">タグ EN</span>
+        <input class="input" style="padding:6px 8px;font-size:13px;margin:0" value="${(result.news[i]?.tagEn||'').replace(/"/g,'&quot;')}" onchange="i18nTranslated.news[${i}].tagEn=this.value">
+        <span style="color:var(--color-text-soft)">タイトル EN</span>
+        <input class="input" style="padding:6px 8px;font-size:13px;margin:0" value="${(result.news[i]?.titleEn||'').replace(/"/g,'&quot;')}" onchange="i18nTranslated.news[${i}].titleEn=this.value">
+        <span style="color:var(--color-text-soft)">概要 EN</span>
+        <input class="input" style="padding:6px 8px;font-size:13px;margin:0" value="${(result.news[i]?.excerptEn||'').replace(/"/g,'&quot;')}" onchange="i18nTranslated.news[${i}].excerptEn=this.value">
+      </div>
+    </div>`).join('');
+  document.getElementById('i18nNewsResult').innerHTML=newsHtml;
+
+  // Spotlight
+  const sp=result.spotlight||{};
+  document.getElementById('i18nSpotlightResult').innerHTML=`
+    <div style="display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13px">
+      ${[['バッジ EN','badgeEn'],['タイトル EN','titleEn'],['サブタイトル EN','subEn'],['説明文 EN','descEn'],['容量注記 EN','priceNoteEn'],['CTA EN','ctaEn']].map(([label,key])=>`
+        <span style="color:var(--color-text-soft);line-height:32px">${label}</span>
+        <input class="input" style="padding:6px 8px;font-size:13px;margin:0" value="${(sp[key]||'').replace(/"/g,'&quot;')}" onchange="i18nTranslated.spotlight['${key}']=this.value">
+      `).join('')}
+    </div>`;
+
+  // Voices
+  const voicesHtml=original.voices.map((v,i)=>`
+    <div style="border-bottom:1px solid var(--color-line);padding:14px 0">
+      <div style="font-size:13px;color:var(--color-text-soft);margin-bottom:8px">[${v.attr}] ${v.text.slice(0,40)}…</div>
+      <div style="display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px">
+        <span style="color:var(--color-text-soft)">属性 EN</span>
+        <input class="input" style="padding:6px 8px;font-size:13px;margin:0" value="${(result.voices[i]?.attrEn||'').replace(/"/g,'&quot;')}" onchange="i18nTranslated.voices[${i}].attrEn=this.value">
+        <span style="color:var(--color-text-soft)">レビュー EN</span>
+        <textarea class="input" rows="3" style="padding:6px 8px;font-size:13px;margin:0;resize:vertical" onchange="i18nTranslated.voices[${i}].textEn=this.value">${(result.voices[i]?.textEn||'')}</textarea>
+      </div>
+    </div>`).join('');
+  document.getElementById('i18nVoicesResult').innerHTML=voicesHtml;
+
+  // Stats
+  const statsHtml=original.stats.map((s,i)=>`
+    <div style="display:flex;align-items:center;gap:16px;padding:8px 0;border-bottom:1px solid var(--color-line);font-size:13px">
+      <span style="min-width:120px;color:var(--color-text-soft)">${s.label}</span>
+      <input class="input" style="padding:6px 8px;font-size:13px;margin:0;flex:1" placeholder="英語ラベル" value="${(result.stats[i]?.labelEn||'').replace(/"/g,'&quot;')}" onchange="i18nTranslated.stats[${i}].labelEn=this.value">
+      <input class="input" style="padding:6px 8px;font-size:13px;margin:0;width:80px" placeholder="単位EN" value="${(result.stats[i]?.unitEn||'').replace(/"/g,'&quot;')}" onchange="i18nTranslated.stats[${i}].unitEn=this.value">
+    </div>`).join('');
+  document.getElementById('i18nStatsResult').innerHTML=statsHtml;
+}
+
+function i18nSaveTranslations(){
+  // 翻訳結果を localStorage に保存（各データに EN フィールドをマージ）
+  const news=JSON.parse(localStorage.getItem('koimari_news')||'null')||[];
+  if(news.length&&i18nTranslated.news){
+    i18nTranslated.news.forEach((en,i)=>{if(news[i])Object.assign(news[i],en);});
+    localStorage.setItem('koimari_news',JSON.stringify(news));
+  }
+  const sp=JSON.parse(localStorage.getItem('koimari_spotlight')||'null')||{};
+  if(i18nTranslated.spotlight) Object.assign(sp,i18nTranslated.spotlight);
+  localStorage.setItem('koimari_spotlight',JSON.stringify(sp));
+  const voices=JSON.parse(localStorage.getItem('koimari_voices')||'null')||[];
+  if(voices.length&&i18nTranslated.voices){
+    i18nTranslated.voices.forEach((en,i)=>{if(voices[i])Object.assign(voices[i],en);});
+    localStorage.setItem('koimari_voices',JSON.stringify(voices));
+  }
+  const stats=JSON.parse(localStorage.getItem('koimari_stats')||'null')||[];
+  if(stats.length&&i18nTranslated.stats){
+    i18nTranslated.stats.forEach((en,i)=>{if(stats[i])Object.assign(stats[i],en);});
+    localStorage.setItem('koimari_stats',JSON.stringify(stats));
+  }
+  alert('翻訳を保存しました。サイトをリロードすると英語表示に反映されます。');
+}
+
+function i18nClearTranslations(){
+  if(!confirm('翻訳データをリセットしますか？'))return;
+  localStorage.removeItem('koimari_i18n_override');
+  // EN フィールドをデータから削除
+  ['koimari_news','koimari_spotlight','koimari_voices','koimari_stats'].forEach(k=>{
+    const d=localStorage.getItem(k);
+    if(d){
+      const parsed=JSON.parse(d);
+      const strip=obj=>{Object.keys(obj).filter(k=>k.endsWith('En')).forEach(k=>delete obj[k]);return obj;};
+      if(Array.isArray(parsed))localStorage.setItem(k,JSON.stringify(parsed.map(strip)));
+      else localStorage.setItem(k,JSON.stringify(strip(parsed)));
+    }
+  });
+  document.getElementById('i18nResultArea').style.display='none';
+  document.getElementById('i18nProgress').textContent='';
+  alert('リセットしました。');
+}
+
+// ページ読み込み時にAPIキーの有無を表示
+(function(){
+  const k=localStorage.getItem('koimari_admin_claude_key');
+  const el=document.getElementById('i18nKeyStatus');
+  if(k&&el) el.textContent='✓ APIキーが設定されています';
+})();
+</script>
+</body>
+</html>
