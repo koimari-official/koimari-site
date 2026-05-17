@@ -3,7 +3,12 @@
     "allow": [
       "Bash(git config *)",
       "Bash(git commit -m ' *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(python -c ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" add .)",
+      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" commit -m \"電話番号・駐車場情報を更新\")",
+      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" push)"
     ]
   }
 }
