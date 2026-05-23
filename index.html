@@ -354,6 +354,9 @@ section{padding:100px 24px}
 .event-banner__close{color:rgba(46,26,0,.6)}
 .event-banner__close:hover{color:var(--color-on-accent)}
 .event-banner__label{background:rgba(46,26,0,.1);border-color:rgba(46,26,0,.2)}
+.lang-btn{color:var(--color-text-soft);padding:.45em 1em;font-size:13px;border-radius:.5em;background:var(--color-bg);cursor:pointer;border:1px solid var(--color-bg);transition:all .3s;box-shadow:5px 5px 10px #d8baa4,-5px -5px 10px #fff;font-family:var(--font-en);letter-spacing:.12em;font-weight:500}
+.lang-btn:hover{border-color:#fff;color:var(--color-accent)}
+.lang-btn:active{box-shadow:3px 3px 8px #d8baa4,-3px -3px 8px #fff}
 </style>
 <script src="i18n.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -385,10 +388,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="text-[14px] leading-[1.7]" data-i18n="header.hours">火-土 10:00 - 20:00<br>日 10:00 - 19:00 / 月曜定休</div>
       <a href="tel:0672210705" class="[font-family:var(--font-en)] text-[26px] text-[var(--color-accent)] tracking-[.05em] font-medium">06-7221-0705</a>
     </div>
-    <div class="flex items-center gap-0.5 [font-family:var(--font-en)] text-[12px] tracking-widest">
-      <button data-lang-btn="ja" onclick="I18nCtrl.setLang('ja')" class="px-2 py-1 text-[var(--color-text-soft)] hover:text-[var(--color-accent)] transition-colors duration-200 bg-transparent border-0 cursor-pointer">JP</button>
-      <span class="text-[var(--color-line)]">|</span>
-      <button data-lang-btn="en" onclick="I18nCtrl.setLang('en')" class="px-2 py-1 text-[var(--color-text-soft)] hover:text-[var(--color-accent)] transition-colors duration-200 bg-transparent border-0 cursor-pointer">EN</button>
+    <div class="flex items-center gap-2">
+      <button data-lang-btn="ja" onclick="I18nCtrl.setLang('ja')" class="lang-btn">JP</button>
+      <button data-lang-btn="en" onclick="I18nCtrl.setLang('en')" class="lang-btn">EN</button>
     </div>
     <button class="hidden max-[900px]:block bg-transparent border-0 cursor-pointer text-[28px] text-[var(--color-accent)] p-[6px]" id="menuToggle" aria-label="メニュー">☰</button>
   </div>

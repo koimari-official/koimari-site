@@ -160,6 +160,9 @@ const I18nCtrl = {
       const active = btn.getAttribute('data-lang-btn') === this.lang;
       btn.style.color      = active ? 'var(--color-accent)' : '';
       btn.style.fontWeight = active ? '700' : '';
+      btn.style.boxShadow  = active
+        ? 'inset 3px 3px 8px #d8baa4, inset -3px -3px 8px #fff'
+        : '5px 5px 10px #d8baa4, -5px -5px 10px #fff';
     });
   }
 };
