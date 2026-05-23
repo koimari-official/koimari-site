@@ -373,6 +373,8 @@ section{padding:100px 24px}
 .event-banner__close{color:rgba(46,26,0,.6)}
 .event-banner__close:hover{color:var(--color-on-accent)}
 .event-banner__label{background:rgba(46,26,0,.1);border-color:rgba(46,26,0,.2)}
+.nav-link{display:block;padding:8px 16px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.08em;color:var(--color-text);font-weight:700;border:1.5px solid var(--color-line);background:var(--color-bg);transition:all .2s;white-space:nowrap}
+.nav-link:hover{color:var(--color-accent-dark);background:var(--color-bg-soft);box-shadow:inset 2px 3px 5px rgba(180,140,100,.25),inset -1px -1px 3px rgba(255,255,255,.5)}
 .lang-btn{color:var(--color-text-soft);padding:.45em 1em;font-size:13px;border-radius:.5em;background:var(--color-bg);cursor:pointer;border:2px solid #e8d4bc;transition:all .3s;box-shadow:5px 5px 10px #d8baa4,-5px -5px 10px #fff;font-family:var(--font-en);letter-spacing:.12em;font-weight:500}
 .lang-btn:hover{border-color:#f5ece0;color:var(--color-accent)}
 .lang-btn:active{box-shadow:3px 3px 8px #d8baa4,-3px -3px 8px #fff}
@@ -415,16 +417,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </header>
 <nav id="globalNav" class="bg-[var(--color-bg-soft)] border-b border-[var(--color-line)] max-[900px]:hidden">
-  <ul class="max-w-[var(--max-w)] mx-auto flex justify-center flex-wrap list-none max-[900px]:flex-col">
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="index.html" data-i18n="nav.home" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">ホーム</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="#about" data-i18n="nav.about" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">こいまりについて</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="#categories" data-i18n="nav.menu" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">商品一覧</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="#experience" data-i18n="nav.workshop" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">体験プログラム</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="gallery.html" data-i18n="nav.gallery" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">ギャラリー</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="blog.html" data-i18n="nav.blog" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">ブログ</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="faq.html" data-i18n="nav.faq" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">よくある質問</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="#shop" data-i18n="nav.shop" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">店舗情報</a></li>
-    <li class="max-[900px]:border-b max-[900px]:border-[var(--color-line)]"><a href="reservation.html" data-i18n="nav.reserve" class="block px-[22px] py-[18px] [font-family:var(--font-mincho)] text-[15px] tracking-[.1em] text-[var(--color-text)] font-medium transition-colors duration-200 hover:text-[var(--color-accent)] hover:bg-[rgba(201,169,110,0.1)] max-[900px]:px-6 max-[900px]:py-4 max-[900px]:text-[17px]">ご予約</a></li>
+  <ul class="max-w-[var(--max-w)] mx-auto flex justify-center flex-wrap items-center gap-2 list-none py-3 px-4">
+    <li><a href="index.html" data-i18n="nav.home" class="nav-link">ホーム</a></li>
+    <li><a href="#about" data-i18n="nav.about" class="nav-link">こいまりについて</a></li>
+    <li><a href="#categories" data-i18n="nav.menu" class="nav-link">商品一覧</a></li>
+    <li><a href="#experience" data-i18n="nav.workshop" class="nav-link">体験プログラム</a></li>
+    <li><a href="gallery.html" data-i18n="nav.gallery" class="nav-link">ギャラリー</a></li>
+    <li><a href="blog.html" data-i18n="nav.blog" class="nav-link">ブログ</a></li>
+    <li><a href="faq.html" data-i18n="nav.faq" class="nav-link">よくある質問</a></li>
+    <li><a href="#bcal" class="nav-link">営業日</a></li>
+    <li><a href="#shop" data-i18n="nav.shop" class="nav-link">店舗情報</a></li>
+    <li><a href="reservation.html" data-i18n="nav.reserve" class="nav-link">ご予約</a></li>
   </ul>
 </nav>
 <div class="hero" id="hero"><div class="hero__dots" id="heroDots"></div><div class="hero__scroll">SCROLL</div></div>
