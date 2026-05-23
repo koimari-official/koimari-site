@@ -768,7 +768,7 @@ function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":
 
 const IMAGES = loadImages();
 const heroEl = document.getElementById("hero"), dotsEl = document.getElementById("heroDots");
-IMAGES.hero.forEach((slide,i)=>{
+IMAGES.hero.filter(s=>s.visible!==false).forEach((slide,i)=>{
   const div=document.createElement("div");div.className="hero__slide"+(i===0?" active":"");
   div.innerHTML=`<img src="${slide.src}" alt=""><div class="hero__overlay"><div class="hero__copy"><div class="hero__copy-en">${slide.titleEn||""}</div><div class="hero__copy-jp">${slide.titleJp||""}</div></div></div>`;
   heroEl.insertBefore(div,dotsEl);
@@ -788,13 +788,13 @@ const vGrid=document.getElementById("voicesGrid");
 function renderCategories(){
   catGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.categories.forEach(c=>{const a=document.createElement("a");a.href="#";a.className="cat-card";const displayName=en?(c.en||c.name):c.name;a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${displayName}"></div><div class="cat-card__body"><div class="cat-card__title">${displayName}</div></div>`;catGrid.appendChild(a)});
+  IMAGES.categories.filter(c=>c.visible!==false).forEach(c=>{const a=document.createElement("a");a.href="#";a.className="cat-card";const displayName=en?(c.en||c.name):c.name;a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${displayName}"></div><div class="cat-card__body"><div class="cat-card__title">${displayName}</div></div>`;catGrid.appendChild(a)});
 }
 
 function renderRecommended(){
   recGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.recommended.forEach(r=>{const a=document.createElement("a");a.href="#";a.className="rec-card";const displayName=en?(r.nameEn||r.name):r.name;a.innerHTML=`<div class="rec-card__img"><img src="${r.img}" alt="${displayName}"></div><div class="rec-card__name">${displayName}</div><div class="rec-card__price">${r.price}</div>`;recGrid.appendChild(a)});
+  IMAGES.recommended.filter(r=>r.visible!==false).forEach(r=>{const a=document.createElement("a");a.href="#";a.className="rec-card";const displayName=en?(r.nameEn||r.name):r.name;a.innerHTML=`<div class="rec-card__img"><img src="${r.img}" alt="${displayName}"></div><div class="rec-card__name">${displayName}</div><div class="rec-card__price">${r.price}</div>`;recGrid.appendChild(a)});
 }
 
 function renderExperiences(){
@@ -822,7 +822,7 @@ function renderNews(){
   if(!newsItems.length){
     newsList.innerHTML=`<div class="pickup__empty">${en?'No announcements at this time.':'お知らせは現在ありません。'}</div>`;
   }else{
-    newsItems.slice(0,5).forEach(n=>{
+    newsItems.filter(n=>n.visible!==false).slice(0,5).forEach(n=>{
       const a=document.createElement("a");
       a.className="news-row";
       a.href=escape(n.url||"#");
@@ -972,7 +972,7 @@ setInterval(updateStatus,60000);
 /* ========= Instagram投稿風カード ========= */
 const ig=loadInsta();
 const igCard=document.getElementById("igCard");
-if(igCard){
+if(igCard&&ig.visible!==false){
   const captionLines=(ig.caption||"").split("\n").filter(l=>l).map(l=>escape(l)).join("<br>");
   const hashtags=(ig.hashtags||"").split(/\s+/).filter(t=>t.startsWith("#")).map(t=>escape(t)).join(" ");
   igCard.href=ig.url||"https://www.instagram.com/_koimari_";

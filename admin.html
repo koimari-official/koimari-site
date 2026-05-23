@@ -837,10 +837,34 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete }) {
   return item;
 }
 
+// 公開/非表示トグルを img-item に追加する共通ヘルパー
+function appendVisibleToggle(item, getVisible, onToggle) {
+  const v = getVisible();
+  const box = document.createElement("div");
+  box.style.cssText = "padding:12px 14px;margin-top:10px;background:" + (v ? "rgba(93,138,78,0.08)" : "rgba(176,59,72,0.08)") + ";border-left:3px solid " + (v ? "#5d8a4e" : "var(--color-accent)") + ";display:flex;align-items:center;justify-content:space-between;gap:10px;";
+  const label = document.createElement("span");
+  label.style.cssText = "font-family:var(--font-mincho);font-weight:600;font-size:14px;";
+  label.textContent = v ? "✓ サイトに公開中" : "✕ 非表示（下書き状態）";
+  const btn = document.createElement("button");
+  btn.textContent = v ? "非表示にする" : "公開する";
+  btn.className = "btn btn--small " + (v ? "btn--ghost" : "");
+  btn.style.fontSize = "12px";
+  btn.addEventListener("click", onToggle);
+  box.appendChild(label);
+  box.appendChild(btn);
+  item.appendChild(box);
+  if (!v) {
+    item.style.opacity = "0.55";
+    const p = item.querySelector(".img-item__preview");
+    if (p) p.style.filter = "grayscale(0.5)";
+  }
+}
+
 function renderHero() {
   const grid = document.getElementById("heroGrid"); grid.innerHTML = "";
   workingData.hero.forEach((s, i) => {
-    grid.appendChild(makeImageItem({
+    if (s.visible === undefined) s.visible = true;
+    const item = makeImageItem({
       preview: s.src,
       fields: [
         { label: "画像URL", key: "src", value: s.src, type: "input" },
@@ -850,7 +874,9 @@ function renderHero() {
       onChange: (k, v) => { workingData.hero[i][k] = v; if (k === "src") refreshPreview(grid.children[i], v); updateSaveBar(); },
       onFile: u => { workingData.hero[i].src = u; renderHero(); updateSaveBar(); },
       onDelete: workingData.hero.length > 1 ? () => { workingData.hero.splice(i,1); renderHero(); updateSaveBar(); } : null
-    }));
+    });
+    appendVisibleToggle(item, () => workingData.hero[i].visible, () => { workingData.hero[i].visible = !workingData.hero[i].visible; renderHero(); updateSaveBar(); });
+    grid.appendChild(item);
   });
 }
 function renderGreeting() {
@@ -866,7 +892,8 @@ function renderGreeting() {
 function renderCategories() {
   const grid = document.getElementById("categoriesGrid"); grid.innerHTML = "";
   workingData.categories.forEach((c, i) => {
-    grid.appendChild(makeImageItem({
+    if (c.visible === undefined) c.visible = true;
+    const item = makeImageItem({
       preview: c.img,
       fields: [
         { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
@@ -876,13 +903,16 @@ function renderCategories() {
       onChange: (k, v) => { workingData.categories[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
       onFile: u => { workingData.categories[i].img = u; renderCategories(); updateSaveBar(); },
       onDelete: () => { workingData.categories.splice(i,1); renderCategories(); updateSaveBar(); }
-    }));
+    });
+    appendVisibleToggle(item, () => workingData.categories[i].visible, () => { workingData.categories[i].visible = !workingData.categories[i].visible; renderCategories(); updateSaveBar(); });
+    grid.appendChild(item);
   });
 }
 function renderRecommended() {
   const grid = document.getElementById("recommendedGrid"); grid.innerHTML = "";
   workingData.recommended.forEach((r, i) => {
-    grid.appendChild(makeImageItem({
+    if (r.visible === undefined) r.visible = true;
+    const item = makeImageItem({
       preview: r.img,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
@@ -892,7 +922,9 @@ function renderRecommended() {
       onChange: (k, v) => { workingData.recommended[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
       onFile: u => { workingData.recommended[i].img = u; renderRecommended(); updateSaveBar(); },
       onDelete: () => { workingData.recommended.splice(i,1); renderRecommended(); updateSaveBar(); }
-    }));
+    });
+    appendVisibleToggle(item, () => workingData.recommended[i].visible, () => { workingData.recommended[i].visible = !workingData.recommended[i].visible; renderRecommended(); updateSaveBar(); });
+    grid.appendChild(item);
   });
 }
 function renderExperiences() {
@@ -938,9 +970,9 @@ function renderExperiences() {
   });
 }
 
-document.getElementById("addHero").addEventListener("click", () => { workingData.hero.push({src:"",titleEn:"New Slide",titleJp:"新しいスライド"}); renderHero(); updateSaveBar(); });
-document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:""}); renderCategories(); updateSaveBar(); });
-document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:""}); renderRecommended(); updateSaveBar(); });
+document.getElementById("addHero").addEventListener("click", () => { workingData.hero.push({src:"",titleEn:"New Slide",titleJp:"新しいスライド",visible:true}); renderHero(); updateSaveBar(); });
+document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:"",visible:true}); renderCategories(); updateSaveBar(); });
+document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:"",visible:true}); renderRecommended(); updateSaveBar(); });
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
 document.getElementById("saveBtn").addEventListener("click", () => {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); savedData = JSON.parse(JSON.stringify(workingData)); updateSaveBar(); showToast("保存しました"); }
@@ -1851,7 +1883,8 @@ function renderNewsAdmin() {
     const grid = document.createElement("div");
     grid.className = "img-grid";
     newsData.forEach((n, i) => {
-      grid.appendChild(makeImageItem({
+      if (n.visible === undefined) n.visible = true;
+      const item = makeImageItem({
         preview: n.img,
         fields: [
           { label: "日付（例: 2026.04.20）", key: "date", value: n.date||"", type: "input" },
@@ -1864,7 +1897,9 @@ function renderNewsAdmin() {
         onChange: (k, v) => { newsData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
         onFile: u => { newsData[i].img = u; renderNewsAdmin(); },
         onDelete: () => { if (confirm("削除しますか？")) { newsData.splice(i,1); renderNewsAdmin(); } }
-      }));
+      });
+      appendVisibleToggle(item, () => newsData[i].visible, () => { newsData[i].visible = !newsData[i].visible; renderNewsAdmin(); });
+      grid.appendChild(item);
     });
     wrap.appendChild(grid);
     // 並べ替えボタン群を別途追加
@@ -1898,7 +1933,7 @@ document.getElementById("addNews").addEventListener("click", () => {
   if (!newsData) newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
   const today = new Date();
   const ds = `${today.getFullYear()}.${(today.getMonth()+1).toString().padStart(2,"0")}.${today.getDate().toString().padStart(2,"0")}`;
-  newsData.unshift({ date: ds, tag: "NEW", title: "新しいお知らせ", excerpt: "", url: "#", img: "" });
+  newsData.unshift({ date: ds, tag: "NEW", title: "新しいお知らせ", excerpt: "", url: "#", img: "", visible: true });
   renderNewsAdmin();
 });
 
@@ -1997,7 +2032,13 @@ function renderInstaAdmin() {
     { k: "hashtags", l: "ハッシュタグ（スペース区切り）", t: "input" },
     { k: "url", l: "Instagram投稿のリンク先URL", t: "input" }
   ];
-  let html = `<div style="margin-bottom:20px; aspect-ratio:1/1; background:var(--color-bg-soft); overflow:hidden; max-width:400px;"><img id="instaPreview" src="${escapeHtml(instaData.img||"")}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>`;
+  if (instaData.visible === undefined) instaData.visible = true;
+  const iv = instaData.visible;
+  let html = `<div style="padding:12px 16px;margin-bottom:20px;background:${iv ? "rgba(93,138,78,0.08)" : "rgba(176,59,72,0.08)"};border-left:3px solid ${iv ? "#5d8a4e" : "var(--color-accent)"};display:flex;align-items:center;justify-content:space-between;gap:12px;">
+    <span style="font-family:var(--font-mincho);font-weight:600;font-size:14px;">${iv ? "✓ サイトに公開中" : "✕ 非表示（下書き状態）"}</span>
+    <button class="btn btn--small ${iv ? "btn--ghost" : ""}" style="font-size:12px;" onclick="instaData.visible=!instaData.visible;renderInstaAdmin();">${iv ? "非表示にする" : "公開する"}</button>
+  </div>`;
+  html += `<div style="margin-bottom:20px; aspect-ratio:1/1; background:var(--color-bg-soft); overflow:hidden; max-width:400px;"><img id="instaPreview" src="${escapeHtml(instaData.img||"")}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>`;
   fields.forEach(f => {
     html += `<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:5px;letter-spacing:.05em;">${f.l}</label>`;
     if (f.t === "textarea") html += `<textarea data-k="${f.k}" rows="6" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-family:inherit;font-size:14px;resize:vertical;line-height:1.7;">${escapeHtml(instaData[f.k]||"")}</textarea>`;
