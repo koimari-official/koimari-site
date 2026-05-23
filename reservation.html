@@ -722,6 +722,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span class="error" data-for="email"></span>
           </div>
         </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="birthday">生年月日 <span class="opt">任意</span></label>
+            <input type="date" id="birthday" name="birthday" class="input" autocomplete="bday">
+            <span class="error" data-for="birthday"></span>
+          </div>
+          <div class="field" style="display:flex;align-items:flex-end;padding-bottom:4px;">
+            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;font-family:var(--font-mincho);color:var(--color-text-soft);">
+              <input type="checkbox" name="newsletter" value="1" style="width:18px;height:18px;accent-color:var(--color-accent);">
+              お得な情報・お知らせメールを受け取る
+            </label>
+          </div>
+        </div>
       </div>
 
       <div class="form-section">
@@ -973,6 +987,7 @@ async function sendToFormspree(data) {
         _replyto: data.email,
         お名前: data.name, ふりがな: data.furigana,
         電話番号: data.tel, メールアドレス: data.email,
+        生年月日: data.birthday, メルマガ登録: data.newsletter ? "希望する" : "希望しない",
         種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
         ケーキ種類: data.cakeType, サイズ: data.size,
         メッセージプレート: data.message,
@@ -991,10 +1006,12 @@ form.addEventListener("submit", async (e) => {
   const data = {
     name: fd.get("name") || "", furigana: fd.get("furigana") || "",
     tel: fd.get("tel") || "", email: fd.get("email") || "",
+    birthday: fd.get("birthday") || "", newsletter: fd.get("newsletter") === "1",
     type: fd.get("type") || "", pickupDate: fd.get("pickupDate") || "",
     pickupTime: fd.get("pickupTime") || "", cakeType: fd.get("cakeType") || "",
     size: fd.get("size") || "", message: fd.get("message") || "",
     allergy: fd.getAll("allergy"), note: fd.get("note") || "",
+    status: "受付済", notes: "",
     submittedAt: new Date().toISOString()
   };
   if (!validate(data)) {

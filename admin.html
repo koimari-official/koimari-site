@@ -200,7 +200,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
   <main>
     <nav class="tabs">
-      <button class="tab active" data-panel="calendar">予約カレンダー</button>
+      <button class="tab active" data-panel="dashboard">ダッシュボード</button>
+      <button class="tab" data-panel="calendar">予約カレンダー</button>
       <button class="tab" data-panel="stats">統計・分析</button>
       <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span></button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
@@ -220,10 +221,20 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="recommended">おすすめ商品</button>
       <button class="tab" data-panel="experiences">体験プログラム</button>
       <button class="tab" data-panel="i18n">英語翻訳</button>
+      <button class="tab" data-panel="templates">テンプレート</button>
+      <button class="tab" data-panel="coupons">クーポン</button>
+      <button class="tab" data-panel="newsletter">メルマガ</button>
     </nav>
 
+    <!-- ===== ダッシュボード ===== -->
+    <section class="panel active" id="panel-dashboard">
+      <div class="panel__head"><h2 class="panel__title">ダッシュボード</h2></div>
+      <p class="panel__desc">今日・明日の引取予定と当月の売上目標を確認できます。</p>
+      <div id="dashboardContent"></div>
+    </section>
+
     <!-- ===== カレンダー ===== -->
-    <section class="panel active" id="panel-calendar">
+    <section class="panel" id="panel-calendar">
       <div class="panel__head">
         <h2 class="panel__title">予約カレンダー</h2>
       </div>
@@ -250,6 +261,24 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-stats">
       <div class="panel__head"><h2 class="panel__title">統計・分析</h2></div>
       <p class="panel__desc">予約数・販売数・ビュー数の推移をグラフで確認できます。データ分析にお役立てください。</p>
+
+      <!-- 当月売上目標 -->
+      <div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;max-width:640px;margin-bottom:28px;">
+        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+          <span style="font-family:var(--font-mincho);font-size:15px;white-space:nowrap;">当月売上目標（円）</span>
+          <input type="number" id="salesGoalInput" class="input" min="0" step="1000" placeholder="例: 300000" style="font-size:14px;padding:8px 12px;max-width:180px;">
+          <button class="btn btn--small" id="salesGoalSave">設定</button>
+        </div>
+        <div id="salesGoalBar" style="margin-top:14px;display:none;">
+          <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">
+            <span id="salesGoalLabel"></span>
+            <span id="salesGoalPct"></span>
+          </div>
+          <div style="background:var(--color-bg-soft);border-radius:4px;height:12px;overflow:hidden;">
+            <div id="salesGoalFill" style="height:100%;background:linear-gradient(90deg,var(--color-accent),var(--color-gold));border-radius:4px;transition:width .5s;"></div>
+          </div>
+        </div>
+      </div>
 
       <div class="stats-summary" id="statsSummary"></div>
 
@@ -503,6 +532,58 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <p style="font-size:12px;color:var(--color-text-soft);margin-top:10px">保存するとサイトの英語表示に反映されます。リセットすると翻訳データを削除し、デフォルト表示に戻ります。</p>
       </div>
     </section>
+
+    <!-- ===== テンプレート ===== -->
+    <section class="panel" id="panel-templates">
+      <div class="panel__head"><h2 class="panel__title">メール返信テンプレート</h2></div>
+      <p class="panel__desc">予約確認・完了・キャンセル時にお客様へ送るメール文面をコピーできます。</p>
+      <div id="templatesArea"></div>
+    </section>
+
+    <!-- ===== クーポン ===== -->
+    <section class="panel" id="panel-coupons">
+      <div class="panel__head">
+        <h2 class="panel__title">クーポンコード管理</h2>
+        <button class="btn btn--small" id="addCouponBtn">＋ 新規発行</button>
+      </div>
+      <p class="panel__desc">割引コードを発行・管理します。お客様がフォームに入力すると確認できます（現在は手動確認用）。</p>
+      <div id="couponFormArea" style="display:none; background:#fff; border:1px solid var(--color-line); padding:24px 28px; max-width:620px; margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">クーポンコード</label>
+            <input type="text" id="couponCode" class="input" placeholder="例: BIRTHDAY10" style="font-size:14px;padding:10px 12px;text-transform:uppercase;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">割引内容</label>
+            <input type="text" id="couponDiscount" class="input" placeholder="例: 10%OFF / 500円引き" style="font-size:14px;padding:10px 12px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">有効期限</label>
+            <input type="date" id="couponExpiry" class="input" style="font-size:14px;padding:10px 12px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">メモ（用途・対象）</label>
+            <input type="text" id="couponMemo" class="input" placeholder="例: 誕生日特典 / 常連様向け" style="font-size:14px;padding:10px 12px;">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn--small" id="couponSave">保存</button>
+          <button class="btn btn--small btn--ghost" id="couponCancel">キャンセル</button>
+        </div>
+      </div>
+      <div id="couponList"></div>
+    </section>
+
+    <!-- ===== メルマガ ===== -->
+    <section class="panel" id="panel-newsletter">
+      <div class="panel__head">
+        <h2 class="panel__title">メルマガ登録管理</h2>
+        <button class="btn btn--small btn--ghost" id="exportNewsletter">CSV出力</button>
+      </div>
+      <p class="panel__desc">予約フォームでメルマガ登録を希望したお客様の一覧です。</p>
+      <div id="newsletterList"></div>
+    </section>
+
   </main>
 </div>
 
@@ -520,6 +601,9 @@ const EXP_KEY = "koimari_experiences";
 const CORP_KEY = "koimari_corporate";
 const VIEWS_KEY = "koimari_views";
 const MANUAL_SALES_KEY = "koimari_manual_sales";
+const SALES_GOAL_KEY = "koimari_sales_goal";
+const COUPON_KEY = "koimari_coupons";
+const NEWSLETTER_KEY = "koimari_newsletter";
 
 const DEFAULT_IMAGES = {
   hero: [
@@ -619,6 +703,8 @@ function showAdmin() {
   savedData = JSON.parse(JSON.stringify(workingData));
   renderAll();
   renderCalendar();
+  renderDashboard();
+  renderSalesGoal();
   updateCounts();
 }
 function login() {
@@ -647,11 +733,15 @@ document.querySelectorAll(".tab").forEach(t => {
     document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
     t.classList.add("active");
     document.getElementById("panel-" + t.dataset.panel).classList.add("active");
+    if (t.dataset.panel === "dashboard") renderDashboard();
     if (t.dataset.panel === "reservations") renderReservations();
     if (t.dataset.panel === "applications") renderApplications();
     if (t.dataset.panel === "corporate") renderCorporate();
     if (t.dataset.panel === "calendar") renderCalendar();
-    if (t.dataset.panel === "stats") renderStats();
+    if (t.dataset.panel === "stats") { renderStats(); renderSalesGoal(); }
+    if (t.dataset.panel === "templates") renderTemplates();
+    if (t.dataset.panel === "coupons") renderCoupons();
+    if (t.dataset.panel === "newsletter") renderNewsletter();
     if (t.dataset.panel === "news") renderNewsAdmin();
     if (t.dataset.panel === "spotlight") renderSpotlightAdmin();
     if (t.dataset.panel === "instagram") renderInstaAdmin();
@@ -1139,24 +1229,306 @@ document.getElementById("mSalesSave").addEventListener("click", () => {
 });
 
 /* ============================================================
+   ダッシュボード
+   ============================================================ */
+function renderDashboard() {
+  const reservations = loadList(RES_KEY);
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0,10);
+  const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
+  const tomorrowStr = tomorrow.toISOString().slice(0,10);
+
+  const todayList = reservations.filter(r => r.pickupDate === todayStr && r.status !== "キャンセル");
+  const tomorrowList = reservations.filter(r => r.pickupDate === tomorrowStr && r.status !== "キャンセル");
+
+  // 売上目標
+  const goal = parseInt(localStorage.getItem(SALES_GOAL_KEY)) || 0;
+  const thisMonth = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,"0")}`;
+  const manualSales = loadManualSales();
+  const manualRec = manualSales.find(s => s.month === thisMonth);
+  const manualRevenue = manualRec ? manualRec.revenue : 0;
+  const pct = goal > 0 ? Math.min(100, Math.round(manualRevenue / goal * 100)) : 0;
+
+  let html = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px;">
+    <div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;">
+      <div style="font-family:var(--font-mincho);font-size:14px;color:var(--color-text-soft);margin-bottom:8px;">当月売上目標進捗</div>
+      ${goal > 0 ? `
+        <div style="font-size:24px;font-weight:600;color:var(--color-accent);">¥${Number(manualRevenue).toLocaleString()}<span style="font-size:14px;color:var(--color-text-soft);margin-left:8px;">/ ¥${Number(goal).toLocaleString()}</span></div>
+        <div style="background:var(--color-bg-soft);border-radius:4px;height:10px;overflow:hidden;margin-top:10px;">
+          <div style="height:100%;background:linear-gradient(90deg,var(--color-accent),var(--color-gold));border-radius:4px;width:${pct}%;transition:width .5s;"></div>
+        </div>
+        <div style="font-size:13px;color:var(--color-text-soft);margin-top:6px;">${pct}% 達成</div>
+      ` : `<div style="font-size:14px;color:var(--color-text-soft);">統計・分析タブで目標を設定してください</div>`}
+    </div>
+    <div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;">
+      <div style="font-family:var(--font-mincho);font-size:14px;color:var(--color-text-soft);margin-bottom:8px;">今月の予約件数</div>
+      <div style="font-size:28px;font-weight:600;color:var(--color-accent);">${reservations.filter(r=>(r.submittedAt||"").startsWith(thisMonth)&&r.status!=="キャンセル").length}<span style="font-size:14px;color:var(--color-text-soft);margin-left:4px;">件</span></div>
+    </div>
+  </div>`;
+
+  html += renderPickupBlock("本日の引取予定", todayStr, todayList);
+  html += renderPickupBlock("明日の引取予定", tomorrowStr, tomorrowList);
+  document.getElementById("dashboardContent").innerHTML = html;
+}
+function renderPickupBlock(title, dateStr, list) {
+  let html = `<div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;margin-bottom:16px;">
+    <div style="font-family:var(--font-mincho);font-size:16px;font-weight:600;margin-bottom:12px;">${title} <span style="font-size:13px;color:var(--color-text-soft);">${dateStr}</span></div>`;
+  if (!list.length) {
+    html += `<div style="color:var(--color-text-soft);font-size:14px;">引取予定はありません</div>`;
+  } else {
+    html += `<table class="res-table" style="font-size:13px;"><thead><tr><th>お名前</th><th>引取時間</th><th>商品</th><th>ステータス</th><th>連絡先</th></tr></thead><tbody>`;
+    list.forEach(r => {
+      const status = r.status || "受付済";
+      const color = STATUS_COLORS[status] || "#999";
+      html += `<tr>
+        <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
+        <td style="font-weight:600;">${escapeHtml(r.pickupTime)}</td>
+        <td>${escapeHtml(r.cakeType)} ${escapeHtml(r.size)}</td>
+        <td style="color:${color};font-weight:600;">${status}</td>
+        <td>${escapeHtml(r.tel)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+  }
+  html += `</div>`;
+  return html;
+}
+
+/* ============================================================
+   売上目標管理
+   ============================================================ */
+function renderSalesGoal() {
+  const goal = parseInt(localStorage.getItem(SALES_GOAL_KEY)) || 0;
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,"0")}`;
+  const manualSales = loadManualSales();
+  const manualRec = manualSales.find(s => s.month === thisMonth);
+  const manualRevenue = manualRec ? manualRec.revenue : 0;
+  const pct = goal > 0 ? Math.min(100, Math.round(manualRevenue / goal * 100)) : 0;
+
+  const input = document.getElementById("salesGoalInput");
+  const bar = document.getElementById("salesGoalBar");
+  if (input && !input.value && goal > 0) input.value = goal;
+  if (bar) {
+    if (goal > 0) {
+      bar.style.display = "block";
+      document.getElementById("salesGoalLabel").textContent = `売上: ¥${Number(manualRevenue).toLocaleString()} / 目標: ¥${Number(goal).toLocaleString()}`;
+      document.getElementById("salesGoalPct").textContent = `${pct}%`;
+      document.getElementById("salesGoalFill").style.width = pct + "%";
+    } else {
+      bar.style.display = "none";
+    }
+  }
+}
+document.getElementById("salesGoalSave").addEventListener("click", () => {
+  const val = parseInt(document.getElementById("salesGoalInput").value) || 0;
+  localStorage.setItem(SALES_GOAL_KEY, val);
+  renderSalesGoal();
+  if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
+  showToast("目標を設定しました");
+});
+
+/* ============================================================
+   予約ステータス・メモ更新
+   ============================================================ */
+function updateResStatus(idx, status) {
+  const list = loadList(RES_KEY);
+  if (!list[idx]) return;
+  list[idx].status = status;
+  localStorage.setItem(RES_KEY, JSON.stringify(list));
+  updateCounts();
+  if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
+}
+function updateResNotes(idx, notes) {
+  const list = loadList(RES_KEY);
+  if (!list[idx]) return;
+  list[idx].notes = notes;
+  localStorage.setItem(RES_KEY, JSON.stringify(list));
+}
+
+/* ============================================================
+   メール返信テンプレート
+   ============================================================ */
+const TEMPLATES = {
+  confirm: (r) => `${r.name} 様
+
+この度はこいまりへご予約いただき、誠にありがとうございます。
+以下の内容でご予約を承りました。
+
+━━━━━━━━━━━━━━━━
+▶ ご予約種別: ${r.type}
+▶ 引取日時: ${r.pickupDate} ${r.pickupTime}
+▶ 商品: ${r.cakeType} ${r.size}
+${r.message ? `▶ メッセージプレート: ${r.message}` : ""}
+━━━━━━━━━━━━━━━━
+
+ご不明な点がございましたら、お気軽にお問い合わせください。
+引き続きどうぞよろしくお願いいたします。
+
+こいまり
+TEL: 06-7221-0705
+受付: 火〜土 10:00〜20:00 / 日 10:00〜19:00`,
+
+  complete: (r) => `${r.name} 様
+
+本日はこいまりをご利用いただき、誠にありがとうございました。
+${r.pickupDate} のお引取りが完了しました。
+
+またのご来店を心よりお待ちしております。
+
+こいまり
+TEL: 06-7221-0705`,
+
+  cancel: (r) => `${r.name} 様
+
+この度はご連絡いただき、ありがとうございます。
+${r.pickupDate} ${r.pickupTime} のご予約につきまして、
+キャンセルのお手続きを承りました。
+
+またの機会にぜひこいまりをご利用ください。
+
+こいまり
+TEL: 06-7221-0705`
+};
+
+function copyTemplate(type, rJson) {
+  const r = JSON.parse(rJson);
+  const text = TEMPLATES[type](r);
+  navigator.clipboard.writeText(text).then(() => showToast("クリップボードにコピーしました")).catch(() => {
+    const ta = document.createElement("textarea"); ta.value = text;
+    document.body.appendChild(ta); ta.select(); document.execCommand("copy");
+    document.body.removeChild(ta); showToast("コピーしました");
+  });
+}
+function renderTemplates() {
+  const area = document.getElementById("templatesArea");
+  const sample = { name: "山田 花子", type: "ホールケーキ予約", pickupDate: "2026-06-01", pickupTime: "14:00", cakeType: "いちごショートケーキ", size: "5号", message: "Happy Birthday" };
+  area.innerHTML = ["confirm","complete","cancel"].map(type => {
+    const labels = { confirm:"予約確認", complete:"受渡し完了", cancel:"キャンセル" };
+    return `<div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:var(--font-mincho);font-size:16px;font-weight:600;">${labels[type]}メール</div>
+        <button class="btn btn--small btn--ghost" onclick="copyTemplate('${type}',${JSON.stringify(JSON.stringify(sample))})">サンプルをコピー</button>
+      </div>
+      <pre style="font-size:13px;line-height:1.8;white-space:pre-wrap;background:var(--color-bg-soft);padding:16px;border-radius:3px;color:var(--color-text);">${escapeHtml(TEMPLATES[type](sample))}</pre>
+    </div>`;
+  }).join("");
+}
+
+/* ============================================================
+   クーポン管理
+   ============================================================ */
+function loadCoupons() { try { return JSON.parse(localStorage.getItem(COUPON_KEY)) || []; } catch { return []; } }
+function saveCoupons(list) { localStorage.setItem(COUPON_KEY, JSON.stringify(list)); }
+function renderCoupons() {
+  const list = loadCoupons();
+  const el = document.getElementById("couponList");
+  const now = new Date().toISOString().slice(0,10);
+  if (!list.length) { el.innerHTML = '<div class="empty">クーポンはまだ発行されていません</div>'; return; }
+  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>コード</th><th>割引内容</th><th>有効期限</th><th>メモ</th><th>状態</th><th></th></tr></thead><tbody>';
+  list.forEach((c, i) => {
+    const expired = c.expiry && c.expiry < now;
+    html += `<tr>
+      <td style="font-weight:700;font-family:monospace;letter-spacing:.1em;">${escapeHtml(c.code)}</td>
+      <td>${escapeHtml(c.discount)}</td>
+      <td>${escapeHtml(c.expiry||"—")}</td>
+      <td>${escapeHtml(c.memo||"")}</td>
+      <td style="color:${expired?"#b03b48":"#5d8a4e"};font-weight:600;">${expired?"期限切れ":"有効"}</td>
+      <td><button class="btn btn--small btn--danger" onclick="deleteCoupon(${i})" style="padding:4px 10px;font-size:12px;">削除</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+function deleteCoupon(idx) {
+  if (!confirm("このクーポンを削除しますか？")) return;
+  const list = loadCoupons(); list.splice(idx,1); saveCoupons(list); renderCoupons(); showToast("削除しました");
+}
+document.getElementById("addCouponBtn").addEventListener("click", () => {
+  document.getElementById("couponFormArea").style.display = "block";
+  document.getElementById("couponCode").focus();
+});
+document.getElementById("couponCancel").addEventListener("click", () => {
+  document.getElementById("couponFormArea").style.display = "none";
+});
+document.getElementById("couponSave").addEventListener("click", () => {
+  const code = document.getElementById("couponCode").value.trim().toUpperCase();
+  const discount = document.getElementById("couponDiscount").value.trim();
+  const expiry = document.getElementById("couponExpiry").value;
+  const memo = document.getElementById("couponMemo").value.trim();
+  if (!code || !discount) { showToast("コードと割引内容は必須です", "error"); return; }
+  const list = loadCoupons();
+  if (list.some(c => c.code === code)) { showToast("同じコードがすでに存在します", "error"); return; }
+  list.push({ code, discount, expiry, memo, createdAt: new Date().toISOString() });
+  saveCoupons(list);
+  renderCoupons();
+  document.getElementById("couponFormArea").style.display = "none";
+  ["couponCode","couponDiscount","couponExpiry","couponMemo"].forEach(id => document.getElementById(id).value = "");
+  showToast("クーポンを発行しました");
+});
+
+/* ============================================================
+   メルマガ管理
+   ============================================================ */
+function renderNewsletter() {
+  const el = document.getElementById("newsletterList");
+  const list = loadList(RES_KEY).filter(r => r.newsletter);
+  if (!list.length) { el.innerHTML = '<div class="empty">メルマガ登録者はまだいません</div>'; return; }
+  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>登録日</th><th>お名前</th><th>メールアドレス</th><th>生年月日</th></tr></thead><tbody>';
+  list.forEach(r => {
+    html += `<tr>
+      <td>${fmtDate(r.submittedAt)}</td>
+      <td>${escapeHtml(r.name)}</td>
+      <td>${escapeHtml(r.email)}</td>
+      <td>${escapeHtml(r.birthday||"—")}</td>
+    </tr>`;
+  });
+  html += '</tbody></table></div>';
+  el.innerHTML = html;
+}
+document.getElementById("exportNewsletter").addEventListener("click", () => {
+  const list = loadList(RES_KEY).filter(r => r.newsletter);
+  if (!list.length) { showToast("登録者がいません", "error"); return; }
+  const header = "登録日,お名前,メールアドレス,生年月日";
+  const rows = list.map(r => [fmtDate(r.submittedAt), r.name, r.email, r.birthday||""].map(v => `"${v}"`).join(","));
+  const csv = "﻿" + header + "\n" + rows.join("\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
+  a.download = "newsletter_list.csv"; a.click();
+});
+
+/* ============================================================
    予約・応募一覧
    ============================================================ */
+const STATUS_COLORS = { "受付済":"#4a6f9c", "対応中":"#a98554", "完了":"#5d8a4e", "キャンセル":"#b03b48" };
 function renderReservations() {
   const area = document.getElementById("reservationsArea");
   const list = loadList(RES_KEY);
   if (!list.length) { area.innerHTML = '<div class="empty">予約データはまだありません</div>'; return; }
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先</th><th>引取日時</th><th>商品</th><th>備考</th>';
+  html += '<th>ステータス</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
   html += '</tr></thead><tbody>';
-  list.forEach(r => {
+  list.forEach((r, idx) => {
+    const status = r.status || "受付済";
+    const color = STATUS_COLORS[status] || "#999";
     html += `<tr>
+      <td>
+        <select onchange="updateResStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
+          ${["受付済","対応中","完了","キャンセル"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
+        </select>
+      </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.type)}</td>
       <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
-      <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span></td>
+      <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span>${r.birthday?`<br><span class="small">生: ${escapeHtml(r.birthday)}</span>`:""}${r.newsletter?'<br><span class="small" style="color:#5d8a4e;">■メルマガ</span>':""}</td>
       <td>${escapeHtml(r.pickupDate)} ${escapeHtml(r.pickupTime)}</td>
       <td>${escapeHtml(r.cakeType)}<br>${escapeHtml(r.size)}<br><span class="small">${escapeHtml(r.message)}</span></td>
-      <td><span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br>${escapeHtml(r.note)}</td>
+      <td><span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
+      <td><textarea rows="2" style="font-size:12px;width:120px;padding:4px;border:1px solid #ddd;resize:vertical;" onchange="updateResNotes(${idx},this.value)">${escapeHtml(r.notes||"")}</textarea></td>
+      <td>
+        <button class="btn btn--small" onclick="copyTemplate('confirm',${JSON.stringify(JSON.stringify(r))})" style="padding:4px 8px;font-size:11px;white-space:nowrap;margin-bottom:4px;">確認文</button><br>
+        <button class="btn btn--small btn--ghost" onclick="copyTemplate('complete',${JSON.stringify(JSON.stringify(r))})" style="padding:4px 8px;font-size:11px;white-space:nowrap;margin-bottom:4px;">完了文</button><br>
+        <button class="btn btn--small btn--danger" onclick="copyTemplate('cancel',${JSON.stringify(JSON.stringify(r))})" style="padding:4px 8px;font-size:11px;white-space:nowrap;">キャンセル文</button>
+      </td>
     </tr>`;
   });
   html += '</tbody></table></div>';
