@@ -104,10 +104,11 @@ section{padding:100px 24px}
 .pickup__empty{padding:60px 20px;text-align:center;color:var(--color-text-soft);font-family:var(--font-mincho)}
 .pickup__more-link{display:block;text-align:center;margin-top:30px;font-family:var(--font-mincho);color:var(--color-accent);font-size:15px;letter-spacing:.1em;font-weight:500}
 .pickup__more-link:hover{text-decoration:underline}
-.bcal{background:var(--color-bg);padding:40px 24px}
-.bcal .section__head{margin-bottom:28px}
-.bcal__wrap{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--color-line);padding:20px 24px}
-.bcal__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
+.bcal{background:var(--color-bg);padding:8px 24px}
+.bcal .section__head{margin-bottom:6px}
+.bcal .section__title{padding-bottom:6px}
+.bcal__wrap{max-width:760px;margin:0 auto;background:#fff;border:1px solid var(--color-line);padding:6px 16px}
+.bcal__header{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;flex-wrap:wrap;gap:4px}
 .bcal__nav{display:flex;align-items:center;gap:14px}
 .bcal__nav button{width:36px;height:36px;background:var(--color-bg-soft);border:1px solid var(--color-line);cursor:pointer;font-size:14px;transition:all .2s}
 .bcal__nav button:hover{background:var(--color-accent);color:#fff;border-color:var(--color-accent)}
@@ -115,11 +116,11 @@ section{padding:100px 24px}
 .bcal__legend{display:flex;gap:16px;font-size:13px;color:var(--color-text-soft);flex-wrap:wrap}
 .bcal__legend span{display:inline-flex;align-items:center;gap:6px}
 .bcal__legend i{display:inline-block;width:14px;height:14px;border-radius:2px}
-.bcal__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
-.bcal__dow{text-align:center;padding:6px 0;font-family:var(--font-mincho);font-size:13px;font-weight:600;background:var(--color-bg-soft);letter-spacing:.05em}
+.bcal__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.bcal__dow{text-align:center;padding:3px 0;font-family:var(--font-mincho);font-size:13px;font-weight:600;background:var(--color-bg-soft);letter-spacing:.05em}
 .bcal__dow.sat{color:var(--color-info)}
 .bcal__dow.sun{color:var(--color-accent)}
-.bcal__cell{padding:3px 2px 2px;border:1px solid var(--color-line-soft);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:var(--font-en);font-size:26px;font-weight:600;position:relative;overflow:hidden;min-height:44px}
+.bcal__cell{padding:2px 2px 1px;border:1px solid var(--color-line-soft);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:var(--font-en);font-size:26px;font-weight:600;position:relative;overflow:hidden;min-height:36px}
 .bcal__cell.empty{border:none}
 .bcal__cell.closed{background:rgba(201,169,110,.12);color:var(--color-accent)}
 .bcal__cell.closed::after{content:"休";font-family:var(--font-mincho);font-size:13px;color:var(--color-accent);margin-top:auto;font-weight:600}
@@ -130,7 +131,7 @@ section{padding:100px 24px}
 .bcal__cell.has-event{background:linear-gradient(180deg,#fff 0%,#fdf5f3 100%)}
 .bcal__cell.has-event:not(.closed){border-color:var(--color-mom,#c75a6e)}
 .bcal__cell-event{font-family:var(--font-mincho);font-size:10px;color:var(--color-mom-deep,#9a3d50);font-weight:600;letter-spacing:.02em;line-height:1.2;text-align:center;padding:1px 2px;background:rgba(199,90,110,.15);border-radius:2px;margin-top:auto;width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bcal__note{margin-top:10px;font-size:14px;color:var(--color-text-soft);text-align:center;line-height:1.6}
+.bcal__note{margin-top:6px;font-size:14px;color:var(--color-text-soft);text-align:center;line-height:1.5}
 
 /* ===== 営業中ステータス（ヘッダー内） ===== */
 .status-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:24px;font-size:13px;font-family:var(--font-mincho);font-weight:500;letter-spacing:.05em;background:var(--color-bg-soft);border:1px solid var(--color-line)}
@@ -418,7 +419,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </header>
 <nav id="globalNav" class="bg-[var(--color-bg-soft)] border-b border-[var(--color-line)] max-[900px]:hidden">
   <ul class="max-w-[var(--max-w)] mx-auto flex justify-center flex-wrap items-center gap-2 list-none py-3 px-4">
-    <li><a href="index.html" data-i18n="nav.home" class="nav-link">ホーム</a></li>
     <li><a href="#about" data-i18n="nav.about" class="nav-link">こいまりについて</a></li>
     <li><a href="#categories" data-i18n="nav.menu" class="nav-link">商品一覧</a></li>
     <li><a href="#experience" data-i18n="nav.workshop" class="nav-link">体験プログラム</a></li>
