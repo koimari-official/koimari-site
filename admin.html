@@ -224,6 +224,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="templates">テンプレート</button>
       <button class="tab" data-panel="coupons">クーポン</button>
       <button class="tab" data-panel="newsletter">メルマガ</button>
+      <button class="tab" data-panel="checker">サイトチェック</button>
     </nav>
 
     <!-- ===== ダッシュボード ===== -->
@@ -533,6 +534,29 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       </div>
     </section>
 
+    <!-- ===== サイトチェック ===== -->
+    <section class="panel" id="panel-checker">
+      <div class="panel__head">
+        <h2 class="panel__title">サイトチェック</h2>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn--small" id="runContentCheck">コンテンツをチェック</button>
+          <button class="btn btn--small btn--ghost" id="clearPageErrors">エラーログを消去</button>
+        </div>
+      </div>
+      <p class="panel__desc">投稿内容の静的チェックと、サイト訪問時に発生したJSエラー・画像エラーを確認できます。</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:8px;">
+        <div>
+          <div style="font-family:var(--font-mincho);font-size:16px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--color-line);">コンテンツ静的チェック結果</div>
+          <div id="contentCheckResult"><p style="color:var(--color-text-soft);font-size:14px;">「コンテンツをチェック」ボタンを押してください</p></div>
+        </div>
+        <div>
+          <div style="font-family:var(--font-mincho);font-size:16px;font-weight:600;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--color-line);">ページエラーログ</div>
+          <div id="pageErrorLog"><p style="color:var(--color-text-soft);font-size:14px;">読み込み中...</p></div>
+        </div>
+      </div>
+    </section>
+
     <!-- ===== テンプレート ===== -->
     <section class="panel" id="panel-templates">
       <div class="panel__head"><h2 class="panel__title">メール返信テンプレート</h2></div>
@@ -604,6 +628,7 @@ const MANUAL_SALES_KEY = "koimari_manual_sales";
 const SALES_GOAL_KEY = "koimari_sales_goal";
 const COUPON_KEY = "koimari_coupons";
 const NEWSLETTER_KEY = "koimari_newsletter";
+const PAGE_ERRORS_KEY = "koimari_page_errors";
 
 const DEFAULT_IMAGES = {
   hero: [
@@ -742,6 +767,7 @@ document.querySelectorAll(".tab").forEach(t => {
     if (t.dataset.panel === "templates") renderTemplates();
     if (t.dataset.panel === "coupons") renderCoupons();
     if (t.dataset.panel === "newsletter") renderNewsletter();
+    if (t.dataset.panel === "checker") renderChecker();
     if (t.dataset.panel === "news") renderNewsAdmin();
     if (t.dataset.panel === "spotlight") renderSpotlightAdmin();
     if (t.dataset.panel === "instagram") renderInstaAdmin();
@@ -1494,6 +1520,151 @@ document.getElementById("exportNewsletter").addEventListener("click", () => {
   const csv = "﻿" + header + "\n" + rows.join("\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
   a.download = "newsletter_list.csv"; a.click();
+});
+
+/* ============================================================
+   サイトチェック (B: 静的チェック / C: エラーログ)
+   ============================================================ */
+
+// ---- 静的チェックルール ----
+const CHECK_RULES = [
+  { label: "全角英数字", re: /[Ａ-Ｚａ-ｚ０-９]/, level: "warn", msg: "全角英数字が使われています（半角推奨）" },
+  { label: "半角カナ", re: /[｡-ﾟ]/, level: "error", msg: "半角カタカナが含まれています" },
+  { label: "連続句読点", re: /[。、]{2,}|[！？]{2,}/, level: "warn", msg: "句読点・感嘆符が連続しています" },
+  { label: "全角スペース混在", re: /　/, level: "warn", msg: "全角スペースが含まれています" },
+  { label: "半角記号混在", re: /[｢｣･]/, level: "warn", msg: "半角の括弧・中点が含まれています" },
+];
+
+function checkText(text) {
+  if (!text) return [];
+  return CHECK_RULES.filter(r => r.re.test(text)).map(r => ({ level: r.level, msg: r.msg }));
+}
+
+function runContentCheck() {
+  const issues = [];
+  function add(level, target, msg) { issues.push({ level, target, msg }); }
+
+  // お知らせ
+  loadList(NEWS_KEY).forEach((n, i) => {
+    const label = `お知らせ[${i+1}] 「${(n.title||"").slice(0,20)}」`;
+    if (!n.title) add("error", label, "タイトルが空です");
+    if (!n.excerpt) add("warn", label, "本文が空です");
+    checkText(n.title).forEach(e => add(e.level, label + " タイトル", e.msg));
+    checkText(n.excerpt).forEach(e => add(e.level, label + " 本文", e.msg));
+  });
+
+  // ブログ
+  loadList(BLOG_KEY).forEach((b, i) => {
+    const label = `ブログ[${i+1}] 「${(b.title||"").slice(0,20)}」`;
+    if (!b.title) add("error", label, "タイトルが空です");
+    checkText(b.title).forEach(e => add(e.level, label + " タイトル", e.msg));
+    checkText(b.body).forEach(e => add(e.level, label + " 本文", e.msg));
+  });
+
+  // FAQ
+  loadList(FAQ_KEY).forEach((f, i) => {
+    const label = `FAQ[${i+1}]`;
+    if (!f.q) add("error", label, "質問が空です");
+    if (!f.a) add("error", label, "回答が空です");
+    checkText(f.q).forEach(e => add(e.level, label + " 質問", e.msg));
+    checkText(f.a).forEach(e => add(e.level, label + " 回答", e.msg));
+  });
+
+  // お客様の声
+  loadList(VOICES_KEY).forEach((v, i) => {
+    const label = `お客様の声[${i+1}]`;
+    if (!v.text) add("error", label, "テキストが空です");
+    checkText(v.text).forEach(e => add(e.level, label, e.msg));
+    checkText(v.attr).forEach(e => add(e.level, label + " 属性", e.msg));
+  });
+
+  // 今月の主役
+  try {
+    const sp = JSON.parse(localStorage.getItem(SPOTLIGHT_KEY));
+    if (sp) {
+      if (!sp.title) add("error", "今月の主役", "タイトルが空です");
+      checkText(sp.title).forEach(e => add(e.level, "今月の主役 タイトル", e.msg));
+      checkText(sp.desc).forEach(e => add(e.level, "今月の主役 説明", e.msg));
+    }
+  } catch (e) {}
+
+  // 画像URL（data: 以外のsrcをfetchで確認）
+  const imageFields = [];
+  const imgData = loadData();
+  function collectImgSrc(obj) {
+    if (!obj) return;
+    if (typeof obj === "string" && obj.startsWith("http") && /\.(png|jpe?g|webp|gif|svg)(\?|$)/i.test(obj)) imageFields.push(obj);
+    else if (typeof obj === "object") Object.values(obj).forEach(collectImgSrc);
+  }
+  collectImgSrc(imgData);
+
+  return issues;
+}
+
+function renderCheckerResults(issues) {
+  const el = document.getElementById("contentCheckResult");
+  if (!issues.length) {
+    el.innerHTML = '<div style="color:#5d8a4e;font-size:14px;padding:12px 0;">✓ 問題は検出されませんでした</div>';
+    return;
+  }
+  const errors = issues.filter(i => i.level === "error");
+  const warns  = issues.filter(i => i.level === "warn");
+  let html = `<div style="font-size:13px;margin-bottom:10px;color:var(--color-text-soft);">エラー: <strong style="color:#b03b48;">${errors.length}</strong>件　警告: <strong style="color:#a98554;">${warns.length}</strong>件</div>`;
+  html += '<div style="max-height:420px;overflow-y:auto;">';
+  issues.forEach(item => {
+    const color = item.level === "error" ? "#b03b48" : "#a98554";
+    const badge = item.level === "error" ? "エラー" : "警告";
+    html += `<div style="border-left:3px solid ${color};padding:8px 12px;margin-bottom:8px;background:#fff;font-size:13px;">
+      <span style="color:${color};font-weight:700;font-size:11px;margin-right:8px;">${badge}</span>
+      <strong>${escapeHtml(item.target)}</strong><br>
+      <span style="color:var(--color-text-soft);">${escapeHtml(item.msg)}</span>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderPageErrorLog() {
+  const el = document.getElementById("pageErrorLog");
+  const list = loadList(PAGE_ERRORS_KEY);
+  if (!list.length) {
+    el.innerHTML = '<div style="color:var(--color-text-soft);font-size:14px;">エラーログはありません</div>';
+    return;
+  }
+  const typeColors = { "JSエラー":"#b03b48", "Promiseエラー":"#a98554", "画像エラー":"#4a6f9c", "リソースエラー":"#8a2d38" };
+  let html = `<div style="font-size:13px;color:var(--color-text-soft);margin-bottom:10px;">${list.length}件のログ（最新300件）</div>`;
+  html += '<div style="max-height:420px;overflow-y:auto;">';
+  list.forEach(item => {
+    const color = typeColors[item.type] || "#666";
+    html += `<div style="border-left:3px solid ${color};padding:8px 12px;margin-bottom:8px;background:#fff;font-size:12px;line-height:1.7;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px;">
+        <span style="color:${color};font-weight:700;">${escapeHtml(item.type)}</span>
+        <span style="color:var(--color-text-soft);">${escapeHtml((item.page||""))}</span>
+      </div>
+      <div style="color:var(--color-text);">${escapeHtml(item.msg)}</div>
+      ${item.detail ? `<div style="color:var(--color-text-soft);font-size:11px;margin-top:2px;">${escapeHtml(item.detail)}</div>` : ""}
+      <div style="color:#aaa;font-size:10px;margin-top:3px;">${item.time ? new Date(item.time).toLocaleString("ja-JP") : ""}</div>
+    </div>`;
+  });
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderChecker() {
+  renderPageErrorLog();
+  document.getElementById("contentCheckResult").innerHTML = '<p style="color:var(--color-text-soft);font-size:14px;">「コンテンツをチェック」ボタンを押してください</p>';
+}
+
+document.getElementById("runContentCheck").addEventListener("click", () => {
+  const issues = runContentCheck();
+  renderCheckerResults(issues);
+  showToast(`チェック完了: ${issues.filter(i=>i.level==="error").length}エラー / ${issues.filter(i=>i.level==="warn").length}警告`);
+});
+document.getElementById("clearPageErrors").addEventListener("click", () => {
+  if (!confirm("エラーログをすべて消去しますか？")) return;
+  localStorage.removeItem(PAGE_ERRORS_KEY);
+  renderPageErrorLog();
+  showToast("消去しました");
 });
 
 /* ============================================================
