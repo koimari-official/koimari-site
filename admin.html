@@ -278,6 +278,30 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <div class="chart-canvas-wrap"><canvas id="chartViews"></canvas></div>
       </div>
 
+      <!-- 手動売上入力 -->
+      <div class="panel__head" style="margin-top:36px;">
+        <h2 class="panel__title" style="font-size:18px;">電話・店頭受注の手動入力</h2>
+      </div>
+      <p class="panel__desc" style="margin-bottom:16px;">Webフォームに残らない電話・店頭注文を月別に記録します。グラフに反映されます。</p>
+      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;margin-bottom:20px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:end;">
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">対象月</label>
+            <input type="month" id="mSalesMonth" class="input" style="font-size:14px;padding:10px 12px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">受注件数</label>
+            <input type="number" id="mSalesOrders" class="input" min="0" placeholder="0" style="font-size:14px;padding:10px 12px;">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">売上金額（円）</label>
+            <input type="number" id="mSalesRevenue" class="input" min="0" placeholder="0" style="font-size:14px;padding:10px 12px;">
+          </div>
+          <button class="btn btn--small" id="mSalesSave" style="white-space:nowrap;height:42px;">保存</button>
+        </div>
+      </div>
+      <div id="manualSalesTable" style="margin-bottom:30px;overflow-x:auto;"></div>
+
       <div class="panel__head" style="margin-top:30px;">
         <h2 class="panel__title" style="font-size:18px;">データ管理</h2>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
@@ -495,6 +519,7 @@ const RES_KEY = "koimari_reservations";
 const EXP_KEY = "koimari_experiences";
 const CORP_KEY = "koimari_corporate";
 const VIEWS_KEY = "koimari_views";
+const MANUAL_SALES_KEY = "koimari_manual_sales";
 
 const DEFAULT_IMAGES = {
   hero: [
@@ -954,14 +979,23 @@ function renderStats() {
   }
   const resByMonth = months.map(m => reservations.filter(r => (r.submittedAt||"").startsWith(m)).length);
   const expByMonth = months.map(m => experiences.filter(e => (e.submittedAt||"").startsWith(m)).length);
+  const manualSales = loadManualSales();
+  const manualByMonth = months.map(m => { const r = manualSales.find(s => s.month === m); return r ? r.orders : 0; });
+
+  renderManualSalesTable();
+
+  // pre-fill month input to current month if empty
+  const mInput = document.getElementById("mSalesMonth");
+  if (!mInput.value) { const n = new Date(); mInput.value = `${n.getFullYear()}-${(n.getMonth()+1).toString().padStart(2,"0")}`; }
 
   charts.monthly = new Chart(document.getElementById("chartMonthly"), {
     type: "bar",
     data: {
       labels,
       datasets: [
-        { label: "予約", data: resByMonth, backgroundColor: "rgba(176,59,72,0.75)", borderRadius: 4 },
-        { label: "体験応募", data: expByMonth, backgroundColor: "rgba(169,133,84,0.75)", borderRadius: 4 }
+        { label: "Web予約", data: resByMonth, backgroundColor: "rgba(176,59,72,0.75)", borderRadius: 4 },
+        { label: "体験応募", data: expByMonth, backgroundColor: "rgba(169,133,84,0.75)", borderRadius: 4 },
+        { label: "電話・店頭受注", data: manualByMonth, backgroundColor: "rgba(74,111,156,0.75)", borderRadius: 4 }
       ]
     },
     options: {
@@ -1053,6 +1087,55 @@ function renderStats() {
 document.getElementById("resetViews").addEventListener("click", () => {
   if (!confirm("ビュー数のデータをリセットしますか？")) return;
   localStorage.removeItem(VIEWS_KEY); renderStats(); showToast("リセットしました");
+});
+
+// ---- 手動売上入力 ----
+function loadManualSales() {
+  try { return JSON.parse(localStorage.getItem(MANUAL_SALES_KEY)) || []; } catch { return []; }
+}
+function saveManualSales(list) {
+  localStorage.setItem(MANUAL_SALES_KEY, JSON.stringify(list));
+}
+function renderManualSalesTable() {
+  const list = loadManualSales().sort((a,b) => b.month.localeCompare(a.month));
+  const el = document.getElementById("manualSalesTable");
+  if (!list.length) { el.innerHTML = '<p style="color:var(--color-text-soft);font-size:14px;">まだデータがありません</p>'; return; }
+  let html = '<table class="res-table" style="min-width:460px;"><thead><tr><th>月</th><th>受注件数</th><th>売上金額</th><th></th></tr></thead><tbody>';
+  list.forEach((row, i) => {
+    html += `<tr>
+      <td>${row.month}</td>
+      <td>${row.orders} 件</td>
+      <td>¥${Number(row.revenue).toLocaleString()}</td>
+      <td><button class="btn btn--small btn--danger" onclick="deleteManualSales(${list.indexOf(row)})" style="padding:4px 12px;font-size:12px;">削除</button></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+function deleteManualSales(idx) {
+  const list = loadManualSales().sort((a,b) => b.month.localeCompare(a.month));
+  list.splice(idx, 1);
+  saveManualSales(list);
+  renderManualSalesTable();
+  renderStats();
+  showToast("削除しました");
+}
+document.getElementById("mSalesSave").addEventListener("click", () => {
+  const month = document.getElementById("mSalesMonth").value;
+  const orders = parseInt(document.getElementById("mSalesOrders").value) || 0;
+  const revenue = parseInt(document.getElementById("mSalesRevenue").value) || 0;
+  if (!month) { showToast("月を選択してください", "error"); return; }
+  const list = loadManualSales();
+  const existing = list.findIndex(r => r.month === month);
+  if (existing >= 0) {
+    list[existing] = { month, orders, revenue };
+  } else {
+    list.push({ month, orders, revenue });
+  }
+  saveManualSales(list);
+  renderManualSalesTable();
+  renderStats();
+  showToast("保存しました");
 });
 
 /* ============================================================
