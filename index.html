@@ -182,7 +182,8 @@ section{padding:100px 24px}
 .voice-c__author{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--color-text-soft);padding-top:16px;border-top:1px dashed var(--color-line);font-family:var(--font-mincho);letter-spacing:.06em}
 .voice-c__name{font-weight:600;color:var(--color-text);font-size:14px}
 .voices__more{text-align:center;margin-top:40px}
-.voices__more a{font-family:var(--font-mincho);color:var(--color-accent);font-size:15px;letter-spacing:.1em;font-weight:500;border-bottom:1px solid currentColor;padding-bottom:3px}
+.voices__more a{display:inline-flex;align-items:center;font-family:var(--font-mincho);font-size:16px;letter-spacing:.14em;font-weight:700;color:var(--color-on-accent);background:var(--color-accent);padding:14px 36px;transition:background .2s,transform .2s}
+.voices__more a:hover{background:var(--color-accent-dark);transform:translateY(-2px)}
 
 /* ===== 法人向けバナー ===== */
 .corporate-banner{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;padding:80px 24px;position:relative;overflow:hidden}
@@ -508,7 +509,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="section__inner">
     <div class="section__head"><span class="section__en">Recommended</span><h2 class="section__title">おすすめ商品</h2></div>
     <div class="recommended__grid" id="recommendedGrid"></div>
-    <div style="text-align:center;margin-top:60px;"><a href="reservation.html" class="inline-block mt-[22px] px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-medium text-[var(--color-accent)] bg-transparent border border-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent)] hover:text-[var(--color-on-accent)] hover:-translate-y-0.5">ご予約はこちら</a></div>
+    <div style="text-align:center;margin-top:60px;"><a href="reservation.html" class="inline-flex items-center gap-3 px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-bold text-[var(--color-on-accent)] bg-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:-translate-y-0.5">ご予約はこちら <span class="[font-family:var(--font-en)] text-[19px]">→</span></a></div>
   </div>
 </section>
 
