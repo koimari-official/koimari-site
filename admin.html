@@ -1612,7 +1612,8 @@ function runContentCheck() {
 
   // 今月の主役
   try {
-    const sp = JSON.parse(localStorage.getItem(SPOTLIGHT_KEY));
+    const spRaw = JSON.parse(localStorage.getItem(SPOTLIGHT_KEY));
+    const sp = Array.isArray(spRaw) ? spRaw.find(s => s.visible !== false) : spRaw;
     if (sp) {
       if (!sp.title) add("error", "今月の主役", "タイトルが空です");
       checkText(sp.title).forEach(e => add(e.level, "今月の主役 タイトル", e.msg));
@@ -1960,13 +1961,28 @@ const DEFAULT_STATS_LIST = [
   { num: "4.8", unit: "/5.0", label: "Googleレビュー評価" }
 ];
 
-let spotlightData = null;
+let spotlightList = [];
+function loadSpotlightList() {
+  try {
+    const r = localStorage.getItem(SPOTLIGHT_KEY);
+    if (r) {
+      const d = JSON.parse(r);
+      if (Array.isArray(d)) return d;
+      return [Object.assign({ visible: true }, d)];
+    }
+  } catch(e) {}
+  return [Object.assign({ visible: true }, JSON.parse(JSON.stringify(DEFAULT_SPOTLIGHT)))];
+}
+function saveSpotlightList() {
+  try { localStorage.setItem(SPOTLIGHT_KEY, JSON.stringify(spotlightList)); return true; }
+  catch(e) { showToast("保存に失敗しました", "error"); return false; }
+}
 function renderSpotlightAdmin() {
-  spotlightData = loadByKey(SPOTLIGHT_KEY, DEFAULT_SPOTLIGHT);
+  spotlightList = loadSpotlightList();
   const wrap = document.getElementById("spotlightForm");
   const fields = [
-    { k: "badge", l: "バッジ（左上の小さなラベル / 例: 今月の主役、限定）", t: "input" },
-    { k: "period", l: "期間表示（右下の小さなラベル / 例: 2026.05.01 - 05.31）", t: "input" },
+    { k: "badge", l: "バッジ（左上のラベル / 例: 今月の主役、限定）", t: "input" },
+    { k: "period", l: "期間表示（右下ラベル / 例: 2026.05.01 - 05.31）", t: "input" },
     { k: "en", l: "英語サブタイトル", t: "input" },
     { k: "title", l: "メインタイトル（&lt;br&gt;で改行可）", t: "input" },
     { k: "sub", l: "サブコピー（タイトル下のひと言）", t: "input" },
@@ -1977,35 +1993,107 @@ function renderSpotlightAdmin() {
     { k: "ctaUrl", l: "ボタンのリンク先（reservation.html / #experience / https://...）", t: "input" },
     { k: "img", l: "画像URL", t: "input" }
   ];
-  let html = `<div style="margin-bottom:20px; aspect-ratio:5/3; background:var(--color-bg-soft); overflow:hidden;"><img id="spotlightPreview" src="${escapeHtml(spotlightData.img||"")}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>`;
-  fields.forEach(f => {
-    html += `<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:5px;letter-spacing:.05em;">${f.l}</label>`;
-    if (f.t === "textarea") html += `<textarea data-k="${f.k}" rows="3" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-family:inherit;font-size:14px;resize:vertical;">${escapeHtml(spotlightData[f.k]||"")}</textarea>`;
-    else html += `<input type="text" data-k="${f.k}" value="${escapeHtml(spotlightData[f.k]||"")}" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-size:14px;">`;
-    html += `</div>`;
-  });
-  html += `<div style="margin-top:24px; display:flex; gap:10px; flex-wrap:wrap;">
-    <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
-    <button class="btn" id="saveSpotlight">変更を保存</button>
-  </div>`;
-  wrap.innerHTML = html;
-  wrap.querySelectorAll("input[data-k], textarea[data-k]").forEach(el => {
-    el.addEventListener("input", () => {
-      spotlightData[el.dataset.k] = el.value;
-      if (el.dataset.k === "img") { const p = document.getElementById("spotlightPreview"); if (p) { p.src = el.value; p.style.display = "block"; } }
+  const activeIdx = spotlightList.findIndex(s => s.visible !== false);
+  const sp = activeIdx >= 0 ? spotlightList[activeIdx] : null;
+  let html = "";
+  if (sp) {
+    html += `<div style="margin-bottom:12px;"><span style="background:#5d8a4e;color:#fff;font-size:12px;padding:3px 10px;border-radius:99px;letter-spacing:.05em;">公開中</span></div>`;
+    html += `<div style="margin-bottom:20px;aspect-ratio:5/3;background:var(--color-bg-soft);overflow:hidden;"><img id="spotlightPreview" src="${escapeHtml(sp.img||"")}" alt="" style="width:100%;height:100%;object-fit:cover;" onerror="this.style.display='none'"></div>`;
+    fields.forEach(f => {
+      html += `<div style="margin-bottom:14px;"><label style="display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:5px;letter-spacing:.05em;">${f.l}</label>`;
+      if (f.t === "textarea") html += `<textarea data-k="${f.k}" rows="3" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-family:inherit;font-size:14px;resize:vertical;">${escapeHtml(sp[f.k]||"")}</textarea>`;
+      else html += `<input type="text" data-k="${f.k}" value="${escapeHtml(sp[f.k]||"")}" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-size:14px;">`;
+      html += `</div>`;
     });
-  });
-  document.getElementById("spotlightFile").addEventListener("change", async e => {
-    if (!e.target.files[0]) return;
-    try {
-      const url = await fileToDataUrl(e.target.files[0]);
-      spotlightData.img = url;
-      renderSpotlightAdmin();
-    } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
-  });
-  document.getElementById("saveSpotlight").addEventListener("click", () => {
-    if (saveByKey(SPOTLIGHT_KEY, spotlightData)) showToast("特集を保存しました");
-  });
+    html += `<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
+      <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
+      <button class="btn" id="saveSpotlight">変更を保存</button>
+      <button class="btn btn--ghost" id="stockAndNew" style="border-color:var(--color-gold);color:var(--color-gold);">ストックして新規作成</button>
+    </div>`;
+  } else {
+    html += `<p style="color:var(--color-text-soft);margin-bottom:20px;">現在公開中の特集はありません。</p>`;
+    html += `<button class="btn" id="createNewSpotlight">新しい特集を作成</button>`;
+  }
+  const stockItems = spotlightList.filter(s => s.visible === false);
+  if (stockItems.length > 0) {
+    html += `<div style="margin-top:40px;padding-top:28px;border-top:1px solid var(--color-line);">
+      <h3 style="font-family:var(--font-mincho);font-size:16px;letter-spacing:.1em;margin-bottom:16px;color:var(--color-text-soft);">ストック（過去の特集）</h3>
+      <div id="spotlightStockList"></div>
+    </div>`;
+  }
+  wrap.innerHTML = html;
+  if (sp) {
+    wrap.querySelectorAll("input[data-k], textarea[data-k]").forEach(el => {
+      el.addEventListener("input", () => {
+        sp[el.dataset.k] = el.value;
+        if (el.dataset.k === "img") { const p = document.getElementById("spotlightPreview"); if (p) { p.src = el.value; p.style.display = "block"; } }
+      });
+    });
+    document.getElementById("spotlightFile").addEventListener("change", async e => {
+      if (!e.target.files[0]) return;
+      try {
+        const url = await fileToDataUrl(e.target.files[0]);
+        sp.img = url;
+        renderSpotlightAdmin();
+      } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
+    });
+    document.getElementById("saveSpotlight").addEventListener("click", () => {
+      if (saveSpotlightList()) showToast("特集を保存しました");
+    });
+    document.getElementById("stockAndNew").addEventListener("click", () => {
+      if (!confirm("現在の特集をストックして、新規作成しますか？")) return;
+      sp.visible = false;
+      const newSp = { badge: "今月の主役", period: "", en: "Pick of the Month", title: "", sub: "", desc: "", price: "", priceNote: "", cta: "ご予約はこちら", ctaUrl: "reservation.html", img: "", visible: true };
+      spotlightList.unshift(newSp);
+      if (saveSpotlightList()) { showToast("ストックに保存しました"); renderSpotlightAdmin(); }
+    });
+  } else {
+    document.getElementById("createNewSpotlight")?.addEventListener("click", () => {
+      const newSp = { badge: "今月の主役", period: "", en: "Pick of the Month", title: "", sub: "", desc: "", price: "", priceNote: "", cta: "ご予約はこちら", ctaUrl: "reservation.html", img: "", visible: true };
+      spotlightList.unshift(newSp);
+      if (saveSpotlightList()) renderSpotlightAdmin();
+    });
+  }
+  const stockListEl = document.getElementById("spotlightStockList");
+  if (stockListEl) {
+    spotlightList.forEach((s, i) => {
+      if (s.visible !== false) return;
+      const card = document.createElement("div");
+      card.style.cssText = "border:1px solid var(--color-line);border-radius:6px;padding:16px;margin-bottom:12px;display:flex;align-items:center;gap:16px;background:var(--color-paper);";
+      const titleText = (s.title || "（タイトルなし）").replace(/<[^>]+>/g, "");
+      card.innerHTML = `${s.img ? `<img src="${escapeHtml(s.img)}" alt="" style="width:72px;height:48px;object-fit:cover;border-radius:4px;flex-shrink:0;" onerror="this.style.display='none'">` : ""}
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;color:var(--color-text-soft);margin-bottom:2px;">${escapeHtml(s.period||"")}</div>
+          <div style="font-size:15px;font-family:var(--font-mincho);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(titleText)}</div>
+          <div style="font-size:12px;color:var(--color-text-soft);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml((s.sub||"").substring(0,40))}</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button class="btn btn--small" data-republish="${i}">再公開する</button>
+          <button class="btn btn--small btn--ghost" data-delstock="${i}" style="border-color:#b03b48;color:#b03b48;">削除</button>
+        </div>`;
+      stockListEl.appendChild(card);
+    });
+    stockListEl.querySelectorAll("[data-republish]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = +btn.dataset.republish;
+        if (!confirm("この特集を再公開しますか？\n現在公開中の特集はストックに移動します。")) return;
+        spotlightList.forEach(s => { s.visible = false; });
+        spotlightList[idx].visible = true;
+        const item = spotlightList.splice(idx, 1)[0];
+        spotlightList.unshift(item);
+        if (saveSpotlightList()) { showToast("再公開しました"); renderSpotlightAdmin(); }
+      });
+    });
+    stockListEl.querySelectorAll("[data-delstock]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const idx = +btn.dataset.delstock;
+        const title = (spotlightList[idx].title || "この特集").replace(/<[^>]+>/g, "");
+        if (!confirm(`「${title}」を削除しますか？この操作は取り消せません。`)) return;
+        spotlightList.splice(idx, 1);
+        if (saveSpotlightList()) { showToast("削除しました"); renderSpotlightAdmin(); }
+      });
+    });
+  }
 }
 
 /* ============ Instagram投稿 管理 ============ */
@@ -2350,7 +2438,8 @@ function i18nCollectData(){
     {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なホールケーキ。大切なお母様への感謝を込めて。"},
     {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。"}
   ];
-  const sp=JSON.parse(localStorage.getItem('koimari_spotlight')||'null')||{badge:"今月の主役",title:"母の日の フラワーケーキ",sub:"感謝のひと皿に、季節の花を咲かせて。",desc:"苺と季節のフルーツを花のように飾った母の日限定のホールケーキです。",priceNote:"5号(直径15cm)/4〜6名様",cta:"ご予約はこちら"};
+  const spRaw=JSON.parse(localStorage.getItem('koimari_spotlight')||'null');
+  const sp=(Array.isArray(spRaw)?spRaw.find(s=>s.visible!==false):spRaw)||{badge:"今月の主役",title:"母の日の フラワーケーキ",sub:"感謝のひと皿に、季節の花を咲かせて。",desc:"苺と季節のフルーツを花のように飾った母の日限定のホールケーキです。",priceNote:"5号(直径15cm)/4〜6名様",cta:"ご予約はこちら"};
   const voices=JSON.parse(localStorage.getItem('koimari_voices')||'null')||[
     {text:"娘の誕生日にオーダーしました。本人がとても気に入っていたキャラクターを丁寧に再現していただき、家族みんなで感動しました。",attr:"お子様のお誕生日"},
     {text:"職場へのお礼の品として焼き菓子の詰め合わせをお願いしました。包装も上品で、皆さんからとても好評でした。",attr:"贈答品"},
@@ -2479,9 +2568,16 @@ function i18nSaveTranslations(){
     i18nTranslated.news.forEach((en,i)=>{if(news[i])Object.assign(news[i],en);});
     localStorage.setItem('koimari_news',JSON.stringify(news));
   }
-  const sp=JSON.parse(localStorage.getItem('koimari_spotlight')||'null')||{};
-  if(i18nTranslated.spotlight) Object.assign(sp,i18nTranslated.spotlight);
-  localStorage.setItem('koimari_spotlight',JSON.stringify(sp));
+  const spListRaw=JSON.parse(localStorage.getItem('koimari_spotlight')||'null');
+  if(Array.isArray(spListRaw)){
+    const ai=spListRaw.findIndex(s=>s.visible!==false);
+    if(ai>=0&&i18nTranslated.spotlight) Object.assign(spListRaw[ai],i18nTranslated.spotlight);
+    localStorage.setItem('koimari_spotlight',JSON.stringify(spListRaw));
+  } else {
+    const sp=spListRaw||{};
+    if(i18nTranslated.spotlight) Object.assign(sp,i18nTranslated.spotlight);
+    localStorage.setItem('koimari_spotlight',JSON.stringify(sp));
+  }
   const voices=JSON.parse(localStorage.getItem('koimari_voices')||'null')||[];
   if(voices.length&&i18nTranslated.voices){
     i18nTranslated.voices.forEach((en,i)=>{if(voices[i])Object.assign(voices[i],en);});

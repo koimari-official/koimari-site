@@ -760,7 +760,7 @@ const DEFAULT_INSTA = {
 function loadImages(){try{const s=localStorage.getItem("koimari_images");if(s){const p=JSON.parse(s);return{hero:p.hero||DEFAULT_IMAGES.hero,greeting:p.greeting||DEFAULT_IMAGES.greeting,categories:p.categories||DEFAULT_IMAGES.categories,recommended:p.recommended||DEFAULT_IMAGES.recommended,experiences:p.experiences||DEFAULT_IMAGES.experiences}}}catch(e){}return DEFAULT_IMAGES}
 function loadNews(){try{const r=localStorage.getItem("koimari_news");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_NEWS}
 function loadHolidays(){try{const r=localStorage.getItem("koimari_holidays");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_HOLIDAYS}
-function loadSpotlight(){try{const r=localStorage.getItem("koimari_spotlight");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_SPOTLIGHT}
+function loadSpotlight(){try{const r=localStorage.getItem("koimari_spotlight");if(r){const d=JSON.parse(r);if(Array.isArray(d)){const v=d.find(s=>s.visible!==false);return v||DEFAULT_SPOTLIGHT}return d}}catch(e){}return DEFAULT_SPOTLIGHT}
 function loadStats(){try{const r=localStorage.getItem("koimari_stats");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_STATS}
 function loadVoices(){try{const r=localStorage.getItem("koimari_voices");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_VOICES}
 function loadInsta(){try{const r=localStorage.getItem("koimari_insta");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_INSTA}
