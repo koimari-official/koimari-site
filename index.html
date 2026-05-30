@@ -390,19 +390,31 @@ section{padding:100px 24px}
   .bcal{padding:8px 0}
   .bcal__wrap{border-left:none;border-right:none;border-radius:0;padding:6px 8px}
 }
-/* ===== スマホ横向き：固定ヘッダーを圧縮 ===== */
+/* ===== スマホ：丸形予約FABを表示（横長バーは非表示） ===== */
+@media(max-width:900px){
+  .fab--pc{display:flex!important;width:88px;height:88px;bottom:18px;left:18px;right:auto;font-size:12px}
+  .fab--pc__icon{font-size:20px}
+  .fab--pc__label{font-size:10px}
+  .fab--mobile{display:none!important}
+  body{padding-bottom:110px}
+}
+/* ===== スマホ横向き：固定ヘッダーをさらに圧縮 ===== */
 @media(orientation:landscape) and (max-width:900px){
-  header > div{padding-top:5px!important;padding-bottom:5px!important}
-  header a.flex > span:first-child{font-size:26px!important}
-  header a.flex > span:last-child{font-size:12px!important;margin-top:1px!important}
-  .lang-btn{padding:.3em .7em;font-size:11px}
-  body{font-size:16px;padding-bottom:60px}
-  section{padding:36px 18px}
-  .section__head{margin-bottom:36px}
-  .hero{height:clamp(160px,40vh,280px)}
-  .bcal__cell{min-height:28px;font-size:16px}
-  .bcal__dow{padding:2px 0}
-  .bcal{padding:6px 12px}
+  header > div{padding-top:3px!important;padding-bottom:3px!important}
+  header a.flex > span:first-child{font-size:22px!important}
+  header a.flex > span:last-child{display:none!important}
+  .lang-btn{padding:.2em .55em;font-size:10px}
+  .event-banner{padding:6px 44px 6px 14px;font-size:12px;letter-spacing:.06em}
+  body{font-size:16px;padding-bottom:90px}
+  section{padding:32px 18px}
+  .section__head{margin-bottom:30px}
+  .hero{height:clamp(150px,38vh,260px)}
+  .bcal__cell{min-height:26px;font-size:15px}
+  .bcal__dow{padding:1px 0}
+  .bcal{padding:4px 12px}
+  .fab--pc{width:72px;height:72px;bottom:14px;left:14px}
+  .fab--pc__icon{font-size:16px}
+  .fab--pc__label{font-size:9px}
 }
 </style>
 <script src="i18n.js"></script>
