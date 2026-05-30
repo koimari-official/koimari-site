@@ -379,6 +379,31 @@ section{padding:100px 24px}
 .lang-btn{color:var(--color-text-soft);padding:.45em 1em;font-size:13px;border-radius:.5em;background:var(--color-bg);cursor:pointer;border:2px solid #e8d4bc;transition:all .3s;box-shadow:5px 5px 10px #d8baa4,-5px -5px 10px #fff;font-family:var(--font-en);letter-spacing:.12em;font-weight:500}
 .lang-btn:hover{border-color:#f5ece0;color:var(--color-accent)}
 .lang-btn:active{box-shadow:3px 3px 8px #d8baa4,-3px -3px 8px #fff}
+/* ===== スマホ縦向き（≤480px）：フル幅・1列表示 ===== */
+@media(max-width:480px){
+  body{font-size:17px}
+  section{padding:50px 12px}
+  .section__head{margin-bottom:40px}
+  .categories__grid,.recommended__grid{grid-template-columns:1fr}
+  .cat-card,.rec-card{width:100%}
+  .stats__grid{grid-template-columns:repeat(2,1fr)}
+  .bcal{padding:8px 0}
+  .bcal__wrap{border-left:none;border-right:none;border-radius:0;padding:6px 8px}
+}
+/* ===== スマホ横向き：固定ヘッダーを圧縮 ===== */
+@media(orientation:landscape) and (max-width:900px){
+  header > div{padding-top:5px!important;padding-bottom:5px!important}
+  header a.flex > span:first-child{font-size:26px!important}
+  header a.flex > span:last-child{font-size:12px!important;margin-top:1px!important}
+  .lang-btn{padding:.3em .7em;font-size:11px}
+  body{font-size:16px;padding-bottom:60px}
+  section{padding:36px 18px}
+  .section__head{margin-bottom:36px}
+  .hero{height:clamp(160px,40vh,280px)}
+  .bcal__cell{min-height:28px;font-size:16px}
+  .bcal__dow{padding:2px 0}
+  .bcal{padding:6px 12px}
+}
 </style>
 <script src="i18n.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
