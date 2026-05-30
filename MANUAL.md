@@ -1,256 +1,384 @@
-# こいまりサイト テンプレート活用手順書
+# HP作成 汎用標準ガイド
 
-このサイトを別事業のホームページのベースとして流用するための手順書です。
+> このファイルはプロジェクト横断で再利用できる汎用ガイドです。  
+> プロジェクト固有の実装詳細は `CLAUDE.md` を参照してください。
 
 ---
 
 ## 目次
 
-1. [サイト概要・技術構成](#1-サイト概要技術構成)
-2. [ファイル構成](#2-ファイル構成)
-3. [新規事業向けカスタマイズ手順](#3-新規事業向けカスタマイズ手順)
-4. [管理画面の使い方](#4-管理画面の使い方)
-5. [GitHub Pagesへのデプロイ](#5-github-pagesへのデプロイ)
-6. [日常的な更新作業](#6-日常的な更新作業)
+0. [Claudeへの指示：MDファイルの自動管理ルール](#0-claudeへの指示mdファイルの自動管理ルール)
+1. [クロスデバイス設計の基本](#1-クロスデバイス設計の基本)
+2. [よくある不具合とバスター](#2-よくある不具合とバスター)
+3. [確認チェックリスト（3環境）](#3-確認チェックリスト3環境)
+4. [CSS設計の基本ルール](#4-css設計の基本ルール)
+5. [JSの注意点（IntersectionObserver）](#5-jsの注意点intersectionobserver)
+6. [静的HTML構成での注意点](#6-静的html構成での注意点)
+7. [GitHub Pagesへのデプロイ](#7-github-pagesへのデプロイ)
 
 ---
 
-## 1. サイト概要・技術構成
+## 0. Claudeへの指示：MDファイルの自動管理ルール
 
-| 項目 | 内容 |
-|------|------|
-| 構成 | 静的HTML（サーバー不要） |
-| 公開方法 | GitHub Pages（無料） |
-| データ保存 | ブラウザの localStorage（DBサーバー不要） |
-| デザイン | Tailwind CSS + オリジナルCSS変数 |
-| フォント | Google Fonts（明朝体・ゴシック・英字） |
-| アクセス解析 | Google Tag Manager |
-| 多言語 | 日本語／英語切り替え（i18n.js） |
+> **これはClaude Code（AI）への作業指示です。HPを作成・更新する際は必ずこのルールに従ってください。**
 
-**メリット：** サーバー代不要、維持コストほぼゼロ  
-**注意点：** データはブラウザに保存されるため、端末をまたいでの共有はできない（CSVエクスポートで対応）
+### 2ファイル構成の役割分担
 
----
+| ファイル | 役割 | 内容 |
+|---------|------|------|
+| `MANUAL.md` | **汎用テンプレート**（このファイル） | どのHPでも使える設計ルール・エラーバスター・チェックリスト |
+| `CLAUDE.md` | **プロジェクト固有の実装詳細** | そのHPのセクション・CSS変数・JS・発生した問題と解決策 |
 
-## 2. ファイル構成
+### 新規HPプロジェクト開始時にすること
 
+1. `MANUAL.md`（このファイル）を新プロジェクトのフォルダにコピーする
+2. `CLAUDE.md` を新規作成し、以下の項目をそのプロジェクト用に記述する：
+   - プロジェクト概要・技術スタック
+   - レイアウト構造（サイドバー構成・ヒーロー制御など）
+   - ファイル構成（画像ファイル名・数）
+   - セクション一覧（ID・表示名・内容・背景画像）
+   - CSS変数の実際の値
+   - レスポンシブブレークポイントと適用内容
+   - 使用したJSの主要コード
+   - 会社情報・連絡先
+
+### 作業中に自発的に更新するタイミング
+
+#### CLAUDE.md を更新するタイミング（毎回）
+- 新しいセクションを追加したとき → セクション一覧に追記
+- CSSを大きく変更したとき → CSS変数・ブレークポイントを更新
+- JSを変更したとき → 実装コードを最新版に更新
+- 不具合を発見して修正したとき → 「発生した問題と解決策」に追記
+- ファイル（画像など）を追加したとき → ファイル構成に追記
+
+#### MANUAL.md を更新するタイミング（必要なとき）
+- 新しい種類の不具合を発見・解決したとき → 「よくある不具合とバスター」に追記
+- 新しいクロスデバイス対応パターンを実装したとき → 該当セクションに追記
+- チェックリストに抜けが見つかったとき → 追記
+- **NORI&TATE固有の内容は書かない。汎用的に使える内容のみ記載する**
+
+### CLAUDE.md の基本テンプレート構成
+
+新規HPで `CLAUDE.md` を作成する際は以下の構成で記述すること：
+
+```markdown
+# CLAUDE.md — [プロジェクト名] 実装詳細
+
+## プロジェクト概要
+## 技術スタック
+## レイアウト構造
+## ファイル構成
+## セクション構成（IDと背景画像の対応表）
+## CSS変数（:root の実際の値）
+## レスポンシブブレークポイント
+## JS実装（ヒーローモード・セクション検知のコード）
+## このサイトで発生した問題と解決策
+## 会社・クライアント情報
+## 修正時の注意
 ```
-/
-├── index.html          ← トップページ（メイン）
-├── admin.html          ← 管理ページ（コンテンツ更新・予約管理）
-├── reservation.html    ← 予約フォーム
-├── gallery.html        ← ギャラリーページ
-├── blog.html           ← ブログページ
-├── faq.html            ← よくある質問
-├── experience.html     ← 体験プログラム
-├── corporate.html      ← 法人向けページ
-├── tokushoho.html      ← 特定商取引法に基づく表記
-├── privacy.html        ← プライバシーポリシー
-├── terms.html          ← 利用規約
-├── i18n.js             ← 日英切り替え機能
-├── error-tracker.js    ← エラー記録
-├── CLAUDE.md           ← AI作業ルール（Claude Code用）
-└── MANUAL.md           ← この手順書
+
+---
+
+## 1. クロスデバイス設計の基本
+
+### ブレークポイント設計
+
+| 環境 | 幅の目安 | 高さの目安 | 主な考慮事項 |
+|------|---------|-----------|------------|
+| PC（デスクトップ） | 960px超 | — | フルレイアウト・サイドバーあり |
+| タブレット・横向きスマホ | 661〜959px | — | サイドバー縮小または非表示 |
+| 縦向きスマホ | 660px以下 | — | 縦一列・ナビは上部固定バー |
+| 横向きスマホ（追加） | 661px超 | 500px以下 | 縦方向の余白を大幅に削減 |
+
+```css
+/* タブレット・右サイドバー非表示 */
+@media (max-width: 960px) { ... }
+
+/* 縦向きスマホ：上部固定ナビ */
+@media (max-width: 660px) { ... }
+
+/* 横向きスマホ：高さが非常に短い状態への個別対応 */
+@media (orientation: landscape) and (max-height: 500px) { ... }
+```
+
+> **ポイント：** 横向きスマホは「幅は広いが高さが非常に短い」特殊な状態。`max-width`だけでは拾えないため、`orientation: landscape` と `max-height` の組み合わせで別途対応する。
+
+### ナビゲーション設計
+
+- ハンバーガーメニューはJSが複雑になるため、小規模サイトは避ける
+- スマホ縦向き：水平スクロールなし＋全ナビ項目が一画面に収まる配置が必須
+- スマホ横向き：縦方向が短いため、ナビの `padding`・`font-size` を縮小し `overflow-y: auto` を設定
+- 固定ナビを使う場合は `scroll-padding-top` でアンカーリンクのオフセットを設定
+
+```css
+/* 固定ナビがある場合のアンカー補正 */
+@media (max-width: 660px) {
+  html { scroll-padding-top: 70px; } /* 固定ナビの高さ分 */
+}
 ```
 
 ---
 
-## 3. 新規事業向けカスタマイズ手順
+## 2. よくある不具合とバスター
 
-### ステップ1：リポジトリを複製する
+### 不具合1：画面回転後にスクロール検知が停止する
 
-1. GitHubでこのリポジトリをフォーク（または全ファイルをダウンロード）
-2. 新しいリポジトリ名を事業名に変更（例：`hanahana-site`）
-3. リポジトリをローカルにクローン
+**症状：** 縦→横に回転すると背景切替・ナビ同期などが動かなくなる  
+**原因：** `IntersectionObserver` の `rootMargin` は初期化時の `window.innerHeight` で固定される。回転後に画面高さが変わっても再計算されない  
+**対処：**
 
-```bash
-git clone https://github.com/YOUR_ACCOUNT/YOUR_REPO.git
-cd YOUR_REPO
+```javascript
+let _obs = [];
+function initObservers() {
+  _obs.forEach(o => o.disconnect());
+  _obs = [];
+  const navH = window.matchMedia('(max-width: 660px)').matches ? 70 : 0;
+  const mid  = Math.round((window.innerHeight - navH) / 2);
+  const topM = navH + mid;
+  const botM = Math.max(0, window.innerHeight - topM);
+  const rootMargin = `-${topM}px 0px -${botM}px 0px`;
+  document.querySelectorAll('section[id]').forEach(s => {
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) activate(e.target.id); });
+    }, { threshold: 0, rootMargin });
+    obs.observe(s);
+    _obs.push(obs);
+  });
+}
+initObservers();
+
+// リサイズ・回転時に再初期化（250ms デバウンス）
+let _timer;
+window.addEventListener('resize', function() {
+  clearTimeout(_timer);
+  _timer = setTimeout(initObservers, 250);
+});
 ```
 
 ---
 
-### ステップ2：「koimari」を事業名に一括置換
+### 不具合2：固定要素の白背景がページ全体を覆う
 
-以下のキーワードをテキストエディタの「全ファイル一括置換」で変更します。
+**症状：** モバイルで固定サイドバー/ナビの白背景が画面全体を覆う  
+**原因：** デスクトップCSSで `bottom: 0`（縦一杯）が設定されたまま、モバイルCSSで未リセット  
+**対処：**
 
-| 置換前 | 置換後（例） | 対象 |
-|--------|------------|------|
-| `koimari` | `hanahana` | ローカルストレージのキー名（全HTMLファイル） |
-| `こいまり` | `はなはな` | 表示テキスト |
-| `KOIMARI` | `HANAHANA` | ヘッダーロゴ |
-| `koimari2026` | `hanahana2026` | 管理ページのパスワード |
-
-**VS Codeでの一括置換：**  
-`Ctrl + Shift + H` → 検索欄に置換前の文字 → 置換欄に置換後の文字 → 「すべて置換」
+```css
+@media (max-width: 660px) {
+  #sidebar {
+    bottom: auto;  /* ← これを必ず明示する */
+    height: auto;
+  }
+}
+```
 
 ---
 
-### ステップ3：カラーテーマを変更する
+### 不具合3：iOSで固定背景がスクロール時にズームする
 
-`index.html` の先頭近くにある `:root{}` ブロックを編集します。
+**症状：** iPhoneで下スクロールするとアドレスバーが隠れ、`position: fixed` の背景がズームアニメーションする  
+**原因：** `100vh` はアドレスバーの出入りで変動する  
+**対処：**
+
+```css
+#bg-layer {
+  height: 100vh;   /* フォールバック（古いブラウザ用） */
+  height: 100lvh;  /* Large Viewport Height：アドレスバーの変動を無視 */
+}
+```
+
+> `100lvh` は iOS Safari 16以降・Android Chrome 108以降に対応。
+
+---
+
+### 不具合4：横向きスマホでナビ下部が見切れる
+
+**症状：** 横向きにするとサイドバーの下部ナビ（下の方の項目）が画面外に隠れる  
+**原因：** デスクトップ用の大きな padding/margin が、高さ375〜430px程度の横向き画面に収まらない  
+**対処：**
+
+```css
+@media (orientation: landscape) and (max-height: 500px) {
+  #sidebar {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    overflow-y: auto;  /* 収まらない場合はスクロール可能に */
+  }
+  .sidebar-logo { margin-bottom: 1rem; }
+  .sidebar-nav li a { padding: 0.28rem 0; font-size: 0.88rem; }
+}
+```
+
+---
+
+### 不具合5：固定幅列でテキストが折り返す
+
+**症状：** 固定幅の左列（表題エリア）でテキストが途中で折り返す  
+**原因：** フォントサイズ × 文字数が列幅を超過。ブラウザのフォントサイズ設定により超過幅が変わる  
+**対処：**
+
+```css
+/* <br>による改行は維持しつつ、行内の折り返しのみ防ぐ */
+.sec-head .s-title { white-space: nowrap; }
+```
+
+---
+
+### 不具合6：横向きスマホでセクション表題が見えない
+
+**症状：** `position: sticky` の表題列が横向き時に画面内に表示されない  
+**原因：** 短い画面高さで sticky の `top` 値が画面外にはみ出す / セクション padding が大きすぎる  
+**対処：**
+
+```css
+@media (orientation: landscape) and (max-height: 500px) {
+  .sec-head { position: static; top: auto; }
+  .sec-split { padding: 2.5rem 1.5rem; gap: 1.5rem; }
+}
+```
+
+---
+
+## 3. 確認チェックリスト（3環境）
+
+コードを変更したら必ず以下3環境で確認してください。
+
+### PC（960px超）
+- [ ] フルレイアウト（サイドバー込み）が崩れていない
+- [ ] サイドバーのナビが全項目表示される
+- [ ] スクロールでセクション検知・背景切替が動作する
+- [ ] sticky 要素が正しく固定される
+- [ ] フォントサイズが読みやすい
+
+### スマホ縦向き（660px以下）
+- [ ] 上部固定ナビが白背景で表示され、コンテンツに被らない
+- [ ] アンカーリンクがナビの下に正しく表示される（`scroll-padding-top`）
+- [ ] ナビ項目が横並びで全て表示される
+- [ ] 背景画像がスクロール時にズームしない（`100lvh` 使用）
+- [ ] フォントサイズ・行間が読みやすい
+
+### スマホ横向き（661〜959px・高さ≦500px）
+- [ ] 固定ナビ/サイドバーのロゴ・テキストが背景外にはみ出していない
+- [ ] ナビ項目が全て画面内に収まる（または `overflow-y: auto` でスクロール可）
+- [ ] 画面回転後もスクロール検知（背景切替・ナビ同期）が動作する
+- [ ] セクション表題が画面内に表示される
+- [ ] 固定背景がズームしない
+
+---
+
+## 4. CSS設計の基本ルール
+
+### 変数（`:root`）で値を一元管理
 
 ```css
 :root {
-  --color-bg: #f7f3ee;        /* ページ背景色 */
-  --color-bg-soft: #ede3d4;   /* ナビ・カードの背景 */
-  --color-text: #2e2118;      /* 本文テキスト色 */
-  --color-text-soft: #4a3a2a; /* サブテキスト色 */
-  --color-accent: #c9a96e;    /* アクセントカラー（ボタン・見出し） */
-  --color-accent-dark: #a88a52; /* アクセントの濃い版（ホバー） */
-  --color-line: #d8baa4;      /* ボーダー・区切り線 */
+  --col-l: 240px;          /* 左サイドバー幅 */
+  --col-r: 220px;          /* 右サイドバー幅 */
+  --serif: 'Noto Serif JP', serif;
+  --sans:  'Noto Sans JP', sans-serif;
+  --en:    'Montserrat', sans-serif;
+  --white: #ffffff;
+  --black: #111111;
+  --mid:   #888888;
+  --border:#e8e8e8;
 }
 ```
 
-ここを変えるだけでサイト全体の色が変わります。
+### font-size は `clamp()` で可変対応
 
-**カラーピッカーの参考サービス：**
-- coolors.co でパレット生成
-- imagecolorpicker.com でロゴ画像から色を取得
-
----
-
-### ステップ4：事業者情報を変更する
-
-以下のファイルと箇所を変更します。
-
-#### `index.html`（メタ情報・構造化データ）
-
-```html
-<!-- タイトルと説明（SEO） -->
-<title>○○○｜事業の説明｜所在地</title>
-<meta name="description" content="説明文">
-
-<!-- OGP（SNSシェア時の表示） -->
-<meta property="og:title" content="○○○">
-<meta property="og:url" content="https://YOUR_DOMAIN/">
-<meta property="og:image" content="https://YOUR_DOMAIN/ogp.jpg">
-
-<!-- 構造化データ（Googleに事業情報を伝える） -->
-<script type="application/ld+json">
-{
-  "name": "事業名",
-  "telephone": "電話番号",
-  "address": { ... },
-  ...
-}
-</script>
+```css
+h1 { font-size: clamp(最小rem, vw指定, 最大rem); }
+/* 例：clamp(2rem, 5vw, 4rem) */
 ```
 
-#### `tokushoho.html`（特定商取引法）
+ブラウザのフォントサイズ設定に依存するため、`rem` + `vw` を組み合わせると様々な環境で安定する。
 
-販売事業者名、代表者名、住所、電話番号、営業時間をすべて変更します。  
-法的ページなので正確に記載してください。
+### z-index は用途別に整理する
 
-#### `index.html`（フッター・店舗情報セクション）
+| 用途 | z-index の目安 |
+|------|--------------|
+| 固定背景レイヤー | 1 |
+| メインコンテンツ | 10 |
+| 右サイドバー | 20 |
+| 左サイドバー/ナビ | 30 |
 
-フッターと「店舗情報」セクション（`#shop`）の住所・電話・営業時間を変更します。
+### レスポンシブの記述順序
+
+1. デスクトップ（デフォルト）で書く
+2. `max-width` で段階的に縮小
+3. 横向きスマホは `orientation: landscape` で個別対応（最後に記述）
 
 ---
 
-### ステップ5：管理ページのパスワードを変更する
+## 5. JSの注意点（IntersectionObserver）
 
-`admin.html` の約620行目：
+### 基本パターン
 
 ```javascript
-const ADMIN_PASSWORD = "koimari2026"; // ← ここを変更
+// NG：ページ読み込み時に1回だけ生成（画面回転で壊れる）
+new IntersectionObserver(callback, { rootMargin }).observe(el);
+
+// OK：関数化して resize 時に再初期化
+let _obs = [];
+function initObs() {
+  _obs.forEach(o => o.disconnect());
+  _obs = [];
+  const obs = new IntersectionObserver(callback, { rootMargin: calcMargin() });
+  obs.observe(el);
+  _obs.push(obs);
+}
+initObs();
+let _t;
+window.addEventListener('resize', () => { clearTimeout(_t); _t = setTimeout(initObs, 250); });
 ```
 
-変更後のパスワードは必ずメモしておいてください。
+### 画面中央トリガーによるセクション検知
 
----
+上下スクロールどちらでも確実に検知する方法：
 
-### ステップ6：Google Tag Managerを設定する
-
-1. [tagmanager.google.com](https://tagmanager.google.com) で新しいアカウント・コンテナを作成
-2. 発行されたIDをコピー（例：`GTM-XXXXXXX`）
-3. 全HTMLファイルの `GTM-MB2XHF6J` を新しいIDで一括置換
-
-```html
-<!-- この2箇所が各ファイルにある -->
-'GTM-MB2XHF6J'  → 'GTM-XXXXXXX'
-?id=GTM-MB2XHF6J → ?id=GTM-XXXXXXX
-```
-
----
-
-### ステップ7：ヒーロー画像・OGP画像を用意する
-
-| 画像 | 推奨サイズ | 用途 |
-|------|-----------|------|
-| ヒーロー画像1〜3枚 | 1920×1080px | トップのスライドショー |
-| OGP画像 | 1200×630px | SNSシェア時のサムネイル |
-| ファビコン | SVG or 32×32px | ブラウザタブのアイコン |
-
----
-
-### ステップ8：ナビゲーションを事業に合わせて調整する
-
-不要なページへのリンクは `index.html` のナビ部分から削除します。
-
-```html
-<nav id="globalNav" ...>
-  <ul ...>
-    <li><a href="#about" class="nav-link">○○について</a></li>
-    <!-- 不要な項目は削除 -->
-  </ul>
-</nav>
+```javascript
+function calcRootMargin() {
+  const navH = window.matchMedia('(max-width: 660px)').matches ? 70 : 0;
+  const mid  = Math.round((window.innerHeight - navH) / 2);
+  const topM = navH + mid;
+  const botM = Math.max(0, window.innerHeight - topM);
+  return `-${topM}px 0px -${botM}px 0px`;
+}
+// threshold: 0 で「セクションの端が中央ラインを通過した瞬間」に発火
 ```
 
 ---
 
-## 4. 管理画面の使い方
+## 6. 静的HTML構成での注意点
 
-URLの末尾に `/admin.html` を付けてアクセスします。  
-（例：`https://YOUR_DOMAIN/admin.html`）
-
-### ログイン
-
-- パスワードを入力してログイン
-- セッションはブラウザを閉じるまで維持
-
-### 主な機能
-
-| タブ | できること |
-|------|-----------|
-| 画像管理 | 商品写真のアップロード・削除・並び替え |
-| 今月の主役 | トップページに表示するフィーチャー商品の設定（公開/非公開/ストック管理） |
-| ニュース | お知らせの追加・編集・削除 |
-| 予約管理 | 予約一覧の確認・CSVエクスポート |
-| カレンダー | 定休日・臨時休業日・イベントの登録 |
-| クーポン | 割引クーポンコードの発行 |
-| 売上記録 | 手動での売上入力・月次グラフ |
-| AI翻訳 | Claude APIキーを設定して日英自動翻訳 |
-
-### 今月の主役（スポットライト）の運用
-
-1. 「＋新規追加」でケーキ情報を入力
-2. 「公開」にチェックして保存
-3. 翌月は「非公開」にしてストック保存（削除しない）
-4. 来年同じ時期に再び「公開」に変更して再利用可能
+- お問い合わせフォームはサーバーサイド処理が不可のため、外部サービスを使用する  
+  - **Formspree**（推奨）：無料50件/月。`<form action="https://formspree.io/f/[ID]">` のみで動作  
+- 外部画像（Unsplash等）はインターネット接続が必要。低速環境では読み込まれない場合がある  
+- Google Fonts は初回読み込みで遅延が発生することがある。重要テキストにはシステムフォントをフォールバックとして設定する  
+- `index.html` 1ファイル構成にすることで、デプロイ・管理コストをほぼゼロにできる
 
 ---
 
-## 5. GitHub Pagesへのデプロイ
+## 7. GitHub Pagesへのデプロイ
 
 ### 初回設定
 
-1. GitHubでリポジトリを作成（Public）
-2. Settings → Pages → Source: `main` ブランチ → Save
-3. 数分後に `https://USERNAME.github.io/REPO_NAME/` で公開
+1. GitHub でリポジトリを作成（Public）
+2. `index.html` と画像ファイルをリポジトリにアップロード
+3. Settings → Pages → Source: `main` ブランチ → Save
+4. 数分後に `https://USERNAME.github.io/REPO_NAME/` で公開
 
 ### 独自ドメインを使う場合
 
-1. ドメインを取得（お名前.com、Xserverドメイン等）
-2. DNS設定でGitHub PagesのIPに向ける
+1. ドメインを取得（お名前.com・Xserver等）
+2. DNS設定でGitHub PagesのIPアドレスに向ける
 3. Settings → Pages → Custom domain に入力
 4. HTTPSを有効化
 
 ### 更新の流れ
 
 ```bash
-# ファイルを編集後
-git add .
+git add index.html
 git commit -m "更新内容の説明"
 git push origin main
 # → 数分後に自動反映
@@ -258,39 +386,4 @@ git push origin main
 
 ---
 
-## 6. 日常的な更新作業
-
-### ニュース・お知らせを追加する
-
-`admin.html` → 「ニュース」タブ → 「追加」  
-→ タイトル・日付・本文を入力して保存
-
-### カレンダーを更新する（定休日・イベント）
-
-`admin.html` → 「カレンダー」タブ  
-→ 日付をクリックして「定休日」または「イベント」を登録
-
-### 予約を確認する
-
-`admin.html` → 「予約管理」タブ  
-→ 一覧表示 / CSVダウンロードで管理
-
-### Instagram連携
-
-`admin.html` → 「Instagram」タブ  
-→ InstagramのURLを入力してサイトに表示
-
----
-
-## 補足：カスタマイズしてはいけない箇所
-
-| 箇所 | 理由 |
-|------|------|
-| `localStorage` のキー名 | `koimari_` → 新事業名に変更すること（残るとデータが混在）|
-| `ADMIN_PASSWORD` | デフォルトのまま本番運用しないこと |
-| 特定商取引法のページ | 法的義務があるため必ず正確に記載 |
-| canonical URL / OGP URL | 実際のドメインに変更しないとSEOに悪影響 |
-
----
-
-*最終更新：2026年5月*
+*汎用テンプレート。プロジェクト固有の実装詳細は CLAUDE.md へ。*
