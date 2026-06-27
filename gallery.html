@@ -22,12 +22,16 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.85;font-size:17px;-webkit-font-smoothing:antialiased}
 img{max-width:100%;height:auto;display:block}
 a{color:inherit;text-decoration:none}
-.header{background:var(--color-paper);border-bottom:1px solid var(--color-line)}
-.header__inner{max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
-.header__logo{display:flex;flex-direction:column;line-height:1}
+.header{position:relative;overflow:hidden;background:linear-gradient(135deg,#5c4a38 0%,#4a3a2a 100%)}
+
+.header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
+.header__inner{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.header__logo{display:flex;align-items:center;gap:10px;line-height:1}
+.header__logo-mark{width:66px;height:66px;object-fit:contain}
+.header__logo-text{display:flex;flex-direction:column;line-height:1}
 .header__logo-en{font-family:var(--font-en);font-size:32px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
-.header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:var(--color-text-soft);margin-top:8px}
-.back-link{font-family:var(--font-mincho);font-size:16px;color:var(--color-text-soft);letter-spacing:.08em;font-weight:500}
+.header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:#fff;font-weight:600;margin-top:8px}
+.back-link{font-family:var(--font-mincho);font-size:16px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
 .back-link:hover{color:var(--color-accent)}
 .nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
 .nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
@@ -49,7 +53,7 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 .cat-tab{padding:13px 24px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.08em;background:transparent;border:1px solid var(--color-line);color:var(--color-text-soft);cursor:pointer;font-weight:500;transition:all .25s}
 .cat-tab:hover{border-color:var(--color-accent);color:var(--color-accent)}
 .cat-tab.active{background:var(--color-accent);border-color:var(--color-accent);color:#fff}
-.cat-tab__count{display:inline-block;margin-left:8px;font-size:12px;opacity:.7;font-family:var(--font-en);font-weight:500}
+.cat-tab__count{display:inline-block;margin-left:8px;font-size:12px;opacity:.7;font-family:var(--font-sans);font-weight:600}
 
 /* ===== ギャラリーグリッド ===== */
 .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-bottom:60px}
@@ -65,7 +69,7 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 .gal-card__meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--color-text-soft);font-family:var(--font-mincho);padding-top:12px;border-top:1px dashed var(--color-line);align-items:center}
 .gal-card__meta-item{display:inline-flex;align-items:center;gap:5px}
 .gal-card__meta-item strong{color:var(--color-accent);font-family:var(--font-en);font-weight:500;font-size:14px}
-.gal-card__date{font-family:var(--font-en);font-size:13px;color:var(--color-gold);letter-spacing:.1em;margin-left:auto;font-weight:500}
+.gal-card__date{font-family:var(--font-sans);font-size:13px;color:var(--color-gold);letter-spacing:.02em;margin-left:auto;font-weight:600}
 .gal-card__cta{margin-top:14px;padding:11px;background:var(--color-bg-soft);border:1px solid var(--color-line);text-align:center;font-family:var(--font-mincho);font-size:13px;letter-spacing:.08em;color:var(--color-accent);font-weight:500;transition:all .2s;display:block}
 .gal-card__cta:hover{background:var(--color-accent);color:#fff;border-color:var(--color-accent)}
 
@@ -120,7 +124,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 <header class="header">
   <div class="header__inner">
-    <a href="index.html" class="header__logo"><span class="header__logo-en">KOIMARI</span><span class="header__logo-jp">こ い ま り</span></a>
+    <a href="index.html" class="header__logo"><img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark"><span class="header__logo-text"><span class="header__logo-en">KOIMARI</span><span class="header__logo-jp">こ い ま り</span></span></a>
     <a href="index.html" class="back-link">← トップへ戻る</a>
   </div>
 </header>
@@ -204,14 +208,14 @@ const CATEGORIES = [
 ];
 
 const DEFAULT_GALLERY = [
-  { img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80", category:"birthday", title:"お子様のキャラクターケーキ", desc:"お好きなキャラクターをモチーフにしたデコレーション", size:"5号", price:"¥4,800〜", lead:"3日前", date:"2026.04" },
-  { img:"https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=800&q=80", category:"anniversary", title:"結婚記念日のケーキ", desc:"季節のフルーツをふんだんに使ったホールケーキ", size:"6号", price:"¥5,200〜", lead:"3日前", date:"2026.03" },
-  { img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80", category:"seasonal", title:"母の日のフラワーケーキ", desc:"お花のような絞りで彩った特別な一品", size:"5号", price:"¥4,200〜", lead:"3日前", date:"2026.05" },
+  { img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80", category:"birthday", title:"お子様のキャラクターケーキ", desc:"お好きなキャラクターをモチーフにしたデコレーション", size:"5号", price:"¥4,800〜", lead:"前日", date:"2026.04" },
+  { img:"https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=800&q=80", category:"anniversary", title:"結婚記念日のケーキ", desc:"季節のフルーツをふんだんに使ったホールケーキ", size:"6号", price:"¥5,200〜", lead:"前日", date:"2026.03" },
+  { img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80", category:"seasonal", title:"母の日のフラワーケーキ", desc:"お花のような絞りで彩った特別な一品", size:"5号", price:"¥4,200〜", lead:"前日", date:"2026.05" },
   { img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80", category:"wedding", title:"ベビーシャワーケーキ", desc:"パステルカラーで仕上げたやさしい雰囲気", size:"6号", price:"¥5,500〜", lead:"5日前", date:"2026.02" },
-  { img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80", category:"anniversary", title:"還暦祝いのガトーショコラ", desc:"赤い花と金箔をあしらった大人のケーキ", size:"6号", price:"¥5,800〜", lead:"3日前", date:"2026.01" },
-  { img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80", category:"seasonal", title:"季節限定 苺のショート", desc:"地元産の朝採れ苺を贅沢に使用しました", size:"5号", price:"¥4,000〜", lead:"3日前", date:"2026.04" },
-  { img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80", category:"birthday", title:"大人のお誕生日ケーキ", desc:"シックで上品な雰囲気のホールケーキ", size:"6号", price:"¥5,000〜", lead:"3日前", date:"2026.03" },
-  { img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80", category:"wedding", title:"出産祝いのケーキ", desc:"赤ちゃんの誕生をお祝いする可愛らしい一品", size:"5号", price:"¥4,500〜", lead:"3日前", date:"2026.02" },
+  { img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80", category:"anniversary", title:"還暦祝いのガトーショコラ", desc:"赤い花と金箔をあしらった大人のケーキ", size:"6号", price:"¥5,800〜", lead:"前日", date:"2026.01" },
+  { img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80", category:"seasonal", title:"季節限定 苺のショート", desc:"地元産の朝採れ苺を贅沢に使用しました", size:"5号", price:"¥4,000〜", lead:"前日", date:"2026.04" },
+  { img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80", category:"birthday", title:"大人のお誕生日ケーキ", desc:"シックで上品な雰囲気のホールケーキ", size:"6号", price:"¥5,000〜", lead:"前日", date:"2026.03" },
+  { img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80", category:"wedding", title:"出産祝いのケーキ", desc:"赤ちゃんの誕生をお祝いする可愛らしい一品", size:"5号", price:"¥4,500〜", lead:"前日", date:"2026.02" },
   { img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=800&q=80", category:"other", title:"オリジナルロールケーキ", desc:"お名前入りのメッセージロールケーキ", size:"1本", price:"¥3,200〜", lead:"2日前", date:"2026.04" }
 ];
 

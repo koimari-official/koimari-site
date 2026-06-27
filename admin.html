@@ -1917,7 +1917,7 @@ const DEFAULT_NEWS_LIST = [
 const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };
 const DEFAULT_FAQ = [
   { category: "ご予約について", items: [
-    { q: "ホールケーキの予約はいつまでに必要ですか？", a: "ホールケーキは原則として引き取り希望日の3日前までにご予約をお願いしております。" }
+    { q: "ホールケーキの予約はいつまでに必要ですか？", a: "ホールケーキは原則として引き取り希望日の前日までにご予約をお願いしております。当日のご予約はお電話にて承ります。" }
   ]}
 ];
 const DEFAULT_GALLERY = [];
@@ -2371,7 +2371,7 @@ function renderGalleryAdmin() {
         { label: "説明", key: "desc", value: g.desc||"", type: "textarea" },
         { label: "サイズ（例: 5号、6号、1本）", key: "size", value: g.size||"", type: "input" },
         { label: "価格目安（例: ¥4,800〜）", key: "price", value: g.price||"", type: "input" },
-        { label: "納期（例: 3日前）", key: "lead", value: g.lead||"", type: "input" },
+        { label: "納期（例: 前日）", key: "lead", value: g.lead||"", type: "input" },
         { label: "日付（例: 2026.04）", key: "date", value: g.date||"", type: "input" },
         { label: "画像URL", key: "img", value: g.img||"", type: "input" }
       ],

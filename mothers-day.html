@@ -63,12 +63,16 @@ img{max-width:100%;height:auto;display:block}
 a{color:inherit;text-decoration:none}
 
 /* ===== Header ===== */
-.header{background:var(--color-paper);border-bottom:1px solid var(--color-line)}
-.header__inner{max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
-.header__logo{display:flex;flex-direction:column;line-height:1}
+.header{position:relative;overflow:hidden;background:linear-gradient(135deg,#5c4a38 0%,#4a3a2a 100%)}
+
+.header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
+.header__inner{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.header__logo{display:flex;align-items:center;gap:10px;line-height:1}
+.header__logo-mark{width:66px;height:66px;object-fit:contain}
+.header__logo-text{display:flex;flex-direction:column;line-height:1}
 .header__logo-en{font-family:var(--font-en);font-size:32px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
-.header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:var(--color-text-soft);margin-top:8px}
-.back-link{font-family:var(--font-mincho);font-size:16px;color:var(--color-text-soft);letter-spacing:.08em;font-weight:500}
+.header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:#fff;font-weight:600;margin-top:8px}
+.back-link{font-family:var(--font-mincho);font-size:16px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
 .back-link:hover{color:var(--color-accent)}
 .nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
 .nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
@@ -81,7 +85,7 @@ a{color:inherit;text-decoration:none}
 .status-banner{background:var(--color-mom);color:#fff;padding:12px 24px;text-align:center;font-family:var(--font-mincho);font-size:14px;letter-spacing:.1em;font-weight:500;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap}
 .status-banner.urgent{background:linear-gradient(90deg,var(--color-accent) 0%,var(--color-mom) 100%);animation:pulse-bar 2s ease-in-out infinite}
 @keyframes pulse-bar{0%,100%{opacity:1}50%{opacity:.85}}
-.status-banner__count{font-family:var(--font-en);font-size:22px;font-weight:600;letter-spacing:.05em}
+.status-banner__count{font-family:var(--font-sans);font-size:22px;font-weight:700;letter-spacing:0}
 .status-banner__count em{font-style:normal;color:#ffd9df}
 
 /* ===== Hero ===== */
@@ -89,7 +93,7 @@ a{color:inherit;text-decoration:none}
 .hero::before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 20% 30%,rgba(255,255,255,.4) 0%,transparent 50%),radial-gradient(circle at 80% 70%,rgba(199,90,110,.15) 0%,transparent 50%);pointer-events:none}
 .hero::after{content:"";position:absolute;bottom:-1px;left:0;right:0;height:80px;background:linear-gradient(180deg,transparent 0%,var(--color-bg) 100%)}
 .hero__inner{position:relative;z-index:1;max-width:880px;margin:0 auto}
-.hero__date{font-family:var(--font-en);font-style:italic;color:var(--color-mom-deep);letter-spacing:.3em;font-size:18px;margin-bottom:24px;display:block;font-weight:500}
+.hero__date{font-family:var(--font-sans);color:var(--color-mom-deep);letter-spacing:.08em;font-size:16px;margin-bottom:24px;display:block;font-weight:700}
 .hero__title{font-family:var(--font-mincho);font-size:clamp(36px,6vw,60px);letter-spacing:.12em;font-weight:600;line-height:1.45;margin-bottom:22px;color:var(--color-text)}
 .hero__title em{font-style:normal;color:var(--color-mom-deep);font-weight:700}
 .hero__sub{font-family:var(--font-mincho);font-size:clamp(17px,2vw,21px);letter-spacing:.1em;color:var(--color-text);line-height:2;margin-bottom:38px;font-weight:500}
@@ -105,7 +109,7 @@ a{color:inherit;text-decoration:none}
 /* ===== Countdown ===== */
 .countdown{background:#fff;border:1px solid var(--color-mom-soft);padding:20px 32px;display:inline-flex;gap:18px;align-items:center;margin-bottom:32px;box-shadow:0 6px 20px rgba(199,90,110,.12)}
 .countdown__label{font-family:var(--font-mincho);font-size:14px;color:var(--color-text-soft);letter-spacing:.08em;font-weight:500}
-.countdown__num{font-family:var(--font-en);font-size:36px;color:var(--color-mom-deep);font-weight:600;line-height:1;letter-spacing:.02em}
+.countdown__num{font-family:var(--font-sans);font-size:36px;color:var(--color-mom-deep);font-weight:700;line-height:1;letter-spacing:0}
 .countdown__unit{font-family:var(--font-mincho);font-size:13px;color:var(--color-text-soft);letter-spacing:.08em;margin-left:-4px}
 
 /* ===== Sections ===== */
@@ -145,7 +149,7 @@ section{padding:90px 24px}
 .cake-card__detail dt{display:inline-block;width:60px;color:var(--color-mom);font-weight:500}
 .cake-card__detail dd{display:inline-block;width:calc(100% - 64px);vertical-align:top}
 .cake-card__price{display:flex;align-items:baseline;gap:8px;margin-bottom:18px}
-.cake-card__price-num{font-family:var(--font-en);font-size:26px;color:var(--color-accent);font-weight:500}
+.cake-card__price-num{font-family:var(--font-sans);font-size:24px;color:var(--color-accent);font-weight:700}
 .cake-card__price-note{font-family:var(--font-mincho);font-size:12px;color:var(--color-text-soft)}
 .cake-card__btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:14px;background:var(--color-mom);color:#fff;font-family:var(--font-mincho);font-size:14px;letter-spacing:.16em;font-weight:500;transition:all .2s;margin-top:auto}
 .cake-card__btn:hover{background:var(--color-mom-deep)}
@@ -163,7 +167,7 @@ section{padding:90px 24px}
 .schedule__row{display:grid;grid-template-columns:200px 1fr;gap:24px;padding:22px 0;border-bottom:1px dashed var(--color-line);align-items:start}
 .schedule__row:last-of-type{border-bottom:none}
 .schedule__date{font-family:var(--font-mincho);font-size:16px;font-weight:600;letter-spacing:.06em;color:var(--color-mom-deep)}
-.schedule__date small{display:block;font-family:var(--font-en);font-size:13px;color:var(--color-text-soft);letter-spacing:.1em;font-weight:500;margin-top:4px}
+.schedule__date small{display:block;font-family:var(--font-sans);font-size:13px;color:var(--color-text-soft);letter-spacing:.02em;font-weight:600;margin-top:4px}
 .schedule__detail{font-size:15px;line-height:2;color:var(--color-text);font-family:var(--font-mincho);letter-spacing:.04em}
 .schedule__detail strong{color:var(--color-accent);font-weight:600}
 .schedule__highlight{margin-top:30px;padding:22px 28px;background:linear-gradient(135deg,#fff8f3 0%,#fdf0e7 100%);border-left:4px solid var(--color-accent);font-family:var(--font-mincho);font-size:14px;line-height:2;letter-spacing:.04em}
@@ -257,7 +261,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <header class="header">
   <div class="header__inner">
-    <a href="index.html" class="header__logo"><span class="header__logo-en">KOIMARI</span><span class="header__logo-jp">こ い ま り</span></a>
+    <a href="index.html" class="header__logo"><img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark"><span class="header__logo-text"><span class="header__logo-en">KOIMARI</span><span class="header__logo-jp">こ い ま り</span></span></a>
     <a href="index.html" class="back-link">← トップへ戻る</a>
   </div>
 </header>
@@ -350,7 +354,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <p class="cake-card__desc">生クリームをお花のように絞り、苺と季節のフルーツで彩った、母の日定番の一台です。やさしく上品な口当たり。</p>
           <dl class="cake-card__detail">
             <dt>サイズ</dt><dd>5号 (直径15cm / 4〜6名様)</dd>
-            <dt>納期</dt><dd>3日前までにご予約</dd>
+            <dt>納期</dt><dd>前日までにご予約</dd>
           </dl>
           <div class="cake-card__price"><span class="cake-card__price-num">¥4,200</span><span class="cake-card__price-note">税込</span></div>
           <a href="reservation.html?type=ホールケーキ予約&season=mothersday&cake=フラワーショートケーキ" class="cake-card__btn">このケーキを予約</a>
@@ -366,7 +370,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <p class="cake-card__desc">サクッと焼き上げたタルト生地に、苺・キウイ・オレンジなど季節のフルーツを花束のように敷き詰めました。</p>
           <dl class="cake-card__detail">
             <dt>サイズ</dt><dd>6号 (直径18cm / 6〜8名様)</dd>
-            <dt>納期</dt><dd>3日前までにご予約</dd>
+            <dt>納期</dt><dd>前日までにご予約</dd>
           </dl>
           <div class="cake-card__price"><span class="cake-card__price-num">¥4,800</span><span class="cake-card__price-note">税込</span></div>
           <a href="reservation.html?type=ホールケーキ予約&season=mothersday&cake=季節のフルーツタルト" class="cake-card__btn">このケーキを予約</a>
@@ -382,7 +386,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <p class="cake-card__desc">ベリーの自然な色合いを生かしたピンクのクリームを絞り、お母様への感謝を表現したモンブラン。栗とベリーの絶妙な組み合わせ。</p>
           <dl class="cake-card__detail">
             <dt>サイズ</dt><dd>5号 (直径15cm / 4〜6名様)</dd>
-            <dt>納期</dt><dd>3日前までにご予約</dd>
+            <dt>納期</dt><dd>前日までにご予約</dd>
           </dl>
           <div class="cake-card__price"><span class="cake-card__price-num">¥4,500</span><span class="cake-card__price-note">税込</span></div>
           <a href="reservation.html?type=ホールケーキ予約&season=mothersday&cake=ピンクモンブラン" class="cake-card__btn">このケーキを予約</a>
@@ -398,7 +402,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <p class="cake-card__desc">深い味わいのガトーショコラに、生クリームで薔薇の絞りを施した大人の一品。チョコレート好きなお母様へ。</p>
           <dl class="cake-card__detail">
             <dt>サイズ</dt><dd>5号 (直径15cm / 4〜6名様)</dd>
-            <dt>納期</dt><dd>3日前までにご予約</dd>
+            <dt>納期</dt><dd>前日までにご予約</dd>
           </dl>
           <div class="cake-card__price"><span class="cake-card__price-num">¥4,400</span><span class="cake-card__price-note">税込</span></div>
           <a href="reservation.html?type=ホールケーキ予約&season=mothersday&cake=薔薇のガトーショコラ" class="cake-card__btn">このケーキを予約</a>
@@ -414,7 +418,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <p class="cake-card__desc">京都産抹茶を使ったしっとりロール生地に、自家製あんこと生クリームを巻き込んだ和菓子風の一品。和を好むお母様へ。</p>
           <dl class="cake-card__detail">
             <dt>サイズ</dt><dd>1本 (約20cm / 4〜5名様)</dd>
-            <dt>納期</dt><dd>3日前までにご予約</dd>
+            <dt>納期</dt><dd>前日までにご予約</dd>
           </dl>
           <div class="cake-card__price"><span class="cake-card__price-num">¥3,200</span><span class="cake-card__price-note">税込</span></div>
           <a href="reservation.html?type=ホールケーキ予約&season=mothersday&cake=抹茶あずきロール" class="cake-card__btn">このケーキを予約</a>
@@ -430,7 +434,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <p class="cake-card__desc">特別な日のために、地元農家直送の朝採れ苺をふんだんに使った最高級のショートケーキ。素材の良さが際立つ一台。</p>
           <dl class="cake-card__detail">
             <dt>サイズ</dt><dd>6号 (直径18cm / 6〜8名様)</dd>
-            <dt>納期</dt><dd>3日前までにご予約</dd>
+            <dt>納期</dt><dd>前日までにご予約</dd>
           </dl>
           <div class="cake-card__price"><span class="cake-card__price-num">¥5,800</span><span class="cake-card__price-note">税込</span></div>
           <a href="reservation.html?type=ホールケーキ予約&season=mothersday&cake=プレミアム苺ショート" class="cake-card__btn">このケーキを予約</a>
@@ -546,7 +550,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <h2 class="section__title">よくいただくご質問</h2>
     </div>
     <div class="faq__list">
-      <div class="faq-item"><div class="faq-item__q">予約はいつまでに必要ですか？</div><div class="faq-item__a">お引き渡し希望日の3日前までにご予約をお願いいたします。母の日の場合、5月7日（木）19時まで受付しておりますが、定員に達し次第、早期締切となる場合がございます。お早めのご予約をおすすめいたします。</div></div>
+      <div class="faq-item"><div class="faq-item__q">予約はいつまでに必要ですか？</div><div class="faq-item__a">お引き渡し希望日の前日までにご予約をお願いいたします。当日のご予約はお電話にて承ります。母の日の場合、5月7日（木）19時まで受付しておりますが、定員に達し次第、早期締切となる場合がございます。お早めのご予約をおすすめいたします。</div></div>
       <div class="faq-item"><div class="faq-item__q">配送はしてもらえますか？</div><div class="faq-item__a">生ケーキの配送は品質保持の都合上、店頭でのお引き渡しのみとさせていただいております。焼き菓子セットは全国配送承っております。お母様が遠方にお住まいの場合は、焼き菓子のギフトもご検討ください。</div></div>
       <div class="faq-item"><div class="faq-item__q">のし対応・メッセージカードは無料ですか？</div><div class="faq-item__a">はい、すべて無料サービスです。「母の日」「御祝」など表書きのご希望、お母様のお名前の名入れ、メッセージカードへのご記入文面など、ご予約フォームの備考欄でご指定ください。</div></div>
       <div class="faq-item"><div class="faq-item__q">アレルギー対応はしていただけますか？</div><div class="faq-item__a">事前にお申し出いただければ、可能な範囲で対応いたします。ただし、同一の厨房・器具で複数の食材を扱っているため、特定原材料の完全な除去は保証できません。重度のアレルギーをお持ちの方は事前にお電話でご相談ください。</div></div>

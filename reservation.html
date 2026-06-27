@@ -50,8 +50,11 @@ body {
 }
 a { color: inherit; text-decoration: none; }
 
-.header { background: var(--color-paper); border-bottom: 1px solid var(--color-line); }
+.header { position: relative; overflow: hidden; background: linear-gradient(135deg, #5c4a38 0%, #4a3a2a 100%); }
+.header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: linear-gradient(90deg, transparent, var(--color-gold), transparent); }
 .header__inner {
+  position: relative;
+  z-index: 1;
   max-width: 1180px;
   margin: 0 auto;
   padding: 22px 24px;
@@ -59,7 +62,9 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   justify-content: space-between;
 }
-.header__logo { display: flex; flex-direction: column; line-height: 1; }
+.header__logo { display: flex; align-items: center; gap: 10px; line-height: 1; }
+.header__logo-mark { width: 66px; height: 66px; object-fit: contain; }
+.header__logo-text { display: flex; flex-direction: column; line-height: 1; }
 .header__logo-en {
   font-family: var(--font-en);
   font-size: 32px;
@@ -72,13 +77,14 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--font-mincho);
   font-size: 15px;
   letter-spacing: 0.4em;
-  color: var(--color-text-soft);
+  color: #fff;
+  font-weight: 600;
   margin-top: 8px;
 }
 .back-link {
   font-family: var(--font-mincho);
   font-size: 16px;
-  color: var(--color-text-soft);
+  color: #e8dcc8;
   letter-spacing: 0.08em;
   font-weight: 500;
   transition: color 0.2s;
@@ -688,8 +694,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="header">
   <div class="header__inner">
     <a href="index.html" class="header__logo">
-      <span class="header__logo-en">KOIMARI</span>
-      <span class="header__logo-jp">こ い ま り</span>
+      <img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark">
+      <span class="header__logo-text">
+        <span class="header__logo-en">KOIMARI</span>
+        <span class="header__logo-jp">こ い ま り</span>
+      </span>
     </a>
     <a href="index.html" class="back-link">← トップへ戻る</a>
   </div>
@@ -714,7 +723,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <span class="page-head__en">Reservation &amp; Inquiry</span>
     <h1 class="page-head__title">ご予約・お問合せ</h1>
     <p class="page-head__lead">
-      ホールケーキのご予約は3日前までにお願いいたします。<br>
+      ホールケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。<br>
       お問合せのみの場合は備考欄にその旨ご記入ください。
     </p>
   </div>
@@ -821,7 +830,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="field__label" for="pickupDate">引き取り希望日 (Pickup Date) <span id="pickupDateBadge" class="req">必須 Required</span></label>
             <input type="date" id="pickupDate" name="pickupDate" class="input">
             <span class="error" data-for="pickupDate"></span>
-            <span class="field__hint">3日以上先のお日にちでご指定ください（Please select a date at least 3 days from today）</span>
+            <span class="field__hint">前日までにご指定ください。当日のご予約はお電話にて承ります（Please select a date by the day before. For same-day requests, please call us）</span>
           </div>
           <div class="field">
             <label class="field__label" for="pickupTime">引き取り希望時間 (Pickup Time) <span id="pickupTimeBadge" class="req">必須 Required</span></label>
@@ -971,7 +980,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <strong>ご予約に関するご注意</strong>
         <ul>
           <li>ご予約内容の確認のため、当店よりお電話またはメールにてご連絡を差し上げます。</li>
-          <li>ホールケーキのご予約は3日前までにお願いいたします。</li>
+          <li>ホールケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。</li>
           <li>お問合せのみの場合は備考欄にその旨ご記入ください。</li>
           <li>ご予約確定後のキャンセルは前日までにご連絡ください。</li>
           <li>送信いただいた個人情報は、ご予約・お問合せ対応のみに使用いたします。</li>
@@ -1072,7 +1081,7 @@ function validate(data) {
     else {
       const today = new Date(); today.setHours(0,0,0,0);
       const pick = new Date(data.pickupDate);
-      if ((pick - today) / 86400000 < 3) { setError("pickupDate", "ご予約は3日以上先のお日にちでお願いいたします（当日はお電話で承ります）"); ok = false; }
+      if ((pick - today) / 86400000 < 1) { setError("pickupDate", "ご予約は前日までにお願いいたします（当日はお電話で承ります）"); ok = false; }
     }
     if (!data.pickupTime) { setError("pickupTime", "引き取り希望時間をご選択ください"); ok = false; }
   }

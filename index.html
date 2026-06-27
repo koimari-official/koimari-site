@@ -86,12 +86,12 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .rec-card:hover .rec-card__img img{transform:scale(1.07)}
 .rec-card__name{font-family:var(--font-mincho);font-size:21px;letter-spacing:.08em;margin-bottom:6px;font-weight:600;color:var(--color-text);transition:color .25s}
 .rec-card:hover .rec-card__name{color:var(--color-accent)}
-.rec-card__price{font-family:var(--font-en);font-size:21px;color:var(--color-accent);font-weight:500;display:none}
+.rec-card__price{font-family:var(--font-sans);font-size:21px;color:var(--color-accent);font-weight:700;display:none}
 .news{background:var(--color-bg-soft)}
 .news__list{max-width:860px;margin:0 auto;list-style:none}
 .news__item{display:grid;grid-template-columns:130px 110px 1fr;gap:22px;padding:26px 0;border-bottom:1px solid var(--color-line);align-items:baseline;transition:all .25s cubic-bezier(.25,.46,.45,.94)}
 .news__item:hover{padding-left:8px;color:var(--color-accent)}
-.news__date{font-family:var(--font-en);color:var(--color-text-soft);font-size:17px;font-weight:500}
+.news__date{font-family:var(--font-sans);color:var(--color-text-soft);font-size:16px;font-weight:600}
 .news__tag{display:inline-block;font-size:14px;text-align:center;padding:5px 14px;background:var(--color-accent);color:#fff;letter-spacing:.08em;width:fit-content;font-weight:500}
 .news__title{font-family:var(--font-mincho);font-size:17px;font-weight:500}
 .news__title a:hover{color:var(--color-accent)}
@@ -105,7 +105,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .news-row:hover::before{transform:scaleX(1)}
 .news-row:hover{padding-left:34px}
 .news-row:focus-visible{outline:2px solid var(--color-accent);outline-offset:0}
-.news-row__date{font-family:var(--font-en);color:var(--color-text-soft);font-size:16px;font-weight:500;letter-spacing:.05em}
+.news-row__date{font-family:var(--font-sans);color:var(--color-text-soft);font-size:15px;font-weight:600;letter-spacing:.02em}
 .news-row__tag{display:inline-block;font-size:13px;text-align:center;padding:5px 12px;background:var(--color-accent);color:#fff;letter-spacing:.08em;width:fit-content;font-weight:500;font-family:var(--font-mincho)}
 .news-row__title{font-family:var(--font-mincho);font-size:16px;font-weight:500;line-height:1.7;color:var(--color-text)}
 .news-row:hover .news-row__title{color:var(--color-accent)}
@@ -131,7 +131,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .bcal__dow{text-align:center;padding:3px 0;font-family:var(--font-mincho);font-size:13px;font-weight:600;background:var(--color-bg-soft);letter-spacing:.05em}
 .bcal__dow.sat{color:var(--color-info)}
 .bcal__dow.sun{color:var(--color-accent)}
-.bcal__cell{padding:2px 2px 1px;border:1px solid var(--color-line-soft);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:var(--font-en);font-size:26px;font-weight:600;position:relative;overflow:hidden;min-height:36px}
+.bcal__cell{padding:2px 2px 1px;border:1px solid var(--color-line-soft);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:var(--font-sans);font-size:24px;font-weight:600;position:relative;overflow:hidden;min-height:36px}
 .bcal__cell.empty{border:none}
 .bcal__cell.closed{background:rgba(201,169,110,.12);color:var(--color-accent)}
 .bcal__cell.closed::after{content:"休";font-family:var(--font-mincho);font-size:13px;color:var(--color-accent);margin-top:auto;font-weight:600}
@@ -145,10 +145,10 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .bcal__note{margin-top:6px;font-size:14px;color:var(--color-text-soft);text-align:center;line-height:1.5}
 
 /* ===== 営業中ステータス（ヘッダー内） ===== */
-.status-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:24px;font-size:13px;font-family:var(--font-mincho);font-weight:500;letter-spacing:.05em;background:var(--color-bg-soft);border:1px solid var(--color-line)}
+.status-pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:24px;font-size:13px;font-family:var(--font-mincho);font-weight:500;letter-spacing:.05em;background:#fefcf8;border:1px solid var(--color-line)}
 .status-pill__dot{width:14px;height:14px;border-radius:50%;background:#aaa}
 .status-pill--open .status-pill__dot{background:#5d8a4e;box-shadow:0 0 0 6px rgba(93,138,78,.18);animation:pulse 2s infinite}
-.status-pill--open{color:#3d6432;background:rgba(93,138,78,.08);border-color:rgba(93,138,78,.3)}
+.status-pill--open{color:#3d6432;background:#f3f7ee;border-color:rgba(93,138,78,.3)}
 .status-pill--closed{color:#999;background:#f5f1eb;border-color:var(--color-line)}
 @keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(93,138,78,.18)}50%{box-shadow:0 0 0 8px rgba(93,138,78,.06)}}
 
@@ -170,7 +170,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .spotlight__title{font-family:var(--font-mincho);font-size:clamp(26px,3.2vw,34px);letter-spacing:.08em;margin-bottom:18px;font-weight:600;line-height:1.5}
 .spotlight__sub{font-family:var(--font-mincho);font-size:18px;color:var(--color-gold);letter-spacing:.08em;margin-bottom:22px;font-weight:500;line-height:1.7}
 .spotlight__desc{font-size:16px;line-height:2;margin-bottom:30px;color:var(--color-text)}
-.spotlight__price{font-family:var(--font-en);font-size:30px;color:var(--color-accent);font-weight:500;margin-bottom:24px;display:none;align-items:baseline;gap:12px}
+.spotlight__price{font-family:var(--font-sans);font-size:28px;color:var(--color-accent);font-weight:700;margin-bottom:24px;display:none;align-items:baseline;gap:12px}
 .spotlight__price span{font-family:var(--font-mincho);font-size:13px;color:var(--color-text-soft)}
 .spotlight__cta{display:inline-flex;align-items:center;gap:14px;padding:18px 48px;font-family:var(--font-mincho);font-size:16px;letter-spacing:.18em;color:#fff;background:var(--color-accent);font-weight:500;transition:all .3s cubic-bezier(.34,.1,.68,.55);position:relative;overflow:hidden;box-shadow:0 6px 20px rgba(201,169,110,.25)}
 .spotlight__cta::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,.1),transparent);transform:translateX(-100%);transition:transform .5s}
@@ -185,12 +185,12 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .stats__head{text-align:center;margin-bottom:50px}
 .stats__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--color-line)}
 .stat-cell{background:#fff;padding:36px 22px;text-align:center}
-.stat-cell__num{font-family:var(--font-en);font-size:clamp(36px,4.5vw,52px);color:var(--color-accent);font-weight:500;line-height:1;letter-spacing:.02em}
+.stat-cell__num{font-family:var(--font-sans);font-size:clamp(36px,4.5vw,52px);color:var(--color-accent);font-weight:700;line-height:1;letter-spacing:0}
 .stat-cell__unit{font-family:var(--font-mincho);font-size:15px;color:var(--color-text-soft);margin-left:4px}
 .stat-cell__label{font-family:var(--font-mincho);font-size:14px;letter-spacing:.1em;color:var(--color-text-soft);margin-top:14px;font-weight:500;line-height:1.7}
 
 /* ===== お客様の声（トップ抜粋） ===== */
-.voices{background:var(--color-bg);padding:100px 24px}
+.voices{background:var(--color-bg-soft);padding:100px 24px}
 .voices__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;max-width:var(--max-w);margin:0 auto}
 .voice-c{background:var(--color-paper,#fefcf8);padding:34px 30px;border:1px solid var(--color-line);position:relative;display:flex;flex-direction:column;transition:all .35s cubic-bezier(.25,.46,.45,.94);box-shadow:0 4px 12px rgba(58,42,35,.06)}
 .voice-c:hover{box-shadow:0 8px 24px rgba(201,169,110,.12);border-color:var(--color-gold);transform:translateY(-3px)}
@@ -413,6 +413,10 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 .nav-link{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:10px 12px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;color:var(--color-text);font-weight:700;border-radius:0;background:none;border:none;box-shadow:none;position:relative;transition:color .22s;color:var(--color-text);white-space:nowrap;min-width:0}
 .lang-btn{color:var(--color-text-soft);padding:.45em 1em;font-size:13px;border-radius:.5em;background:none;cursor:pointer;border:1px solid var(--color-line);transition:background .2s,color .2s,border-color .2s;font-family:var(--font-en);letter-spacing:.12em;font-weight:500}
 .lang-btn:hover{border-color:var(--color-gold);color:var(--color-accent)}
+.lang-btn--header{color:#e8dcc8;border-color:rgba(232,220,200,.35)}
+.lang-btn--header:hover{border-color:var(--color-gold);color:var(--color-gold)}
+.site-header{position:relative;overflow:hidden;background:linear-gradient(135deg,#5c4a38 0%,#4a3a2a 100%)}
+.site-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 /* ===== スマホ縦向き（≤480px）：フル幅・1列表示 ===== */
 @media(max-width:480px){
   body{font-size:17px}
@@ -450,10 +454,6 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
   .fab--pc__icon{font-size:16px}
   .fab--pc__label{font-size:9px}
 }
-/* ===== Header: レトロで柔らかい表題デザイン ===== */
-header a.flex{display:flex;flex-direction:column;gap:6px;text-decoration:none}
-header a.flex > span:first-child{font-family:var(--font-display);font-style:italic;font-size:42px;letter-spacing:.22em;color:var(--color-accent);background:linear-gradient(180deg,rgba(201,169,110,0.06),transparent);padding:6px 12px;border-radius:8px;border:1px solid rgba(168,138,82,0.06);box-shadow:inset 0 -6px 8px rgba(0,0,0,0.02)}
-header a.flex > span:last-child{font-family:var(--font-mincho);font-size:16px;color:var(--color-text);opacity:.95}
 
 /* ===== FAB: 常時表示を優先するオーバーライド（位置・表示の安定化） ===== */
 .fab{position:fixed !important;z-index:1200 !important;display:flex !important;opacity:1 !important;transform:none !important;animation:none !important;pointer-events:auto}
@@ -479,20 +479,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <button class="event-banner__close" id="eventBannerClose" aria-label="閉じる">×</button>
 </div>
 
-<header class="bg-[var(--color-bg)] border-b border-[var(--color-line)] sticky top-0 z-[100]">
-  <div class="max-w-[var(--max-w)] mx-auto px-6 py-[22px] flex items-center justify-between gap-6 max-[900px]:px-[18px] max-[900px]:py-4">
-    <a href="index.html" class="flex flex-col leading-none">
-      <span class="[font-family:var(--font-en)] text-[40px] tracking-[.2em] text-[var(--color-accent)] font-bold">KOIMARI</span>
-      <span class="[font-family:var(--font-mincho)] text-[18px] tracking-[.18em] text-[var(--color-text)] mt-2 font-bold">ケーキ屋さん こいまり</span>
+<header class="site-header sticky top-0 z-[100]">
+  <div class="relative z-[1] max-w-[var(--max-w)] mx-auto px-6 py-[22px] flex items-center justify-between gap-6 max-[900px]:px-[18px] max-[900px]:py-4">
+    <a href="index.html" class="flex items-center gap-3 leading-none">
+      <img src="koimari-temari-mark.png" alt="こいまり" class="w-[82px] h-[82px] object-contain max-[900px]:w-[62px] max-[900px]:h-[62px]">
+      <span class="flex flex-col leading-none">
+        <span class="[font-family:var(--font-en)] text-[40px] tracking-[.2em] text-[var(--color-accent)] font-bold">KOIMARI</span>
+        <span class="[font-family:var(--font-mincho)] text-[18px] tracking-[.18em] text-white mt-2 font-bold">ケーキ屋さん こいまり</span>
+      </span>
     </a>
-    <div class="flex items-center gap-6 text-[var(--color-text-soft)] max-[900px]:hidden">
+    <div class="flex items-center gap-6 text-[#e8dcc8] max-[900px]:hidden">
       <div id="statusPill" class="status-pill"><span class="status-pill__dot"></span><span id="statusText">確認中…</span></div>
       <div class="text-[14px] leading-[1.7]" data-i18n="header.hours">火-土 10:00 - 20:00<br>日 10:00 - 19:00 / 月曜定休</div>
-      <a href="tel:0672210705" class="[font-family:var(--font-en)] text-[26px] text-[var(--color-accent)] tracking-[.05em] font-medium">06-7221-0705</a>
+      <a href="tel:0672210705" class="[font-family:var(--font-sans)] text-[22px] text-[var(--color-accent)] tracking-[.02em] font-bold">06-7221-0705</a>
     </div>
     <div class="flex items-center gap-2">
-      <button data-lang-btn="ja" onclick="I18nCtrl.setLang('ja')" class="lang-btn">JP</button>
-      <button data-lang-btn="en" onclick="I18nCtrl.setLang('en')" class="lang-btn">EN</button>
+      <button data-lang-btn="ja" onclick="I18nCtrl.setLang('ja')" class="lang-btn lang-btn--header">JP</button>
+      <button data-lang-btn="en" onclick="I18nCtrl.setLang('en')" class="lang-btn lang-btn--header">EN</button>
     </div>
     <button class="hidden max-[900px]:block bg-transparent border-0 cursor-pointer text-[28px] text-[var(--color-accent)] p-[6px]" id="menuToggle" aria-label="メニュー">☰</button>
   </div>
