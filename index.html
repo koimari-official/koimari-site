@@ -59,7 +59,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .section__head{text-align:center;margin-bottom:70px}
 .section__en{font-family:var(--font-display);font-style:italic;color:var(--color-accent);letter-spacing:.22em;font-size:17px;display:block;margin-bottom:16px;font-weight:600}
 .section__title{font-family:var(--font-mincho);font-size:clamp(28px,3.4vw,36px);letter-spacing:.16em;font-weight:600;position:relative;display:inline-block;padding-bottom:22px;color:var(--color-text)}
-.section__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:60px;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
+.section__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:110px;height:3px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 .section__lead{margin-top:28px;color:var(--color-text-soft);font-family:var(--font-mincho);letter-spacing:.05em;font-size:17px;line-height:2}
 .greeting{background:var(--color-bg)}
 .greeting__inner{display:grid;grid-template-columns:1fr 1.3fr;gap:70px;align-items:center}
@@ -86,7 +86,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .rec-card:hover .rec-card__img img{transform:scale(1.07)}
 .rec-card__name{font-family:var(--font-mincho);font-size:21px;letter-spacing:.08em;margin-bottom:6px;font-weight:600;color:var(--color-text);transition:color .25s}
 .rec-card:hover .rec-card__name{color:var(--color-accent)}
-.rec-card__price{font-family:var(--font-en);font-size:21px;color:var(--color-accent);font-weight:500}
+.rec-card__price{font-family:var(--font-en);font-size:21px;color:var(--color-accent);font-weight:500;display:none}
 .news{background:var(--color-bg-soft)}
 .news__list{max-width:860px;margin:0 auto;list-style:none}
 .news__item{display:grid;grid-template-columns:130px 110px 1fr;gap:22px;padding:26px 0;border-bottom:1px solid var(--color-line);align-items:baseline;transition:all .25s cubic-bezier(.25,.46,.45,.94)}
@@ -170,7 +170,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .spotlight__title{font-family:var(--font-mincho);font-size:clamp(26px,3.2vw,34px);letter-spacing:.08em;margin-bottom:18px;font-weight:600;line-height:1.5}
 .spotlight__sub{font-family:var(--font-mincho);font-size:18px;color:var(--color-gold);letter-spacing:.08em;margin-bottom:22px;font-weight:500;line-height:1.7}
 .spotlight__desc{font-size:16px;line-height:2;margin-bottom:30px;color:var(--color-text)}
-.spotlight__price{font-family:var(--font-en);font-size:30px;color:var(--color-accent);font-weight:500;margin-bottom:24px;display:flex;align-items:baseline;gap:12px}
+.spotlight__price{font-family:var(--font-en);font-size:30px;color:var(--color-accent);font-weight:500;margin-bottom:24px;display:none;align-items:baseline;gap:12px}
 .spotlight__price span{font-family:var(--font-mincho);font-size:13px;color:var(--color-text-soft)}
 .spotlight__cta{display:inline-flex;align-items:center;gap:14px;padding:18px 48px;font-family:var(--font-mincho);font-size:16px;letter-spacing:.18em;color:#fff;background:var(--color-accent);font-weight:500;transition:all .3s cubic-bezier(.34,.1,.68,.55);position:relative;overflow:hidden;box-shadow:0 6px 20px rgba(201,169,110,.25)}
 .spotlight__cta::before{content:"";position:absolute;inset:0;background:linear-gradient(135deg,transparent,rgba(255,255,255,.1),transparent);transform:translateX(-100%);transition:transform .5s}
@@ -207,6 +207,8 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 
 /* ===== 法人向けバナー ===== */
 .corporate-banner{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;padding:80px 24px;position:relative;overflow:hidden}
+.corporate-banner .section__en{color:#f0c896}
+.corporate-banner .section__title{color:#fff}
 .corporate-banner::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 60px,rgba(245,214,168,.05) 60px 61px),repeating-linear-gradient(-60deg,transparent 0 60px,rgba(245,214,168,.05) 60px 61px);opacity:.7}
 .corporate-banner__inner{max-width:var(--max-w);margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:50px;align-items:center;position:relative;z-index:1}
 .corporate-banner__text{}
@@ -364,7 +366,6 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 @media(max-width:480px){.usp-strip__inner{grid-template-columns:repeat(2,1fr)}.usp-item{padding:16px 14px;gap:10px}.usp-item__icon{width:30px;font-size:18px}.usp-item__title{font-size:13px}}
 
 /* ===== About見出し装飾 ===== */
-.greeting__text h2::before{content:"";display:block;width:36px;height:2px;background:linear-gradient(90deg,var(--color-accent),var(--color-gold));margin-bottom:20px}
 /* ===== 文字サイズ・太さ 可読性向上（高齢者配慮） ===== */
 /* 本文系テキスト */
 .section__lead,.greeting__text p,.spotlight__desc{font-size:19px;font-weight:600}
@@ -401,11 +402,17 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .event-banner__close{color:rgba(46,26,0,.6)}
 .event-banner__close:hover{color:var(--color-on-accent)}
 .event-banner__label{background:rgba(46,26,0,.1);border-color:rgba(46,26,0,.2)}
-.nav-link{display:block;padding:8px 9px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.04em;color:var(--color-text);font-weight:700;border:1.5px solid var(--color-line);background:var(--color-bg);transition:all .2s;white-space:nowrap}
-.nav-link:hover{color:var(--color-accent-dark);background:var(--color-bg-soft);box-shadow:inset 2px 3px 5px rgba(180,140,100,.25),inset -1px -1px 3px rgba(255,255,255,.5)}
-.lang-btn{color:var(--color-text-soft);padding:.45em 1em;font-size:13px;border-radius:.5em;background:var(--color-bg);cursor:pointer;border:2px solid #e8d4bc;transition:all .3s;box-shadow:5px 5px 10px #d8baa4,-5px -5px 10px #fff;font-family:var(--font-en);letter-spacing:.12em;font-weight:500}
-.lang-btn:hover{border-color:#f5ece0;color:var(--color-accent)}
-.lang-btn:active{box-shadow:3px 3px 8px #d8baa4,-3px -3px 8px #fff}
+.nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 18px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.06em;color:var(--color-text);font-weight:700;border-radius:0;background:none;border:none;box-shadow:none;position:relative;transition:color .22s;color:var(--color-text);white-space:nowrap}
+.nav-link::after{content:'';position:absolute;left:18px;right:18px;bottom:4px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
+.nav-link:hover{color:var(--color-accent-dark);background:none;box-shadow:none;transform:none}
+.nav-link:hover::after{transform:scaleX(1)}
+.nav-link:focus-visible{outline:2px solid rgba(201,169,110,0.28);outline-offset:4px}
+
+nav ul{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 0;flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;white-space:nowrap}
+nav ul li{list-style:none;flex:0 0 auto;min-width:0}
+.nav-link{display:inline-flex;align-items:center;justify-content:center;gap:10px;padding:10px 12px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;color:var(--color-text);font-weight:700;border-radius:0;background:none;border:none;box-shadow:none;position:relative;transition:color .22s;color:var(--color-text);white-space:nowrap;min-width:0}
+.lang-btn{color:var(--color-text-soft);padding:.45em 1em;font-size:13px;border-radius:.5em;background:none;cursor:pointer;border:1px solid var(--color-line);transition:background .2s,color .2s,border-color .2s;font-family:var(--font-en);letter-spacing:.12em;font-weight:500}
+.lang-btn:hover{border-color:var(--color-gold);color:var(--color-accent)}
 /* ===== スマホ縦向き（≤480px）：フル幅・1列表示 ===== */
 @media(max-width:480px){
   body{font-size:17px}
@@ -443,6 +450,15 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
   .fab--pc__icon{font-size:16px}
   .fab--pc__label{font-size:9px}
 }
+/* ===== Header: レトロで柔らかい表題デザイン ===== */
+header a.flex{display:flex;flex-direction:column;gap:6px;text-decoration:none}
+header a.flex > span:first-child{font-family:var(--font-display);font-style:italic;font-size:42px;letter-spacing:.22em;color:var(--color-accent);background:linear-gradient(180deg,rgba(201,169,110,0.06),transparent);padding:6px 12px;border-radius:8px;border:1px solid rgba(168,138,82,0.06);box-shadow:inset 0 -6px 8px rgba(0,0,0,0.02)}
+header a.flex > span:last-child{font-family:var(--font-mincho);font-size:16px;color:var(--color-text);opacity:.95}
+
+/* ===== FAB: 常時表示を優先するオーバーライド（位置・表示の安定化） ===== */
+.fab{position:fixed !important;z-index:1200 !important;display:flex !important;opacity:1 !important;transform:none !important;animation:none !important;pointer-events:auto}
+.fab--pc{bottom:30px;right:30px;width:130px;height:130px;border-radius:50%}
+.fab--mobile{bottom:18px;right:18px;left:18px}
 </style>
 <script src="i18n.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -489,7 +505,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <li><a href="gallery.html" data-i18n="nav.gallery" class="nav-link">ギャラリー</a></li>
     <li><a href="blog.html" data-i18n="nav.blog" class="nav-link">ブログ</a></li>
     <li><a href="faq.html" data-i18n="nav.faq" class="nav-link">よくある質問</a></li>
-    <li><a href="#bcal" class="nav-link">営業日</a></li>
+    <li><a href="#bcal" data-i18n="nav.bcal" class="nav-link">営業日</a></li>
     <li><a href="#shop" data-i18n="nav.shop" class="nav-link">店舗情報</a></li>
     <li><a href="reservation.html" data-i18n="nav.reserve" class="nav-link">ご予約</a></li>
   </ul>
@@ -539,6 +555,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <h2 data-i18n="greeting.heading">四季の彩りを<br>ひと皿のお菓子に。</h2>
         <p data-i18n="greeting.body1">こいまりは、季節の素材を大切にした手作りのケーキと焼き菓子のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
         <p data-i18n="greeting.body2">誕生日や記念日のホールケーキ、贈り物の焼き菓子など、お客様の大切なひとときに寄り添えるお菓子作りを心がけています。お気軽にご相談ください。</p>
+        <p data-i18n="greeting.body3">近年、原材料費や人件費の上昇を背景に、業界全体として手間や材料費を抑えた構成に変化する傾向にあると言われています。それでも私たちは、昔ながらの手間を惜しまず、素材と製法にこだわった高品質なお菓子をお届けすることを大切にしています。この想いを大切に、これからもお菓子作りに励んでまいります。</p>
         <a href="reservation.html" class="inline-block mt-[22px] px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-medium text-[var(--color-on-accent)] bg-[var(--color-accent)] border border-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:border-[var(--color-accent-dark)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(168,138,82,.4)]">ご予約・お問合せ</a>
       </div>
     </div>
@@ -590,6 +607,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ===== 法人向け案内バナー ===== -->
 <section class="corporate-banner">
+  <div class="section__head">
+    <span class="section__en">Corporate</span>
+    <h2 class="section__title">法人のお客様へ</h2>
+  </div>
   <div class="corporate-banner__inner">
     <div class="corporate-banner__text">
       <span class="corporate-banner__badge">For Corporate Clients</span>
@@ -646,7 +667,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="social__head">
     <span class="section__en">Follow Us</span>
     <h2 class="section__title">SNSのご案内</h2>
-    <p class="section__lead" style="margin-top:20px;">最新のケーキや日々の様子はSNSでもお届けしています。<br>ぜひフォローしてください。</p>
+    <p class="section__lead" data-i18n="social.lead" style="margin-top:20px;">最新情報はSNSでもお届けしています。<br>フォローしていただけますと励みになります。<br>従業員一同、皆様とのつながりを楽しみにしております。</p>
   </div>
   <div class="social__grid">
 
@@ -685,7 +706,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </section>
 
 <a href="reservation.html" class="fab fab--pc"><span class="fab--pc__icon">予約</span><span class="fab--pc__label">RESERVE</span></a>
-<a href="reservation.html" class="fab fab--mobile">ご予約・お問合せ</a>
+<!-- 四角い横長POPは丸いFABで代替しているため削除 -->
 
 <footer class="footer">
   <div class="footer__inner">
@@ -746,16 +767,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   } catch(e){}
 })();
 
-// ===== 季節イベントバナー =====
-(function initEventBanner(){
+// ===== 季節イベントバナー（適用処理。設定データはFirebase連携スクリプトから渡される） =====
+window.applyEventBannerConfig = function(cfg){
   const banner = document.getElementById('eventBanner');
   if (!banner) return;
-  let cfg = null;
-  try { const raw = localStorage.getItem('koimari_event_banner'); if (raw) cfg = JSON.parse(raw); } catch(e){}
-  // デフォルト設定（管理画面から上書き可能）
-  if (!cfg) cfg = { show: true, label: 'Special', text: '母の日ケーキのご予約を受け付けております', link: 'mothers-day.html', dismissKey: 'koimari_banner_v1' };
-  if (!cfg.show) return;
-  if (cfg.dismissKey && sessionStorage.getItem(cfg.dismissKey)) return;
+  const dismissKey = 'koimari_banner_v1';
+  if (!cfg || cfg.show === false) return;
+  if (sessionStorage.getItem(dismissKey)) return;
   if (cfg.label) document.getElementById('eventBannerLabel').textContent = cfg.label;
   if (cfg.text) document.getElementById('eventBannerText').textContent = cfg.text;
   const linkEl = document.getElementById('eventBannerLink');
@@ -767,9 +785,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     banner.style.maxHeight = banner.scrollHeight + 'px';
     requestAnimationFrame(() => { banner.style.maxHeight = '0'; banner.style.opacity = '0'; });
     setTimeout(() => { banner.style.display = 'none'; }, 320);
-    if (cfg.dismissKey) sessionStorage.setItem(cfg.dismissKey, '1');
-  });
-})();
+    sessionStorage.setItem(dismissKey, '1');
+  }, { once: true });
+};
 
 const DEFAULT_IMAGES = {
   hero:[
@@ -798,7 +816,7 @@ const DEFAULT_IMAGES = {
   ],
   experiences:[
     {key:"ichinichi-tencho",title:"お子様 一日店長体験",titleEn:"One-Day Shop Manager Experience",en:"One Day Manager",target:"対象 / 小学1年生〜6年生",targetEn:"For / Elementary students (Grades 1–6)",img:"https://images.unsplash.com/photo-1607478900766-efe13248b125?w=800&q=80",desc:"ケーキの飾りつけや、お客様への接客、レジ体験まで。お菓子屋さんのお仕事をひと通り体験していただける、お子様向けのプログラムです。",descEn:"From cake decorating and customer service to operating the register — a program where children experience the full range of work at a pastry shop.",duration:"約2時間",durationEn:"Approx. 2 hours",fee:"3,000円(材料費込)",feeEn:"¥3,000 (materials included)",visible:true},
-    {key:"shokugyo-taiken",title:"中高生 職業体験",titleEn:"Career Experience Program",en:"Career Experience",target:"対象 / 中学生・高校生",targetEn:"For / Middle &amp; high school students",img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",desc:"製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。",descEn:"Hands-on experience from kitchen prep and baking to sales. Suitable for school vocational training and internship programs.",duration:"半日〜1日",durationEn:"Half day – Full day",fee:"無料",feeEn:"Free of charge",visible:true},
+    {key:"shokugyo-taiken",title:"中高生 職業体験",titleEn:"Career Experience Program",en:"Career Experience",target:"対象 / 中学生・高校生",targetEn:"For / Middle &amp; high school students",img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",desc:"製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。",descEn:"Hands-on experience from kitchen prep and baking to sales. Suitable for school vocational training and internship programs.",duration:"要相談",durationEn:"Please inquire",fee:"無料（学校関係者様限定）",feeEn:"Free (school staff/teachers only)",visible:true},
     {key:"kunren-kenshu",title:"製菓 訓練・研修",titleEn:"Professional Baking Training",en:"Training Program",target:"対象 / 専門学生・社会人",targetEn:"For / Culinary students &amp; working professionals",img:"https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80",desc:"本格的にお菓子作りを学びたい方向けの研修プログラムです。基礎から応用まで、現場での実践を通して技術を習得していただけます。",descEn:"A training program for those who want to seriously study pastry-making. From fundamentals to advanced techniques, all through hands-on kitchen practice.",duration:"1週間〜",durationEn:"1 week or more",fee:"要相談",feeEn:"Please inquire",visible:true}
   ]
 };
@@ -1112,6 +1130,28 @@ if('IntersectionObserver' in window){
   },observerOpt);
   document.querySelectorAll('section').forEach(s=>observer.observe(s));
 }
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
+  authDomain: "koimari-tasting.firebaseapp.com",
+  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koimari-tasting",
+  storageBucket: "koimari-tasting.firebasestorage.app",
+  messagingSenderId: "852851855633",
+  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
+  const cfg = snapshot.val() || { show: true, label: "Special", text: "母の日ケーキのご予約を受け付けております", link: "mothers-day.html" };
+  if (typeof window.applyEventBannerConfig === "function") window.applyEventBannerConfig(cfg);
+});
 </script>
 </body>
 </html>

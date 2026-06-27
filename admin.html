@@ -178,13 +178,14 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <!-- ===== Login ===== -->
 <div class="login" id="loginScreen">
   <div class="login__box">
-    <div class="login__logo-en">Koimari</div>
+    <div class="login__logo-en">KOIMARI</div>
     <div class="login__logo-jp">こ い ま り</div>
     <div class="login__title">管理ページ ログイン</div>
+    <input type="email" id="loginEmail" class="input" placeholder="メールアドレス" autocomplete="username" style="margin-bottom:10px;">
     <input type="password" id="loginPass" class="input" placeholder="パスワード" autocomplete="current-password">
     <button class="btn" id="loginBtn" style="width:100%;">ログイン</button>
     <div class="login__error" id="loginError"></div>
-    <p class="login__hint">※ 初期パスワード: <code>koimari2026</code><br>(本番運用ではサーバー認証に置き換えてください)</p>
+    <p class="login__hint">ダッシュボードと同じメールアドレス・パスワードでログインできます。</p>
   </div>
 </div>
 
@@ -224,6 +225,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="templates">テンプレート</button>
       <button class="tab" data-panel="coupons">クーポン</button>
       <button class="tab" data-panel="newsletter">メルマガ</button>
+      <button class="tab" data-panel="eventConfig">季節イベント設定</button>
+      <button class="tab" data-panel="expDates">体験プログラム候補日</button>
       <button class="tab" data-panel="checker">サイトチェック</button>
     </nav>
 
@@ -608,6 +611,59 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div id="newsletterList"></div>
     </section>
 
+    <!-- ===== 季節イベント設定 ===== -->
+    <section class="panel" id="panel-eventConfig">
+      <div class="panel__head">
+        <h2 class="panel__title">季節イベント設定</h2>
+      </div>
+      <p class="panel__desc">トップページのバナーと、ご予約ページの「イベントケーキ予約」欄に表示するイベント名を、ここから一括で変更できます。保存するとサイト全体（全デバイス）に即時反映されます。</p>
+      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;">
+        <div class="field" style="margin-bottom:16px;">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-mincho);font-size:15px;">
+            <input type="checkbox" id="ecShow" style="width:18px;height:18px;accent-color:var(--color-accent);">
+            トップページにバナーを表示する
+          </label>
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">イベント名（予約ページの「イベントケーキ予約」欄に表示）</label>
+          <input type="text" id="ecEventName" class="input" placeholder="例: 母の日、クリスマス">
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">バナーのラベル</label>
+          <input type="text" id="ecLabel" class="input" placeholder="例: Special">
+        </div>
+        <div class="field" style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">バナー本文</label>
+          <input type="text" id="ecText" class="input" placeholder="例: 母の日ケーキのご予約を受け付けております">
+        </div>
+        <div class="field" style="margin-bottom:20px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">リンク先ページ</label>
+          <input type="text" id="ecLink" class="input" placeholder="例: mothers-day.html">
+        </div>
+        <button class="btn" id="ecSave">保存して反映</button>
+        <span id="ecSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
+      </div>
+    </section>
+
+    <!-- ===== 体験プログラム候補日 ===== -->
+    <section class="panel" id="panel-expDates">
+      <div class="panel__head">
+        <h2 class="panel__title">体験プログラム候補日（お子様 一日店長体験）</h2>
+      </div>
+      <p class="panel__desc">「お子様 一日店長体験」（小学生対象）で受け付ける候補日をここで設定します。お客様は応募フォームで、この候補日の中からのみ選択できるようになります。中高生・社会人向けプログラムは対象外（要相談のまま）です。</p>
+      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;">
+        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:end;">
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">候補日を追加</label>
+            <input type="date" id="edNewDate" class="input" style="max-width:200px;">
+          </div>
+          <button class="btn btn--small" id="edAddDate">追加</button>
+        </div>
+        <div id="edDateList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:10px;"></div>
+        <p style="font-size:12px;color:var(--color-text-soft);">過去の日付は応募フォーム側で自動的に非表示になります。</p>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -657,7 +713,7 @@ const DEFAULT_IMAGES = {
   ],
   experiences: [
     { key: "ichinichi-tencho", title: "お子様 一日店長体験", en: "One Day Manager", target: "対象 / 小学1年生〜6年生", img: "https://images.unsplash.com/photo-1607478900766-efe13248b125?w=800&q=80", desc: "ケーキの飾りつけや、お客様への接客、レジ体験まで。お菓子屋さんのお仕事をひと通り体験していただける、お子様向けのプログラムです。", duration: "約2時間", fee: "3,000円(材料費込)" },
-    { key: "shokugyo-taiken", title: "中高生 職業体験", en: "Career Experience", target: "対象 / 中学生・高校生", img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80", desc: "製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。", duration: "半日〜1日", fee: "無料" },
+    { key: "shokugyo-taiken", title: "中高生 職業体験", en: "Career Experience", target: "対象 / 中学生・高校生", img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80", desc: "製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。", duration: "要相談", fee: "無料（学校関係者様限定）" },
     { key: "kunren-kenshu", title: "製菓 訓練・研修", en: "Training Program", target: "対象 / 専門学生・社会人", img: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80", desc: "本格的にお菓子作りを学びたい方向けの研修プログラムです。基礎から応用まで、現場での実践を通して技術を習得していただけます。", duration: "1週間〜", fee: "要相談" }
   ]
 };
@@ -733,21 +789,23 @@ function showAdmin() {
   updateCounts();
 }
 function login() {
-  if (document.getElementById("loginPass").value === ADMIN_PASSWORD) {
-    sessionStorage.setItem(SESSION_KEY, "1");
-    showAdmin();
-  } else {
-    document.getElementById("loginError").textContent = "パスワードが正しくありません";
-  }
+  const email = document.getElementById("loginEmail").value.trim();
+  const pass = document.getElementById("loginPass").value;
+  const errEl = document.getElementById("loginError");
+  errEl.textContent = "";
+  if (typeof window.firebaseLogin !== "function") { errEl.textContent = "認証システムの読み込み中です。少し待って再度お試しください。"; return; }
+  window.firebaseLogin(email, pass).catch(() => {
+    errEl.textContent = "メールアドレスまたはパスワードが正しくありません";
+  });
 }
 document.getElementById("loginBtn").addEventListener("click", login);
 document.getElementById("loginPass").addEventListener("keypress", e => { if (e.key === "Enter") login(); });
 document.getElementById("logoutBtn").addEventListener("click", () => {
   if (isDirty() && !confirm("未保存の変更があります。ログアウトしますか？")) return;
-  sessionStorage.removeItem(SESSION_KEY);
+  if (typeof window.firebaseLogout === "function") window.firebaseLogout();
   showLogin();
 });
-if (sessionStorage.getItem(SESSION_KEY) === "1") showAdmin();
+// 表示の出し分けはFirebase Authの状態変化（onAuthStateChanged）に委ねる
 
 /* ============================================================
    タブ
@@ -1394,6 +1452,7 @@ function updateResStatus(idx, status) {
   if (!list[idx]) return;
   list[idx].status = status;
   localStorage.setItem(RES_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, { status });
   updateCounts();
   if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
 }
@@ -1402,6 +1461,7 @@ function updateResNotes(idx, notes) {
   if (!list[idx]) return;
   list[idx].notes = notes;
   localStorage.setItem(RES_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, { notes });
 }
 
 /* ============================================================
@@ -1815,15 +1875,15 @@ function downloadCsv(filename, headers, rows) {
 document.getElementById("exportRes").addEventListener("click", () => {
   const list = loadList(RES_KEY);
   if (!list.length) { showToast("出力するデータがありません", "error"); return; }
-  const headers = ["受信日時","種別","お名前","ふりがな","電話","メール","引取日","引取時間","ケーキ","サイズ","メッセージ","アレルギー","備考"];
-  const rows = list.map(r => [r.submittedAt,r.type,r.name,r.furigana,r.tel,r.email,r.pickupDate,r.pickupTime,r.cakeType,r.size,r.message,(r.allergy||[]).join("/"),(r.note||"").replace(/\n/g," ")]);
+  const headers = ["受信日時","種別","お名前","ふりがな","電話","メール","郵便番号","住所","引取日","引取時間","ケーキ","サイズ","メッセージ","アレルギー","のし","表書き","名入れ","ラッピング","備考"];
+  const rows = list.map(r => [r.submittedAt,r.type,r.name,r.furigana,r.tel,r.email,r.zipcode,r.address,r.pickupDate,r.pickupTime,r.cakeType,r.size,r.message,(r.allergy||[]).join("/"),r.noshi,r.noshiTitle,r.noshiName,r.wrapping,(r.note||"").replace(/\n/g," ")]);
   downloadCsv(`koimari_reservations_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
 });
 document.getElementById("exportExp").addEventListener("click", () => {
   const list = loadList(EXP_KEY);
   if (!list.length) { showToast("出力するデータがありません", "error"); return; }
-  const headers = ["受信日時","プログラム","参加者氏名","ふりがな","学年・年齢","学校","アレルギー","保護者氏名","続柄","電話","メール","希望日1","希望日2","志望動機"];
-  const rows = list.map(r => [r.submittedAt,r.program,r.participantName,r.participantFurigana,r.grade,r.school,(r.allergy||[]).join("/"),r.guardianName,r.relation,r.tel,r.email,r.preferredDate,r.preferredDate2,(r.motivation||"").replace(/\n/g," ")]);
+  const headers = ["受信日時","プログラム","参加者氏名","ふりがな","学年・年齢","学校","アレルギー","保護者氏名","続柄","電話","メール","郵便番号","住所","希望日1","希望日2","志望動機"];
+  const rows = list.map(r => [r.submittedAt,r.program,r.participantName,r.participantFurigana,r.grade,r.school,(r.allergy||[]).join("/"),r.guardianName,r.relation,r.tel,r.email,r.zipcode,r.address,r.preferredDate,r.preferredDate2,(r.motivation||"").replace(/\n/g," ")]);
   downloadCsv(`koimari_experiences_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
 });
 document.getElementById("exportAll").addEventListener("click", () => {
@@ -2418,6 +2478,180 @@ document.getElementById("addBlog").addEventListener("click", () => {
   const ds = `${today.getFullYear()}.${(today.getMonth()+1).toString().padStart(2,"0")}.${today.getDate().toString().padStart(2,"0")}`;
   blogData.unshift({ id: "b" + Date.now(), title: "新規記事", category: "スタッフ日記", date: ds, excerpt: "", body: "", img: "" });
   renderBlogAdmin();
+});
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
+  authDomain: "koimari-tasting.firebaseapp.com",
+  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koimari-tasting",
+  storageBucket: "koimari-tasting.firebasestorage.app",
+  messagingSenderId: "852851855633",
+  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const fbDb = getDatabase(fbApp);
+const fbAuth = getAuth(fbApp);
+const reservationsRef = ref(fbDb, "reservations");
+const experiencesRef = ref(fbDb, "experiences");
+
+let reservationKeys = []; // 配列インデックス → Firebaseのキー（koimari_reservationsと同じ並び順を保つ）
+let experienceKeys = []; // 配列インデックス → Firebaseのキー（koimari_experiencesと同じ並び順を保つ）
+let unsubReservations = null;
+let unsubExperiences = null;
+
+function syncReservationsFromFirebase() {
+  if (unsubReservations) return; // 既にリスニング中なら何もしない
+  unsubReservations = onValue(reservationsRef, (snapshot) => {
+    const val = snapshot.val() || {};
+    const entries = Object.entries(val);
+    entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
+    reservationKeys = entries.map(([k]) => k);
+    const list = entries.map(([, data]) => data);
+    localStorage.setItem("koimari_reservations", JSON.stringify(list));
+    if (typeof window.updateCounts === "function") window.updateCounts();
+    const resPanel = document.getElementById("panel-reservations");
+    if (resPanel && resPanel.classList.contains("active") && typeof window.renderReservations === "function") window.renderReservations();
+    const dashPanel = document.getElementById("panel-dashboard");
+    if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
+  });
+}
+
+function syncExperiencesFromFirebase() {
+  if (unsubExperiences) return;
+  unsubExperiences = onValue(experiencesRef, (snapshot) => {
+    const val = snapshot.val() || {};
+    const entries = Object.entries(val);
+    entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
+    experienceKeys = entries.map(([k]) => k);
+    const list = entries.map(([, data]) => data);
+    localStorage.setItem("koimari_experiences", JSON.stringify(list));
+    if (typeof window.updateCounts === "function") window.updateCounts();
+    const expPanel = document.getElementById("panel-applications");
+    if (expPanel && expPanel.classList.contains("active") && typeof window.renderApplications === "function") window.renderApplications();
+    const dashPanel = document.getElementById("panel-dashboard");
+    if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
+  });
+}
+
+window.fbUpdateReservation = function (idx, patch) {
+  const key = reservationKeys[idx];
+  if (!key) return;
+  update(ref(fbDb, "reservations/" + key), patch).catch(err => console.warn("Firebase更新失敗:", err));
+};
+window.fbUpdateExperience = function (idx, patch) {
+  const key = experienceKeys[idx];
+  if (!key) return;
+  update(ref(fbDb, "experiences/" + key), patch).catch(err => console.warn("Firebase更新失敗:", err));
+};
+window.firebaseLogin = function (email, password) {
+  return signInWithEmailAndPassword(fbAuth, email, password);
+};
+window.firebaseLogout = function () {
+  return signOut(fbAuth);
+};
+
+/* ===== 季節イベント設定（siteConfig/eventBanner） ===== */
+const eventBannerConfigRef = ref(fbDb, "siteConfig/eventBanner");
+function initEventConfigPanel() {
+  onValue(eventBannerConfigRef, (snapshot) => {
+    const cfg = snapshot.val() || {};
+    const showEl = document.getElementById("ecShow");
+    const nameEl = document.getElementById("ecEventName");
+    const labelEl = document.getElementById("ecLabel");
+    const textEl = document.getElementById("ecText");
+    const linkEl = document.getElementById("ecLink");
+    if (showEl) showEl.checked = cfg.show !== false;
+    if (nameEl) nameEl.value = cfg.eventName || "";
+    if (labelEl) labelEl.value = cfg.label || "";
+    if (textEl) textEl.value = cfg.text || "";
+    if (linkEl) linkEl.value = cfg.link || "";
+  });
+  const saveBtn = document.getElementById("ecSave");
+  if (saveBtn && !saveBtn.dataset.bound) {
+    saveBtn.dataset.bound = "1";
+    saveBtn.addEventListener("click", () => {
+      const cfg = {
+        show: document.getElementById("ecShow").checked,
+        eventName: document.getElementById("ecEventName").value.trim(),
+        label: document.getElementById("ecLabel").value.trim(),
+        text: document.getElementById("ecText").value.trim(),
+        link: document.getElementById("ecLink").value.trim(),
+      };
+      update(ref(fbDb, "siteConfig"), { eventBanner: cfg }).then(() => {
+        const note = document.getElementById("ecSavedNote");
+        if (note) { note.textContent = "保存しました（サイト全体に反映されます）"; setTimeout(() => note.textContent = "", 3000); }
+      }).catch(err => {
+        console.warn("siteConfig保存失敗:", err);
+        const note = document.getElementById("ecSavedNote");
+        if (note) note.textContent = "保存に失敗しました";
+      });
+    });
+  }
+}
+
+/* ===== 体験プログラム候補日（siteConfig/experienceDates） ===== */
+const experienceDatesRef = ref(fbDb, "siteConfig/experienceDates");
+let currentExpDates = [];
+function renderExpDateList() {
+  const listEl = document.getElementById("edDateList");
+  if (!listEl) return;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const sorted = [...currentExpDates].sort();
+  listEl.innerHTML = sorted.map(d => {
+    const isPast = new Date(d) < today;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--color-line);${isPast ? "opacity:.45;" : ""}">
+      <span style="font-family:var(--font-en);">${d}${isPast ? "（過去）" : ""}</span>
+      <button class="btn btn--small btn--danger" data-date="${d}">削除</button>
+    </div>`;
+  }).join("") || `<p style="font-size:13px;color:var(--color-text-soft);">候補日がまだ登録されていません。</p>`;
+  listEl.querySelectorAll("button[data-date]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      currentExpDates = currentExpDates.filter(d => d !== btn.dataset.date);
+      saveExpDates();
+    });
+  });
+}
+function saveExpDates() {
+  update(ref(fbDb, "siteConfig"), { experienceDates: currentExpDates }).catch(err => console.warn("候補日保存失敗:", err));
+}
+function initExpDatesPanel() {
+  onValue(experienceDatesRef, (snapshot) => {
+    currentExpDates = snapshot.val() || [];
+    renderExpDateList();
+  });
+  const addBtn = document.getElementById("edAddDate");
+  if (addBtn && !addBtn.dataset.bound) {
+    addBtn.dataset.bound = "1";
+    addBtn.addEventListener("click", () => {
+      const input = document.getElementById("edNewDate");
+      const val = input.value;
+      if (!val) return;
+      if (!currentExpDates.includes(val)) {
+        currentExpDates.push(val);
+        saveExpDates();
+      }
+      input.value = "";
+    });
+  }
+}
+
+onAuthStateChanged(fbAuth, (user) => {
+  if (user) {
+    syncReservationsFromFirebase();
+    syncExperiencesFromFirebase();
+    initEventConfigPanel();
+    initExpDatesPanel();
+    if (typeof window.showAdmin === "function") window.showAdmin();
+  } else {
+    if (typeof window.showLogin === "function") window.showLogin();
+  }
 });
 </script>
 

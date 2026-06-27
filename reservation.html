@@ -17,18 +17,18 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
 <style>
 :root {
-  --color-bg: #fbf7f2;
-  --color-bg-soft: #f5ede2;
+  --color-bg: #f7f3ee;
+  --color-bg-soft: #ede3d4;
   --color-bg-deep: #efe3d2;
   --color-paper: #fefcf8;
   --color-text: #2e2118;
-  --color-text-soft: #5a4538;
+  --color-text-soft: #4a3a2a;
   --color-text-mute: #856e58;
-  --color-accent: #b03b48;
-  --color-accent-dark: #8a2d38;
-  --color-gold: #a98554;
-  --color-gold-light: #c9a872;
-  --color-line: #d8c8b3;
+  --color-accent: #c9a96e;
+  --color-accent-dark: #a88a52;
+  --color-gold: #c9a96e;
+  --color-gold-light: #ddc190;
+  --color-line: #d8baa4;
   --color-error: #c0392b;
   --font-mincho: "Shippori Mincho", "游明朝", "Yu Mincho", serif;
   --font-sans: "Noto Sans JP", "ヒラギノ角ゴ ProN", "Hiragino Kaku Gothic ProN", sans-serif;
@@ -46,7 +46,7 @@ body {
   -webkit-font-smoothing: antialiased;
   background-image:
     radial-gradient(circle at 20% 10%, rgba(184,153,104,0.04) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(176,59,72,0.03) 0%, transparent 40%);
+    radial-gradient(circle at 80% 80%, rgba(201,169,110,0.03) 0%, transparent 40%);
 }
 a { color: inherit; text-decoration: none; }
 
@@ -63,10 +63,10 @@ a { color: inherit; text-decoration: none; }
 .header__logo-en {
   font-family: var(--font-en);
   font-size: 32px;
-  font-style: italic;
-  letter-spacing: 0.18em;
+  font-style: normal;
+  letter-spacing: 0.2em;
   color: var(--color-accent);
-  font-weight: 500;
+  font-weight: 700;
 }
 .header__logo-jp {
   font-family: var(--font-mincho);
@@ -84,11 +84,17 @@ a { color: inherit; text-decoration: none; }
   transition: color 0.2s;
 }
 .back-link:hover { color: var(--color-accent); }
+.nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
+.nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
+.nav-link:hover{color:var(--color-accent)}
+.nav-link:hover::after{transform:scaleX(1)}
+.sub-nav{background:var(--color-bg-soft);border-bottom:1px solid var(--color-line)}
+.sub-nav ul{max-width:1180px;margin:0 auto;display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;padding:10px 8px}
 
 .page-head {
   position: relative;
   text-align: center;
-  padding: 100px 24px 90px;
+  padding: 56px 24px 48px;
   background: linear-gradient(180deg, var(--color-bg-soft) 0%, var(--color-bg-deep) 100%);
   overflow: hidden;
 }
@@ -106,12 +112,12 @@ a { color: inherit; text-decoration: none; }
 .page-head__inner { position: relative; z-index: 1; }
 .page-head__mark {
   font-family: var(--font-en);
-  font-size: 60px;
+  font-size: 40px;
   font-style: italic;
   color: var(--color-gold);
   opacity: 0.5;
   line-height: 1;
-  margin-bottom: 22px;
+  margin-bottom: 10px;
   letter-spacing: 0.05em;
   font-weight: 500;
 }
@@ -122,7 +128,7 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 0.3em;
   font-size: 17px;
   display: inline-block;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   position: relative;
   padding: 0 40px;
   font-weight: 500;
@@ -144,8 +150,8 @@ a { color: inherit; text-decoration: none; }
   font-weight: 600;
   position: relative;
   display: inline-block;
-  padding-bottom: 24px;
-  margin-bottom: 28px;
+  padding-bottom: 16px;
+  margin-bottom: 16px;
 }
 .page-head__title::after {
   content: "";
@@ -241,13 +247,14 @@ main { padding: 90px 24px 110px; }
 .field__label .req,
 .field__label .opt {
   display: inline-block;
-  font-size: 13px;
+  font-size: 11.5px;
   padding: 4px 10px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.06em;
   margin-left: 12px;
   vertical-align: 3px;
   font-family: var(--font-sans);
   font-weight: 500;
+  white-space: nowrap;
 }
 .field__label .req { background: var(--color-accent); color: #fff; }
 .field__label .opt { background: transparent; color: var(--color-text-mute); border: 1px solid var(--color-line); }
@@ -275,7 +282,7 @@ main { padding: 90px 24px 110px; }
   outline: none;
   border-color: var(--color-accent);
   background: #fff;
-  box-shadow: 0 0 0 3px rgba(176,59,72,0.07);
+  box-shadow: 0 0 0 3px rgba(201,169,110,0.07);
 }
 .textarea { resize: vertical; min-height: 130px; line-height: 1.8; }
 
@@ -322,8 +329,32 @@ main { padding: 90px 24px 110px; }
 .radio-group label:has(input:checked),
 .checkbox-group label:has(input:checked) {
   border-color: var(--color-accent);
-  background: rgba(176,59,72,0.06);
+  background: rgba(201,169,110,0.06);
   color: var(--color-accent);
+}
+.event-cake-option {
+  border: 1px solid #c75a6e !important;
+  background: #fbeef1 !important;
+  position: relative;
+}
+.event-cake-option:hover { border-color: #c75a6e !important; background: #f7e3e7 !important; }
+.event-cake-option:has(input:checked) {
+  border-color: #c75a6e !important;
+  background: #f7d9e0 !important;
+  color: #9a3d50 !important;
+}
+.event-cake-option input { accent-color: #c75a6e !important; }
+.event-cake-option__badge {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  background: #c75a6e;
+  color: #fff;
+  padding: 3px 9px;
+  border-radius: 3px;
+  margin-right: 10px;
 }
 
 .error {
@@ -375,7 +406,7 @@ main { padding: 90px 24px 110px; }
   user-select: none;
   transition: background 0.2s;
 }
-.gift-section__toggle:hover { background: rgba(176,59,72,0.04); }
+.gift-section__toggle:hover { background: rgba(201,169,110,0.04); }
 .gift-section__toggle::before {
   content: "🎁";
   margin-right: 12px;
@@ -534,7 +565,7 @@ main { padding: 90px 24px 110px; }
   transition: background 0.25s, transform 0.25s, box-shadow 0.25s, letter-spacing 0.25s;
   position: relative;
   text-indent: 0.28em;
-  box-shadow: 0 4px 14px rgba(176,59,72,0.18);
+  box-shadow: 0 4px 14px rgba(201,169,110,0.18);
   font-weight: 500;
 }
 .btn:hover {
@@ -657,12 +688,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="header">
   <div class="header__inner">
     <a href="index.html" class="header__logo">
-      <span class="header__logo-en">Koimari</span>
+      <span class="header__logo-en">KOIMARI</span>
       <span class="header__logo-jp">こ い ま り</span>
     </a>
     <a href="index.html" class="back-link">← トップへ戻る</a>
   </div>
 </header>
+<nav class="sub-nav">
+  <ul>
+    <li><a href="index.html#about" class="nav-link">こいまりについて</a></li>
+    <li><a href="index.html#categories" class="nav-link">商品一覧</a></li>
+    <li><a href="index.html#experience" class="nav-link">体験プログラム</a></li>
+    <li><a href="gallery.html" class="nav-link">ギャラリー</a></li>
+    <li><a href="blog.html" class="nav-link">ブログ</a></li>
+    <li><a href="faq.html" class="nav-link">よくある質問</a></li>
+    <li><a href="index.html#bcal" class="nav-link">営業日</a></li>
+    <li><a href="index.html#shop" class="nav-link">店舗情報</a></li>
+    <li><a href="reservation.html" class="nav-link">ご予約</a></li>
+  </ul>
+</nav>
 
 <div class="page-head">
   <div class="page-head__inner">
@@ -696,16 +740,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <form id="reservationForm" novalidate>
       <div class="form-section">
-        <h2 class="form-section__title">お客様情報<span class="form-section__num">01</span></h2>
+        <h2 class="form-section__title">お客様情報 <span style="font-size:.55em;letter-spacing:.05em;opacity:.7;">(Customer Information)</span><span class="form-section__num">01</span></h2>
 
         <div class="row">
           <div class="field">
-            <label class="field__label" for="name">お名前 <span class="req">必須</span></label>
-            <input type="text" id="name" name="name" class="input" autocomplete="name">
+            <label class="field__label" for="name">お名前 (Name) <span class="req">必須 Required</span></label>
+            <input type="text" id="name" name="name" class="input" autocomplete="name" placeholder="例: 田中 花子 / Hanako Tanaka">
             <span class="error" data-for="name"></span>
           </div>
           <div class="field">
-            <label class="field__label" for="furigana">ふりがな <span class="req">必須</span></label>
+            <label class="field__label" for="furigana">ふりがな (Furigana) <span class="req">必須 Required</span></label>
             <input type="text" id="furigana" name="furigana" class="input" placeholder="ひらがなでご記入ください">
             <span class="error" data-for="furigana"></span>
           </div>
@@ -713,12 +757,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="row">
           <div class="field">
-            <label class="field__label" for="tel">電話番号 <span class="req">必須</span></label>
+            <label class="field__label" for="tel">電話番号 (Phone Number) <span class="req">必須 Required</span></label>
             <input type="tel" id="tel" name="tel" class="input" autocomplete="tel" placeholder="例: 090-1234-5678">
             <span class="error" data-for="tel"></span>
           </div>
           <div class="field">
-            <label class="field__label" for="email">メールアドレス <span class="req">必須</span></label>
+            <label class="field__label" for="email">メールアドレス (Email) <span class="req">必須 Required</span></label>
             <input type="email" id="email" name="email" class="input" autocomplete="email" placeholder="例: name@example.com">
             <span class="error" data-for="email"></span>
           </div>
@@ -726,91 +770,117 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="row">
           <div class="field">
-            <label class="field__label" for="birthday">生年月日 <span class="opt">任意</span></label>
+            <label class="field__label" for="zipcode">郵便番号 (Postal Code) <span class="req">必須 Required</span></label>
+            <input type="text" id="zipcode" name="zipcode" class="input" autocomplete="postal-code" placeholder="例: 123-4567" inputmode="numeric" maxlength="8">
+            <span class="error" data-for="zipcode"></span>
+          </div>
+          <div class="field">
+            <label class="field__label" for="address">ご住所 (Address) <span class="opt">任意 Optional</span></label>
+            <input type="text" id="address" name="address" class="input" autocomplete="address-line1" placeholder="例: 大阪市城東区〇〇1-2-3">
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="field">
+            <label class="field__label" for="birthday">生年月日 (Date of Birth) <span class="opt">任意 Optional</span></label>
             <input type="date" id="birthday" name="birthday" class="input" autocomplete="bday" value="2000-01-01">
             <span class="error" data-for="birthday"></span>
           </div>
           <div class="field" style="display:flex;align-items:flex-end;padding-bottom:4px;">
             <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;font-family:var(--font-mincho);color:var(--color-text-soft);">
               <input type="checkbox" name="newsletter" value="1" style="width:18px;height:18px;accent-color:var(--color-accent);">
-              お得な情報・お知らせメールを受け取る
+              お得な情報・お知らせメールを受け取る (Receive newsletter)
             </label>
           </div>
         </div>
       </div>
 
       <div class="form-section">
-        <h2 class="form-section__title">ご予約内容<span class="form-section__num">02</span></h2>
+        <h2 class="form-section__title">ご予約内容 <span style="font-size:.55em;letter-spacing:.05em;opacity:.7;">(Reservation Details)</span><span class="form-section__num">02</span></h2>
 
         <div class="field">
-          <label class="field__label">お問合せ種別 <span class="req">必須</span></label>
+          <label class="field__label">お問合せ種別 (Inquiry Type) <span class="req">必須 Required</span></label>
+
+          <div class="radio-group" style="margin-bottom:14px;">
+            <label class="event-cake-option">
+              <input type="radio" name="type" value="イベントケーキ予約">
+              <span class="event-cake-option__badge">季節限定のイベントケーキ</span>
+              ご予約：<span id="currentEventName">母の日</span><span id="currentEventNameEn"> / Mother's Day</span>
+            </label>
+          </div>
+
           <div class="radio-group">
-            <label><input type="radio" name="type" value="ホールケーキ予約" checked> ホールケーキのご予約</label>
-            <label><input type="radio" name="type" value="焼き菓子予約"> 焼き菓子・ギフトのご予約</label>
-            <label><input type="radio" name="type" value="その他"> その他お問合せ</label>
+            <label><input type="radio" name="type" value="ホールケーキ予約" checked> ホールケーキのご予約 (Whole Cake Reservation)</label>
+            <label><input type="radio" name="type" value="焼き菓子予約"> 焼き菓子・ギフトのご予約 (Baked Goods / Gift Reservation)</label>
+            <label><input type="radio" name="type" value="その他"> その他お問合せ (Other Inquiry)</label>
           </div>
         </div>
 
         <div class="row">
           <div class="field">
-            <label class="field__label" for="pickupDate">引き取り希望日 <span id="pickupDateBadge" class="req">必須</span></label>
+            <label class="field__label" for="pickupDate">引き取り希望日 (Pickup Date) <span id="pickupDateBadge" class="req">必須 Required</span></label>
             <input type="date" id="pickupDate" name="pickupDate" class="input">
             <span class="error" data-for="pickupDate"></span>
-            <span class="field__hint">3日以上先のお日にちでご指定ください</span>
+            <span class="field__hint">3日以上先のお日にちでご指定ください（Please select a date at least 3 days from today）</span>
           </div>
           <div class="field">
-            <label class="field__label" for="pickupTime">引き取り希望時間 <span id="pickupTimeBadge" class="req">必須</span></label>
+            <label class="field__label" for="pickupTime">引き取り希望時間 (Pickup Time) <span id="pickupTimeBadge" class="req">必須 Required</span></label>
             <select id="pickupTime" name="pickupTime" class="select">
-              <option value="">選択してください</option>
+              <option value="">選択してください (Please select)</option>
               <option value="10:00">10:00</option><option value="11:00">11:00</option>
               <option value="12:00">12:00</option><option value="13:00">13:00</option>
               <option value="14:00">14:00</option><option value="15:00">15:00</option>
               <option value="16:00">16:00</option><option value="17:00">17:00</option>
-              <option value="18:00">18:00</option>
+              <option value="18:00">18:00</option><option value="19:00">19:00</option>
+              <option value="20:00">20:00</option>
             </select>
             <span class="error" data-for="pickupTime"></span>
+            <span class="field__hint" id="pickupTimeHoursNote" style="display:none;color:#9a3d50;">
+              ご注意：営業時間は曜日によって異なります（日曜は19:00閉店）。お引き取り時間がその日の閉店時間を過ぎていないかご確認ください。<br>
+              Please note: business hours vary by day (Sundays close at 19:00). Please make sure your pickup time is before closing on your selected day.
+            </span>
           </div>
         </div>
 
         <div class="row">
           <div class="field">
-            <label class="field__label" for="cakeType">ケーキの種類 <span class="opt">任意</span></label>
+            <label class="field__label" for="cakeType">ケーキの種類 (Cake Type) <span class="opt">任意 Optional</span></label>
             <select id="cakeType" name="cakeType" class="select">
-              <option value="">選択してください</option>
-              <option value="苺のショートケーキ">苺のショートケーキ</option>
-              <option value="ガトーショコラ">ガトーショコラ</option>
-              <option value="モンブラン">モンブラン</option>
-              <option value="フルーツタルト">フルーツタルト</option>
-              <option value="チーズケーキ">チーズケーキ</option>
-              <option value="その他">その他（備考欄にご記入ください）</option>
+              <option value="">選択してください (Please select)</option>
+              <option value="苺のショートケーキ">苺のショートケーキ (Strawberry Shortcake)</option>
+              <option value="ガトーショコラ">ガトーショコラ (Gateau Chocolat)</option>
+              <option value="モンブラン">モンブラン (Mont Blanc)</option>
+              <option value="フルーツタルト">フルーツタルト (Fruit Tart)</option>
+              <option value="チーズケーキ">チーズケーキ (Cheesecake)</option>
+              <option value="その他">その他（備考欄にご記入ください） (Other - please specify below)</option>
             </select>
           </div>
           <div class="field">
-            <label class="field__label" for="size">サイズ <span class="opt">任意</span></label>
+            <label class="field__label" for="size">サイズ (Size) <span class="opt">任意 Optional</span></label>
             <select id="size" name="size" class="select">
-              <option value="">選択してください</option>
-              <option value="4号(直径12cm/2-3名)">4号（直径12cm / 2〜3名）</option>
-              <option value="5号(直径15cm/4-6名)">5号（直径15cm / 4〜6名）</option>
-              <option value="6号(直径18cm/6-8名)">6号（直径18cm / 6〜8名）</option>
-              <option value="7号(直径21cm/8-10名)">7号（直径21cm / 8〜10名）</option>
+              <option value="">選択してください (Please select)</option>
+              <option value="4号(直径12cm/2-3名)">4号（直径12cm / 2〜3名）(4-inch, serves 2-3)</option>
+              <option value="5号(直径15cm/4-6名)">5号（直径15cm / 4〜6名）(5-inch, serves 4-6)</option>
+              <option value="6号(直径18cm/6-8名)">6号（直径18cm / 6〜8名）(6-inch, serves 6-8)</option>
+              <option value="7号(直径21cm/8-10名)">7号（直径21cm / 8〜10名）(7-inch, serves 8-10)</option>
             </select>
           </div>
         </div>
 
         <div class="field">
-          <label class="field__label" for="message">メッセージプレート <span class="opt">任意</span></label>
+          <label class="field__label" for="message">メッセージプレート (Message Plate) <span class="opt">任意 Optional</span></label>
           <input type="text" id="message" name="message" class="input" placeholder="例: Happy Birthday Mari (15文字以内)" maxlength="15">
-          <span class="field__hint">15文字以内でご記入ください（記号含む）</span>
+          <span class="field__hint">15文字以内でご記入ください（記号含む）(Up to 15 characters, symbols included)</span>
         </div>
 
         <div class="field">
-          <label class="field__label">アレルギー <span class="opt">任意</span></label>
+          <label class="field__label">アレルギー (Allergy Information) <span class="opt">任意 Optional</span></label>
           <div class="checkbox-group">
-            <label><input type="checkbox" name="allergy" value="卵"> 卵</label>
-            <label><input type="checkbox" name="allergy" value="乳"> 乳</label>
-            <label><input type="checkbox" name="allergy" value="小麦"> 小麦</label>
-            <label><input type="checkbox" name="allergy" value="ナッツ類"> ナッツ類</label>
-            <label><input type="checkbox" name="allergy" value="その他"> その他</label>
+            <label><input type="checkbox" name="allergy" value="卵"> 卵 (Egg)</label>
+            <label><input type="checkbox" name="allergy" value="乳"> 乳 (Dairy)</label>
+            <label><input type="checkbox" name="allergy" value="小麦"> 小麦 (Wheat)</label>
+            <label><input type="checkbox" name="allergy" value="ナッツ類"> ナッツ類 (Nuts)</label>
+            <label><input type="checkbox" name="allergy" value="その他"> その他 (Other)</label>
           </div>
         </div>
 
@@ -819,59 +889,71 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="gift-section" id="giftSection">
           <div class="gift-section__toggle" id="giftToggle">
-            <span>のし・贈答用ラッピング</span>
-            <span class="gift-section__hint">クリックで開閉</span>
+            <span>のし・贈答用ラッピング (Noshi Gift Wrap)</span>
+            <span class="gift-section__hint">クリックで開閉 (Click to open/close)</span>
           </div>
           <div class="gift-section__body">
 
             <div class="field">
-              <label class="field__label">のしの有無 <span class="opt">任意</span></label>
+              <label class="field__label">のしの有無 (Noshi Gift Wrap) <span class="opt">任意 Optional</span></label>
               <div class="radio-group">
-                <label><input type="radio" name="noshi" value="不要" checked> のしは不要</label>
-                <label><input type="radio" name="noshi" value="内のし"> のしを付ける（内のし）</label>
-                <label><input type="radio" name="noshi" value="外のし"> のしを付ける（外のし）</label>
+                <label><input type="radio" name="noshi" value="不要" checked> のしは不要 (No noshi)</label>
+                <label><input type="radio" name="noshi" value="内のし"> のしを付ける（内のし） (Inner noshi)</label>
+                <label><input type="radio" name="noshi" value="外のし"> のしを付ける（外のし） (Outer noshi)</label>
               </div>
-              <span class="field__hint">内のし=包装紙の中／外のし=包装紙の外。改まった贈答や郵送には内のし、手渡しには外のしが一般的です。</span>
+              <span class="field__hint">内のし=包装紙の中／外のし=包装紙の外。改まった贈答や郵送には内のし、手渡しには外のしが一般的です。<br>"Noshi" is traditional Japanese gift wrapping paper. Inner noshi is placed under the wrapping (for formal gifts/shipping); outer noshi is placed on top (for handing gifts in person).</span>
+
+              <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:140px;max-width:220px;">
+                  <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&q=70" alt="内のしの例" style="width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--color-line);">
+                  <p style="text-align:center;font-size:12px;color:var(--color-text-soft);margin-top:6px;">内のしの例 (Inner noshi example)</p>
+                </div>
+                <div style="flex:1;min-width:140px;max-width:220px;">
+                  <img src="https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=70" alt="外のしの例" style="width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--color-line);">
+                  <p style="text-align:center;font-size:12px;color:var(--color-text-soft);margin-top:6px;">外のしの例 (Outer noshi example)</p>
+                </div>
+              </div>
+              <p style="font-size:11px;color:var(--color-text-mute,#856e58);margin-top:6px;">※ イメージ画像です。実際の仕上がりとは多少異なる場合があります。(Images are for reference only and may differ slightly from the actual product.)</p>
             </div>
 
             <div class="row">
               <div class="field">
-                <label class="field__label" for="noshiTitle">表書き <span class="opt">任意</span></label>
+                <label class="field__label" for="noshiTitle">表書き (Noshi Inscription) <span class="opt">任意 Optional</span></label>
                 <select id="noshiTitle" name="noshiTitle" class="select">
-                  <option value="">選択してください</option>
-                  <option value="母の日">母の日</option>
-                  <option value="父の日">父の日</option>
-                  <option value="御祝">御祝</option>
-                  <option value="寿">寿</option>
-                  <option value="内祝">内祝</option>
-                  <option value="御礼">御礼</option>
-                  <option value="御中元">御中元</option>
-                  <option value="御歳暮">御歳暮</option>
-                  <option value="御挨拶">御挨拶</option>
-                  <option value="開店祝">開店祝</option>
-                  <option value="記念品">記念品</option>
-                  <option value="その他">その他（備考欄に記入）</option>
+                  <option value="">選択してください (Please select)</option>
+                  <option value="母の日">母の日 (Mother's Day)</option>
+                  <option value="父の日">父の日 (Father's Day)</option>
+                  <option value="御祝">御祝 (Celebration)</option>
+                  <option value="寿">寿 (Congratulations)</option>
+                  <option value="内祝">内祝 (Return Gift)</option>
+                  <option value="御礼">御礼 (Thank You)</option>
+                  <option value="御中元">御中元 (Summer Gift)</option>
+                  <option value="御歳暮">御歳暮 (Year-End Gift)</option>
+                  <option value="御挨拶">御挨拶 (Greeting)</option>
+                  <option value="開店祝">開店祝 (Shop Opening)</option>
+                  <option value="記念品">記念品 (Commemorative Gift)</option>
+                  <option value="その他">その他（備考欄に記入） (Other - please specify below)</option>
                 </select>
               </div>
               <div class="field">
-                <label class="field__label" for="noshiName">名入れ（贈り主のお名前） <span class="opt">任意</span></label>
+                <label class="field__label" for="noshiName">名入れ（贈り主のお名前） (Sender's Name on Noshi) <span class="opt">任意 Optional</span></label>
                 <input type="text" id="noshiName" name="noshiName" class="input" placeholder="例: 田中 / 田中太郎・花子">
-                <span class="field__hint">空欄の場合は名入れなしになります</span>
+                <span class="field__hint">空欄の場合は名入れなしになります (Leave blank for no name printed)</span>
               </div>
             </div>
 
             <div class="field">
-              <label class="field__label" for="messageCard">メッセージカード文面 <span class="opt">任意</span></label>
+              <label class="field__label" for="messageCard">メッセージカード文面 (Message Card Text) <span class="opt">任意 Optional</span></label>
               <textarea id="messageCard" name="messageCard" class="textarea" rows="3" placeholder="例: お母さん、いつも本当にありがとう。&#10;これからも元気でいてね。"></textarea>
-              <span class="field__hint">無料でカードをお付けし、ご記入の文面を手書きまたは印字でお入れします。</span>
+              <span class="field__hint">無料でカードをお付けし、ご記入の文面を手書きまたは印字でお入れします。(A free card is included with your message, handwritten or printed.)</span>
             </div>
 
             <div class="field">
-              <label class="field__label">ラッピング希望 <span class="opt">任意</span></label>
+              <label class="field__label">ラッピング希望 (Gift Wrapping) <span class="opt">任意 Optional</span></label>
               <div class="radio-group">
-                <label><input type="radio" name="wrapping" value="標準" checked> 標準ラッピング</label>
-                <label><input type="radio" name="wrapping" value="贈答用"> 贈答用（上品なラッピング）</label>
-                <label><input type="radio" name="wrapping" value="希望なし"> 希望なし</label>
+                <label><input type="radio" name="wrapping" value="標準" checked> 標準ラッピング (Standard Wrapping)</label>
+                <label><input type="radio" name="wrapping" value="贈答用"> 贈答用（上品なラッピング） (Gift Wrapping - Elegant)</label>
+                <label><input type="radio" name="wrapping" value="希望なし"> 希望なし (No Wrapping)</label>
               </div>
             </div>
 
@@ -879,8 +961,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <div class="field">
-          <label class="field__label" for="note">備考・お問合せ内容 <span id="noteBadge" class="opt">任意</span></label>
-          <textarea id="note" name="note" class="textarea" placeholder="ご質問やご要望がございましたらこちらにご記入ください"></textarea>
+          <label class="field__label" for="note">備考・お問合せ内容 (Notes / Other Inquiries) <span id="noteBadge" class="opt">任意 Optional</span></label>
+          <textarea id="note" name="note" class="textarea" placeholder="ご質問やご要望がございましたらこちらにご記入ください (Please write any questions or requests here)"></textarea>
           <span class="error" data-for="note"></span>
         </div>
       </div>
@@ -889,7 +971,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <strong>ご予約に関するご注意</strong>
         <ul>
           <li>ご予約内容の確認のため、当店よりお電話またはメールにてご連絡を差し上げます。</li>
-          <li>ご予約確定後のキャンセルは2日前までにご連絡ください。</li>
+          <li>ホールケーキのご予約は3日前までにお願いいたします。</li>
+          <li>お問合せのみの場合は備考欄にその旨ご記入ください。</li>
+          <li>ご予約確定後のキャンセルは前日までにご連絡ください。</li>
           <li>送信いただいた個人情報は、ご予約・お問合せ対応のみに使用いたします。</li>
         </ul>
       </div>
@@ -913,7 +997,47 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
+  authDomain: "koimari-tasting.firebaseapp.com",
+  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koimari-tasting",
+  storageBucket: "koimari-tasting.firebasestorage.app",
+  messagingSenderId: "852851855633",
+  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const reservationsRef = ref(db, "reservations");
+
+// 現在開催中のイベント名（管理画面「季節イベント設定」から一括変更可能）
+const EVENT_NAME_EN_MAP = {
+  "母の日": "Mother's Day",
+  "父の日": "Father's Day",
+  "クリスマス": "Christmas",
+  "バレンタイン": "Valentine's Day",
+  "ホワイトデー": "White Day",
+  "ひな祭り": "Girls' Festival",
+  "敬老の日": "Respect for the Aged Day",
+  "お正月": "New Year",
+  "ハロウィン": "Halloween",
+};
+onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
+  const cfg = snapshot.val() || {};
+  const eventName = cfg.eventName || "母の日";
+  const currentEventNameEl = document.getElementById("currentEventName");
+  const currentEventNameEnEl = document.getElementById("currentEventNameEn");
+  if (currentEventNameEl) currentEventNameEl.textContent = eventName;
+  if (currentEventNameEnEl) {
+    const en = EVENT_NAME_EN_MAP[eventName];
+    currentEventNameEnEl.textContent = en ? ` / ${en}` : "";
+  }
+});
+
 const form = document.getElementById("reservationForm");
 const thanks = document.getElementById("thanksScreen");
 
@@ -929,7 +1053,7 @@ function setError(name, msg) {
 
 function validate(data) {
   let ok = true;
-  ["name", "furigana", "tel", "email", "pickupDate", "pickupTime", "note"].forEach(k => setError(k, ""));
+  ["name", "furigana", "tel", "email", "zipcode", "pickupDate", "pickupTime", "note"].forEach(k => setError(k, ""));
   if (!data.name.trim()) { setError("name", "お名前をご入力ください"); ok = false; }
   if (!data.furigana.trim()) { setError("furigana", "ふりがなをご入力ください"); ok = false; }
   else if (!/^[ぁ-んー\s　]+$/.test(data.furigana)) { setError("furigana", "ひらがなでご入力ください"); ok = false; }
@@ -937,16 +1061,18 @@ function validate(data) {
   else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setError("tel", "正しい電話番号をご入力ください"); ok = false; }
   if (!data.email.trim()) { setError("email", "メールアドレスをご入力ください"); ok = false; }
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { setError("email", "正しいメールアドレスをご入力ください"); ok = false; }
+  if (!data.zipcode.trim()) { setError("zipcode", "郵便番号をご入力ください"); ok = false; }
+  else if (!/^\d{3}-?\d{4}$/.test(data.zipcode.trim())) { setError("zipcode", "正しい郵便番号をご入力ください（例: 123-4567）"); ok = false; }
 
   // 種別ごとの必須切り替え
-  const isReservation = data.type === "ホールケーキ予約" || data.type === "焼き菓子予約";
+  const isReservation = data.type === "ホールケーキ予約" || data.type === "焼き菓子予約" || data.type === "イベントケーキ予約";
   const isInquiry = data.type === "その他";
   if (isReservation) {
     if (!data.pickupDate) { setError("pickupDate", "引き取り希望日をご入力ください"); ok = false; }
     else {
       const today = new Date(); today.setHours(0,0,0,0);
       const pick = new Date(data.pickupDate);
-      if ((pick - today) / 86400000 < 3) { setError("pickupDate", "ご予約は3日以上先のお日にちでお願いいたします（当日・前日はお電話にて承ります）"); ok = false; }
+      if ((pick - today) / 86400000 < 3) { setError("pickupDate", "ご予約は3日以上先のお日にちでお願いいたします（当日はお電話で承ります）"); ok = false; }
     }
     if (!data.pickupTime) { setError("pickupTime", "引き取り希望時間をご選択ください"); ok = false; }
   }
@@ -959,17 +1085,27 @@ function validate(data) {
 // 種別変更で必須/任意のバッジと表示を切り替え
 function updateRequiredFields() {
   const type = (document.querySelector('input[name="type"]:checked')||{}).value;
-  const isReservation = type === "ホールケーキ予約" || type === "焼き菓子予約";
+  const isReservation = type === "ホールケーキ予約" || type === "焼き菓子予約" || type === "イベントケーキ予約";
   const isInquiry = type === "その他";
   const dateBadge = document.getElementById("pickupDateBadge");
   const timeBadge = document.getElementById("pickupTimeBadge");
   const noteBadge = document.getElementById("noteBadge");
-  if (dateBadge) { dateBadge.className = isReservation ? "req" : "opt"; dateBadge.textContent = isReservation ? "必須" : "任意"; }
-  if (timeBadge) { timeBadge.className = isReservation ? "req" : "opt"; timeBadge.textContent = isReservation ? "必須" : "任意"; }
-  if (noteBadge) { noteBadge.className = isInquiry ? "req" : "opt"; noteBadge.textContent = isInquiry ? "必須" : "任意"; }
+  if (dateBadge) { dateBadge.className = isReservation ? "req" : "opt"; dateBadge.textContent = isReservation ? "必須 Required" : "任意 Optional"; }
+  if (timeBadge) { timeBadge.className = isReservation ? "req" : "opt"; timeBadge.textContent = isReservation ? "必須 Required" : "任意 Optional"; }
+  if (noteBadge) { noteBadge.className = isInquiry ? "req" : "opt"; noteBadge.textContent = isInquiry ? "必須 Required" : "任意 Optional"; }
 }
 document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener("change", updateRequiredFields));
 updateRequiredFields();
+
+// 営業時間は曜日によって異なるため、閉店間際の時間帯を選んだ場合は注意喚起を表示
+function updatePickupTimeHoursNote() {
+  const noteEl = document.getElementById("pickupTimeHoursNote");
+  const timeVal = document.getElementById("pickupTime").value;
+  const lateSlots = ["18:00", "19:00", "20:00"];
+  if (noteEl) noteEl.style.display = lateSlots.includes(timeVal) ? "block" : "none";
+}
+document.getElementById("pickupTime").addEventListener("change", updatePickupTimeHoursNote);
+document.getElementById("pickupDate").addEventListener("change", updatePickupTimeHoursNote);
 
 // ===== メール通知設定 =====
 // Formspreeに登録後、ここに発行されたエンドポイントを設定してください
@@ -1007,11 +1143,15 @@ form.addEventListener("submit", async (e) => {
   const data = {
     name: fd.get("name") || "", furigana: fd.get("furigana") || "",
     tel: fd.get("tel") || "", email: fd.get("email") || "",
+    zipcode: fd.get("zipcode") || "", address: fd.get("address") || "",
     birthday: fd.get("birthday") || "", newsletter: fd.get("newsletter") === "1",
     type: fd.get("type") || "", pickupDate: fd.get("pickupDate") || "",
     pickupTime: fd.get("pickupTime") || "", cakeType: fd.get("cakeType") || "",
     size: fd.get("size") || "", message: fd.get("message") || "",
     allergy: fd.getAll("allergy"), note: fd.get("note") || "",
+    noshi: fd.get("noshi") || "", noshiTitle: fd.get("noshiTitle") || "",
+    noshiName: fd.get("noshiName") || "", messageCard: fd.get("messageCard") || "",
+    wrapping: fd.get("wrapping") || "",
     status: "受付済", notes: "",
     submittedAt: new Date().toISOString()
   };
@@ -1025,14 +1165,12 @@ form.addEventListener("submit", async (e) => {
   const originalText = btn.textContent;
   btn.disabled = true; btn.textContent = "送信中...";
 
-  // 1. メール通知
+  // 1. メール通知（設定済みの場合）
   await sendToFormspree(data);
-  // 2. localStorage保存
+  // 2. Firebaseに保存（店舗の管理画面で一覧・CSV出力するためのデータ）
   try {
-    const list = JSON.parse(localStorage.getItem("koimari_reservations") || "[]");
-    list.unshift(data);
-    localStorage.setItem("koimari_reservations", JSON.stringify(list.slice(0, 500)));
-  } catch (err) { console.warn(err); }
+    await push(reservationsRef, data);
+  } catch (err) { console.warn("Firebase保存失敗:", err); }
 
   btn.disabled = false; btn.textContent = originalText;
   form.classList.add("hidden");

@@ -31,11 +31,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500;1,600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --color-bg:#fbf7f2;--color-bg-soft:#f5ede2;--color-paper:#fefcf8;
-  --color-text:#2e2118;--color-text-soft:#5a4538;
-  --color-accent:#b03b48;--color-accent-dark:#8a2d38;
-  --color-gold:#a98554;--color-gold-light:#c9a872;
-  --color-line:#d8c8b3;--color-info:#4a6f9c;
+  --color-bg: #f7f3ee;--color-bg-soft: #ede3d4;--color-paper:#fefcf8;
+  --color-text:#2e2118;--color-text-soft: #4a3a2a;
+  --color-accent: #c9a96e;--color-accent-dark: #a88a52;
+  --color-gold: #c9a96e;--color-gold-light: #ddc190;
+  --color-line: #d8baa4;--color-info:#4a6f9c;
   --font-mincho:"Shippori Mincho",serif;
   --font-sans:"Noto Sans JP",sans-serif;
   --font-en:"Cormorant Garamond",serif;
@@ -50,13 +50,19 @@ a{color:inherit;text-decoration:none}
 .header{background:var(--color-paper);border-bottom:1px solid var(--color-line);position:sticky;top:0;z-index:100}
 .header__inner{max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
 .header__logo{display:flex;flex-direction:column;line-height:1}
-.header__logo-en{font-family:var(--font-en);font-size:32px;font-style:italic;letter-spacing:.18em;color:var(--color-accent);font-weight:500}
+.header__logo-en{font-family:var(--font-en);font-size:32px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
 .header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:var(--color-text-soft);margin-top:8px}
 .back-link{font-family:var(--font-mincho);font-size:15px;color:var(--color-text-soft);letter-spacing:.08em;font-weight:500;background:none;border:none;cursor:pointer;transition:color .2s;padding:0}
 .back-link:hover{color:var(--color-accent)}
+.nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
+.nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
+.nav-link:hover{color:var(--color-accent)}
+.nav-link:hover::after{transform:scaleX(1)}
+.sub-nav{background:var(--color-bg-soft);border-bottom:1px solid var(--color-line)}
+.sub-nav ul{max-width:1180px;margin:0 auto;display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;padding:10px 8px}
 
 /* ── Page header ── */
-.page-head{position:relative;text-align:center;padding:96px 24px 84px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#ede0cc 100%);overflow:hidden}
+.page-head{position:relative;text-align:center;padding:50px 24px 44px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#ede0cc 100%);overflow:hidden}
 .page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none}
 .page-head__deco{position:absolute;top:50%;left:50%;transform:translate(-50%,-52%);font-family:var(--font-en);font-style:italic;font-size:clamp(100px,18vw,180px);color:var(--color-gold);opacity:.055;font-weight:600;letter-spacing:-.02em;pointer-events:none;white-space:nowrap;line-height:1}
 .page-head__inner{position:relative;z-index:1}
@@ -96,10 +102,10 @@ main{max-width:1100px;margin:0 auto;padding:72px 24px 110px}
 .featured-card--text{background:linear-gradient(135deg,var(--color-bg-soft) 0%,#e4d0b8 100%)}
 .featured-card--text .featured-card__overlay{background:linear-gradient(to top,rgba(46,33,24,.18) 0%,transparent 100%)}
 .featured-card--text .featured-card__title{color:var(--color-text);text-shadow:none}
-.featured-card--text .featured-card__cat{color:var(--color-accent);border-color:rgba(176,59,72,.4);background:rgba(176,59,72,.08)}
+.featured-card--text .featured-card__cat{color:var(--color-accent);border-color:rgba(201,169,110,.4);background:rgba(201,169,110,.08)}
 .featured-card--text .featured-card__date{color:var(--color-text-soft)}
 .featured-card--text .featured-card__excerpt{color:var(--color-text-soft)}
-.featured-card--text .featured-card__more{color:var(--color-accent);border-color:rgba(176,59,72,.4);background:transparent}
+.featured-card--text .featured-card__more{color:var(--color-accent);border-color:rgba(201,169,110,.4);background:transparent}
 .featured-card--text .featured-card__label{color:var(--color-gold)}
 
 /* ── Ornament divider ── */
@@ -201,7 +207,7 @@ main{max-width:1100px;margin:0 auto;padding:72px 24px 110px}
 }
 @media(max-width:700px){
   body{font-size:16px}
-  .page-head{padding:72px 22px 66px}
+  .page-head{padding:44px 22px 40px}
   .cat-tabs{padding:20px 20px 0}
   .cat-tabs__inner{padding-bottom:20px;gap:8px}
   .cat-tab{padding:8px 18px;font-size:13px}
@@ -228,12 +234,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <header class="header">
   <div class="header__inner">
     <a href="index.html" class="header__logo">
-      <span class="header__logo-en">Koimari</span>
+      <span class="header__logo-en">KOIMARI</span>
       <span class="header__logo-jp">こ い ま り</span>
     </a>
     <a href="index.html" class="back-link">← トップへ戻る</a>
   </div>
 </header>
+<nav class="sub-nav">
+  <ul>
+    <li><a href="index.html#about" class="nav-link">こいまりについて</a></li>
+    <li><a href="index.html#categories" class="nav-link">商品一覧</a></li>
+    <li><a href="index.html#experience" class="nav-link">体験プログラム</a></li>
+    <li><a href="gallery.html" class="nav-link">ギャラリー</a></li>
+    <li><a href="blog.html" class="nav-link">ブログ</a></li>
+    <li><a href="faq.html" class="nav-link">よくある質問</a></li>
+    <li><a href="index.html#bcal" class="nav-link">営業日</a></li>
+    <li><a href="index.html#shop" class="nav-link">店舗情報</a></li>
+    <li><a href="reservation.html" class="nav-link">ご予約</a></li>
+  </ul>
+</nav>
 
 <div class="page-head">
   <div class="page-head__deco">Blog</div>

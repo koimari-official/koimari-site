@@ -12,6 +12,7 @@ const KOIMARI_I18N_EN = {
   'nav.faq':       'FAQ',
   'nav.shop':      'Visit Us',
   'nav.reserve':   'Reserve',
+  'nav.bcal':      'Business Hours',
 
   // Header
   'header.hours': 'Tue–Sat&nbsp; 10:00–20:00<br>Sun&nbsp; 10:00–19:00&nbsp; /&nbsp; Mon closed',
@@ -37,6 +38,10 @@ const KOIMARI_I18N_EN = {
   'greeting.heading': 'Four Seasons<br>on a Plate.',
   'greeting.body1':   'Koimari is a handcrafted cake and pastry shop rooted in the flavors of each season. Every piece is baked with care, bringing small moments of joy to everyday life.',
   'greeting.body2':   'From birthday and anniversary cakes to boxed pastry gifts, we are here to make your most cherished moments even more special. Please feel free to reach out.',
+  'greeting.body3':   'In recent years, rising ingredient and labor costs have led the industry as a whole to shift toward simpler, less labor-intensive offerings. Even so, we remain committed to the traditional care and craftsmanship behind every high-quality cake we make, and we will continue to put this commitment into practice in everything we bake.',
+
+  // Social
+  'social.lead': 'We share our latest updates on social media too.<br>Following us means a lot to our team.<br>Our whole staff is looking forward to connecting with you.',
   'greeting.cta':     'Reserve / Inquire',
 
   // Section labels / titles
@@ -158,11 +163,10 @@ const I18nCtrl = {
   updateToggle() {
     document.querySelectorAll('[data-lang-btn]').forEach(btn => {
       const active = btn.getAttribute('data-lang-btn') === this.lang;
-      btn.style.color      = active ? 'var(--color-accent)' : '';
+      btn.style.color      = active ? '#fff' : '';
       btn.style.fontWeight = active ? '700' : '';
-      btn.style.boxShadow  = active
-        ? 'inset 3px 3px 8px #d8baa4, inset -3px -3px 8px #fff'
-        : '5px 5px 10px #d8baa4, -5px -5px 10px #fff';
+      btn.style.background = active ? 'var(--color-accent)' : '';
+      btn.style.borderColor = active ? 'var(--color-accent)' : '';
     });
   }
 };
