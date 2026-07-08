@@ -880,7 +880,8 @@ const IMAGES = loadImages();
 const heroEl = document.getElementById("hero"), dotsEl = document.getElementById("heroDots");
 IMAGES.hero.filter(s=>s.visible!==false).forEach((slide,i)=>{
   const div=document.createElement("div");div.className="hero__slide"+(i===0?" active":"");
-  div.innerHTML=`<img src="${slide.src}" alt=""><div class="hero__overlay"><div class="hero__copy"><div class="hero__copy-en">${slide.titleEn||""}</div><div class="hero__copy-jp">${slide.titleJp||""}</div></div></div>`;
+  const heroAlt=escape((slide.titleJp||"こいまり").replace(/<br\s*\/?>/gi," "));
+  div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}"><div class="hero__overlay"><div class="hero__copy"><div class="hero__copy-en">${slide.titleEn||""}</div><div class="hero__copy-jp">${slide.titleJp||""}</div></div></div>`;
   heroEl.insertBefore(div,dotsEl);
   const dot=document.createElement("button");dot.className="hero__dot"+(i===0?" active":"");dot.addEventListener("click",()=>goToSlide(i));dotsEl.appendChild(dot);
 });
