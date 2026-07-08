@@ -247,7 +247,7 @@ koimari_insta            Instagram投稿カード内容
 ### 高優先
 - [ ] ブログのリニューアル（マガジン風グリッド、記事詳細テンプレ）
 - [ ] 実画像への差し替え（現状はUnsplash）
-- [ ] SEO整備: title・description・構造化データがあるのはindex.html / blog.html / mothers-day.htmlの3ページのみ。reservation / experience / gallery / corporate / faq / privacy / terms / tokushohoには未設定（2026-07-08確認）
+- [x] SEO整備(canonical・OGP・description) → 全11ページ対応済み（2026-07-09）。ただし構造化データ(schema.org JSON-LD)はindex.html(Bakery) / blog.html(Blog) / mothers-day.html(Event)の3ページのみで、他8ページは意図的に未設置。理由：FAQ・ギャラリーはlocalStorage経由で管理画面から動的に内容が変わるため、静的JSON-LDを書くと編集の度に陳腐化する。corporate等は既存のBakeryエンティティと重複するだけで追加の恩恵がない
 - [x] sitemap.xml / robots.txt 作成 → 作成済み。canonical・OGP・schema.orgのURLがexample.comプレースホルダーのままだった致命的バグを2026-07-08修正（実ドメイン https://koimari-official.github.io/koimari-site/ に統一）。ogp.jpg実ファイルは依然未作成（下記中優先項目）
 
 ### 中優先
