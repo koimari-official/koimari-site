@@ -245,6 +245,8 @@ koimari_insta            Instagram投稿カード内容
 ## 残作業（優先度順）
 
 ### 高優先
+- [x] 【重大バグ】法人相談フォーム(corporate.html)がFirebaseに保存されずlocalStorageのみだった → 2026-07-09修正。送信者本人のブラウザにしかデータが残らず、実際の見込み客からの問い合わせが管理画面に一切表示されない状態だった。reservation/experienceと同じFirebase(`corporate`ノード)への保存に統一し、admin.htmlの同期処理も追加済み
+- [ ] 【要オーナー判断】管理画面の「全削除」ボタン(予約一覧・応募一覧・法人ご相談)がlocalStorageしか削除せず、Firebase側のデータは残ったまま → 次回のリアルタイム同期で削除前のデータが復活してしまう。実際にFirebaseからも削除する処理へ修正するかは、本番データの削除操作に関わるためオーナー確認の上で対応する(2026-07-09発見・auto-mode分類器によりJobsの自律判断では実施不可と判定)
 - [ ] ブログのリニューアル（マガジン風グリッド、記事詳細テンプレ）
 - [ ] 実画像への差し替え（現状はUnsplash）
 - [x] SEO整備(canonical・OGP・description) → 全11ページ対応済み（2026-07-09）。ただし構造化データ(schema.org JSON-LD)はindex.html(Bakery) / blog.html(Blog) / mothers-day.html(Event)の3ページのみで、他8ページは意図的に未設置。理由：FAQ・ギャラリーはlocalStorage経由で管理画面から動的に内容が変わるため、静的JSON-LDを書くと編集の度に陳腐化する。corporate等は既存のBakeryエンティティと重複するだけで追加の恩恵がない
@@ -257,6 +259,8 @@ koimari_insta            Instagram投稿カード内容
 - [ ] 「数字で見るこいまり」の4数値（創業12年／オーダーケーキ実績3,000件＋／リピート92%／Googleレビュー4.8）を実数値に差し替え → オーナー確認済み・仮の数値のまま（2026-07-09）。実数値が決まり次第、管理画面の「数字で見る」タブから入力すれば反映される
 - [x] GTMコンテナ（GTM-MB2XHF6J）内にGA4計測タグが設定済みか確認 → 未設定と判明したため2026-07-09に新規設定・公開完了（測定ID `G-7VVE1ZEKD5`）。リアルタイムレポートで計測確認済み。管理画面の「統計・分析」タブのビュー数グラフは今後も同一ブラウザのみの簡易計測のままなので、全訪問者数はGoogleアナリティクス側で確認する運用とする
 - [ ] index.html/blog.html/mothers-day.html以外の8ページの構造化データ要否を再検討（FAQPageスキーマ等。動的コンテンツとの同期方法が決まれば追加価値あり）
+- [x] favicon未設定だった9ページ(reservation/experience/gallery/corporate/faq/privacy/terms/tokushoho/mothers-day)に追加。index.htmlと同じアイコンで統一（2026-07-09）
+- [x] ヒーロースライド画像・ギャラリーのライトボックス画像でalt=""のまま放置されていた箇所を修正（2026-07-09）
 
 ### 低優先
 - [ ] 焼き菓子のオンライン販売（BASE/STORES連携）
