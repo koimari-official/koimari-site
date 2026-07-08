@@ -51,7 +51,7 @@
 - **画像**: Unsplash の無料画像（本番差し替え予定）+ ユーザー提供画像
 - **データ保存**: localStorage（端末ごとに保存。複数端末での共有不可）
 - **フォーム送信**: Formspree（エンドポイント未設定、`FORMSPREE_ENDPOINT`定数を埋めるだけ）
-- **アクセス解析**: Google Tag Manager（ID: `GTM-MB2XHF6J`、全ページ導入済み）
+- **アクセス解析**: Google Tag Manager（ID: `GTM-MB2XHF6J`、全ページ導入済み）＋ GA4（測定ID: `G-7VVE1ZEKD5`、2026-07-09設定・GTM経由で「Google タグ」を追加、トリガーはInitialization - All Pages）
 - **デプロイ**: GitHub Pages（`koimari-official/koimari-site` リポジトリ、main ブランチ）
 - **多言語**: 日英切り替え（`i18n.js`）
 
@@ -255,7 +255,7 @@ koimari_insta            Instagram投稿カード内容
 - [ ] Formspreeエンドポイント設定（`reservation.html` / `experience.html` / `corporate.html`）
 - [ ] OGP画像作成（1200×630px）
 - [ ] 「数字で見るこいまり」の4数値（創業12年／オーダーケーキ実績3,000件＋／リピート92%／Googleレビュー4.8）を実数値に差し替え → オーナー確認済み・仮の数値のまま（2026-07-09）。実数値が決まり次第、管理画面の「数字で見る」タブから入力すれば反映される
-- [ ] GTMコンテナ（GTM-MB2XHF6J）内にGA4計測タグが設定済みか確認 → オーナーも未確認（2026-07-09）。管理画面の「統計・分析」タブのビュー数グラフは同一ブラウザのみの簡易計測と自己申告されており、全訪問者のアクセス把握にはGoogle Tag Managerの管理画面側での確認が必要
+- [x] GTMコンテナ（GTM-MB2XHF6J）内にGA4計測タグが設定済みか確認 → 未設定と判明したため2026-07-09に新規設定・公開完了（測定ID `G-7VVE1ZEKD5`）。リアルタイムレポートで計測確認済み。管理画面の「統計・分析」タブのビュー数グラフは今後も同一ブラウザのみの簡易計測のままなので、全訪問者数はGoogleアナリティクス側で確認する運用とする
 - [ ] index.html/blog.html/mothers-day.html以外の8ページの構造化データ要否を再検討（FAQPageスキーマ等。動的コンテンツとの同期方法が決まれば追加価値あり）
 
 ### 低優先
