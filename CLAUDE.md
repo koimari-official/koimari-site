@@ -247,8 +247,8 @@ koimari_insta            Instagram投稿カード内容
 ### 高優先
 - [ ] ブログのリニューアル（マガジン風グリッド、記事詳細テンプレ）
 - [ ] 実画像への差し替え（現状はUnsplash）
-- [ ] SEO整備（全ページにtitle・description・構造化データ）
-- [ ] sitemap.xml / robots.txt 作成
+- [ ] SEO整備: title・description・構造化データがあるのはindex.html / blog.html / mothers-day.htmlの3ページのみ。reservation / experience / gallery / corporate / faq / privacy / terms / tokushohoには未設定（2026-07-08確認）
+- [x] sitemap.xml / robots.txt 作成 → 作成済み。canonical・OGP・schema.orgのURLがexample.comプレースホルダーのままだった致命的バグを2026-07-08修正（実ドメイン https://koimari-official.github.io/koimari-site/ に統一）。ogp.jpg実ファイルは依然未作成（下記中優先項目）
 
 ### 中優先
 - [ ] 季節別LPの量産（父の日・お中元・敬老の日・お歳暮・バレンタイン・クリスマス）
