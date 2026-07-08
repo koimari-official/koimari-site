@@ -553,7 +553,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="section__inner">
     <div class="section__head"><span class="section__en">About Us</span><h2 class="section__title">こいまりについて</h2></div>
     <div class="greeting__inner">
-      <div class="greeting__img"><img id="img-greeting" src="" alt="こいまり 店主"></div>
+      <div class="greeting__img"><img id="img-greeting" src="" alt="こいまり 店主" loading="lazy"></div>
       <div class="greeting__text">
         <h2 data-i18n="greeting.heading">四季の彩りを<br>ひと皿のお菓子に。</h2>
         <p data-i18n="greeting.body1">こいまりは、季節の素材を大切にした手作りのケーキと焼き菓子のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
@@ -898,13 +898,13 @@ const vGrid=document.getElementById("voicesGrid");
 function renderCategories(){
   catGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.categories.filter(c=>c.visible!==false).forEach(c=>{const a=document.createElement("a");a.href="#";a.className="cat-card";const displayName=en?(c.en||c.name):c.name;a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${displayName}"></div><div class="cat-card__body"><div class="cat-card__title">${displayName}</div></div>`;catGrid.appendChild(a)});
+  IMAGES.categories.filter(c=>c.visible!==false).forEach(c=>{const a=document.createElement("a");a.href="#";a.className="cat-card";const displayName=en?(c.en||c.name):c.name;a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${displayName}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${displayName}</div></div>`;catGrid.appendChild(a)});
 }
 
 function renderRecommended(){
   recGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.recommended.filter(r=>r.visible!==false).forEach(r=>{const a=document.createElement("a");a.href="#";a.className="rec-card";const displayName=en?(r.nameEn||r.name):r.name;a.innerHTML=`<div class="rec-card__img"><img src="${r.img}" alt="${displayName}"></div><div class="rec-card__name">${displayName}</div><div class="rec-card__price">${r.price}</div>`;recGrid.appendChild(a)});
+  IMAGES.recommended.filter(r=>r.visible!==false).forEach(r=>{const a=document.createElement("a");a.href="#";a.className="rec-card";const displayName=en?(r.nameEn||r.name):r.name;a.innerHTML=`<div class="rec-card__img"><img src="${r.img}" alt="${displayName}" loading="lazy"></div><div class="rec-card__name">${displayName}</div><div class="rec-card__price">${r.price}</div>`;recGrid.appendChild(a)});
 }
 
 function renderExperiences(){
@@ -920,7 +920,7 @@ function renderExperiences(){
     const desc=en?(e.descEn||e.desc):e.desc;
     const duration=en?(e.durationEn||e.duration):e.duration;
     const fee=en?(e.feeEn||e.fee):e.fee;
-    c.innerHTML=`<div class="exp-card__img"><img src="${e.img}" alt="${title}"></div><div class="exp-card__body"><span class="exp-card__target">${target}</span><h3 class="exp-card__title">${title}</h3><div class="exp-card__en">${e.en}</div><p class="exp-card__desc">${desc}</p><dl class="exp-card__meta"><dt>${durationLabel}</dt><dd>${duration}</dd><br><dt>${feeLabel}</dt><dd>${fee}</dd></dl><a href="experience.html?type=${encodeURIComponent(e.key)}" class="exp-card__btn">${applyBtn}</a></div>`;
+    c.innerHTML=`<div class="exp-card__img"><img src="${e.img}" alt="${title}" loading="lazy"></div><div class="exp-card__body"><span class="exp-card__target">${target}</span><h3 class="exp-card__title">${title}</h3><div class="exp-card__en">${e.en}</div><p class="exp-card__desc">${desc}</p><dl class="exp-card__meta"><dt>${durationLabel}</dt><dd>${duration}</dd><br><dt>${feeLabel}</dt><dd>${fee}</dd></dl><a href="experience.html?type=${encodeURIComponent(e.key)}" class="exp-card__btn">${applyBtn}</a></div>`;
     expGrid.appendChild(c);
   });
 }
@@ -956,7 +956,7 @@ function renderSpotlight(){
   document.getElementById("spotlightInner").innerHTML=`
     <div class="spotlight__visual">
       ${badge?`<span class="spotlight__badge">${escape(badge)}</span>`:""}
-      <img src="${escape(sp.img)}" alt="${escape(title||'')}">
+      <img src="${escape(sp.img)}" alt="${escape(title||'')}" loading="lazy">
       ${sp.period?`<span class="spotlight__period">${escape(sp.period)}</span>`:""}
     </div>
     <div class="spotlight__text">
@@ -1096,7 +1096,7 @@ if(igCard&&ig.visible!==false){
       <div class="ig-card__menu">⋯</div>
     </div>
     <div class="ig-card__media">
-      <img src="${escape(ig.img)}" alt="こいまりの最新投稿" onerror="this.style.background='var(--color-bg-soft)';this.alt='画像読み込み中'">
+      <img src="${escape(ig.img)}" alt="こいまりの最新投稿" loading="lazy" onerror="this.style.background='var(--color-bg-soft)';this.alt='画像読み込み中'">
       ${ig.imgCount>1?`<span class="ig-card__media-count">1/${ig.imgCount}</span>`:""}
     </div>
     <div class="ig-card__actions">
