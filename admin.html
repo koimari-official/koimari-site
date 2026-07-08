@@ -2602,7 +2602,7 @@ document.getElementById("addBlog").addEventListener("click", () => {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -2619,11 +2619,14 @@ const fbDb = getDatabase(fbApp);
 const fbAuth = getAuth(fbApp);
 const reservationsRef = ref(fbDb, "reservations");
 const experiencesRef = ref(fbDb, "experiences");
+const corporateRef = ref(fbDb, "corporate");
 
 let reservationKeys = []; // 配列インデックス → Firebaseのキー（koimari_reservationsと同じ並び順を保つ）
 let experienceKeys = []; // 配列インデックス → Firebaseのキー（koimari_experiencesと同じ並び順を保つ）
+let corporateKeys = []; // 配列インデックス → Firebaseのキー（koimari_corporateと同じ並び順を保つ）
 let unsubReservations = null;
 let unsubExperiences = null;
+let unsubCorporate = null;
 
 function syncReservationsFromFirebase() {
   if (unsubReservations) return; // 既にリスニング中なら何もしない
@@ -2654,6 +2657,23 @@ function syncExperiencesFromFirebase() {
     if (typeof window.updateCounts === "function") window.updateCounts();
     const expPanel = document.getElementById("panel-applications");
     if (expPanel && expPanel.classList.contains("active") && typeof window.renderApplications === "function") window.renderApplications();
+    const dashPanel = document.getElementById("panel-dashboard");
+    if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
+  });
+}
+
+function syncCorporateFromFirebase() {
+  if (unsubCorporate) return;
+  unsubCorporate = onValue(corporateRef, (snapshot) => {
+    const val = snapshot.val() || {};
+    const entries = Object.entries(val);
+    entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
+    corporateKeys = entries.map(([k]) => k);
+    const list = entries.map(([, data]) => data);
+    localStorage.setItem("koimari_corporate", JSON.stringify(list));
+    if (typeof window.updateCounts === "function") window.updateCounts();
+    const corpPanel = document.getElementById("panel-corporate");
+    if (corpPanel && corpPanel.classList.contains("active") && typeof window.renderCorporate === "function") window.renderCorporate();
     const dashPanel = document.getElementById("panel-dashboard");
     if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
   });
@@ -2765,6 +2785,7 @@ onAuthStateChanged(fbAuth, (user) => {
   if (user) {
     syncReservationsFromFirebase();
     syncExperiencesFromFirebase();
+    syncCorporateFromFirebase();
     initEventConfigPanel();
     initExpDatesPanel();
     if (typeof window.showAdmin === "function") window.showAdmin();

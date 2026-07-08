@@ -686,7 +686,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </footer>
 
-<script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
+  authDomain: "koimari-tasting.firebaseapp.com",
+  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koimari-tasting",
+  storageBucket: "koimari-tasting.firebasestorage.app",
+  messagingSenderId: "852851855633",
+  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+const corporateRef = ref(db, "corporate");
+
 const form = document.getElementById("corporateForm");
 const thanks = document.getElementById("thanksScreen");
 
@@ -767,10 +783,8 @@ form.addEventListener("submit", async (e) => {
   btn.disabled = true; btn.textContent = "送信中...";
   await sendToFormspree(data);
   try {
-    const list = JSON.parse(localStorage.getItem("koimari_corporate")||"[]");
-    list.unshift(data);
-    localStorage.setItem("koimari_corporate", JSON.stringify(list.slice(0,500)));
-  } catch(e){}
+    await push(corporateRef, data);
+  } catch(err) { console.warn("Firebase保存失敗:", err); }
   btn.disabled = false; btn.textContent = orig;
   form.classList.add("hidden");
   thanks.classList.remove("hidden");
