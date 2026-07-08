@@ -661,6 +661,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           ・他社との比較検討・「相場感だけ知りたい」というご相談も歓迎いたします。
         </div>
 
+        <div class="field" style="margin-top:4px;">
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
+            <input type="checkbox" id="privacyConsent" name="privacyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
+            <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意する<span class="req">必須</span></span>
+          </label>
+          <span class="error" data-for="privacyConsent"></span>
+        </div>
+
         <div class="actions"><button type="submit" class="btn">無料お見積りを依頼する</button></div>
       </form>
 
@@ -724,7 +732,8 @@ function setError(name, msg) {
 
 function validate(d) {
   let ok = true;
-  ["company","name","tel","email","purpose"].forEach(k => setError(k, ""));
+  ["company","name","tel","email","purpose","privacyConsent"].forEach(k => setError(k, ""));
+  if (!d.privacyConsent) { setError("privacyConsent", "プライバシーポリシーへの同意が必要です"); ok = false; }
   if (!d.company.trim()) { setError("company", "会社名をご入力ください"); ok = false; }
   if (!d.name.trim()) { setError("name", "ご担当者名をご入力ください"); ok = false; }
   if (!d.tel.trim()) { setError("tel", "電話番号をご入力ください"); ok = false; }
@@ -772,6 +781,7 @@ form.addEventListener("submit", async (e) => {
     deadline: fd.get("deadline")||"",
     addons: fd.getAll("addons"),
     message: fd.get("message")||"",
+    privacyConsent: fd.get("privacyConsent") === "1",
     submittedAt: new Date().toISOString()
   };
   if (!validate(data)) {

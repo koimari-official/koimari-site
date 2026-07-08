@@ -394,6 +394,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </ul>
       </div>
 
+      <div class="field" style="margin-top:4px;">
+        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
+          <input type="checkbox" id="privacyConsent" name="privacyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
+          <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意する (I agree to the <a href="privacy.html" target="_blank" rel="noopener">Privacy Policy</a>) <span class="req">必須 Required</span></span>
+        </label>
+        <span class="error" data-for="privacyConsent"></span>
+      </div>
+
       <div class="actions"><button type="submit" class="btn">応募する</button></div>
     </form>
 
@@ -489,7 +497,8 @@ function setError(name, msg) {
 
 function validate(d) {
   let ok = true;
-  ["program","participantName","participantFurigana","grade","guardianName","tel","email","zipcode"].forEach(k => setError(k, ""));
+  ["program","participantName","participantFurigana","grade","guardianName","tel","email","zipcode","privacyConsent"].forEach(k => setError(k, ""));
+  if (!d.privacyConsent) { setError("privacyConsent", "プライバシーポリシーへの同意が必要です (Please agree to the Privacy Policy)"); ok = false; }
   if (!d.program) { setError("program", "プログラムをお選びください"); ok = false; }
   if (!d.participantName.trim()) { setError("participantName", "お名前をご入力ください"); ok = false; }
   if (!d.participantFurigana.trim()) { setError("participantFurigana", "ふりがなをご入力ください"); ok = false; }
@@ -548,6 +557,7 @@ form.addEventListener("submit", async (e) => {
     tel: fd.get("tel") || "", email: fd.get("email") || "",
     zipcode: fd.get("zipcode") || "", address: fd.get("address") || "",
     motivation: fd.get("motivation") || "",
+    privacyConsent: fd.get("privacyConsent") === "1",
     submittedAt: new Date().toISOString()
   };
   if (!validate(data)) {
