@@ -1149,7 +1149,7 @@ document.getElementById("pickupDate").addEventListener("change", updatePickupTim
 // Formspreeに登録後、ここに発行されたエンドポイントを設定してください
 // 例: "https://formspree.io/f/xxxxxxxx"
 // 空の場合はメール送信されず、localStorage保存のみとなります(開発中の動作)
-const FORMSPREE_ENDPOINT = "";
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/mwvddbqk";
 
 async function sendToFormspree(data) {
   if (!FORMSPREE_ENDPOINT) return true; // 未設定時はスキップして成功扱い
