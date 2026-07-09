@@ -261,7 +261,7 @@ koimari_insta            Instagram投稿カード内容
 - [ ] index.html/blog.html/mothers-day.html以外の8ページの構造化データ要否を再検討（FAQPageスキーマ等。動的コンテンツとの同期方法が決まれば追加価値あり）
 - [x] favicon未設定だった9ページ(reservation/experience/gallery/corporate/faq/privacy/terms/tokushoho/mothers-day)に追加。index.htmlと同じアイコンで統一（2026-07-09）
 - [x] 予約・体験・法人相談の3フォームに、privacy.htmlへのリンク付き同意チェックボックス（必須）を追加（2026-07-09）。corporate.htmlは従来「個人情報」の文言・同意の仕組みとも無かったため今回新設。プライバシーポリシー本文の内容自体（第三者提供の記載・Cookie方針等）は変更していない
-- [ ] 【要確認】privacy.htmlのお問合せ窓口欄のメールアドレスが`info@example.com`のプレースホルダーのまま（未確認のため未修正・実アドレスが分かり次第訂正）。あわせて、実際の個人情報保護法の観点で本文内容が十分か専門家レビューを推奨
+- [x] privacy.html・tokushoho.htmlのメールアドレスが`info@example.com`のプレースホルダーだった → オーナー確認済みの実アドレス`noritate.official@gmail.com`に修正（2026-07-09）。個人情報保護法の観点での本文内容の十分性は専門家レビューを依頼中
 - [x] ヒーロースライド画像・ギャラリーのライトボックス画像でalt=""のまま放置されていた箇所を修正（2026-07-09）
 
 ### 低優先
