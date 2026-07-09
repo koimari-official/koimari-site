@@ -699,6 +699,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <div id="cropModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:2000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;padding:22px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:16px;">
     <h3 style="font-family:var(--font-mincho);font-size:16px;font-weight:600;">画像の切り抜き位置を調整してください</h3>
+    <div id="cropRatioToggle" style="display:none;gap:8px;"></div>
     <div style="max-height:60vh;overflow:hidden;">
       <img id="cropImage" style="display:block;max-width:100%;">
     </div>
@@ -927,12 +928,31 @@ function fileToDataUrl(file, maxWidth) {
 let _cropperInstance = null;
 let _cropResolve = null;
 let _cropTargetWidth = null;
-function openCropModal(dataUrl, aspectRatio) {
+function openCropModal(dataUrl, aspectRatio, ratioOptions) {
   return new Promise((resolve) => {
     _cropResolve = resolve;
     const modal = document.getElementById("cropModal");
     const img = document.getElementById("cropImage");
+    const toggle = document.getElementById("cropRatioToggle");
     if (_cropperInstance) { _cropperInstance.destroy(); _cropperInstance = null; }
+    toggle.innerHTML = "";
+    if (ratioOptions && ratioOptions.length > 1) {
+      toggle.style.display = "flex";
+      ratioOptions.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "btn btn--small" + (idx === 0 ? "" : " btn--ghost");
+        btn.textContent = opt.label;
+        btn.addEventListener("click", () => {
+          if (_cropperInstance) _cropperInstance.setAspectRatio(opt.ratio);
+          toggle.querySelectorAll("button").forEach(b => b.classList.add("btn--ghost"));
+          btn.classList.remove("btn--ghost");
+        });
+        toggle.appendChild(btn);
+      });
+    } else {
+      toggle.style.display = "none";
+    }
     img.onload = () => {
       _cropperInstance = new Cropper(img, { aspectRatio, viewMode: 1, autoCropArea: 1, background: false });
     };
@@ -958,7 +978,7 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
 });
 // aspectRatioを指定すると切り抜きモーダルを開く。キャンセル時はnullを返す。
 // Cropper.js未読み込み（CDN読み込み失敗等）の場合は従来の自動リサイズにフォールバックする。
-async function cropAndResizeImage(file, aspectRatio, targetWidth) {
+async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions) {
   if (file.size > 15 * 1024 * 1024) { throw new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください"); }
   if (typeof Cropper !== "function") { return fileToDataUrl(file, targetWidth); }
   const rawDataUrl = await new Promise((resolve, reject) => {
@@ -968,7 +988,7 @@ async function cropAndResizeImage(file, aspectRatio, targetWidth) {
     r.readAsDataURL(file);
   });
   _cropTargetWidth = targetWidth;
-  return openCropModal(rawDataUrl, aspectRatio);
+  return openCropModal(rawDataUrl, aspectRatio, ratioOptions);
 }
 function renderAll() {
   renderHero(); renderGreeting(); renderCategories(); renderRecommended(); renderExperiences();
@@ -985,7 +1005,7 @@ function refreshPreview(itemEl, src) {
   const p = itemEl.querySelector(".img-item__preview");
   p.innerHTML = src ? `<img src="${src}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(src)}` : "画像なし";
 }
-function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, aspectRatio }) {
+function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions }) {
   const item = document.createElement("div");
   item.className = "img-item";
   const previewEl = document.createElement("div");
@@ -1012,7 +1032,7 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
     const file = e.target.files[0];
     try {
       if (aspectRatio) {
-        const result = await cropAndResizeImage(file, aspectRatio, maxWidth);
+        const result = await cropAndResizeImage(file, aspectRatio, maxWidth, ratioOptions);
         if (result !== null) onFile(result); // nullはキャンセルを意味するため何もしない
       } else {
         onFile(await fileToDataUrl(file, maxWidth));
@@ -1081,6 +1101,7 @@ function renderGreeting() {
     preview: workingData.greeting,
     maxWidth: 900,
     aspectRatio: 4 / 5,
+    ratioOptions: [{ label: "縦 (4:5)", ratio: 4 / 5 }, { label: "横 (5:4)", ratio: 5 / 4 }],
     fields: [{ label: "画像URL", key: "src", value: workingData.greeting, type: "input" }],
     onChange: (k, v) => { workingData.greeting = v; refreshPreview(grid.children[0], v); updateSaveBar(); },
     onFile: u => { workingData.greeting = u; renderGreeting(); updateSaveBar(); },
