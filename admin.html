@@ -401,27 +401,27 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <!-- ===== 画像管理 (既存5タブ) ===== -->
     <section class="panel" id="panel-hero">
       <div class="panel__head"><h2 class="panel__title">ヒーロースライダー</h2><button class="btn btn--small" id="addHero">＋ スライドを追加</button></div>
-      <p class="panel__desc">トップページの大きなスライダー画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅1600px程度・ファイルサイズ2MB以下。スマホ等の写真はそのままだと大きすぎるため、ペイント等の「サイズ変更」で横幅を1600pxに縮小してから保存・アップロードしてください（縦横比は自動で保たれます）。</span></p>
+      <p class="panel__desc">トップページの大きなスライダー画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅1600px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="heroGrid"></div>
     </section>
     <section class="panel" id="panel-greeting">
       <div class="panel__head"><h2 class="panel__title">店舗紹介画像</h2></div>
-      <p class="panel__desc">「こいまりについて」セクションの1枚です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅900px程度・ファイルサイズ2MB以下（ペイント等の「サイズ変更」で横幅を指定すると調整できます）。</span></p>
+      <p class="panel__desc">「こいまりについて」セクションの1枚です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅900px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="greetingGrid"></div>
     </section>
     <section class="panel" id="panel-categories">
       <div class="panel__head"><h2 class="panel__title">カテゴリ画像</h2><button class="btn btn--small" id="addCategory">＋ カテゴリを追加</button></div>
-      <p class="panel__desc">商品一覧セクションのカテゴリカードです。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅600px程度・ファイルサイズ2MB以下（ペイント等の「サイズ変更」で横幅を指定すると調整できます）。</span></p>
+      <p class="panel__desc">商品一覧セクションのカテゴリカードです。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅600px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="categoriesGrid"></div>
     </section>
     <section class="panel" id="panel-recommended">
       <div class="panel__head"><h2 class="panel__title">おすすめ商品</h2><button class="btn btn--small" id="addRecommended">＋ 商品を追加</button></div>
-      <p class="panel__desc">おすすめ商品セクションのケーキ画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度・ファイルサイズ2MB以下（ペイント等の「サイズ変更」で横幅を指定すると調整できます）。</span></p>
+      <p class="panel__desc">おすすめ商品セクションのケーキ画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="recommendedGrid"></div>
     </section>
     <section class="panel" id="panel-experiences">
       <div class="panel__head"><h2 class="panel__title">体験プログラム</h2><button class="btn btn--small" id="addExperience">＋ プログラムを追加</button></div>
-      <p class="panel__desc">トップページに表示される体験プログラムの内容と画像を編集できます。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">画像の推奨サイズ：横幅800px程度・ファイルサイズ2MB以下（ペイント等の「サイズ変更」で横幅を指定すると調整できます）。</span></p>
+      <p class="panel__desc">トップページに表示される体験プログラムの内容と画像を編集できます。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">画像の推奨サイズ：横幅800px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="experiencesGrid"></div>
     </section>
 
@@ -882,11 +882,27 @@ document.querySelectorAll(".tab").forEach(t => {
 /* ============================================================
    画像管理
    ============================================================ */
-function fileToDataUrl(file) {
+// maxWidthを指定すると、その横幅（px）に自動リサイズ・JPEG圧縮してから返す。
+// 未指定の場合は元のファイルをそのままdata URL化する（従来の挙動）。
+function fileToDataUrl(file, maxWidth) {
   return new Promise((resolve, reject) => {
-    if (file.size > 2 * 1024 * 1024) { reject(new Error("ファイルサイズは2MB以下にしてください")); return; }
+    if (file.size > 15 * 1024 * 1024) { reject(new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください")); return; }
     const r = new FileReader();
-    r.onload = () => resolve(r.result);
+    r.onload = () => {
+      if (!maxWidth) { resolve(r.result); return; }
+      const img = new Image();
+      img.onload = () => {
+        let w = img.naturalWidth, h = img.naturalHeight;
+        if (w > maxWidth) { h = Math.round(h * (maxWidth / w)); w = maxWidth; }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        try { resolve(canvas.toDataURL("image/jpeg", 0.85)); }
+        catch (err) { resolve(r.result); } // 万一canvas変換に失敗した場合は元データをそのまま使う
+      };
+      img.onerror = () => reject(new Error("画像を読み込めませんでした。ファイル形式（JPEG・PNG等）をご確認のうえ、もう一度お試しください"));
+      img.src = r.result;
+    };
     r.onerror = () => reject(r.error);
     r.readAsDataURL(file);
   });
@@ -906,7 +922,7 @@ function refreshPreview(itemEl, src) {
   const p = itemEl.querySelector(".img-item__preview");
   p.innerHTML = src ? `<img src="${src}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(src)}` : "画像なし";
 }
-function makeImageItem({ preview, fields, onChange, onFile, onDelete }) {
+function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth }) {
   const item = document.createElement("div");
   item.className = "img-item";
   const previewEl = document.createElement("div");
@@ -930,7 +946,7 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete }) {
   const fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.accept = "image/*";
   fileInput.addEventListener("change", async e => {
     if (!e.target.files[0]) return;
-    try { onFile(await fileToDataUrl(e.target.files[0])); }
+    try { onFile(await fileToDataUrl(e.target.files[0], maxWidth)); }
     catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
   });
   fileBtn.appendChild(fileInput); actions.appendChild(fileBtn);
@@ -972,6 +988,7 @@ function renderHero() {
     if (s.visible === undefined) s.visible = true;
     const item = makeImageItem({
       preview: s.src,
+      maxWidth: 1600,
       fields: [
         { label: "画像URL", key: "src", value: s.src, type: "input" },
         { label: "英語タイトル", key: "titleEn", value: s.titleEn || "", type: "input" },
@@ -989,6 +1006,7 @@ function renderGreeting() {
   const grid = document.getElementById("greetingGrid"); grid.innerHTML = "";
   grid.appendChild(makeImageItem({
     preview: workingData.greeting,
+    maxWidth: 900,
     fields: [{ label: "画像URL", key: "src", value: workingData.greeting, type: "input" }],
     onChange: (k, v) => { workingData.greeting = v; refreshPreview(grid.children[0], v); updateSaveBar(); },
     onFile: u => { workingData.greeting = u; renderGreeting(); updateSaveBar(); },
@@ -1001,6 +1019,7 @@ function renderCategories() {
     if (c.visible === undefined) c.visible = true;
     const item = makeImageItem({
       preview: c.img,
+      maxWidth: 600,
       fields: [
         { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
         { label: "英語表記", key: "en", value: c.en, type: "input" },
@@ -1020,6 +1039,7 @@ function renderRecommended() {
     if (r.visible === undefined) r.visible = true;
     const item = makeImageItem({
       preview: r.img,
+      maxWidth: 500,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
         { label: "価格", key: "price", value: r.price, type: "input" },
@@ -1039,6 +1059,7 @@ function renderExperiences() {
     if (e.visible === undefined) e.visible = true; // 既存データの後方互換
     const item = makeImageItem({
       preview: e.img,
+      maxWidth: 800,
       fields: [
         { label: "プログラム名", key: "title", value: e.title, type: "input" },
         { label: "英語表記", key: "en", value: e.en, type: "input" },
@@ -2173,6 +2194,7 @@ function renderNewsAdmin() {
       if (n.visible === undefined) n.visible = true;
       const item = makeImageItem({
         preview: n.img,
+        maxWidth: 800,
         fields: [
           { label: "日付（例: 2026.04.20）", key: "date", value: n.date||"", type: "input" },
           { label: "タグ（NEW・おすすめ・お知らせ等）", key: "tag", value: n.tag||"", type: "input" },
@@ -2595,6 +2617,7 @@ function renderGalleryAdmin() {
   galleryData.forEach((g, i) => {
     const item = makeImageItem({
       preview: g.img,
+      maxWidth: 1000,
       fields: [
         { label: "タイトル", key: "title", value: g.title||"", type: "input" },
         { label: "説明", key: "desc", value: g.desc||"", type: "textarea" },
@@ -2681,6 +2704,7 @@ function renderBlogAdmin() {
   blogData.forEach((p, i) => {
     grid.appendChild(makeImageItem({
       preview: p.img,
+      maxWidth: 800,
       fields: [
         { label: "タイトル", key: "title", value: p.title||"", type: "input" },
         { label: "カテゴリ", key: "category", value: p.category||"", type: "input" },
