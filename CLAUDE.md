@@ -167,7 +167,7 @@
 
 ```
 koimari_admin_session    管理画面ログインセッション
-koimari_images           ヒーロー/店舗紹介/カテゴリ画像
+koimari_images           ヒーロー/店舗紹介/カテゴリ画像（2026-07-09〜：Firebase `siteImages` が正、こちらはローカルキャッシュ）
 koimari_reservations     予約一覧
 koimari_experiences      体験プログラム応募一覧
 koimari_corporate        法人ご相談一覧
@@ -186,6 +186,93 @@ koimari_spotlight        今月の主役（配列形式、visible フラグで�
 koimari_stats            「数字で見るこいまり」
 koimari_insta            Instagram投稿カード内容
 ```
+
+---
+
+## Firebase Realtime Database（プロジェクト: koimari-tasting）
+
+予約・体験応募・法人相談・サイト画像はこのFirebaseプロジェクトを共通基盤として使用（NORI&TATEサイトとも共用）。`databaseURL: https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app`
+
+### データパス一覧
+
+| パス | 内容 | 書き込み元 |
+|------|------|-----------|
+| `reservations/{id}` | 予約・お問合せ | reservation.html（新規作成）／admin.html（ステータス更新） |
+| `experiences/{id}` | 体験プログラム応募 | experience.html（新規作成）／admin.html（ステータス更新） |
+| `corporate/{id}` | 法人ご相談 | corporate.html（新規作成）／admin.html（ステータス更新） |
+| `siteImages` | ヒーロー/店舗紹介/カテゴリ/おすすめ/体験プログラムの画像一式 | admin.html（保存ボタン） |
+| `siteConfig/eventBanner` | 季節イベントバナー設定 | admin.html |
+| `trash/{reservations\|experiences\|corporate}/{batchKey}` | 「全削除」時の退避先（復元・完全削除が可能） | admin.html |
+| `dashboardTasks` | 会社全体のTODOダッシュボード（別プロジェクト`dashboard/`用） | dashboard/index.html |
+| `noritate/contacts/{id}` | NORI&TATEサイトのお問い合わせ（プロジェクト共用） | nori&tate site/index.html（新規作成）／admin.html（ステータス更新） |
+| `trash/noritate_contacts/{batchKey}` | NORI&TATE側の「全削除」退避先 | nori&tate site/admin.html |
+
+### セキュリティルール（2026-07-09時点、Firebase Console → Realtime Database → Rules）
+
+```json
+{
+  "rules": {
+    "dashboardTasks": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "sessions": {
+      ".read": true,
+      ".write": true
+    },
+    "lineup": {
+      ".read": true,
+      ".write": true
+    },
+    "trash": {
+      ".read": true,
+      ".write": true
+    },
+    "staffRequests": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || (!data.exists() && newData.child('status').val() === 'pending')"
+      }
+    },
+    "reservations": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || !data.exists()"
+      }
+    },
+    "experiences": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || !data.exists()"
+      }
+    },
+    "corporate": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || !data.exists()"
+      }
+    },
+    "noritate": {
+      "contacts": {
+        ".read": "auth != null",
+        "$id": {
+          ".write": "auth != null || !data.exists()"
+        }
+      }
+    },
+    "siteImages": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "siteConfig": {
+      ".read": true,
+      ".write": "auth != null"
+    }
+  }
+}
+```
+
+**重要な教訓（2026-07-09）**：このルールは「明示的に許可したパス以外はデフォルトで拒否」という設計（許可制）。新しいFirebaseパスをコードに追加しただけではルール側は自動的に追従しないため、**新しいパスを使うコードを書いたら、必ずこのルールにも対応するブロックを追加し、Firebase Console側で「公開」まで行うこと**。今回、`corporate`と`siteImages`（`noritate`も含む）のルール追加を忘れたまま実装し、画面上は「送信/保存成功」に見えても実際には`PERMISSION_DENIED`で裏側では失敗し続けるという不具合が発生した（ブラウザのDevTools Consoleで気づいた）。新しいFirebaseパスを追加する際のチェックリストに加える。
 
 ---
 
@@ -246,7 +333,7 @@ koimari_insta            Instagram投稿カード内容
 
 ### 高優先
 - [x] 【最重要・2026-07-09解決】ヒーロー画像・カテゴリ画像・おすすめ商品・体験プログラムの画像が、Firebaseではなく管理者自身のブラウザのlocalStorage（`koimari_images`キー）に保存されており、来店客には一切反映されていなかった問題 → オーナー指示のもと本格対応。admin.htmlの保存処理をFirebase（`siteImages`ノード）書き込みに変更し、ログイン時にFirebase側の最新データを取り込み直す処理を追加。index.html側はヒーロー・店舗紹介画像の描画を`renderHeroSlides()`/`renderGreetingImage()`として再実行可能な関数に切り出し、Firebaseのリアルタイム更新(`onValue`)を受けて再描画するよう変更（カテゴリ/おすすめ/体験プログラムは既存の`renderDynamic()`を再利用）。副次効果としてlocalStorage上限（約5MB）による「容量超過」エラーも大幅に緩和
-  - **2026-07-09追記・重要**：実機テストで「保存に失敗しました」エラーが発生。原因はFirebase Realtime Databaseのセキュリティルールに`siteImages`用の許可が無かったため（`PERMISSION_DENIED`）。さらに調査した結果、**`corporate`（法人相談）・`noritate`（NORI&TATE問い合わせ）にもルールが存在しないことが判明**。つまり今日修正したはずの法人相談フォームのFirebase保存も、実際にはルール不足で送信の裏側では失敗し続けていた（画面上は成功表示のため気付けなかった）。オーナーがFirebase Consoleでルールに`corporate`・`noritate`・`siteImages`の3項目を追加・公開して解決。ルール変更後の再テストで最終確認予定
+  - **2026-07-09追記・重要**：実機テストで「保存に失敗しました」エラーが発生。原因はFirebase Realtime Databaseのセキュリティルールに`siteImages`用の許可が無かったため（`PERMISSION_DENIED`）。さらに調査した結果、**`corporate`（法人相談）・`noritate`（NORI&TATE問い合わせ）にもルールが存在しないことが判明**。つまり今日修正したはずの法人相談フォームのFirebase保存も、実際にはルール不足で送信の裏側では失敗し続けていた（画面上は成功表示のため気付けなかった）。オーナーがFirebase Consoleでルールに`corporate`・`noritate`・`siteImages`の3項目を追加・公開し、再テストで保存成功を確認済み（完全解決）。ルール詳細は下記「Firebase Realtime Database」セクション参照
 - [x] 【重大バグ】法人相談フォーム(corporate.html)がFirebaseに保存されずlocalStorageのみだった → 2026-07-09修正。送信者本人のブラウザにしかデータが残らず、実際の見込み客からの問い合わせが管理画面に一切表示されない状態だった。reservation/experienceと同じFirebase(`corporate`ノード)への保存に統一し、admin.htmlの同期処理も追加済み
 - [x] 管理画面の「全削除」ボタン(予約一覧・応募一覧・法人ご相談)がFirebase側を削除していなかった問題 → オーナー了承の上、2026-07-09に「ゴミ箱」方式で実装完了。「全削除」を押すと対象データを`trash/{reservations|experiences|corporate}`に退避してから本体を削除。各パネルの「ゴミ箱」ボタンから削除履歴（削除日時・件数）を確認でき、「復元」で元に戻す、「完全に削除」でゴミ箱からも消せる。あわせて応募一覧・法人ご相談に「未対応/対応完了」のステータス切替（予約一覧の4段階ステータスとは別に、オーナー希望の2段階でシンプルに）を追加。実データの削除操作を伴う変更だったため、実施前に一度オーナー確認を挟んだ
 - [ ] ブログのリニューアル（マガジン風グリッド、記事詳細テンプレ）
