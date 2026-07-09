@@ -360,11 +360,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-reservations">
       <div class="panel__head">
         <h2 class="panel__title">予約・お問合せ一覧</h2>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn btn--small btn--ghost" id="exportRes">CSV出力</button>
+          <button class="btn btn--small btn--ghost" id="trashToggleRes">ゴミ箱</button>
           <button class="btn btn--small btn--danger" id="clearRes">全削除</button>
         </div>
       </div>
+      <div id="trashAreaRes" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
       <div id="reservationsArea"></div>
     </section>
 
@@ -372,11 +374,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-applications">
       <div class="panel__head">
         <h2 class="panel__title">体験プログラム応募一覧</h2>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn btn--small btn--ghost" id="exportExp">CSV出力</button>
+          <button class="btn btn--small btn--ghost" id="trashToggleExp">ゴミ箱</button>
           <button class="btn btn--small btn--danger" id="clearExp">全削除</button>
         </div>
       </div>
+      <div id="trashAreaExp" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
       <div id="applicationsArea"></div>
     </section>
 
@@ -384,11 +388,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-corporate">
       <div class="panel__head">
         <h2 class="panel__title">法人ご相談一覧</h2>
-        <div style="display:flex; gap:10px;">
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button class="btn btn--small btn--ghost" id="exportCorp">CSV出力</button>
+          <button class="btn btn--small btn--ghost" id="trashToggleCorp">ゴミ箱</button>
           <button class="btn btn--small btn--danger" id="clearCorp">全削除</button>
         </div>
       </div>
+      <div id="trashAreaCorp" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
       <div id="corporateArea"></div>
     </section>
 
@@ -806,6 +812,22 @@ function showAdmin() {
   renderDashboard();
   renderSalesGoal();
   updateCounts();
+  // Firebase側に保存済みの画像データがあれば、それを正として取り込み直す
+  if (typeof window.fbLoadSiteImages === "function") {
+    window.fbLoadSiteImages().then(fbData => {
+      if (!fbData) return; // Firebase側にまだ何も保存されていない場合は現状(localStorage/デフォルト)を維持
+      workingData = {
+        hero: fbData.hero || workingData.hero,
+        greeting: fbData.greeting || workingData.greeting,
+        categories: fbData.categories || workingData.categories,
+        recommended: fbData.recommended || workingData.recommended,
+        experiences: fbData.experiences || workingData.experiences
+      };
+      savedData = JSON.parse(JSON.stringify(workingData));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData));
+      renderAll();
+    });
+  }
 }
 function login() {
   const email = document.getElementById("loginEmail").value.trim();
@@ -1058,9 +1080,21 @@ document.getElementById("addHero").addEventListener("click", () => { workingData
 document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:"",visible:true}); renderCategories(); updateSaveBar(); });
 document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:"",visible:true}); renderRecommended(); updateSaveBar(); });
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
-document.getElementById("saveBtn").addEventListener("click", () => {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); savedData = JSON.parse(JSON.stringify(workingData)); updateSaveBar(); showToast("保存しました"); }
-  catch (e) { showToast("保存に失敗しました（容量超過の可能性があります）", "error"); }
+document.getElementById("saveBtn").addEventListener("click", async () => {
+  if (typeof window.fbSaveSiteImages !== "function") {
+    showToast("保存機能の読み込み中です。少し待って再度お試しください。", "error");
+    return;
+  }
+  try {
+    await window.fbSaveSiteImages(workingData);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) { /* ローカルキャッシュへの反映は失敗しても致命的ではないため無視 */ }
+    savedData = JSON.parse(JSON.stringify(workingData));
+    updateSaveBar();
+    showToast("保存しました（サイトに反映されます）");
+  } catch (e) {
+    console.warn("Firebase保存失敗:", e);
+    showToast("保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+  }
 });
 document.getElementById("resetBtn").addEventListener("click", () => {
   if (!confirm("保存前の状態に戻しますか？")) return;
@@ -1879,7 +1913,7 @@ document.getElementById("runSeoCheck").addEventListener("click", async () => {
 /* ============================================================
    予約・応募一覧
    ============================================================ */
-const STATUS_COLORS = { "受付済":"#4a6f9c", "対応中":"#a98554", "完了":"#5d8a4e", "キャンセル":"#b03b48" };
+const STATUS_COLORS = { "受付済":"#4a6f9c", "対応中":"#a98554", "完了":"#5d8a4e", "キャンセル":"#b03b48", "未対応":"#a98554", "対応完了":"#5d8a4e" };
 function renderReservations() {
   const area = document.getElementById("reservationsArea");
   const list = loadList(RES_KEY);
@@ -1919,10 +1953,17 @@ function renderApplications() {
   const list = loadList(EXP_KEY);
   if (!list.length) { area.innerHTML = '<div class="empty">応募データはまだありません</div>'; return; }
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>受信日時</th><th>プログラム</th><th>参加者</th><th>学年/学校</th><th>保護者</th><th>連絡先</th><th>希望日</th><th>動機・備考</th>';
+  html += '<th>ステータス</th><th>受信日時</th><th>プログラム</th><th>参加者</th><th>学年/学校</th><th>保護者</th><th>連絡先</th><th>希望日</th><th>動機・備考</th>';
   html += '</tr></thead><tbody>';
-  list.forEach(r => {
+  list.forEach((r, idx) => {
+    const status = r.status || "未対応";
+    const color = STATUS_COLORS[status] || "#999";
     html += `<tr>
+      <td>
+        <select onchange="updateExpStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
+          ${["未対応","対応完了"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
+        </select>
+      </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.program)}</td>
       <td>${escapeHtml(r.participantName)}<br><span class="small">${escapeHtml(r.participantFurigana)}</span></td>
@@ -1936,14 +1977,66 @@ function renderApplications() {
   html += '</tbody></table></div>';
   area.innerHTML = html;
 }
+function updateExpStatus(idx, status) {
+  const list = loadList(EXP_KEY);
+  if (!list[idx]) return;
+  list[idx].status = status;
+  localStorage.setItem(EXP_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateExperience === "function") window.fbUpdateExperience(idx, { status });
+  updateCounts();
+}
 
-document.getElementById("clearRes").addEventListener("click", () => {
-  if (!confirm("すべての予約データを削除します。よろしいですか？")) return;
-  localStorage.removeItem(RES_KEY); renderReservations(); updateCounts(); showToast("削除しました");
+const TRASH_LABELS = { reservations: "予約", experiences: "応募", corporate: "法人ご相談" };
+async function renderTrash(type, areaId) {
+  const area = document.getElementById(areaId);
+  area.innerHTML = '<p style="font-size:13px;color:var(--color-text-soft);">読み込み中...</p>';
+  const batches = typeof window.fbLoadTrash === "function" ? await window.fbLoadTrash(type) : [];
+  if (!batches.length) { area.innerHTML = `<p style="font-size:13px;color:var(--color-text-soft);">ゴミ箱は空です</p>`; return; }
+  let html = `<div style="font-family:var(--font-mincho);font-weight:600;margin-bottom:10px;">ゴミ箱（${TRASH_LABELS[type]}・${batches.length}件のまとまり）</div>`;
+  batches.forEach(b => {
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-line);flex-wrap:wrap;">
+      <span style="font-size:13px;">${fmtDate(b.deletedAt)} 削除・${b.count}件</span>
+      <span style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn--small" onclick="restoreTrash('${type}','${b.key}','${areaId}')">復元</button>
+        <button class="btn btn--small btn--danger" onclick="purgeTrash('${type}','${b.key}','${areaId}')">完全に削除</button>
+      </span>
+    </div>`;
+  });
+  area.innerHTML = html;
+}
+async function restoreTrash(type, key, areaId) {
+  if (!confirm("このデータを復元しますか？")) return;
+  if (typeof window.fbRestoreTrashBatch === "function") await window.fbRestoreTrashBatch(type, key);
+  showToast("復元しました");
+  renderTrash(type, areaId);
+}
+async function purgeTrash(type, key, areaId) {
+  if (!confirm("完全に削除します。復元できなくなります。よろしいですか？")) return;
+  if (typeof window.fbPurgeTrashBatch === "function") await window.fbPurgeTrashBatch(type, key);
+  showToast("完全に削除しました");
+  renderTrash(type, areaId);
+}
+function toggleTrashArea(type, areaId) {
+  const area = document.getElementById(areaId);
+  const show = area.style.display === "none";
+  area.style.display = show ? "block" : "none";
+  if (show) renderTrash(type, areaId);
+}
+document.getElementById("trashToggleRes").addEventListener("click", () => toggleTrashArea("reservations", "trashAreaRes"));
+document.getElementById("trashToggleExp").addEventListener("click", () => toggleTrashArea("experiences", "trashAreaExp"));
+document.getElementById("trashToggleCorp").addEventListener("click", () => toggleTrashArea("corporate", "trashAreaCorp"));
+
+document.getElementById("clearRes").addEventListener("click", async () => {
+  if (!confirm("すべての予約データを削除します。ゴミ箱に移動され、後から復元できます。よろしいですか？")) return;
+  const moved = typeof window.fbClearAll === "function" ? await window.fbClearAll("reservations") : false;
+  if (!moved) { showToast("削除するデータがありません", "error"); return; }
+  localStorage.removeItem(RES_KEY); renderReservations(); updateCounts(); showToast("削除しました（ゴミ箱に移動）");
 });
-document.getElementById("clearExp").addEventListener("click", () => {
-  if (!confirm("すべての応募データを削除します。よろしいですか？")) return;
-  localStorage.removeItem(EXP_KEY); renderApplications(); updateCounts(); showToast("削除しました");
+document.getElementById("clearExp").addEventListener("click", async () => {
+  if (!confirm("すべての応募データを削除します。ゴミ箱に移動され、後から復元できます。よろしいですか？")) return;
+  const moved = typeof window.fbClearAll === "function" ? await window.fbClearAll("experiences") : false;
+  if (!moved) { showToast("削除するデータがありません", "error"); return; }
+  localStorage.removeItem(EXP_KEY); renderApplications(); updateCounts(); showToast("削除しました（ゴミ箱に移動）");
 });
 
 /* ============ 法人ご相談一覧 ============ */
@@ -1952,10 +2045,17 @@ function renderCorporate() {
   const list = loadList(CORP_KEY);
   if (!list.length) { area.innerHTML = '<div class="empty">法人ご相談はまだありません</div>'; return; }
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>受信日時</th><th>会社名</th><th>ご担当者</th><th>連絡先</th><th>用途・グレード</th><th>数量・予算</th><th>納期/対応希望</th><th>ご相談内容</th>';
+  html += '<th>ステータス</th><th>受信日時</th><th>会社名</th><th>ご担当者</th><th>連絡先</th><th>用途・グレード</th><th>数量・予算</th><th>納期/対応希望</th><th>ご相談内容</th>';
   html += '</tr></thead><tbody>';
-  list.forEach(r => {
+  list.forEach((r, idx) => {
+    const status = r.status || "未対応";
+    const color = STATUS_COLORS[status] || "#999";
     html += `<tr>
+      <td>
+        <select onchange="updateCorpStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
+          ${["未対応","対応完了"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
+        </select>
+      </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.company)}<br><span class="small">${escapeHtml(r.department||"")}</span></td>
       <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.position||"")}</span></td>
@@ -1969,9 +2069,19 @@ function renderCorporate() {
   html += '</tbody></table></div>';
   area.innerHTML = html;
 }
-document.getElementById("clearCorp").addEventListener("click", () => {
-  if (!confirm("すべての法人ご相談データを削除します。よろしいですか？")) return;
-  localStorage.removeItem(CORP_KEY); renderCorporate(); updateCounts(); showToast("削除しました");
+function updateCorpStatus(idx, status) {
+  const list = loadList(CORP_KEY);
+  if (!list[idx]) return;
+  list[idx].status = status;
+  localStorage.setItem(CORP_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateCorporate === "function") window.fbUpdateCorporate(idx, { status });
+  updateCounts();
+}
+document.getElementById("clearCorp").addEventListener("click", async () => {
+  if (!confirm("すべての法人ご相談データを削除します。ゴミ箱に移動され、後から復元できます。よろしいですか？")) return;
+  const moved = typeof window.fbClearAll === "function" ? await window.fbClearAll("corporate") : false;
+  if (!moved) { showToast("削除するデータがありません", "error"); return; }
+  localStorage.removeItem(CORP_KEY); renderCorporate(); updateCounts(); showToast("削除しました（ゴミ箱に移動）");
 });
 document.getElementById("exportCorp").addEventListener("click", () => {
   const list = loadList(CORP_KEY);
@@ -2602,7 +2712,7 @@ document.getElementById("addBlog").addEventListener("click", () => {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove, get, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -2620,6 +2730,23 @@ const fbAuth = getAuth(fbApp);
 const reservationsRef = ref(fbDb, "reservations");
 const experiencesRef = ref(fbDb, "experiences");
 const corporateRef = ref(fbDb, "corporate");
+const trashReservationsRef = ref(fbDb, "trash/reservations");
+const trashExperiencesRef = ref(fbDb, "trash/experiences");
+const trashCorporateRef = ref(fbDb, "trash/corporate");
+const siteImagesRef = ref(fbDb, "siteImages");
+
+window.fbLoadSiteImages = async function () {
+  try {
+    const snap = await get(siteImagesRef);
+    return snap.val();
+  } catch (err) {
+    console.warn("サイト画像の読み込み失敗:", err);
+    return null;
+  }
+};
+window.fbSaveSiteImages = async function (data) {
+  await set(siteImagesRef, data);
+};
 
 let reservationKeys = []; // 配列インデックス → Firebaseのキー（koimari_reservationsと同じ並び順を保つ）
 let experienceKeys = []; // 配列インデックス → Firebaseのキー（koimari_experiencesと同じ並び順を保つ）
@@ -2689,6 +2816,51 @@ window.fbUpdateExperience = function (idx, patch) {
   if (!key) return;
   update(ref(fbDb, "experiences/" + key), patch).catch(err => console.warn("Firebase更新失敗:", err));
 };
+window.fbUpdateCorporate = function (idx, patch) {
+  const key = corporateKeys[idx];
+  if (!key) return;
+  update(ref(fbDb, "corporate/" + key), patch).catch(err => console.warn("Firebase更新失敗:", err));
+};
+
+/* ===== ゴミ箱（全削除→復元可能な形でtrash/以下に退避） ===== */
+const LIVE_REFS = { reservations: reservationsRef, experiences: experiencesRef, corporate: corporateRef };
+const TRASH_REFS = { reservations: trashReservationsRef, experiences: trashExperiencesRef, corporate: trashCorporateRef };
+
+window.fbClearAll = async function (type) {
+  const liveRef = LIVE_REFS[type], trashRef = TRASH_REFS[type];
+  if (!liveRef || !trashRef) return false;
+  const snap = await get(liveRef);
+  const items = snap.val();
+  if (!items) return false; // 元々データが無ければ何もしない
+  await push(trashRef, { deletedAt: new Date().toISOString(), items });
+  await remove(liveRef);
+  return true;
+};
+
+window.fbLoadTrash = async function (type) {
+  const trashRef = TRASH_REFS[type];
+  if (!trashRef) return [];
+  const snap = await get(trashRef);
+  const val = snap.val() || {};
+  return Object.entries(val)
+    .map(([key, batch]) => ({ key, deletedAt: batch.deletedAt, count: Object.keys(batch.items || {}).length }))
+    .sort((a, b) => new Date(b.deletedAt) - new Date(a.deletedAt));
+};
+
+window.fbRestoreTrashBatch = async function (type, batchKey) {
+  const liveRef = LIVE_REFS[type];
+  if (!liveRef) return;
+  const snap = await get(ref(fbDb, "trash/" + type + "/" + batchKey));
+  const batch = snap.val();
+  if (!batch || !batch.items) return;
+  await update(liveRef, batch.items);
+  await remove(ref(fbDb, "trash/" + type + "/" + batchKey));
+};
+
+window.fbPurgeTrashBatch = async function (type, batchKey) {
+  await remove(ref(fbDb, "trash/" + type + "/" + batchKey));
+};
+
 window.firebaseLogin = function (email, password) {
   return signInWithEmailAndPassword(fbAuth, email, password);
 };

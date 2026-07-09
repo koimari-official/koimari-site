@@ -877,18 +877,30 @@ function loadInsta(){try{const r=localStorage.getItem("koimari_insta");if(r)retu
 function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 
 const IMAGES = loadImages();
+window.IMAGES = IMAGES; // Firebase同期スクリプト(type=module)から更新できるよう公開
 const heroEl = document.getElementById("hero"), dotsEl = document.getElementById("heroDots");
-IMAGES.hero.filter(s=>s.visible!==false).forEach((slide,i)=>{
-  const div=document.createElement("div");div.className="hero__slide"+(i===0?" active":"");
-  const heroAlt=escape((slide.titleJp||"こいまり").replace(/<br\s*\/?>/gi," "));
-  div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}"><div class="hero__overlay"><div class="hero__copy"><div class="hero__copy-en">${slide.titleEn||""}</div><div class="hero__copy-jp">${slide.titleJp||""}</div></div></div>`;
-  heroEl.insertBefore(div,dotsEl);
-  const dot=document.createElement("button");dot.className="hero__dot"+(i===0?" active":"");dot.addEventListener("click",()=>goToSlide(i));dotsEl.appendChild(dot);
-});
 let currentSlide=0;
-function goToSlide(idx){const s=document.querySelectorAll(".hero__slide"),d=document.querySelectorAll(".hero__dot");s[currentSlide].classList.remove("active");d[currentSlide].classList.remove("active");currentSlide=idx;s[currentSlide].classList.add("active");d[currentSlide].classList.add("active")}
-if(IMAGES.hero.length>1)setInterval(()=>goToSlide((currentSlide+1)%IMAGES.hero.length),5500);
-document.getElementById("img-greeting").src=IMAGES.greeting;
+let heroInterval=null;
+function goToSlide(idx){const s=document.querySelectorAll(".hero__slide"),d=document.querySelectorAll(".hero__dot");if(!s.length)return;if(s[currentSlide])s[currentSlide].classList.remove("active");if(d[currentSlide])d[currentSlide].classList.remove("active");currentSlide=idx;if(s[currentSlide])s[currentSlide].classList.add("active");if(d[currentSlide])d[currentSlide].classList.add("active")}
+function renderHeroSlides(){
+  heroEl.querySelectorAll(".hero__slide").forEach(el=>el.remove());
+  dotsEl.innerHTML="";
+  currentSlide=0;
+  IMAGES.hero.filter(s=>s.visible!==false).forEach((slide,i)=>{
+    const div=document.createElement("div");div.className="hero__slide"+(i===0?" active":"");
+    const heroAlt=escape((slide.titleJp||"こいまり").replace(/<br\s*\/?>/gi," "));
+    div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}"><div class="hero__overlay"><div class="hero__copy"><div class="hero__copy-en">${slide.titleEn||""}</div><div class="hero__copy-jp">${slide.titleJp||""}</div></div></div>`;
+    heroEl.insertBefore(div,dotsEl);
+    const dot=document.createElement("button");dot.className="hero__dot"+(i===0?" active":"");dot.addEventListener("click",()=>goToSlide(i));dotsEl.appendChild(dot);
+  });
+  if(heroInterval)clearInterval(heroInterval);
+  if(IMAGES.hero.length>1)heroInterval=setInterval(()=>goToSlide((currentSlide+1)%IMAGES.hero.length),5500);
+}
+window.renderHeroSlides=renderHeroSlides;
+renderHeroSlides();
+function renderGreetingImage(){document.getElementById("img-greeting").src=IMAGES.greeting;}
+window.renderGreetingImage=renderGreetingImage;
+renderGreetingImage();
 const catGrid=document.getElementById("categoriesGrid");
 const recGrid=document.getElementById("recommendedGrid");
 const expGrid=document.getElementById("experienceGrid");
@@ -1005,6 +1017,7 @@ function renderDynamic(){
   renderVoices();
   I18nCtrl.apply();
 }
+window.renderDynamic=renderDynamic;
 
 let bcalMonth=new Date();bcalMonth.setDate(1);
 // イベント定義（mm-dd 形式 → 表示名）。年指定する場合は yyyy-mm-dd
@@ -1155,6 +1168,22 @@ const db = getDatabase(fbApp);
 onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
   const cfg = snapshot.val() || { show: true, label: "Special", text: "母の日ケーキのご予約を受け付けております", link: "mothers-day.html" };
   if (typeof window.applyEventBannerConfig === "function") window.applyEventBannerConfig(cfg);
+});
+
+// 管理画面で保存された画像データ(ヒーロー・カテゴリ・おすすめ・体験プログラム等)を反映する。
+// 従来はブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されていなかったための対応。
+onValue(ref(db, "siteImages"), (snapshot) => {
+  const data = snapshot.val();
+  if (!data || !window.IMAGES) return;
+  const IMAGES = window.IMAGES;
+  if (data.hero) IMAGES.hero = data.hero;
+  if (data.greeting) IMAGES.greeting = data.greeting;
+  if (data.categories) IMAGES.categories = data.categories;
+  if (data.recommended) IMAGES.recommended = data.recommended;
+  if (data.experiences) IMAGES.experiences = data.experiences;
+  if (typeof window.renderHeroSlides === "function") window.renderHeroSlides();
+  if (typeof window.renderGreetingImage === "function") window.renderGreetingImage();
+  if (typeof window.renderDynamic === "function") window.renderDynamic();
 });
 </script>
 </body>
