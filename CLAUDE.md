@@ -254,7 +254,7 @@ koimari_insta            Instagram投稿カード内容
 
 ### 中優先
 - [ ] 季節別LPの量産（父の日・お中元・敬老の日・お歳暮・バレンタイン・クリスマス）
-- [ ] Formspreeエンドポイント設定（`reservation.html` / `experience.html` / `corporate.html`）
+- [x] Formspreeエンドポイント設定 → 2026-07-09完了。アカウント作成（noritate.official@gmail.com）・プロジェクト「こいまりサイト」・フォーム作成（エンドポイント`https://formspree.io/f/mwvddbqk`）を経て、reservation.html/experience.html/corporate.htmlの3ファイルに設定。予約・応募・法人相談の送信時に`noritate.official@gmail.com`へメール通知が届くようになった
 - [ ] OGP画像作成（1200×630px）
 - [ ] 「数字で見るこいまり」の4数値（創業12年／オーダーケーキ実績3,000件＋／リピート92%／Googleレビュー4.8）を実数値に差し替え → オーナー確認済み・仮の数値のまま（2026-07-09）。実数値が決まり次第、管理画面の「数字で見る」タブから入力すれば反映される
 - [x] GTMコンテナ（GTM-MB2XHF6J）内にGA4計測タグが設定済みか確認 → 未設定と判明したため2026-07-09に新規設定・公開完了（測定ID `G-7VVE1ZEKD5`）。リアルタイムレポートで計測確認済み。管理画面の「統計・分析」タブのビュー数グラフは今後も同一ブラウザのみの簡易計測のままなので、全訪問者数はGoogleアナリティクス側で確認する運用とする
