@@ -8,6 +8,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.css">
+<script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.2/dist/cropper.min.js"></script>
 <style>
 :root {
   --color-bg: #fbf7f2;
@@ -694,6 +696,19 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
 <div class="toast" id="toast"></div>
 
+<div id="cropModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:2000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#fff;padding:22px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:16px;">
+    <h3 style="font-family:var(--font-mincho);font-size:16px;font-weight:600;">画像の切り抜き位置を調整してください</h3>
+    <div style="max-height:60vh;overflow:hidden;">
+      <img id="cropImage" style="display:block;max-width:100%;">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
+      <button class="btn btn--small btn--ghost" id="cropCancelBtn" type="button">キャンセル</button>
+      <button class="btn btn--small" id="cropConfirmBtn" type="button">この範囲で使用</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ============================================================
    設定
@@ -907,6 +922,54 @@ function fileToDataUrl(file, maxWidth) {
     r.readAsDataURL(file);
   });
 }
+
+/* ---- 切り抜きモーダル（Cropper.js） ---- */
+let _cropperInstance = null;
+let _cropResolve = null;
+let _cropTargetWidth = null;
+function openCropModal(dataUrl, aspectRatio) {
+  return new Promise((resolve) => {
+    _cropResolve = resolve;
+    const modal = document.getElementById("cropModal");
+    const img = document.getElementById("cropImage");
+    if (_cropperInstance) { _cropperInstance.destroy(); _cropperInstance = null; }
+    img.onload = () => {
+      _cropperInstance = new Cropper(img, { aspectRatio, viewMode: 1, autoCropArea: 1, background: false });
+    };
+    img.src = dataUrl;
+    modal.style.display = "flex";
+  });
+}
+function closeCropModal() {
+  document.getElementById("cropModal").style.display = "none";
+  if (_cropperInstance) { _cropperInstance.destroy(); _cropperInstance = null; }
+}
+document.getElementById("cropCancelBtn").addEventListener("click", () => {
+  closeCropModal();
+  if (_cropResolve) { _cropResolve(null); _cropResolve = null; }
+});
+document.getElementById("cropConfirmBtn").addEventListener("click", () => {
+  if (!_cropperInstance) { closeCropModal(); if (_cropResolve) { _cropResolve(null); _cropResolve = null; } return; }
+  const targetWidth = _cropTargetWidth || 1000;
+  const canvas = _cropperInstance.getCroppedCanvas({ width: targetWidth, imageSmoothingQuality: "high" });
+  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  closeCropModal();
+  if (_cropResolve) { _cropResolve(dataUrl); _cropResolve = null; }
+});
+// aspectRatioを指定すると切り抜きモーダルを開く。キャンセル時はnullを返す。
+// Cropper.js未読み込み（CDN読み込み失敗等）の場合は従来の自動リサイズにフォールバックする。
+async function cropAndResizeImage(file, aspectRatio, targetWidth) {
+  if (file.size > 15 * 1024 * 1024) { throw new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください"); }
+  if (typeof Cropper !== "function") { return fileToDataUrl(file, targetWidth); }
+  const rawDataUrl = await new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+  _cropTargetWidth = targetWidth;
+  return openCropModal(rawDataUrl, aspectRatio);
+}
 function renderAll() {
   renderHero(); renderGreeting(); renderCategories(); renderRecommended(); renderExperiences();
   updateSaveBar();
@@ -922,7 +985,7 @@ function refreshPreview(itemEl, src) {
   const p = itemEl.querySelector(".img-item__preview");
   p.innerHTML = src ? `<img src="${src}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(src)}` : "画像なし";
 }
-function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth }) {
+function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, aspectRatio }) {
   const item = document.createElement("div");
   item.className = "img-item";
   const previewEl = document.createElement("div");
@@ -946,8 +1009,17 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth }
   const fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.accept = "image/*";
   fileInput.addEventListener("change", async e => {
     if (!e.target.files[0]) return;
-    try { onFile(await fileToDataUrl(e.target.files[0], maxWidth)); }
+    const file = e.target.files[0];
+    try {
+      if (aspectRatio) {
+        const result = await cropAndResizeImage(file, aspectRatio, maxWidth);
+        if (result !== null) onFile(result); // nullはキャンセルを意味するため何もしない
+      } else {
+        onFile(await fileToDataUrl(file, maxWidth));
+      }
+    }
     catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
+    finally { fileInput.value = ""; }
   });
   fileBtn.appendChild(fileInput); actions.appendChild(fileBtn);
   if (onDelete) {
@@ -989,6 +1061,7 @@ function renderHero() {
     const item = makeImageItem({
       preview: s.src,
       maxWidth: 1600,
+      aspectRatio: 16 / 9,
       fields: [
         { label: "画像URL", key: "src", value: s.src, type: "input" },
         { label: "英語タイトル", key: "titleEn", value: s.titleEn || "", type: "input" },
@@ -1007,6 +1080,7 @@ function renderGreeting() {
   grid.appendChild(makeImageItem({
     preview: workingData.greeting,
     maxWidth: 900,
+    aspectRatio: 4 / 5,
     fields: [{ label: "画像URL", key: "src", value: workingData.greeting, type: "input" }],
     onChange: (k, v) => { workingData.greeting = v; refreshPreview(grid.children[0], v); updateSaveBar(); },
     onFile: u => { workingData.greeting = u; renderGreeting(); updateSaveBar(); },
@@ -1020,6 +1094,7 @@ function renderCategories() {
     const item = makeImageItem({
       preview: c.img,
       maxWidth: 600,
+      aspectRatio: 4 / 3,
       fields: [
         { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
         { label: "英語表記", key: "en", value: c.en, type: "input" },
@@ -1040,6 +1115,7 @@ function renderRecommended() {
     const item = makeImageItem({
       preview: r.img,
       maxWidth: 500,
+      aspectRatio: 1,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
         { label: "価格", key: "price", value: r.price, type: "input" },
@@ -1060,6 +1136,7 @@ function renderExperiences() {
     const item = makeImageItem({
       preview: e.img,
       maxWidth: 800,
+      aspectRatio: 5 / 3,
       fields: [
         { label: "プログラム名", key: "title", value: e.title, type: "input" },
         { label: "英語表記", key: "en", value: e.en, type: "input" },
@@ -2195,6 +2272,7 @@ function renderNewsAdmin() {
       const item = makeImageItem({
         preview: n.img,
         maxWidth: 800,
+        aspectRatio: 4 / 3,
         fields: [
           { label: "日付（例: 2026.04.20）", key: "date", value: n.date||"", type: "input" },
           { label: "タグ（NEW・おすすめ・お知らせ等）", key: "tag", value: n.tag||"", type: "input" },
@@ -2618,6 +2696,7 @@ function renderGalleryAdmin() {
     const item = makeImageItem({
       preview: g.img,
       maxWidth: 1000,
+      aspectRatio: 1,
       fields: [
         { label: "タイトル", key: "title", value: g.title||"", type: "input" },
         { label: "説明", key: "desc", value: g.desc||"", type: "textarea" },
@@ -2705,6 +2784,7 @@ function renderBlogAdmin() {
     grid.appendChild(makeImageItem({
       preview: p.img,
       maxWidth: 800,
+      aspectRatio: 3 / 2,
       fields: [
         { label: "タイトル", key: "title", value: p.title||"", type: "input" },
         { label: "カテゴリ", key: "category", value: p.category||"", type: "input" },
