@@ -331,6 +331,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <span class="field__hint">食材を扱うため、アレルギーがございましたらご記入ください</span>
         </div>
+
+        <div class="field">
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
+            <input type="checkbox" id="allergyConsent" name="allergyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
+            <span>アレルギー等の健康に関する情報の取得について同意します (I agree to the collection of allergy/health information) <span class="req">必須 Required</span></span>
+          </label>
+          <span class="error" data-for="allergyConsent"></span>
+        </div>
       </div>
 
       <div class="form-section">
@@ -497,8 +505,9 @@ function setError(name, msg) {
 
 function validate(d) {
   let ok = true;
-  ["program","participantName","participantFurigana","grade","guardianName","tel","email","zipcode","privacyConsent"].forEach(k => setError(k, ""));
+  ["program","participantName","participantFurigana","grade","guardianName","tel","email","zipcode","privacyConsent","allergyConsent"].forEach(k => setError(k, ""));
   if (!d.privacyConsent) { setError("privacyConsent", "プライバシーポリシーへの同意が必要です (Please agree to the Privacy Policy)"); ok = false; }
+  if (!d.allergyConsent) { setError("allergyConsent", "アレルギー情報の取得への同意が必要です (Please agree to the collection of allergy information)"); ok = false; }
   if (!d.program) { setError("program", "プログラムをお選びください"); ok = false; }
   if (!d.participantName.trim()) { setError("participantName", "お名前をご入力ください"); ok = false; }
   if (!d.participantFurigana.trim()) { setError("participantFurigana", "ふりがなをご入力ください"); ok = false; }
@@ -558,6 +567,7 @@ form.addEventListener("submit", async (e) => {
     zipcode: fd.get("zipcode") || "", address: fd.get("address") || "",
     motivation: fd.get("motivation") || "",
     privacyConsent: fd.get("privacyConsent") === "1",
+    allergyConsent: fd.get("allergyConsent") === "1",
     submittedAt: new Date().toISOString()
   };
   if (!validate(data)) {
