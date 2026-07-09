@@ -177,15 +177,18 @@ koimari_sales_goal       売上目標
 koimari_coupons          クーポン
 koimari_newsletter       メルマガ
 koimari_page_errors      エラーログ
-koimari_news             お知らせ
-koimari_holidays         営業日設定（定休日・臨時休業）
-koimari_faq              FAQ
-koimari_gallery          ギャラリー作品
-koimari_voices           お客様の声
-koimari_spotlight        今月の主役（配列形式、visible フラグで公開管理）
-koimari_stats            「数字で見るこいまり」
-koimari_insta            Instagram投稿カード内容
+koimari_news             お知らせ（2026-07-09〜：Firebase `koimariContent/news` が正、こちらはローカルキャッシュ）
+koimari_holidays         営業日設定（定休日・臨時休業）（同上、`koimariContent/holidays`）
+koimari_faq              FAQ（同上、`koimariContent/faq`）
+koimari_gallery          ギャラリー作品（同上、`koimariContent/gallery`）
+koimari_voices           お客様の声（同上、`koimariContent/voices`）
+koimari_spotlight        今月の主役（配列形式、visible フラグで公開管理）（同上、`koimariContent/spotlight`）
+koimari_stats            「数字で見るこいまり」（同上、`koimariContent/stats`。※現在セクション自体は非表示中）
+koimari_insta            Instagram投稿カード内容（同上、`koimariContent/insta`）
+koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 ```
+
+上記9項目は2026-07-09まで管理者本人のブラウザのlocalStorageにしか保存されず、他の端末・他の従業員・実際のサイト訪問者には一切反映されない「ガラパゴス状態」だった（オーナー指摘により発覚）。同日、`siteImages`と同じ設計思想で`koimariContent`パスに集約し、複数拠点・複数従業員での運用と、実訪問者への反映の両方に対応した。
 
 ---
 
@@ -202,6 +205,7 @@ koimari_insta            Instagram投稿カード内容
 | `corporate/{id}` | 法人ご相談 | corporate.html（新規作成）／admin.html（ステータス更新） |
 | `siteImages` | ヒーロー/店舗紹介/カテゴリ/おすすめ/体験プログラムの画像一式 | admin.html（保存ボタン） |
 | `siteConfig/eventBanner` | 季節イベントバナー設定 | admin.html |
+| `koimariContent/{news\|holidays\|faq\|gallery\|voices\|blog\|insta\|stats\|spotlight}` | お知らせ・営業日設定・FAQ・ギャラリー・お客様の声・ブログ・Instagram投稿・数字で見る・今月の主役（2026-07-09〜、旧`koimari_*`のlocalStorage単独保存から移行） | admin.html（各パネルの保存ボタン）。読み取りはindex.html/gallery.html/faq.html/blog.html |
 | `trash/{reservations\|experiences\|corporate}/{batchKey}` | 「全削除」時の退避先（復元・完全削除が可能） | admin.html |
 | `dashboardTasks` | 会社全体のTODOダッシュボード（別プロジェクト`dashboard/`用） | dashboard/index.html |
 | `noritate/contacts/{id}` | NORI&TATEサイトのお問い合わせ（プロジェクト共用） | nori&tate site/index.html（新規作成）／admin.html（ステータス更新） |
@@ -267,10 +271,16 @@ koimari_insta            Instagram投稿カード内容
     "siteConfig": {
       ".read": true,
       ".write": "auth != null"
+    },
+    "koimariContent": {
+      ".read": true,
+      ".write": "auth != null"
     }
   }
 }
 ```
+
+**⚠️ 未反映（要オーナー対応）**：上記の`koimariContent`ブロックは2026-07-09にコード側（admin.html / index.html / gallery.html / faq.html / blog.html）へ実装済みだが、**Firebase Console側のルールにはまだ反映されていない**。反映して「公開」するまでは、お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役の保存がすべて`PERMISSION_DENIED`で失敗する（画面上は保存成功に見えることがある）。
 
 **重要な教訓（2026-07-09）**：このルールは「明示的に許可したパス以外はデフォルトで拒否」という設計（許可制）。新しいFirebaseパスをコードに追加しただけではルール側は自動的に追従しないため、**新しいパスを使うコードを書いたら、必ずこのルールにも対応するブロックを追加し、Firebase Console側で「公開」まで行うこと**。今回、`corporate`と`siteImages`（`noritate`も含む）のルール追加を忘れたまま実装し、画面上は「送信/保存成功」に見えても実際には`PERMISSION_DENIED`で裏側では失敗し続けるという不具合が発生した（ブラウザのDevTools Consoleで気づいた）。新しいFirebaseパスを追加する際のチェックリストに加える。
 
@@ -336,6 +346,8 @@ koimari_insta            Instagram投稿カード内容
   - **2026-07-09追記・重要**：実機テストで「保存に失敗しました」エラーが発生。原因はFirebase Realtime Databaseのセキュリティルールに`siteImages`用の許可が無かったため（`PERMISSION_DENIED`）。さらに調査した結果、**`corporate`（法人相談）・`noritate`（NORI&TATE問い合わせ）にもルールが存在しないことが判明**。つまり今日修正したはずの法人相談フォームのFirebase保存も、実際にはルール不足で送信の裏側では失敗し続けていた（画面上は成功表示のため気付けなかった）。オーナーがFirebase Consoleでルールに`corporate`・`noritate`・`siteImages`の3項目を追加・公開し、再テストで保存成功を確認済み（完全解決）。ルール詳細は下記「Firebase Realtime Database」セクション参照
 - [x] 【重大バグ】法人相談フォーム(corporate.html)がFirebaseに保存されずlocalStorageのみだった → 2026-07-09修正。送信者本人のブラウザにしかデータが残らず、実際の見込み客からの問い合わせが管理画面に一切表示されない状態だった。reservation/experienceと同じFirebase(`corporate`ノード)への保存に統一し、admin.htmlの同期処理も追加済み
 - [x] 管理画面の「全削除」ボタン(予約一覧・応募一覧・法人ご相談)がFirebase側を削除していなかった問題 → オーナー了承の上、2026-07-09に「ゴミ箱」方式で実装完了。「全削除」を押すと対象データを`trash/{reservations|experiences|corporate}`に退避してから本体を削除。各パネルの「ゴミ箱」ボタンから削除履歴（削除日時・件数）を確認でき、「復元」で元に戻す、「完全に削除」でゴミ箱からも消せる。あわせて応募一覧・法人ご相談に「未対応/対応完了」のステータス切替（予約一覧の4段階ステータスとは別に、オーナー希望の2段階でシンプルに）を追加。実データの削除操作を伴う変更だったため、実施前に一度オーナー確認を挟んだ
+- [x] 【最重要・2026-07-09】お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役の9項目が、画像と同じく管理者本人のブラウザのlocalStorageにしか保存されず、他の従業員・他の端末・実際の訪問者に一切反映されない「ガラパゴス状態」だった問題 → オーナーより「一つずつエラーチェックのように直すのはおかしい」との指摘を受け、全項目を横断する共通基盤として一括対応。admin.htmlの`saveByKey`/`saveSpotlightList`をFirebase（`koimariContent`ノード）書き込みに変更し、ログイン時にFirebase側の最新データを取り込み直す処理を追加。index.html（お知らせ・営業日カレンダー・今月の主役・数字で見る・お客様の声・Instagramカード）、gallery.html（ギャラリー・お客様の声）、faq.html、blog.htmlの読み取り側にもそれぞれFirebase(`onValue`)購読を追加。
+  - **⚠️ 未完了（オーナー対応待ち）**：Firebase Consoleのセキュリティルールに`koimariContent`の許可ブロックがまだ無い。追加・公開するまでは上記9項目の保存が全て`PERMISSION_DENIED`で失敗する。ルールJSONは下記「Firebase Realtime Database」セクション参照
 - [ ] ブログのリニューアル（マガジン風グリッド、記事詳細テンプレ）
 - [ ] 実画像への差し替え（現状はUnsplash）
 - [x] SEO整備(canonical・OGP・description) → 全11ページ対応済み（2026-07-09）。ただし構造化データ(schema.org JSON-LD)はindex.html(Bakery) / blog.html(Blog) / mothers-day.html(Event)の3ページのみで、他8ページは意図的に未設置。理由：FAQ・ギャラリーはlocalStorage経由で管理画面から動的に内容が変わるため、静的JSON-LDを書くと編集の度に陳腐化する。corporate等は既存のBakeryエンティティと重複するだけで追加の恩恵がない

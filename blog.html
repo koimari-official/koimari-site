@@ -330,7 +330,7 @@ function isNew(dateStr){
   return (Date.now()-d)<30*864e5;
 }
 
-const allPosts = loadBlog();
+let allPosts = loadBlog();
 let currentFilter = 'すべて';
 
 // IntersectionObserver for scroll reveal
@@ -505,6 +505,37 @@ renderList();
 
 const initId = new URLSearchParams(location.search).get('id');
 if(initId) showDetail(initId);
+
+// Firebase側の最新記事データを反映する（以前はlocalStorageのみで、管理者本人の端末にしか反映されなかったための対応）
+function applyFetchedBlogContent(data){
+  if (!data || data.blog === undefined) return;
+  try { localStorage.setItem('koimari_blog', JSON.stringify(data.blog)); } catch(e){}
+  allPosts = data.blog;
+  if (!document.getElementById('detailView').classList.contains('show')) renderList();
+}
+window.applyFetchedBlogContent = applyFetchedBlogContent;
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
+  authDomain: "koimari-tasting.firebaseapp.com",
+  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koimari-tasting",
+  storageBucket: "koimari-tasting.firebasestorage.app",
+  messagingSenderId: "852851855633",
+  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+onValue(ref(db, "koimariContent"), (snapshot) => {
+  const data = snapshot.val();
+  if (data && typeof window.applyFetchedBlogContent === "function") window.applyFetchedBlogContent(data);
+});
 </script>
 </body>
 </html>

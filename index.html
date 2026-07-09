@@ -1070,6 +1070,7 @@ function renderBcal(){
 }
 document.getElementById("bcalPrev").addEventListener("click",()=>{bcalMonth.setMonth(bcalMonth.getMonth()-1);renderBcal()});
 document.getElementById("bcalNext").addEventListener("click",()=>{bcalMonth.setMonth(bcalMonth.getMonth()+1);renderBcal()});
+window.renderBcal=renderBcal;
 renderBcal();
 
 /* ========= 営業中ステータス ========= */
@@ -1097,9 +1098,12 @@ updateStatus();
 setInterval(updateStatus,60000);
 
 /* ========= Instagram投稿風カード ========= */
-const ig=loadInsta();
 const igCard=document.getElementById("igCard");
-if(igCard&&ig.visible!==false){
+function renderInstaCard(){
+  const ig=loadInsta();
+  if(!igCard) return;
+  if(ig.visible===false){ igCard.style.display="none"; return; }
+  igCard.style.display="";
   const captionLines=(ig.caption||"").split("\n").filter(l=>l).map(l=>escape(l)).join("<br>");
   const hashtags=(ig.hashtags||"").split(/\s+/).filter(t=>t.startsWith("#")).map(t=>escape(t)).join(" ");
   igCard.href=ig.url||"https://www.instagram.com/_koimari_";
@@ -1128,6 +1132,8 @@ if(igCard&&ig.visible!==false){
     <div class="ig-card__date">${escape(ig.date||"")}</div>
     <div class="ig-card__cta">Instagramで見る ↗</div>`;
 }
+window.renderInstaCard=renderInstaCard;
+renderInstaCard();
 
 document.getElementById("menuToggle").addEventListener("click",()=>document.getElementById("globalNav").classList.toggle("open"));
 document.querySelectorAll("#globalNav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("globalNav").classList.remove("open")));
@@ -1187,6 +1193,21 @@ onValue(ref(db, "siteImages"), (snapshot) => {
   if (typeof window.renderHeroSlides === "function") window.renderHeroSlides();
   if (typeof window.renderGreetingImage === "function") window.renderGreetingImage();
   if (typeof window.renderDynamic === "function") window.renderDynamic();
+});
+
+// お知らせ・営業日設定・今月の主役・数字で見る・お客様の声・Instagram投稿風カードも同様に反映する。
+// (以前はブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されていなかった)
+onValue(ref(db, "koimariContent"), (snapshot) => {
+  const data = snapshot.val();
+  if (!data) return;
+  const KEYMAP = { news: "koimari_news", holidays: "koimari_holidays", spotlight: "koimari_spotlight", stats: "koimari_stats", voices: "koimari_voices", insta: "koimari_insta" };
+  Object.entries(KEYMAP).forEach(([contentKey, lsKey]) => {
+    if (data[contentKey] === undefined) return;
+    try { localStorage.setItem(lsKey, JSON.stringify(data[contentKey])); } catch(e) {}
+  });
+  if (typeof window.renderDynamic === "function") window.renderDynamic();
+  if (typeof window.renderBcal === "function") window.renderBcal();
+  if (typeof window.renderInstaCard === "function") window.renderInstaCard();
 });
 </script>
 </body>

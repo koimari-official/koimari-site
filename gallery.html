@@ -239,8 +239,8 @@ const DEFAULT_VOICES = [
 function loadList(key, fallback){try{const r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return fallback}
 function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
 
-const gallery = loadList("koimari_gallery", DEFAULT_GALLERY);
-const voices = loadList("koimari_voices", DEFAULT_VOICES);
+let gallery = loadList("koimari_gallery", DEFAULT_GALLERY);
+let voices = loadList("koimari_voices", DEFAULT_VOICES);
 
 let currentCat = "all";
 
@@ -296,20 +296,58 @@ function renderGrid(){
   });
 }
 
-renderTabs();
-renderGrid();
+function renderGalleryPage(){ renderTabs(); renderGrid(); }
+window.renderGalleryPage = renderGalleryPage;
+renderGalleryPage();
 
 const voicesGrid = document.getElementById("voicesGrid");
-if (!voices.length) voicesGrid.innerHTML = '<div class="empty" style="grid-column:1/-1;">お客様の声は現在準備中です。</div>';
-else voices.forEach(v => {
-  const card = document.createElement("article"); card.className = "voice-card";
-  const stars = v.stars || 5;
-  card.innerHTML = `<div class="voice-card__stars">${"★".repeat(stars)}${"☆".repeat(5-stars)}</div><p class="voice-card__text">${escape(v.text).replace(/\n/g,"<br>")}</p><div class="voice-card__author"><span class="voice-card__name">${escape(v.name)}</span><span>${escape(v.attr||"")}</span></div>`;
-  voicesGrid.appendChild(card);
-});
+function renderVoicesGrid(){
+  voicesGrid.innerHTML = "";
+  if (!voices.length) { voicesGrid.innerHTML = '<div class="empty" style="grid-column:1/-1;">お客様の声は現在準備中です。</div>'; return; }
+  voices.forEach(v => {
+    const card = document.createElement("article"); card.className = "voice-card";
+    const stars = v.stars || 5;
+    card.innerHTML = `<div class="voice-card__stars">${"★".repeat(stars)}${"☆".repeat(5-stars)}</div><p class="voice-card__text">${escape(v.text).replace(/\n/g,"<br>")}</p><div class="voice-card__author"><span class="voice-card__name">${escape(v.name)}</span><span>${escape(v.attr||"")}</span></div>`;
+    voicesGrid.appendChild(card);
+  });
+}
+window.renderVoicesGrid = renderVoicesGrid;
+renderVoicesGrid();
+
+// Firebase側の最新データを取り込み直す（以前はlocalStorageのみで、管理者本人の端末にしか反映されなかったための対応）
+function applyFetchedGalleryContent(data){
+  if (!data) return;
+  if (data.gallery !== undefined) { try { localStorage.setItem("koimari_gallery", JSON.stringify(data.gallery)); } catch(e){} gallery = data.gallery; renderGalleryPage(); }
+  if (data.voices !== undefined) { try { localStorage.setItem("koimari_voices", JSON.stringify(data.voices)); } catch(e){} voices = data.voices; renderVoicesGrid(); }
+}
+window.applyFetchedGalleryContent = applyFetchedGalleryContent;
 
 document.getElementById("lightbox").addEventListener("click", () => document.getElementById("lightbox").classList.remove("show"));
 document.getElementById("lightboxClose").addEventListener("click", e => { e.stopPropagation(); document.getElementById("lightbox").classList.remove("show"); });
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
+  authDomain: "koimari-tasting.firebaseapp.com",
+  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koimari-tasting",
+  storageBucket: "koimari-tasting.firebasestorage.app",
+  messagingSenderId: "852851855633",
+  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+// 管理画面で保存されたギャラリー・お客様の声を反映する。
+// 以前はブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されていなかったための対応。
+onValue(ref(db, "koimariContent"), (snapshot) => {
+  const data = snapshot.val();
+  if (data && typeof window.applyFetchedGalleryContent === "function") window.applyFetchedGalleryContent(data);
+});
 </script>
 </body>
 </html>
