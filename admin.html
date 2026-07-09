@@ -2281,7 +2281,7 @@ function saveByKey(key, data) {
 /* ============ お知らせ管理 ============ */
 let newsData = null;
 function renderNewsAdmin() {
-  newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
+  if (!newsData) newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
   const wrap = document.getElementById("newsList");
   if (!newsData.length) { wrap.innerHTML = '<div class="empty">お知らせはまだありません。「＋ お知らせを追加」から作成してください。</div>'; }
   else {
@@ -2519,7 +2519,7 @@ const DEFAULT_INSTA = {
 };
 let instaData = null;
 function renderInstaAdmin() {
-  instaData = loadByKey(INSTA_KEY, DEFAULT_INSTA);
+  if (!instaData) instaData = loadByKey(INSTA_KEY, DEFAULT_INSTA);
   const wrap = document.getElementById("instaForm");
   const fields = [
     { k: "img", l: "投稿画像URL（または下のボタンからアップロード）", t: "input" },
@@ -2572,7 +2572,7 @@ function renderInstaAdmin() {
 /* ============ 数字で見る 管理 ============ */
 let statsTopData = null;
 function renderStatsAdmin() {
-  statsTopData = loadByKey(STATS_KEY, DEFAULT_STATS_LIST);
+  if (!statsTopData) statsTopData = loadByKey(STATS_KEY, DEFAULT_STATS_LIST);
   const wrap = document.getElementById("statsAdminList"); wrap.innerHTML = "";
   if (!statsTopData.length) {
     wrap.innerHTML = '<div class="empty">項目はまだありません。「＋ 項目を追加」から作成してください。</div>';
@@ -2606,7 +2606,7 @@ document.getElementById("addStat").addEventListener("click", () => {
 let holidaysData = null;
 const DOW_NAMES = ["日","月","火","水","木","金","土"];
 function renderHolidaysAdmin() {
-  holidaysData = loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS);
+  if (!holidaysData) holidaysData = loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS);
   const w = document.getElementById("weeklyClosed");
   w.innerHTML = "";
   for (let d = 0; d < 7; d++) {
@@ -2656,7 +2656,7 @@ document.getElementById("saveHolidays").addEventListener("click", () => {
 /* ============ FAQ管理 ============ */
 let faqData = null;
 function renderFaqAdmin() {
-  faqData = loadByKey(FAQ_KEY, DEFAULT_FAQ);
+  if (!faqData) faqData = loadByKey(FAQ_KEY, DEFAULT_FAQ);
   const wrap = document.getElementById("faqList");
   wrap.innerHTML = "";
   faqData.forEach((cat, ci) => {
@@ -2711,7 +2711,7 @@ document.getElementById("addFaqCat").addEventListener("click", () => {
 /* ============ ギャラリー管理 ============ */
 let galleryData = null;
 function renderGalleryAdmin() {
-  galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
+  if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
   const grid = document.getElementById("galleryAdminGrid"); grid.innerHTML = "";
   galleryData.forEach((g, i) => {
     const item = makeImageItem({
@@ -2768,7 +2768,7 @@ document.getElementById("addGallery").addEventListener("click", () => {
 /* ============ お客様の声 管理 ============ */
 let voicesData = null;
 function renderVoicesAdmin() {
-  voicesData = loadByKey(VOICES_KEY, DEFAULT_VOICES);
+  if (!voicesData) voicesData = loadByKey(VOICES_KEY, DEFAULT_VOICES);
   const wrap = document.getElementById("voicesAdminList"); wrap.innerHTML = "";
   voicesData.forEach((v, i) => {
     const item = document.createElement("div"); item.className = "img-item"; item.style.maxWidth = "720px";
