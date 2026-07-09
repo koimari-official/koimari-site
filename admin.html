@@ -1056,6 +1056,47 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
   return item;
 }
 
+// 商品詳細ページ用の「追加の写真」複数枚エディタ（メイン画像とは別に、商品ページに並べて表示される）
+function makeGalleryEditor(images, { maxWidth, max, onChange }) {
+  const wrap = document.createElement("div");
+  wrap.className = "img-item__field";
+  const label = document.createElement("label");
+  label.textContent = `追加の写真（最大${max}枚・商品詳細ページにギャラリー表示されます）`;
+  wrap.appendChild(label);
+  const thumbRow = document.createElement("div");
+  thumbRow.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;";
+  function renderThumbs() {
+    thumbRow.innerHTML = "";
+    images.forEach((src, i) => {
+      const box = document.createElement("div");
+      box.style.cssText = "position:relative;width:72px;height:72px;";
+      box.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border:1px solid var(--color-line);" onerror="this.style.opacity='0.3'">
+        <button type="button" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#b03b48;color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;">×</button>`;
+      box.querySelector("button").addEventListener("click", () => { images.splice(i, 1); renderThumbs(); onChange(); });
+      thumbRow.appendChild(box);
+    });
+  }
+  renderThumbs();
+  wrap.appendChild(thumbRow);
+  if (images.length < max) {
+    const fileBtn = document.createElement("label");
+    fileBtn.className = "file-btn"; fileBtn.textContent = "＋ 写真を追加";
+    const fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.accept = "image/*";
+    fileInput.addEventListener("change", async e => {
+      if (!e.target.files[0]) return;
+      try {
+        const url = await fileToDataUrl(e.target.files[0], maxWidth);
+        images.push(url);
+        onChange();
+      } catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
+      finally { fileInput.value = ""; }
+    });
+    fileBtn.appendChild(fileInput);
+    wrap.appendChild(fileBtn);
+  }
+  return wrap;
+}
+
 // 公開/非表示トグルを img-item に追加する共通ヘルパー
 function appendVisibleToggle(item, getVisible, onToggle) {
   const v = getVisible();
@@ -1117,6 +1158,7 @@ function renderCategories() {
   const grid = document.getElementById("categoriesGrid"); grid.innerHTML = "";
   workingData.categories.forEach((c, i) => {
     if (c.visible === undefined) c.visible = true;
+    if (!Array.isArray(c.gallery)) c.gallery = [];
     const item = makeImageItem({
       preview: c.img,
       maxWidth: 600,
@@ -1124,12 +1166,14 @@ function renderCategories() {
       fields: [
         { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
         { label: "英語表記", key: "en", value: c.en, type: "input" },
-        { label: "画像URL", key: "img", value: c.img, type: "input" }
+        { label: "画像URL", key: "img", value: c.img, type: "input" },
+        { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: c.desc||"", type: "textarea" }
       ],
       onChange: (k, v) => { workingData.categories[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
       onFile: u => { workingData.categories[i].img = u; renderCategories(); updateSaveBar(); },
       onDelete: () => { workingData.categories.splice(i,1); renderCategories(); updateSaveBar(); }
     });
+    item.appendChild(makeGalleryEditor(c.gallery, { maxWidth: 900, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.categories[i].visible, () => { workingData.categories[i].visible = !workingData.categories[i].visible; renderCategories(); updateSaveBar(); });
     grid.appendChild(item);
   });
@@ -1138,19 +1182,22 @@ function renderRecommended() {
   const grid = document.getElementById("recommendedGrid"); grid.innerHTML = "";
   workingData.recommended.forEach((r, i) => {
     if (r.visible === undefined) r.visible = true;
+    if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
       maxWidth: 500,
       aspectRatio: 1,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
-        { label: "価格", key: "price", value: r.price, type: "input" },
-        { label: "画像URL", key: "img", value: r.img, type: "input" }
+        { label: "価格（サイト上には表示されません・内部管理用）", key: "price", value: r.price, type: "input" },
+        { label: "画像URL", key: "img", value: r.img, type: "input" },
+        { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: r.desc||"", type: "textarea" }
       ],
       onChange: (k, v) => { workingData.recommended[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
       onFile: u => { workingData.recommended[i].img = u; renderRecommended(); updateSaveBar(); },
       onDelete: () => { workingData.recommended.splice(i,1); renderRecommended(); updateSaveBar(); }
     });
+    item.appendChild(makeGalleryEditor(r.gallery, { maxWidth: 700, max: 6, onChange: () => { renderRecommended(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.recommended[i].visible, () => { workingData.recommended[i].visible = !workingData.recommended[i].visible; renderRecommended(); updateSaveBar(); });
     grid.appendChild(item);
   });
@@ -1201,8 +1248,8 @@ function renderExperiences() {
 }
 
 document.getElementById("addHero").addEventListener("click", () => { workingData.hero.push({src:"",titleEn:"New Slide",titleJp:"新しいスライド",visible:true}); renderHero(); updateSaveBar(); });
-document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:"",visible:true}); renderCategories(); updateSaveBar(); });
-document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:"",visible:true}); renderRecommended(); updateSaveBar(); });
+document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:"",desc:"",gallery:[],visible:true}); renderCategories(); updateSaveBar(); });
+document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRecommended(); updateSaveBar(); });
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
 document.getElementById("saveBtn").addEventListener("click", async () => {
   if (typeof window.fbSaveSiteImages !== "function") {

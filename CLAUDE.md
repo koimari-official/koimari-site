@@ -70,6 +70,7 @@
 | `gallery.html` | 作品ギャラリー（カテゴリ絞り込み） | 完成 |
 | `blog.html` | ブログ一覧 | 仮実装、要リニューアル |
 | `faq.html` | よくある質問 | 完成 |
+| `product.html` | 商品カテゴリー/おすすめ商品の個別詳細ページ（`?type=category\|recommended&idx=N`） | 完成（2026-07-09新規） |
 | `privacy.html` | プライバシーポリシー | 完成 |
 | `terms.html` | 利用規約 | 完成 |
 | `tokushoho.html` | 特定商取引法表記 | 完成 |
@@ -348,6 +349,7 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 - [x] 管理画面の「全削除」ボタン(予約一覧・応募一覧・法人ご相談)がFirebase側を削除していなかった問題 → オーナー了承の上、2026-07-09に「ゴミ箱」方式で実装完了。「全削除」を押すと対象データを`trash/{reservations|experiences|corporate}`に退避してから本体を削除。各パネルの「ゴミ箱」ボタンから削除履歴（削除日時・件数）を確認でき、「復元」で元に戻す、「完全に削除」でゴミ箱からも消せる。あわせて応募一覧・法人ご相談に「未対応/対応完了」のステータス切替（予約一覧の4段階ステータスとは別に、オーナー希望の2段階でシンプルに）を追加。実データの削除操作を伴う変更だったため、実施前に一度オーナー確認を挟んだ
 - [x] 【最重要・2026-07-09】お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役の9項目が、画像と同じく管理者本人のブラウザのlocalStorageにしか保存されず、他の従業員・他の端末・実際の訪問者に一切反映されない「ガラパゴス状態」だった問題 → オーナーより「一つずつエラーチェックのように直すのはおかしい」との指摘を受け、全項目を横断する共通基盤として一括対応。admin.htmlの`saveByKey`/`saveSpotlightList`をFirebase（`koimariContent`ノード）書き込みに変更し、ログイン時にFirebase側の最新データを取り込み直す処理を追加。index.html（お知らせ・営業日カレンダー・今月の主役・数字で見る・お客様の声・Instagramカード）、gallery.html（ギャラリー・お客様の声）、faq.html、blog.htmlの読み取り側にもそれぞれFirebase(`onValue`)購読を追加。
   - **⚠️ 未完了（オーナー対応待ち）**：Firebase Consoleのセキュリティルールに`koimariContent`の許可ブロックがまだ無い。追加・公開するまでは上記9項目の保存が全て`PERMISSION_DENIED`で失敗する。ルールJSONは下記「Firebase Realtime Database」セクション参照
+- [x] 【2026-07-09】商品カテゴリー・おすすめ商品の画像を押しても何も起きなかった問題 → 新規`product.html`を作成し、各カードのリンク先を`product.html?type=category|recommended&idx=N`に変更。個別ページでは複数写真（メイン画像＋管理画面から追加できる最大6枚のギャラリー）と説明文を表示。価格は仕様により非表示（元々ホームの`.rec-card__price`もCSSで`display:none`済みだった）。データはsiteImages（`categories`/`recommended`の各項目に`desc`・`gallery`を追加）を流用したため新しいFirebaseルールは不要。お知らせ欄はこれまで通り「見出し＋リンク先」のみのシンプル仕様のまま据え置き（オーナー了承済み）
 - [ ] ブログのリニューアル（マガジン風グリッド、記事詳細テンプレ）
 - [ ] 実画像への差し替え（現状はUnsplash）
 - [x] SEO整備(canonical・OGP・description) → 全11ページ対応済み（2026-07-09）。ただし構造化データ(schema.org JSON-LD)はindex.html(Bakery) / blog.html(Blog) / mothers-day.html(Event)の3ページのみで、他8ページは意図的に未設置。理由：FAQ・ギャラリーはlocalStorage経由で管理画面から動的に内容が変わるため、静的JSON-LDを書くと編集の度に陳腐化する。corporate等は既存のBakeryエンティティと重複するだけで追加の恩恵がない
