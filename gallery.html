@@ -278,7 +278,7 @@ function renderGrid(){
       </div>
       <div class="gal-card__body">
         <h3 class="gal-card__title">${escape(g.title)}</h3>
-        <p class="gal-card__desc">${escape(g.desc||"")}</p>
+        <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<br\s*\/?>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong></span>` : ""}
           ${g.price ? `<span class="gal-card__meta-item">価格: <strong>${escape(g.price)}</strong></span>` : ""}
