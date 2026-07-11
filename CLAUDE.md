@@ -212,6 +212,18 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 | `noritate/contacts/{id}` | NORI&TATEサイトのお問い合わせ（プロジェクト共用） | nori&tate site/index.html（新規作成）／admin.html（ステータス更新） |
 | `trash/noritate_contacts/{batchKey}` | NORI&TATE側の「全削除」退避先 | nori&tate site/admin.html |
 
+### `siteImages`・`koimariContent`の同時編集マージ（2026-07-11修正）
+
+**問題**：admin.htmlの保存ボタンは、変更した1項目だけでなく`siteImages`（またはkoimariContentの各キー）の**リスト全体を`set()`で丸ごと上書き**していた。かつ読み込みはログイン時の一度きり（`get()`）で、画面を開いたままだと他の人の保存内容を拾えなかった。このため「従業員がおすすめ商品のストロベリーショートケーキの画像を保存したら、オーナーが別のタイミングで保存していたフルーツタルトの画像が古い状態に巻き戻った」という事故が発生（実際の従業員報告により発覚）。原因は、従業員のブラウザが保持していた`workingData`がオーナーの変更前の状態のまま古くなっており、保存時にその古いスナップショットごと上書きしてしまったこと。
+
+**対策**：`mergeArraySection`/`mergeScalarSection`（admin.html内）による3者マージ方式に変更。
+- 「前回同期した内容(base)」「Firebase側の最新(fresh)」「自分の未保存編集(working)」を項目単位で比較し、変更が無い側を残す
+- 同じ項目を両者が変更していた場合のみ「競合」として最新側を優先し、画面にトースト警告を表示（該当項目は編集し直してもらう）
+- 保存ボタン押下時は保存直前にFirebase側の最新を再取得してからマージ・書き込み（`fbLoadSiteImages`/`fbLoadContentKey`）
+- ログイン中も`onValue`でライブ購読し続け、開きっぱなしの画面でも他の人の保存内容を自動で取り込む（`fbSubscribeSiteImages`/`fbSubscribeContent`）
+
+**教訓**：複数人が同時編集する共有データは、保存のたびに「自分が知っている全体」で上書きしない（部分更新・差分マージが必須）。またログイン時の一度きり読み込みではなく、画面を開いている間はライブ購読するのが標準。新しいFirebaseパスを複数人編集用に追加する際は、この3者マージの型を流用する。
+
 ### セキュリティルール（2026-07-09時点、Firebase Console → Realtime Database → Rules）
 
 ```json
