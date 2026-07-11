@@ -180,7 +180,7 @@ const DEFAULT_RECOMMENDED = [
 ];
 
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
-function nl2p(s){return esc(s).split(/\n+/).filter(Boolean).map(p=>`<p>${p}</p>`).join('');}
+function nl2p(s){return esc(String(s||"").replace(/<br\s*\/?>/gi,"\n")).split(/\n+/).filter(Boolean).map(p=>`<p>${p}</p>`).join('');}
 
 function loadImages(){
   try{

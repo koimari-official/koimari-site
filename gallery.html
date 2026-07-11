@@ -307,7 +307,7 @@ function renderVoicesGrid(){
   voices.forEach(v => {
     const card = document.createElement("article"); card.className = "voice-card";
     const stars = v.stars || 5;
-    card.innerHTML = `<div class="voice-card__stars">${"★".repeat(stars)}${"☆".repeat(5-stars)}</div><p class="voice-card__text">${escape(v.text).replace(/\n/g,"<br>")}</p><div class="voice-card__author"><span class="voice-card__name">${escape(v.name)}</span><span>${escape(v.attr||"")}</span></div>`;
+    card.innerHTML = `<div class="voice-card__stars">${"★".repeat(stars)}${"☆".repeat(5-stars)}</div><p class="voice-card__text">${escape(String(v.text||"").replace(/<br\s*\/?>/gi,"\n")).replace(/\n/g,"<br>")}</p><div class="voice-card__author"><span class="voice-card__name">${escape(v.name)}</span><span>${escape(v.attr||"")}</span></div>`;
     voicesGrid.appendChild(card);
   });
 }

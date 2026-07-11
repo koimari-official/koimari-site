@@ -177,7 +177,7 @@ function renderFaqPage(){
     section.className = "faq-cat";
     let html = `<h2 class="faq-cat__title">${escape(cat.category)}</h2>`;
     cat.items.forEach(it => {
-      html += `<div class="faq-item"><div class="faq-item__q">${escape(it.q)}</div><div class="faq-item__a">${escape(it.a).replace(/\n/g,"<br>")}</div></div>`;
+      html += `<div class="faq-item"><div class="faq-item__q">${escape(it.q)}</div><div class="faq-item__a">${escape(String(it.a||"").replace(/<br\s*\/?>/gi,"\n")).replace(/\n/g,"<br>")}</div></div>`;
     });
     section.innerHTML = html;
     container.appendChild(section);

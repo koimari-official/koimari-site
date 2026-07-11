@@ -979,7 +979,7 @@ function renderSpotlight(){
       ${sp.en?`<span class="spotlight__en">${escape(sp.en)}</span>`:""}
       <h2 class="spotlight__title">${title||""}</h2>
       ${sub?`<div class="spotlight__sub">${escape(sub)}</div>`:""}
-      ${desc?`<p class="spotlight__desc">${escape(desc)}</p>`:""}
+      ${desc?`<p class="spotlight__desc">${escape(String(desc||"").replace(/<br\s*\/?>/gi,"\n")).replace(/\n/g,"<br>")}</p>`:""}
       ${sp.price?`<div class="spotlight__price">${escape(sp.price)}<span>${escape(priceNote||"")}</span></div>`:""}
       <a href="${escape(sp.ctaUrl||"reservation.html")}" class="spotlight__cta">${escape(cta||"詳しく見る")}</a>
     </div>`;
@@ -1104,7 +1104,7 @@ function renderInstaCard(){
   if(!igCard) return;
   if(ig.visible===false){ igCard.style.display="none"; return; }
   igCard.style.display="";
-  const captionLines=(ig.caption||"").split("\n").filter(l=>l).map(l=>escape(l)).join("<br>");
+  const captionLines=String(ig.caption||"").replace(/<br\s*\/?>/gi,"\n").split("\n").filter(l=>l).map(l=>escape(l)).join("<br>");
   const hashtags=(ig.hashtags||"").split(/\s+/).filter(t=>t.startsWith("#")).map(t=>escape(t)).join(" ");
   igCard.href=ig.url||"https://www.instagram.com/_koimari_";
   igCard.innerHTML=`
