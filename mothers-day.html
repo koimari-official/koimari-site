@@ -69,11 +69,11 @@ a{color:inherit;text-decoration:none}
 .header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 .header__inner{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
 .header__logo{display:flex;align-items:center;gap:10px;line-height:1}
-.header__logo-mark{width:66px;height:66px;object-fit:contain}
+.header__logo-mark{width:82px;height:82px;object-fit:contain}
 .header__logo-text{display:flex;flex-direction:column;line-height:1}
-.header__logo-en{font-family:var(--font-en);font-size:32px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
-.header__logo-jp{font-family:var(--font-mincho);font-size:15px;letter-spacing:.4em;color:#fff;font-weight:600;margin-top:8px}
-.back-link{font-family:var(--font-mincho);font-size:16px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
+.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
+.header__logo-jp{font-family:var(--font-mincho);font-size:18px;letter-spacing:.4em;color:#fff;font-weight:600;margin-top:8px}
+.back-link{font-family:var(--font-mincho);font-size:18px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
 .back-link:hover{color:var(--color-accent)}
 .nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
 .nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
@@ -235,6 +235,11 @@ section{padding:90px 24px}
 /* ===== Responsive ===== */
 @media(max-width:900px){
   body{font-size:18px;padding-bottom:80px}
+  .header__inner{flex-wrap:wrap;row-gap:12px}
+  .header__logo-mark{width:56px;height:56px}
+  .header__logo-en{font-size:26px}
+  .header__logo-jp{font-size:15px}
+  .back-link{font-size:16px}
   .hero{padding:40px 22px 50px}
   .hero__decor{display:none}
   section{padding:60px 18px}
