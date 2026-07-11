@@ -49,8 +49,8 @@
 - **CSSフレームワーク**: Tailwind CSS（CDN、`preflight:false`）+ オリジナルCSS変数
 - **フォント**: Google Fonts（Shippori Mincho, Noto Sans JP, Cormorant Garamond, Playfair Display）
 - **画像**: Unsplash の無料画像（本番差し替え予定）+ ユーザー提供画像
-- **データ保存**: localStorage（端末ごとに保存。複数端末での共有不可）
-- **フォーム送信**: Formspree（エンドポイント未設定、`FORMSPREE_ENDPOINT`定数を埋めるだけ）
+- **データ保存**: Firebase Realtime Database（`koimari-tasting`プロジェクト）が正。localStorageは一部キャッシュ用途のみ残存（詳細は下記「localStorageキー一覧」参照）
+- **フォーム送信**: Formspree（エンドポイント設定済み `https://formspree.io/f/mwvddbqk`）+ Firebase保存の並行実行。Firebase保存の成否のみで送信成功/失敗を判定（詳細は下記「予約フォーム仕様」参照）
 - **アクセス解析**: Google Tag Manager（ID: `GTM-MB2XHF6J`、全ページ導入済み）＋ GA4（測定ID: `G-7VVE1ZEKD5`、2026-07-09設定・GTM経由で「Google タグ」を追加、トリガーはInitialization - All Pages）
 - **デプロイ**: GitHub Pages（`koimari-official/koimari-site` リポジトリ、main ブランチ）
 - **多言語**: 日英切り替え（`i18n.js`）
@@ -160,7 +160,7 @@
 | `max-width: 900px` | モバイル全般。ナビ非表示、グリッド縮小、FAB表示切替 |
 | `max-width: 480px` | 縦向きスマホ。本文17px、カード1列フル幅、カレンダーエッジ表示 |
 | `max-width: 380px` | 超小型端末。カレンダーさらに縮小 |
-| `orientation:landscape` + `max-width:900px` | 横向きスマホ。ヘッダー圧縮（サブテキスト非表示、KOIMARI 22px）、本文16px |
+| `orientation:landscape` + `max-width:900px` | 横向きスマホ。ヘッダー圧縮（KOIMARI 22px、サブテキスト「ケーキ屋さんこいまり」は非表示にせず9pxで常時表示 ※2026-07-12修正、旧仕様は非表示だった）、本文16px |
 
 ---
 
@@ -355,6 +355,14 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 - URLパラメータ自動入力: `?type=`, `?season=`, `?cake=`, `?ref=`
 - Formspree連携用コード（`FORMSPREE_ENDPOINT`定数を埋めるだけ）
 
+### 送信フォーム（reservation.html / experience.html / corporate.html）の送信失敗が画面に出ない不具合（2026-07-12発覚・修正）
+
+**問題**：3フォームとも、送信処理は「Formspreeへのメール通知」と「Firebase保存」の両方を`try/catch`で個別に囲い、どちらが失敗しても`console.warn`でログを出すだけで結果を無視し、**必ず**「送信完了(Thank you)」画面を表示していた。そのため通信エラーやFirebaseの一時的な障害でFirebase保存に失敗した場合、お客様の画面には送信成功に見えるにもかかわらず、実際には予約・応募・相談内容がFirebaseにもメールにも記録されず、店舗側は問い合わせがあったこと自体に気づけない「サイレントな送信ロスト」が起こり得た（オーナーからの「エラーが生じないようになっているか」という確認で発覚）。
+
+**対策**：3ファイルとも、Firebase保存とFormspree通知を`Promise.allSettled`で並行実行し、**Firebase保存（`push(...Ref, data)`）の成否のみ**で成功/失敗を判定するよう変更（Formspreeはあくまでメール通知の補助であり、Firebase保存＝管理画面に表示される正式な記録という位置づけのため）。保存に失敗した場合は「送信完了」を表示せず、フォーム下部にエラーメッセージ（電話番号への連絡案内付き）を表示し、フォームは送信可能な状態のまま再試行できるようにした。エラー表示に`alert()`は使わない（環境によりサイレントに無視されるため。詳細は`MANUAL.md`／メモリ参照）。
+
+**今後の教訓**：ユーザー向けの「送信完了」表示は、実際にデータが永続化されたことを確認してから出す。複数の非同期処理（通知・保存等）を`try/catch`で個別に握りつぶして無条件に成功画面へ進む実装は、ネットワーク障害時に気づけないデータロストを生むため、新しいフォーム・送信処理を追加する際は必ず「どの処理の成否が成功判定の基準か」を明確にすること。
+
 ---
 
 ## このサイトで発生した問題と解決策
@@ -368,7 +376,8 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 - **解決**: `.bcal` padding・セル高さ・グリッドgap・DOW padding を段階的に縮小
 
 ### スマホ横向きでヘッダーが画面を占有
-- **解決**: `orientation:landscape` メディアクエリでヘッダーのサブテキストを非表示・ロゴ縮小・上下余白を3pxに圧縮
+- **解決**: `orientation:landscape` メディアクエリでロゴ縮小・上下余白を3pxに圧縮
+- **⚠️ 2026-07-12修正**：当初サブテキスト「ケーキ屋さんこいまり」を`display:none`で非表示にしていたが、正式名称を常時表示する方針（後述）と矛盾するため、非表示ではなく9pxへの縮小表示に変更した
 
 ### モバイルでの予約FAB表示
 - **問題**: モバイルでは横長バーのみで円形FABが非表示だった
