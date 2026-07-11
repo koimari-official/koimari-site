@@ -1070,6 +1070,7 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
   item.className = "img-item";
   const previewEl = document.createElement("div");
   previewEl.className = "img-item__preview";
+  if (aspectRatio) previewEl.style.aspectRatio = String(aspectRatio); // 実際にサイト上で使われる比率とプレビューを一致させる
   previewEl.innerHTML = preview ? `<img src="${preview}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(preview)}` : "画像なし";
   item.appendChild(previewEl);
   fields.forEach(f => {
