@@ -1112,11 +1112,16 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
 }
 
 // 商品詳細ページ用の「追加の写真」複数枚エディタ（メイン画像とは別に、商品ページに並べて表示される）
-function makeGalleryEditor(images, { maxWidth, max, onChange }) {
+// item[key]＝トップページ・商品一覧・商品詳細ページのメイン画像として使われる「メイン画像」1枚。
+// item.gallery＝商品詳細ページでメイン画像の下にサブ画像として並ぶ「追加の写真」（最大max枚）。
+// 「トップに設定」ボタンで、サブ画像をメイン画像と入れ替えられるようにする
+// （どの写真をトップページに出すか／サブ画像にするかを選び直せるようにするため）。
+function makeGalleryEditor(item, key, { maxWidth, max, onChange }) {
+  const images = item.gallery;
   const wrap = document.createElement("div");
   wrap.className = "img-item__field";
   const label = document.createElement("label");
-  label.textContent = `追加の写真（最大${max}枚・商品詳細ページにギャラリー表示されます）`;
+  label.textContent = `追加の写真（最大${max}枚・商品詳細ページでメイン画像の下にサブ画像として表示されます。「トップに設定」でメイン画像と入れ替えられます）`;
   wrap.appendChild(label);
   const thumbRow = document.createElement("div");
   thumbRow.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;margin:8px 0;";
@@ -1124,10 +1129,26 @@ function makeGalleryEditor(images, { maxWidth, max, onChange }) {
     thumbRow.innerHTML = "";
     images.forEach((src, i) => {
       const box = document.createElement("div");
-      box.style.cssText = "position:relative;width:72px;height:72px;";
-      box.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border:1px solid var(--color-line);" onerror="this.style.opacity='0.3'">
-        <button type="button" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#b03b48;color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;">×</button>`;
-      box.querySelector("button").addEventListener("click", () => { images.splice(i, 1); renderThumbs(); onChange(); });
+      box.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;width:72px;";
+      const imgWrap = document.createElement("div");
+      imgWrap.style.cssText = "position:relative;width:72px;height:72px;";
+      imgWrap.innerHTML = `<img src="${src}" style="width:100%;height:100%;object-fit:cover;border:1px solid var(--color-line);" onerror="this.style.opacity='0.3'">
+        <button type="button" data-role="del" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#b03b48;color:#fff;border:none;font-size:12px;line-height:1;cursor:pointer;">×</button>`;
+      imgWrap.querySelector('[data-role="del"]').addEventListener("click", () => { images.splice(i, 1); renderThumbs(); onChange(); });
+      box.appendChild(imgWrap);
+      const promoteBtn = document.createElement("button");
+      promoteBtn.type = "button";
+      promoteBtn.textContent = "トップに設定";
+      promoteBtn.className = "btn btn--small btn--ghost";
+      promoteBtn.style.cssText = "font-size:10px;padding:2px 5px;white-space:nowrap;";
+      promoteBtn.addEventListener("click", () => {
+        const oldMain = item[key];
+        images.splice(i, 1, oldMain); // これまでメイン画像だった写真を、選んだサブ画像の位置に差し込む
+        item[key] = src; // 選んだサブ画像を新しいメイン画像にする
+        renderThumbs();
+        onChange();
+      });
+      box.appendChild(promoteBtn);
       thumbRow.appendChild(box);
     });
   }
@@ -1281,7 +1302,7 @@ function renderCategories() {
       fields: [
         { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
         { label: "英語表記", key: "en", value: c.en, type: "input" },
-        { label: "画像URL", key: "img", value: c.img, type: "input" },
+        { label: "メイン画像URL（トップページ・一覧・商品詳細ページの一番上に表示されます）", key: "img", value: c.img, type: "input" },
         { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: c.desc||"", type: "textarea" }
       ],
       onChange: (k, v) => { workingData.categories[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
@@ -1289,7 +1310,7 @@ function renderCategories() {
       onDelete: () => { workingData.categories.splice(i,1); renderCategories(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, c, "img", () => { renderCategories(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(c.gallery, { maxWidth: 900, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(c, "img", { maxWidth: 900, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.categories[i].visible, () => { workingData.categories[i].visible = !workingData.categories[i].visible; renderCategories(); updateSaveBar(); });
     grid.appendChild(item);
   });
@@ -1306,7 +1327,7 @@ function renderRecommended() {
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
         { label: "価格（サイト上には表示されません・内部管理用）", key: "price", value: r.price, type: "input" },
-        { label: "画像URL", key: "img", value: r.img, type: "input" },
+        { label: "メイン画像URL（トップページ・一覧・商品詳細ページの一番上に表示されます）", key: "img", value: r.img, type: "input" },
         { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: r.desc||"", type: "textarea" }
       ],
       onChange: (k, v) => { workingData.recommended[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
@@ -1314,7 +1335,7 @@ function renderRecommended() {
       onDelete: () => { workingData.recommended.splice(i,1); renderRecommended(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, r, "img", () => { renderRecommended(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(r.gallery, { maxWidth: 700, max: 6, onChange: () => { renderRecommended(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderRecommended(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.recommended[i].visible, () => { workingData.recommended[i].visible = !workingData.recommended[i].visible; renderRecommended(); updateSaveBar(); });
     grid.appendChild(item);
   });
