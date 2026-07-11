@@ -38,7 +38,7 @@ const KOIMARI_I18N_EN = {
   'greeting.heading': 'Four Seasons<br>on a Plate.',
   'greeting.body1':   'Koimari is a handcrafted cake and pastry shop rooted in the flavors of each season. Every piece is baked with care, bringing small moments of joy to everyday life.',
   'greeting.body2':   'From birthday and anniversary cakes to boxed pastry gifts, we are here to make your most cherished moments even more special. Please feel free to reach out.',
-  'greeting.body3':   'In recent years, rising ingredient and labor costs have led the industry as a whole to shift toward simpler, less labor-intensive offerings. Even so, we remain committed to the traditional care and craftsmanship behind every high-quality cake we make, and we will continue to put this commitment into practice in everything we bake.',
+  'greeting.body3':   'In recent years, rising ingredient and labor costs have pushed the industry toward simpler, less labor-intensive offerings. Even so, we remain committed to quality ingredients, traditional craftsmanship, and the care behind every cake we make.',
 
   // Social
   'social.lead': 'We share our latest updates on social media too.<br>Following us means a lot to our team.<br>Our whole staff is looking forward to connecting with you.',
