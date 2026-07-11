@@ -786,6 +786,15 @@ function loadData() {
 function loadList(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; } }
 function isDirty() { return JSON.stringify(workingData) !== JSON.stringify(savedData); }
 function updateSaveBar() { document.getElementById("saveBar").style.display = isDirty() ? "flex" : "none"; }
+// 「保存する」を押し忘れたままタブを閉じる／再読み込みすると、画像・テキストの変更が
+// 何も保存されずに消えてしまう（本人には「作業が無かったことになった」ように見える）。
+// 未保存の変更がある状態で離脱しようとした場合はブラウザ標準の確認ダイアログを出す。
+window.addEventListener("beforeunload", (e) => {
+  if (workingData && isDirty()) {
+    e.preventDefault();
+    e.returnValue = "";
+  }
+});
 function showToast(msg, type) {
   const t = document.getElementById("toast");
   t.textContent = msg;
