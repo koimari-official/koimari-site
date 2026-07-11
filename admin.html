@@ -3377,7 +3377,12 @@ window.firebaseLogout = function () {
 /* ===== 季節イベント設定（siteConfig/eventBanner） ===== */
 const eventBannerConfigRef = ref(fbDb, "siteConfig/eventBanner");
 function initEventConfigPanel() {
+  let loadedOnce = false;
   onValue(eventBannerConfigRef, (snapshot) => {
+    // 2回目以降のライブ更新でフォームを上書きすると、入力中の内容が他の人の保存で
+    // 消えてしまうため、最初の1回（画面を開いた時点の最新化）だけ反映する。
+    if (loadedOnce) return;
+    loadedOnce = true;
     const cfg = snapshot.val() || {};
     const showEl = document.getElementById("ecShow");
     const nameEl = document.getElementById("ecEventName");
@@ -3429,14 +3434,25 @@ function renderExpDateList() {
     </div>`;
   }).join("") || `<p style="font-size:13px;color:var(--color-text-soft);">候補日がまだ登録されていません。</p>`;
   listEl.querySelectorAll("button[data-date]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      currentExpDates = currentExpDates.filter(d => d !== btn.dataset.date);
-      saveExpDates();
-    });
+    btn.addEventListener("click", () => { saveExpDates("remove", btn.dataset.date); });
   });
 }
-function saveExpDates() {
-  update(ref(fbDb, "siteConfig"), { experienceDates: currentExpDates }).catch(err => console.warn("候補日保存失敗:", err));
+// currentExpDates全体をそのまま書き込むと、保存の直前に他の人が追加/削除した分を
+// 上書きして消してしまう可能性があるため、保存直前に最新を取得し、今回の操作（追加/削除する1件）
+// だけをその最新配列に適用してから書き込む。
+async function saveExpDates(action, date) {
+  try {
+    const snap = await get(experienceDatesRef);
+    let fresh = snap.val() || [];
+    if (action === "add" && !fresh.includes(date)) fresh = [...fresh, date];
+    if (action === "remove") fresh = fresh.filter(d => d !== date);
+    await update(ref(fbDb, "siteConfig"), { experienceDates: fresh });
+    currentExpDates = fresh;
+    renderExpDateList();
+  } catch (err) {
+    console.warn("候補日保存失敗:", err);
+    showToast("候補日の保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+  }
 }
 function initExpDatesPanel() {
   onValue(experienceDatesRef, (snapshot) => {
@@ -3450,10 +3466,7 @@ function initExpDatesPanel() {
       const input = document.getElementById("edNewDate");
       const val = input.value;
       if (!val) return;
-      if (!currentExpDates.includes(val)) {
-        currentExpDates.push(val);
-        saveExpDates();
-      }
+      if (!currentExpDates.includes(val)) saveExpDates("add", val);
       input.value = "";
     });
   }
