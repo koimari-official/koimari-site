@@ -840,6 +840,14 @@ function mergeArraySection(base, fresh, working, label, conflicts) {
   });
 }
 
+// 配列ではなく単一のオブジェクト・文字列を丸ごと1項目として扱うマージ（例: 営業日設定、Instagram投稿）
+function mergeScalarSection(base, fresh, working, label, conflicts) {
+  if (deepEqual(fresh, base)) return working;
+  if (deepEqual(working, base)) return fresh;
+  conflicts.push(label);
+  return fresh;
+}
+
 function mergeSiteImages(base, fresh, working) {
   base = base || DEFAULT_IMAGES; fresh = fresh || base; working = working || base;
   const conflicts = [];
@@ -892,9 +900,9 @@ function showAdmin() {
     window.fbSubscribeSiteImages();
   }
   // お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役も
-  // 同様にFirebase側を正として取り込み直す（複数端末・複数従業員での運用に対応するため）
-  if (typeof window.fbLoadAllContent === "function") {
-    window.fbLoadAllContent().then(all => applyFetchedContent(all));
+  // 同様にライブ購読し、他の人の保存内容を自動で取り込む（複数端末・複数従業員での運用に対応するため）
+  if (typeof window.fbSubscribeContent === "function") {
+    window.fbSubscribeContent();
   }
 }
 function login() {
@@ -2381,18 +2389,57 @@ function loadByKey(key, fallback) {
   try { const r = localStorage.getItem(key); if (r) return JSON.parse(r); } catch(e){}
   return JSON.parse(JSON.stringify(fallback));
 }
+
+// コンテンツ種別ごとのデータ形状（配列＝項目単位でマージ／object＝丸ごと1項目としてマージ）とラベル
+const CONTENT_SHAPES = { news: "array", holidays: "object", faq: "array", gallery: "array", voices: "array", blog: "array", insta: "object", stats: "array", spotlight: "array" };
+const CONTENT_LABELS = { news: "お知らせ", holidays: "営業日設定", faq: "FAQ", gallery: "ギャラリー", voices: "お客様の声", blog: "ブログ", insta: "Instagram投稿", stats: "数字で見る", spotlight: "今月の主役" };
+// 各コンテンツ種別について「最後にFirebaseと同期が取れた状態」を保持（保存時・ライブ更新時のマージの基準にする）
+let savedContentByKey = {};
+
 async function saveByKey(key, data) {
-  try { localStorage.setItem(key, JSON.stringify(data)); }
-  catch(e) { showToast("保存に失敗しました", "error"); return false; }
+  const contentKey = key.replace(/^koimari_/, "");
+  const shape = CONTENT_SHAPES[contentKey] || "array";
+  const label = CONTENT_LABELS[contentKey] || contentKey;
+  const conflicts = [];
+  let merged = data;
+  try {
+    if (typeof window.fbLoadContentKey === "function") {
+      const fresh = await window.fbLoadContentKey(contentKey);
+      const base = savedContentByKey[contentKey];
+      // 保存直前にFirebase側の最新を取得し、自分の未保存編集とマージしてから書き込む
+      // （他の項目・他の人の変更を丸ごと上書きしないため。基準となるbaseが無い場合は従来通り自分のデータをそのまま使う）
+      if (fresh !== null && fresh !== undefined && base !== undefined) {
+        merged = shape === "array"
+          ? mergeArraySection(base, fresh, data, label, conflicts)
+          : mergeScalarSection(base, fresh, data, label, conflicts);
+      }
+    }
+  } catch (e) {
+    showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    return null;
+  }
+  try { localStorage.setItem(key, JSON.stringify(merged)); }
+  catch(e) { showToast("保存に失敗しました", "error"); return null; }
   try {
     if (typeof window.fbSaveContentKey === "function") {
-      await window.fbSaveContentKey(key.replace(/^koimari_/, ""), data);
+      await window.fbSaveContentKey(contentKey, merged);
     }
   } catch(e) {
     showToast("サーバーへの保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
-    return false;
+    return null;
   }
-  return true;
+  savedContentByKey[contentKey] = JSON.parse(JSON.stringify(merged));
+  return { merged, conflicts };
+}
+// 保存結果を各パネルに反映する共通処理（成功時はローカルデータを更新して再描画、競合があれば警告を出す）
+function afterSave(result, applyFn, successMsg) {
+  if (!result) return; // 失敗時は既にエラートーストが表示済み
+  applyFn(result.merged);
+  if (result.conflicts.length) {
+    showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${result.conflicts.join("、")}。該当箇所はご自身の変更が必要であれば編集し直してください。`, "error");
+  } else {
+    showToast(successMsg);
+  }
 }
 
 /* ============ お知らせ管理 ============ */
@@ -2451,7 +2498,7 @@ function renderNewsAdmin() {
   sb.innerHTML = '<button class="btn" id="saveNewsBtn">変更を保存</button>';
   wrap.appendChild(sb);
   document.getElementById("saveNewsBtn").addEventListener("click", async () => {
-    if (await saveByKey(NEWS_KEY, newsData)) showToast("お知らせを保存しました（サイトに反映されます）");
+    afterSave(await saveByKey(NEWS_KEY, newsData), merged => { newsData = merged; renderNewsAdmin(); }, "お知らせを保存しました（サイトに反映されます）");
   });
 }
 document.getElementById("addNews").addEventListener("click", () => {
@@ -2485,7 +2532,7 @@ const DEFAULT_STATS_LIST = [
   { num: "4.8", unit: "/5.0", label: "Googleレビュー評価" }
 ];
 
-let spotlightList = [];
+let spotlightList = null;
 function loadSpotlightList() {
   try {
     const r = localStorage.getItem(SPOTLIGHT_KEY);
@@ -2498,7 +2545,9 @@ function loadSpotlightList() {
   return [Object.assign({ visible: true }, JSON.parse(JSON.stringify(DEFAULT_SPOTLIGHT)))];
 }
 async function saveSpotlightList() {
-  return await saveByKey(SPOTLIGHT_KEY, spotlightList);
+  const result = await saveByKey(SPOTLIGHT_KEY, spotlightList);
+  if (result) spotlightList = result.merged;
+  return result;
 }
 function renderSpotlightAdmin() {
   spotlightList = loadSpotlightList();
@@ -2564,20 +2613,20 @@ function renderSpotlightAdmin() {
       } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
     });
     document.getElementById("saveSpotlight").addEventListener("click", async () => {
-      if (await saveSpotlightList()) showToast("特集を保存しました（サイトに反映されます）");
+      afterSave(await saveSpotlightList(), () => renderSpotlightAdmin(), "特集を保存しました（サイトに反映されます）");
     });
     document.getElementById("stockAndNew").addEventListener("click", async () => {
       if (!confirm("現在の特集をストックして、新規作成しますか？")) return;
       sp.visible = false;
       const newSp = { badge: "今月の主役", period: "", en: "Pick of the Month", title: "", sub: "", desc: "", price: "", priceNote: "", cta: "ご予約はこちら", ctaUrl: "reservation.html", img: "", visible: true };
       spotlightList.unshift(newSp);
-      if (await saveSpotlightList()) { showToast("ストックに保存しました"); renderSpotlightAdmin(); }
+      afterSave(await saveSpotlightList(), () => renderSpotlightAdmin(), "ストックに保存しました");
     });
   } else {
     document.getElementById("createNewSpotlight")?.addEventListener("click", async () => {
       const newSp = { badge: "今月の主役", period: "", en: "Pick of the Month", title: "", sub: "", desc: "", price: "", priceNote: "", cta: "ご予約はこちら", ctaUrl: "reservation.html", img: "", visible: true };
       spotlightList.unshift(newSp);
-      if (await saveSpotlightList()) renderSpotlightAdmin();
+      afterSave(await saveSpotlightList(), () => renderSpotlightAdmin(), "新規作成しました");
     });
   }
   const stockListEl = document.getElementById("spotlightStockList");
@@ -2607,7 +2656,7 @@ function renderSpotlightAdmin() {
         spotlightList[idx].visible = true;
         const item = spotlightList.splice(idx, 1)[0];
         spotlightList.unshift(item);
-        if (await saveSpotlightList()) { showToast("再公開しました"); renderSpotlightAdmin(); }
+        afterSave(await saveSpotlightList(), () => renderSpotlightAdmin(), "再公開しました");
       });
     });
     stockListEl.querySelectorAll("[data-delstock]").forEach(btn => {
@@ -2616,7 +2665,7 @@ function renderSpotlightAdmin() {
         const title = (spotlightList[idx].title || "この特集").replace(/<[^>]+>/g, "");
         if (!confirm(`「${title}」を削除しますか？この操作は取り消せません。`)) return;
         spotlightList.splice(idx, 1);
-        if (await saveSpotlightList()) { showToast("削除しました"); renderSpotlightAdmin(); }
+        afterSave(await saveSpotlightList(), () => renderSpotlightAdmin(), "削除しました");
       });
     });
   }
@@ -2681,7 +2730,7 @@ function renderInstaAdmin() {
     } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
   });
   document.getElementById("saveInsta").addEventListener("click", async () => {
-    if (await saveByKey(INSTA_KEY, instaData)) showToast("Instagram投稿を保存しました（サイトに反映されます）");
+    afterSave(await saveByKey(INSTA_KEY, instaData), merged => { instaData = merged; renderInstaAdmin(); }, "Instagram投稿を保存しました（サイトに反映されます）");
   });
 }
 
@@ -2709,7 +2758,7 @@ function renderStatsAdmin() {
   sb.innerHTML = '<button class="btn" id="saveStatsBtn">変更を保存</button>';
   wrap.appendChild(sb);
   document.getElementById("saveStatsBtn").addEventListener("click", async () => {
-    if (await saveByKey(STATS_KEY, statsTopData)) showToast("数字を保存しました（サイトに反映されます）");
+    afterSave(await saveByKey(STATS_KEY, statsTopData), merged => { statsTopData = merged; renderStatsAdmin(); }, "数字を保存しました（サイトに反映されます）");
   });
 }
 document.getElementById("addStat").addEventListener("click", () => {
@@ -2766,7 +2815,7 @@ document.getElementById("addExtraDate").addEventListener("click", () => {
   renderHolidaysAdmin();
 });
 document.getElementById("saveHolidays").addEventListener("click", async () => {
-  if (await saveByKey(HOLIDAYS_KEY, holidaysData)) showToast("営業日設定を保存しました（サイトに反映されます）");
+  afterSave(await saveByKey(HOLIDAYS_KEY, holidaysData), merged => { holidaysData = merged; renderHolidaysAdmin(); }, "営業日設定を保存しました（サイトに反映されます）");
 });
 
 /* ============ FAQ管理 ============ */
@@ -2815,7 +2864,7 @@ function renderFaqAdmin() {
   sb.innerHTML = '<button class="btn" id="saveFaqBtn">変更を保存</button>';
   wrap.appendChild(sb);
   document.getElementById("saveFaqBtn").addEventListener("click", async () => {
-    if (await saveByKey(FAQ_KEY, faqData)) showToast("FAQを保存しました（サイトに反映されます）");
+    afterSave(await saveByKey(FAQ_KEY, faqData), merged => { faqData = merged; renderFaqAdmin(); }, "FAQを保存しました（サイトに反映されます）");
   });
 }
 document.getElementById("addFaqCat").addEventListener("click", () => {
@@ -2872,7 +2921,7 @@ function renderGalleryAdmin() {
   sb.innerHTML = '<button class="btn" id="saveGalleryBtn">変更を保存</button>';
   grid.appendChild(sb);
   document.getElementById("saveGalleryBtn").addEventListener("click", async () => {
-    if (await saveByKey(GALLERY_KEY, galleryData)) showToast("ギャラリーを保存しました（サイトに反映されます）");
+    afterSave(await saveByKey(GALLERY_KEY, galleryData), merged => { galleryData = merged; renderGalleryAdmin(); }, "ギャラリーを保存しました（サイトに反映されます）");
   });
 }
 document.getElementById("addGallery").addEventListener("click", () => {
@@ -2903,7 +2952,7 @@ function renderVoicesAdmin() {
   sb.innerHTML = '<button class="btn" id="saveVoicesBtn">変更を保存</button>';
   wrap.appendChild(sb);
   document.getElementById("saveVoicesBtn").addEventListener("click", async () => {
-    if (await saveByKey(VOICES_KEY, voicesData)) showToast("お客様の声を保存しました（サイトに反映されます）");
+    afterSave(await saveByKey(VOICES_KEY, voicesData), merged => { voicesData = merged; renderVoicesAdmin(); }, "お客様の声を保存しました（サイトに反映されます）");
   });
 }
 document.getElementById("addVoice").addEventListener("click", () => {
@@ -2939,7 +2988,7 @@ function renderBlogAdmin() {
   sb.innerHTML = '<button class="btn" id="saveBlogBtn">変更を保存</button>';
   grid.appendChild(sb);
   document.getElementById("saveBlogBtn").addEventListener("click", async () => {
-    if (await saveByKey(BLOG_KEY, blogData)) showToast("ブログを保存しました（サイトに反映されます）");
+    afterSave(await saveByKey(BLOG_KEY, blogData), merged => { blogData = merged; renderBlogAdmin(); }, "ブログを保存しました（サイトに反映されます）");
   });
 }
 document.getElementById("addBlog").addEventListener("click", () => {
@@ -2950,25 +2999,43 @@ document.getElementById("addBlog").addEventListener("click", () => {
   renderBlogAdmin();
 });
 
-// ログイン直後にFirebase側の最新コンテンツをlocalStorageへ反映し、各パネルを再描画する。
-// (別の従業員が別の端末で保存した内容も、次回ログイン時には必ず反映されるようにするため)
+// Firebase側のkoimariContentをログイン時・ライブ更新時の両方で受け取る。
+// 自分が既にそのタブを開いて編集中の場合だけマージ処理を行う（開いていないタブはキャッシュを更新するのみ＝安全）。
 function applyFetchedContent(all) {
   if (!all) return;
   const KEYMAP = { news: NEWS_KEY, holidays: HOLIDAYS_KEY, faq: FAQ_KEY, gallery: GALLERY_KEY, voices: VOICES_KEY, blog: BLOG_KEY, insta: INSTA_KEY, stats: STATS_KEY, spotlight: SPOTLIGHT_KEY };
-  Object.entries(KEYMAP).forEach(([contentKey, lsKey]) => {
-    if (all[contentKey] === undefined) return;
-    try { localStorage.setItem(lsKey, JSON.stringify(all[contentKey])); } catch(e) {}
+  const GETTERS = { news: () => newsData, holidays: () => holidaysData, faq: () => faqData, gallery: () => galleryData, voices: () => voicesData, blog: () => blogData, insta: () => instaData, stats: () => statsTopData, spotlight: () => spotlightList };
+  const SETTERS = { news: v => newsData = v, holidays: v => holidaysData = v, faq: v => faqData = v, gallery: v => galleryData = v, voices: v => voicesData = v, blog: v => blogData = v, insta: v => instaData = v, stats: v => statsTopData = v, spotlight: v => spotlightList = v };
+  const RENDERERS = { news: renderNewsAdmin, holidays: renderHolidaysAdmin, faq: renderFaqAdmin, gallery: renderGalleryAdmin, voices: renderVoicesAdmin, blog: renderBlogAdmin, insta: renderInstaAdmin, stats: renderStatsAdmin, spotlight: renderSpotlightAdmin };
+  const allConflicts = [];
+  Object.keys(KEYMAP).forEach(contentKey => {
+    const fresh = all[contentKey];
+    if (fresh === undefined) return;
+    const lsKey = KEYMAP[contentKey];
+    const working = GETTERS[contentKey]();
+    const base = savedContentByKey[contentKey];
+    let merged;
+    if (working === null || working === undefined) {
+      // まだこのタブを開いていない（＝守るべき未保存編集が無い）→ 最新をそのまま採用
+      merged = fresh;
+    } else if (base === undefined) {
+      // 初回でこのセッションの基準がまだ無い → 安全側で自分の手元のデータを優先
+      merged = working;
+    } else {
+      merged = CONTENT_SHAPES[contentKey] === "array"
+        ? mergeArraySection(base, fresh, working, CONTENT_LABELS[contentKey], allConflicts)
+        : mergeScalarSection(base, fresh, working, CONTENT_LABELS[contentKey], allConflicts);
+    }
+    savedContentByKey[contentKey] = JSON.parse(JSON.stringify(fresh));
+    try { localStorage.setItem(lsKey, JSON.stringify(merged)); } catch(e) {}
+    if (working !== null && working !== undefined) {
+      SETTERS[contentKey](merged);
+      RENDERERS[contentKey]();
+    }
   });
-  newsData = null; renderNewsAdmin();
-  instaData = null; renderInstaAdmin();
-  statsTopData = null; renderStatsAdmin();
-  holidaysData = null; renderHolidaysAdmin();
-  faqData = null; renderFaqAdmin();
-  galleryData = null; renderGalleryAdmin();
-  voicesData = null; renderVoicesAdmin();
-  blogData = null; renderBlogAdmin();
-  spotlightList = loadSpotlightList();
-  renderSpotlightAdmin();
+  if (allConflicts.length) {
+    showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${allConflicts.join("、")}。ご自身の変更が必要な場合は再度編集してください。`, "error");
+  }
 }
 </script>
 
@@ -3023,9 +3090,9 @@ window.fbSubscribeSiteImages = function () {
 // これらは以前ブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されず、
 // 複数端末・複数従業員での運用にも耐えない構造だったため、共通のFirebaseパスに集約する。
 const contentRef = ref(fbDb, "koimariContent");
-window.fbLoadAllContent = async function () {
+window.fbLoadContentKey = async function (contentKey) {
   try {
-    const snap = await get(contentRef);
+    const snap = await get(ref(fbDb, "koimariContent/" + contentKey));
     return snap.exists() ? snap.val() : null;
   } catch (err) {
     console.warn("コンテンツの読み込み失敗:", err);
@@ -3034,6 +3101,15 @@ window.fbLoadAllContent = async function () {
 };
 window.fbSaveContentKey = async function (contentKey, data) {
   await set(ref(fbDb, "koimariContent/" + contentKey), data);
+};
+let unsubContent = null;
+window.fbSubscribeContent = function () {
+  if (unsubContent) return; // 既に購読中なら何もしない（再ログイン時の二重購読防止）
+  unsubContent = onValue(contentRef, (snapshot) => {
+    if (typeof window.applyFetchedContent === "function") {
+      window.applyFetchedContent(snapshot.exists() ? snapshot.val() : null);
+    }
+  });
 };
 
 let reservationKeys = []; // 配列インデックス → Firebaseのキー（koimari_reservationsと同じ並び順を保つ）
