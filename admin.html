@@ -2250,6 +2250,7 @@ function renderReservations() {
         <select onchange="updateResStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
           ${["受付済","対応中","完了","キャンセル"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
         </select>
+        ${r.emailSent===false?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ メール未送信</div>':""}
       </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.type)}</td>
@@ -2284,6 +2285,7 @@ function renderApplications() {
         <select onchange="updateExpStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
           ${["未対応","対応完了"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
         </select>
+        ${r.emailSent===false?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ メール未送信</div>':""}
       </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.program)}</td>
@@ -2376,6 +2378,7 @@ function renderCorporate() {
         <select onchange="updateCorpStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
           ${["未対応","対応完了"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
         </select>
+        ${r.emailSent===false?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ メール未送信</div>':""}
       </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.company)}<br><span class="small">${escapeHtml(r.department||"")}</span></td>

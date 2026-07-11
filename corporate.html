@@ -756,9 +756,12 @@ const FORMSPREE_ENDPOINT = "https://formspree.io/f/mwvddbqk";
 async function sendToFormspree(data) {
   if (!FORMSPREE_ENDPOINT) return true;
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
     const res = await fetch(FORMSPREE_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      signal: controller.signal,
       body: JSON.stringify({
         _subject: `【こいまり 法人ご相談】${data.company} ${data.name}様 (${data.purpose})`,
         _replyto: data.email,
@@ -771,8 +774,17 @@ async function sendToFormspree(data) {
         受信日時: data.submittedAt
       })
     });
+    clearTimeout(timer);
     return res.ok;
   } catch(e) { console.warn(e); return false; }
+}
+
+// Firebase保存が固まって画面が「送信中」のまま無限に止まらないよう、必ず一定時間で諦める
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label + "がタイムアウトしました")), ms))
+  ]);
 }
 
 form.addEventListener("submit", async (e) => {
@@ -801,24 +813,31 @@ form.addEventListener("submit", async (e) => {
   if (errEl) errEl.textContent = "";
   btn.disabled = true; btn.textContent = "送信中...";
 
-  // Firebase保存（店舗の管理画面で一覧・CSV出力するための正式なデータ）とメール通知を並行実行。
-  // Firebase保存が失敗した場合はご相談内容が記録されないため、その場合のみ送信失敗として扱う（メール通知はあくまで補助）。
-  const [saveResult] = await Promise.allSettled([
-    push(corporateRef, data),
-    sendToFormspree(data)
-  ]);
+  // メール通知の結果を、保存前に（最大8秒だけ待って）確定させる。
+  // ※Firebaseのセキュリティルール上、お客様（未ログイン）は新規レコードの「作成」のみ許可されており、
+  //   保存後に別途update()で書き戻すことはできない（権限エラーになる）。そのため結果は必ず最初の
+  //   保存に含める。8秒でメール送信を諦めてもご相談内容の保存は続行し、その場合はemailSent:falseとして
+  //   記録することで、管理画面で「メール未送信」を確実に検知できるようにする。
+  const emailSent = await withTimeout(sendToFormspree(data), 8000, "メール通知").catch(() => false);
+  data.emailSent = !!emailSent;
 
-  btn.disabled = false; btn.textContent = orig;
-
-  if (saveResult.status === "fulfilled") {
-    form.classList.add("hidden");
-    thanks.classList.remove("hidden");
-    window.scrollTo({top:0, behavior:"smooth"});
-  } else {
-    console.warn("Firebase保存失敗:", saveResult.reason);
+  // Firebase保存（管理画面に表示される正式な記録）の成否のみで「送信完了」を判定する。
+  // 12秒でタイムアウトさせ、通信不良時でも画面が「送信中」のまま止まらないようにする。
+  try {
+    await withTimeout(push(corporateRef, data), 12000, "ご相談内容の保存");
+  } catch (err) {
+    console.warn("Firebase保存失敗:", err);
+    btn.disabled = false; btn.textContent = orig;
     if (errEl) errEl.textContent = "送信に失敗しました。恐れ入りますが、お電話（06-7221-0705）にてご連絡いただくか、時間をおいて再度お試しください。";
     window.scrollTo({top:0, behavior:"smooth"});
+    return;
   }
+
+  // ここまで来ればご相談内容（メール送信結果を含む）は確実に保存済み。お客様には確定で「完了」を表示してよい。
+  btn.disabled = false; btn.textContent = orig;
+  form.classList.add("hidden");
+  thanks.classList.remove("hidden");
+  window.scrollTo({top:0, behavior:"smooth"});
 });
 
 form.querySelectorAll(".input, .select, .textarea").forEach(el => {
