@@ -1026,6 +1026,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <span class="error" data-for="privacyConsent"></span>
       </div>
 
+      <div class="error" id="submitError" style="text-align:center;font-size:15px;margin-top:4px;"></div>
       <div class="actions"><button type="submit" class="btn">送信する</button></div>
     </form>
 
@@ -1214,19 +1215,28 @@ form.addEventListener("submit", async (e) => {
   // 送信中ボタン表示
   const btn = form.querySelector("button[type=submit]");
   const originalText = btn.textContent;
+  const errEl = document.getElementById("submitError");
+  if (errEl) errEl.textContent = "";
   btn.disabled = true; btn.textContent = "送信中...";
 
-  // 1. メール通知（設定済みの場合）
-  await sendToFormspree(data);
-  // 2. Firebaseに保存（店舗の管理画面で一覧・CSV出力するためのデータ）
-  try {
-    await push(reservationsRef, data);
-  } catch (err) { console.warn("Firebase保存失敗:", err); }
+  // Firebase保存（店舗の管理画面で一覧・CSV出力するための正式なデータ）とメール通知を並行実行。
+  // Firebase保存が失敗した場合は予約が記録されないため、その場合のみ送信失敗として扱う（メール通知はあくまで補助）。
+  const [saveResult] = await Promise.allSettled([
+    push(reservationsRef, data),
+    sendToFormspree(data)
+  ]);
 
   btn.disabled = false; btn.textContent = originalText;
-  form.classList.add("hidden");
-  thanks.classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+
+  if (saveResult.status === "fulfilled") {
+    form.classList.add("hidden");
+    thanks.classList.remove("hidden");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  } else {
+    console.warn("Firebase保存失敗:", saveResult.reason);
+    if (errEl) errEl.textContent = "送信に失敗しました。恐れ入りますが、お電話（06-7221-0705）にてご連絡いただくか、時間をおいて再度お試しください。";
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 });
 
 form.querySelectorAll(".input").forEach(el => {
