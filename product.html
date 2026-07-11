@@ -180,7 +180,7 @@ const DEFAULT_RECOMMENDED = [
 ];
 
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
-function nl2p(s){return esc(String(s||"").replace(/<br\s*\/?>/gi,"\n")).split(/\n+/).filter(Boolean).map(p=>`<p>${p}</p>`).join('');}
+function nl2p(s){return esc(String(s||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).split(/\n+/).filter(Boolean).map(p=>`<p>${p}</p>`).join('');}
 
 function loadImages(){
   try{
@@ -220,9 +220,9 @@ function renderProductPage(){
   }
 
   const displayName = item.name || '';
-  const plainName = displayName.replace(/<br\s*\/?>/gi, ' ').trim();
+  const plainName = displayName.replace(/<\s*br\s*\/?\s*>/gi, ' ').trim();
   document.getElementById('pageEn').textContent = (productType === 'recommended' ? item.nameEn : item.en) || 'Koimari';
-  document.getElementById('pageTitle').innerHTML = esc(displayName).replace(/&lt;br\s*\/?&gt;/gi, '<br>');
+  document.getElementById('pageTitle').innerHTML = esc(displayName).replace(/&lt;\s*br\s*\/?\s*&gt;/gi, '<br>');
   document.title = plainName + '｜こいまり';
 
   const photos = [item.img].concat(Array.isArray(item.gallery) ? item.gallery : []).filter(Boolean);

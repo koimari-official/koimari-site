@@ -319,7 +319,7 @@ function loadBlog(){
   return DEFAULT_BLOG;
 }
 function esc(s){return String(s||'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
-function nl2p(s){return esc(String(s||'').replace(/<br\s*\/?>/gi,'\n')).split(/\n+/).filter(Boolean).map(p=>`<p>${p}</p>`).join('');}
+function nl2p(s){return esc(String(s||'').replace(/<\s*br\s*\/?\s*>/gi,'\n')).split(/\n+/).filter(Boolean).map(p=>`<p>${p}</p>`).join('');}
 function readMin(s){return Math.max(1,Math.ceil((s||'').length/400));}
 function catCls(c){return CAT_CLASS[c]||'cat-color-other';}
 function isNew(dateStr){
@@ -393,7 +393,7 @@ function renderList(){
         <span class="featured-card__read">約${rt0}分</span>
       </div>
       <div class="featured-card__title">${esc(top.title)}</div>
-      <p class="featured-card__excerpt">${esc(String(top.excerpt||'').replace(/<br\s*\/?>/gi,'\n')).replace(/\n/g,'<br>')}</p>
+      <p class="featured-card__excerpt">${esc(String(top.excerpt||'').replace(/<\s*br\s*\/?\s*>/gi,'\n')).replace(/\n/g,'<br>')}</p>
       <span class="featured-card__more">続きを読む →</span>
     </div>`;
   fCard.addEventListener('click',()=>showDetail(top.id));
@@ -422,7 +422,7 @@ function renderList(){
           <span class="blog-card__read">約${rt}分</span>
         </div>
         <h3 class="blog-card__title">${esc(p.title)}</h3>
-        <p class="blog-card__excerpt">${esc(String(p.excerpt||'').replace(/<br\s*\/?>/gi,'\n')).replace(/\n/g,'<br>')}</p>
+        <p class="blog-card__excerpt">${esc(String(p.excerpt||'').replace(/<\s*br\s*\/?\s*>/gi,'\n')).replace(/\n/g,'<br>')}</p>
         <div class="blog-card__footer">
           <span class="blog-card__more">続きを読む</span>
           <span class="blog-card__arrow">→</span>

@@ -891,8 +891,9 @@ function renderHeroSlides(){
   currentSlide=0;
   IMAGES.hero.filter(s=>s.visible!==false).forEach((slide,i)=>{
     const div=document.createElement("div");div.className="hero__slide"+(i===0?" active":"");
-    const heroAlt=escape((slide.titleJp||"こいまり").replace(/<br\s*\/?>/gi," "));
-    div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}"><div class="hero__overlay"><div class="hero__copy"><div class="hero__copy-en">${slide.titleEn||""}</div><div class="hero__copy-jp">${slide.titleJp||""}</div></div></div>`;
+    const heroAlt=escape((slide.titleJp||"こいまり").replace(/<\s*br\s*\/?\s*>/gi," "));
+    const heroTitleJp=escape(String(slide.titleJp||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");
+    div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}"><div class="hero__overlay"><div class="hero__copy"><div class="hero__copy-en">${slide.titleEn||""}</div><div class="hero__copy-jp">${heroTitleJp}</div></div></div>`;
     heroEl.insertBefore(div,dotsEl);
     const dot=document.createElement("button");dot.className="hero__dot"+(i===0?" active":"");dot.addEventListener("click",()=>goToSlide(i));dotsEl.appendChild(dot);
   });
@@ -914,13 +915,13 @@ const vGrid=document.getElementById("voicesGrid");
 function renderCategories(){
   catGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");a.href="product.html?type=category&idx="+i;a.className="cat-card";const displayName=en?(c.en||c.name):c.name;a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${displayName}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${displayName}</div></div>`;catGrid.appendChild(a)});
+  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");a.href="product.html?type=category&idx="+i;a.className="cat-card";const rawName=en?(c.en||c.name):c.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${escape(plainName)}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${safeName}</div></div>`;catGrid.appendChild(a)});
 }
 
 function renderRecommended(){
   recGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.recommended.forEach((r,i)=>{if(r.visible===false)return;const a=document.createElement("a");a.href="product.html?type=recommended&idx="+i;a.className="rec-card";const displayName=en?(r.nameEn||r.name):r.name;a.innerHTML=`<div class="rec-card__img"><img src="${r.img}" alt="${displayName}" loading="lazy"></div><div class="rec-card__name">${displayName}</div><div class="rec-card__price">${r.price}</div>`;recGrid.appendChild(a)});
+  IMAGES.recommended.forEach((r,i)=>{if(r.visible===false)return;const a=document.createElement("a");a.href="product.html?type=recommended&idx="+i;a.className="rec-card";const rawName=en?(r.nameEn||r.name):r.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();a.innerHTML=`<div class="rec-card__img"><img src="${r.img}" alt="${escape(plainName)}" loading="lazy"></div><div class="rec-card__name">${safeName}</div><div class="rec-card__price">${r.price}</div>`;recGrid.appendChild(a)});
 }
 
 function renderExperiences(){
@@ -969,17 +970,19 @@ function renderSpotlight(){
   const desc=en?(sp.descEn||sp.desc):sp.desc;
   const priceNote=en?(sp.priceNoteEn||sp.priceNote):sp.priceNote;
   const cta=en?(sp.ctaEn||sp.cta):sp.cta;
+  const titlePlain=String(title||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();
+  const titleSafe=escape(String(title||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");
   document.getElementById("spotlightInner").innerHTML=`
     <div class="spotlight__visual">
       ${badge?`<span class="spotlight__badge">${escape(badge)}</span>`:""}
-      <img src="${escape(sp.img)}" alt="${escape(title||'')}" loading="lazy">
+      <img src="${escape(sp.img)}" alt="${escape(titlePlain)}" loading="lazy">
       ${sp.period?`<span class="spotlight__period">${escape(sp.period)}</span>`:""}
     </div>
     <div class="spotlight__text">
       ${sp.en?`<span class="spotlight__en">${escape(sp.en)}</span>`:""}
-      <h2 class="spotlight__title">${title||""}</h2>
+      <h2 class="spotlight__title">${titleSafe}</h2>
       ${sub?`<div class="spotlight__sub">${escape(sub)}</div>`:""}
-      ${desc?`<p class="spotlight__desc">${escape(String(desc||"").replace(/<br\s*\/?>/gi,"\n")).replace(/\n/g,"<br>")}</p>`:""}
+      ${desc?`<p class="spotlight__desc">${escape(String(desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>`:""}
       ${sp.price?`<div class="spotlight__price">${escape(sp.price)}<span>${escape(priceNote||"")}</span></div>`:""}
       <a href="${escape(sp.ctaUrl||"reservation.html")}" class="spotlight__cta">${escape(cta||"詳しく見る")}</a>
     </div>`;
@@ -1104,7 +1107,7 @@ function renderInstaCard(){
   if(!igCard) return;
   if(ig.visible===false){ igCard.style.display="none"; return; }
   igCard.style.display="";
-  const captionLines=String(ig.caption||"").replace(/<br\s*\/?>/gi,"\n").split("\n").filter(l=>l).map(l=>escape(l)).join("<br>");
+  const captionLines=String(ig.caption||"").replace(/<\s*br\s*\/?\s*>/gi,"\n").split("\n").filter(l=>l).map(l=>escape(l)).join("<br>");
   const hashtags=(ig.hashtags||"").split(/\s+/).filter(t=>t.startsWith("#")).map(t=>escape(t)).join(" ");
   igCard.href=ig.url||"https://www.instagram.com/_koimari_";
   igCard.innerHTML=`

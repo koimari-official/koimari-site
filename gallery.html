@@ -278,7 +278,7 @@ function renderGrid(){
       </div>
       <div class="gal-card__body">
         <h3 class="gal-card__title">${escape(g.title)}</h3>
-        <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<br\s*\/?>/gi,"\n")).replace(/\n/g,"<br>")}</p>
+        <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong></span>` : ""}
           ${g.price ? `<span class="gal-card__meta-item">価格: <strong>${escape(g.price)}</strong></span>` : ""}
@@ -307,7 +307,7 @@ function renderVoicesGrid(){
   voices.forEach(v => {
     const card = document.createElement("article"); card.className = "voice-card";
     const stars = v.stars || 5;
-    card.innerHTML = `<div class="voice-card__stars">${"★".repeat(stars)}${"☆".repeat(5-stars)}</div><p class="voice-card__text">${escape(String(v.text||"").replace(/<br\s*\/?>/gi,"\n")).replace(/\n/g,"<br>")}</p><div class="voice-card__author"><span class="voice-card__name">${escape(v.name)}</span><span>${escape(v.attr||"")}</span></div>`;
+    card.innerHTML = `<div class="voice-card__stars">${"★".repeat(stars)}${"☆".repeat(5-stars)}</div><p class="voice-card__text">${escape(String(v.text||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p><div class="voice-card__author"><span class="voice-card__name">${escape(v.name)}</span><span>${escape(v.attr||"")}</span></div>`;
     voicesGrid.appendChild(card);
   });
 }
