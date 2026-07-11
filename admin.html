@@ -75,6 +75,31 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .toast { position: fixed; top: 90px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--color-success); color: #fff; padding: 14px 36px; font-size: 14px; letter-spacing: 0.08em; opacity: 0; transition: all 0.3s; z-index: 1000; pointer-events: none; box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+/* ===== 店舗通知（新規予約・問い合わせアラート） ===== */
+.shop-alert-bar { position: fixed; top: 0; left: 0; right: 0; z-index: 2000; background: var(--color-accent); color: #fff; box-shadow: 0 4px 20px rgba(0,0,0,0.25); transform: translateY(-100%); transition: transform 0.35s cubic-bezier(.34,1.2,.64,1); }
+.shop-alert-bar.show { transform: translateY(0); }
+.shop-alert-bar__inner { max-width: 900px; margin: 0 auto; padding: 18px 24px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.shop-alert-bar__icon { font-size: 30px; flex-shrink: 0; animation: shopAlertPulse 1s infinite; }
+@keyframes shopAlertPulse { 0%,100%{transform:scale(1);} 50%{transform:scale(1.15);} }
+.shop-alert-bar__body { flex: 1; min-width: 200px; }
+.shop-alert-bar__title { font-size: 13px; letter-spacing: 0.1em; opacity: 0.85; margin-bottom: 2px; }
+.shop-alert-bar__detail { font-size: 17px; font-weight: 700; letter-spacing: 0.03em; }
+.shop-alert-bar__close { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 8px 18px; font-size: 13px; cursor: pointer; letter-spacing: 0.05em; flex-shrink: 0; }
+.shop-alert-bar__close:hover { background: rgba(255,255,255,0.32); }
+
+.notify-screen { text-align: center; padding: 20px 0; }
+.notify-screen__unlock { background: #fff3cd; border: 1px solid #e0c060; padding: 18px 22px; margin-bottom: 30px; font-size: 14px; line-height: 1.8; }
+.notify-screen__unlock button { margin-top: 10px; }
+.notify-screen__idle { padding: 60px 20px; color: var(--color-text-soft); }
+.notify-screen__idle-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.notify-screen__idle-text { font-size: 16px; letter-spacing: 0.06em; }
+.notify-screen__log { text-align: left; max-width: 640px; margin: 0 auto; }
+.notify-screen__log-item { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-bottom: 1px solid var(--color-line); background: #fff; }
+.notify-screen__log-item:first-child { background: #fff8ea; }
+.notify-screen__log-icon { font-size: 22px; flex-shrink: 0; }
+.notify-screen__log-time { font-size: 12px; color: var(--color-text-soft); }
+.notify-screen__log-detail { font-size: 14px; font-weight: 600; margin-top: 2px; }
+
 /* ===== Image management ===== */
 .img-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; margin-bottom: 26px; }
 .img-item { background: #fff; border: 1px solid var(--color-line); padding: 18px; }
@@ -212,6 +237,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="stats">統計・分析</button>
 
       <span class="tab-group-label">予約・問い合わせ管理</span>
+      <button class="tab" data-panel="notify">🔔 店舗通知モード</button>
       <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span></button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
       <button class="tab" data-panel="corporate">法人ご相談 <span class="tab__count" id="corpCount">0</span></button>
@@ -355,6 +381,26 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <button class="btn btn--small btn--ghost" id="exportAll">全データCSV出力</button>
           <button class="btn btn--small btn--ghost" id="resetViews">ビュー数をリセット</button>
         </div>
+      </div>
+    </section>
+
+    <!-- ===== 店舗通知モード ===== -->
+    <section class="panel" id="panel-notify">
+      <div class="panel__head">
+        <h2 class="panel__title">🔔 店舗通知モード</h2>
+      </div>
+      <p class="panel__desc">この画面を店舗のiPad等で常時開いておくと、新しい予約・お問い合わせ・体験プログラム応募・法人ご相談が入るたびに、音とバナーでお知らせします。画面を閉じたりスリープさせたりすると通知は届かないため、常に開いた状態・画面ロックなしでご利用ください。</p>
+      <div class="notify-screen">
+        <div class="notify-screen__unlock" id="notifyUnlockBox">
+          <div>スマホ・タブレットのブラウザは安全のため、ボタン等を一度押すまで音を鳴らせない仕組みになっています。下のボタンを押して通知音を有効にしてください（この端末でこの画面を開くたびに1回だけでOKです）。</div>
+          <button class="btn btn--small" id="notifyUnlockBtn">🔔 通知音を有効にする</button>
+        </div>
+        <div id="notifyIdle" class="notify-screen__idle" style="display:none;">
+          <div class="notify-screen__idle-icon">☕</div>
+          <div class="notify-screen__idle-text">待機中です。新しい予約・お問い合わせが入ると、ここに音とバナーでお知らせします。</div>
+          <div style="margin-top:20px;"><button class="btn btn--small btn--ghost" id="notifyTestSound">🔈 通知音をテスト再生</button></div>
+        </div>
+        <div class="notify-screen__log" id="notifyLog"></div>
       </div>
     </section>
 
@@ -696,6 +742,17 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
 <div class="toast" id="toast"></div>
 
+<div class="shop-alert-bar" id="shopAlertBar">
+  <div class="shop-alert-bar__inner">
+    <span class="shop-alert-bar__icon">🔔</span>
+    <div class="shop-alert-bar__body">
+      <div class="shop-alert-bar__title" id="shopAlertBarTitle">新着があります</div>
+      <div class="shop-alert-bar__detail" id="shopAlertBarDetail"></div>
+    </div>
+    <button class="shop-alert-bar__close" id="shopAlertBarClose">閉じる</button>
+  </div>
+</div>
+
 <div id="cropModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:2000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;padding:22px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:16px;">
     <h3 style="font-family:var(--font-mincho);font-size:16px;font-weight:600;">画像の切り抜き位置を調整してください</h3>
@@ -810,6 +867,100 @@ function fmtDate(iso) {
   const d = new Date(iso);
   return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,"0")}/${d.getDate().toString().padStart(2,"0")} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
 }
+
+/* ============================================================
+   店舗通知モード（新規予約・問い合わせのサウンド＆バナー通知）
+   ============================================================ */
+let notifyAudioCtx = null;
+let notifyAudioUnlocked = false;
+const notifyHistory = []; // { icon, label, detail, time }
+
+function notifyPlayChime() {
+  try {
+    if (!notifyAudioCtx) notifyAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (notifyAudioCtx.state === "suspended") notifyAudioCtx.resume();
+    const ctx = notifyAudioCtx;
+    const now = ctx.currentTime;
+    [880, 1320].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now + i * 0.18);
+      gain.gain.linearRampToValueAtTime(0.35, now + i * 0.18 + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.18 + 0.5);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(now + i * 0.18);
+      osc.stop(now + i * 0.18 + 0.55);
+    });
+  } catch (e) { console.warn("通知音の再生に失敗:", e); }
+}
+
+const NOTIFY_LABELS = { reservations: "新しいご予約・お問合せ", experiences: "新しい体験プログラム応募", corporate: "新しい法人ご相談" };
+const NOTIFY_ICONS = { reservations: "🎂", experiences: "🧑‍🍳", corporate: "🏢" };
+
+function notifySummarize(type, data) {
+  if (type === "reservations") return `${data.name || "お名前未入力"} 様（${data.type || ""}）`;
+  if (type === "experiences") return `${data.participantName || "お名前未入力"} 様（${data.program || ""}）`;
+  if (type === "corporate") return `${data.company || "会社名未入力"} ${data.name || ""} 様`;
+  return "";
+}
+
+function handleNewSubmissionAlert(type, data) {
+  const icon = NOTIFY_ICONS[type] || "🔔";
+  const label = NOTIFY_LABELS[type] || "新着";
+  const detail = notifySummarize(type, data);
+  const time = fmtDate(data.submittedAt || new Date().toISOString());
+
+  notifyHistory.unshift({ icon, label, detail, time });
+  if (notifyHistory.length > 30) notifyHistory.length = 30;
+
+  const bar = document.getElementById("shopAlertBar");
+  if (bar) {
+    document.getElementById("shopAlertBarTitle").textContent = icon + " " + label;
+    document.getElementById("shopAlertBarDetail").textContent = detail;
+    bar.classList.add("show");
+  }
+
+  if (notifyAudioUnlocked) notifyPlayChime();
+
+  const notifyPanel = document.getElementById("panel-notify");
+  if (notifyPanel && notifyPanel.classList.contains("active")) renderNotifyLog();
+}
+window.handleNewSubmissionAlert = handleNewSubmissionAlert;
+
+function renderNotifyLog() {
+  const logEl = document.getElementById("notifyLog");
+  if (!logEl) return;
+  if (!notifyHistory.length) { logEl.innerHTML = ""; return; }
+  logEl.innerHTML = notifyHistory.map(h => `
+    <div class="notify-screen__log-item">
+      <span class="notify-screen__log-icon">${h.icon}</span>
+      <div>
+        <div class="notify-screen__log-time">${h.time} ・ ${escapeHtml(h.label)}</div>
+        <div class="notify-screen__log-detail">${escapeHtml(h.detail)}</div>
+      </div>
+    </div>
+  `).join("");
+}
+
+function renderNotifyPanel() {
+  document.getElementById("notifyUnlockBox").style.display = notifyAudioUnlocked ? "none" : "block";
+  document.getElementById("notifyIdle").style.display = notifyAudioUnlocked ? "block" : "none";
+  renderNotifyLog();
+}
+
+document.getElementById("notifyUnlockBtn").addEventListener("click", () => {
+  notifyAudioUnlocked = true;
+  document.getElementById("notifyUnlockBox").style.display = "none";
+  document.getElementById("notifyIdle").style.display = "block";
+  notifyPlayChime();
+  showToast("通知音を有効にしました");
+});
+document.getElementById("notifyTestSound").addEventListener("click", () => notifyPlayChime());
+document.getElementById("shopAlertBarClose").addEventListener("click", () => {
+  document.getElementById("shopAlertBar").classList.remove("show");
+});
 function dateKey(d) {
   return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}-${d.getDate().toString().padStart(2,"0")}`;
 }
@@ -943,6 +1094,7 @@ document.querySelectorAll(".tab").forEach(t => {
     t.classList.add("active");
     document.getElementById("panel-" + t.dataset.panel).classList.add("active");
     if (t.dataset.panel === "dashboard") renderDashboard();
+    if (t.dataset.panel === "notify") renderNotifyPanel();
     if (t.dataset.panel === "reservations") renderReservations();
     if (t.dataset.panel === "applications") renderApplications();
     if (t.dataset.panel === "corporate") renderCorporate();
@@ -3290,12 +3442,18 @@ let unsubReservations = null;
 let unsubExperiences = null;
 let unsubCorporate = null;
 
+let reservationsFirstLoad = true;
 function syncReservationsFromFirebase() {
   if (unsubReservations) return; // 既にリスニング中なら何もしない
   unsubReservations = onValue(reservationsRef, (snapshot) => {
     const val = snapshot.val() || {};
     const entries = Object.entries(val);
     entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
+    if (!reservationsFirstLoad) {
+      const prevKeys = new Set(reservationKeys);
+      entries.forEach(([k, data]) => { if (!prevKeys.has(k) && typeof window.handleNewSubmissionAlert === "function") window.handleNewSubmissionAlert("reservations", data); });
+    }
+    reservationsFirstLoad = false;
     reservationKeys = entries.map(([k]) => k);
     const list = entries.map(([, data]) => data);
     localStorage.setItem("koimari_reservations", JSON.stringify(list));
@@ -3307,12 +3465,18 @@ function syncReservationsFromFirebase() {
   });
 }
 
+let experiencesFirstLoad = true;
 function syncExperiencesFromFirebase() {
   if (unsubExperiences) return;
   unsubExperiences = onValue(experiencesRef, (snapshot) => {
     const val = snapshot.val() || {};
     const entries = Object.entries(val);
     entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
+    if (!experiencesFirstLoad) {
+      const prevKeys = new Set(experienceKeys);
+      entries.forEach(([k, data]) => { if (!prevKeys.has(k) && typeof window.handleNewSubmissionAlert === "function") window.handleNewSubmissionAlert("experiences", data); });
+    }
+    experiencesFirstLoad = false;
     experienceKeys = entries.map(([k]) => k);
     const list = entries.map(([, data]) => data);
     localStorage.setItem("koimari_experiences", JSON.stringify(list));
@@ -3324,12 +3488,18 @@ function syncExperiencesFromFirebase() {
   });
 }
 
+let corporateFirstLoad = true;
 function syncCorporateFromFirebase() {
   if (unsubCorporate) return;
   unsubCorporate = onValue(corporateRef, (snapshot) => {
     const val = snapshot.val() || {};
     const entries = Object.entries(val);
     entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
+    if (!corporateFirstLoad) {
+      const prevKeys = new Set(corporateKeys);
+      entries.forEach(([k, data]) => { if (!prevKeys.has(k) && typeof window.handleNewSubmissionAlert === "function") window.handleNewSubmissionAlert("corporate", data); });
+    }
+    corporateFirstLoad = false;
     corporateKeys = entries.map(([k]) => k);
     const list = entries.map(([, data]) => data);
     localStorage.setItem("koimari_corporate", JSON.stringify(list));
