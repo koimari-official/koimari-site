@@ -824,11 +824,11 @@ function deepEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
 function mergeArraySection(base, fresh, working, label, conflicts) {
   base = base || []; fresh = fresh || []; working = working || [];
   if (fresh.length !== base.length || working.length !== base.length) {
-    // 追加・削除が絡む場合はどちらかが無変更ならそのまま採用、両方変更していたら競合扱い
+    // 追加・削除が絡む場合はどちらかが無変更ならそのまま採用、両方変更していたら「今保存しようとしている側」を優先
     if (deepEqual(working, base)) return JSON.parse(JSON.stringify(fresh));
     if (deepEqual(fresh, base)) return working;
     conflicts.push(label);
-    return JSON.parse(JSON.stringify(fresh));
+    return working;
   }
   return base.map((baseItem, i) => {
     const freshItem = fresh[i], workingItem = working[i];
@@ -836,7 +836,7 @@ function mergeArraySection(base, fresh, working, label, conflicts) {
     if (deepEqual(workingItem, baseItem)) return freshItem;  // 自分はこの項目を変更していない → 最新を採用
     const itemLabel = (baseItem && (baseItem.name || baseItem.title)) || `#${i + 1}`;
     conflicts.push(`${label}「${itemLabel}」`);
-    return freshItem; // 同じ項目を両者が変更 → 競合。安全のため最新側を優先
+    return workingItem; // 同じ項目を両者が変更 → 今保存しようとしている（後から変更した）側を優先
   });
 }
 
@@ -845,19 +845,15 @@ function mergeScalarSection(base, fresh, working, label, conflicts) {
   if (deepEqual(fresh, base)) return working;
   if (deepEqual(working, base)) return fresh;
   conflicts.push(label);
-  return fresh;
+  return working; // 両者変更 → 今保存しようとしている（後から変更した）側を優先
 }
 
 function mergeSiteImages(base, fresh, working) {
   base = base || DEFAULT_IMAGES; fresh = fresh || base; working = working || base;
   const conflicts = [];
-  let greeting;
-  if (deepEqual(fresh.greeting, base.greeting)) greeting = working.greeting;
-  else if (deepEqual(working.greeting, base.greeting)) greeting = fresh.greeting;
-  else { conflicts.push("店舗紹介画像"); greeting = fresh.greeting; }
   const merged = {
     hero: mergeArraySection(base.hero, fresh.hero, working.hero, "ヒーロー画像", conflicts),
-    greeting,
+    greeting: mergeScalarSection(base.greeting, fresh.greeting, working.greeting, "店舗紹介画像", conflicts),
     categories: mergeArraySection(base.categories, fresh.categories, working.categories, "商品カテゴリー", conflicts),
     recommended: mergeArraySection(base.recommended, fresh.recommended, working.recommended, "おすすめ商品", conflicts),
     experiences: mergeArraySection(base.experiences, fresh.experiences, working.experiences, "体験プログラム", conflicts)
@@ -873,7 +869,7 @@ function applySiteImagesSnapshot(fbData) {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) {}
   renderAll();
   if (conflicts.length) {
-    showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${conflicts.join("、")}。ご自身の変更が必要な場合は再度編集してください。`, "error");
+    showToast(`他の人が次の項目を更新しましたが、あなたの未保存の変更を優先して残しています: ${conflicts.join("、")}。「保存する」を押すとあなたの内容がサイトに反映されます。`, "error");
   }
 }
 
@@ -1152,6 +1148,65 @@ function makeGalleryEditor(images, { maxWidth, max, onChange }) {
   return wrap;
 }
 
+// 画像アップロード時の履歴管理（直近5件まで）。新しい画像に差し替えても、古い画像は
+// 「過去の画像」として削除するまで管理画面上に残り、後から選び直したり完全に削除したりできる。
+const IMAGE_HISTORY_LIMIT = 5;
+function pushImageHistory(item, key, oldUrl) {
+  if (!oldUrl) return;
+  if (!Array.isArray(item.imgHistory)) item.imgHistory = [];
+  item.imgHistory = item.imgHistory.filter(u => u !== oldUrl);
+  item.imgHistory.unshift(oldUrl);
+  if (item.imgHistory.length > IMAGE_HISTORY_LIMIT) item.imgHistory.length = IMAGE_HISTORY_LIMIT;
+}
+// アップロードで画像を差し替える際、置き換え前の画像を履歴に積んでからitem[key]を更新するonFileラッパー
+function historyAwareOnFile(item, key, afterSet) {
+  return newUrl => {
+    pushImageHistory(item, key, item[key]);
+    item[key] = newUrl;
+    afterSet();
+  };
+}
+// 過去の画像を一覧表示し、「戻す」「完全に削除」できるUIをimg-itemに追加する
+function appendImageHistoryUI(container, item, key, onChange) {
+  const hist = Array.isArray(item.imgHistory) ? item.imgHistory : [];
+  if (!hist.length) return;
+  const wrap = document.createElement("div");
+  wrap.className = "img-item__field";
+  const label = document.createElement("label");
+  label.textContent = `過去の画像（${hist.length}件・「戻す」で再利用、「削除」で完全に消去）`;
+  wrap.appendChild(label);
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;";
+  hist.forEach((src, hi) => {
+    const box = document.createElement("div");
+    box.style.cssText = "display:flex;flex-direction:column;align-items:center;gap:4px;width:64px;";
+    box.innerHTML = `<img src="${src}" style="width:64px;height:64px;object-fit:cover;border:1px solid var(--color-line);" onerror="this.style.opacity='0.3'">`;
+    const btnRow = document.createElement("div");
+    btnRow.style.cssText = "display:flex;gap:3px;";
+    const restoreBtn = document.createElement("button");
+    restoreBtn.type = "button"; restoreBtn.textContent = "戻す"; restoreBtn.className = "btn btn--small btn--ghost"; restoreBtn.style.cssText = "font-size:10px;padding:2px 5px;";
+    restoreBtn.addEventListener("click", () => {
+      const current = item[key];
+      item.imgHistory.splice(hi, 1);
+      pushImageHistory(item, key, current);
+      item[key] = src;
+      onChange();
+    });
+    const delBtn = document.createElement("button");
+    delBtn.type = "button"; delBtn.textContent = "削除"; delBtn.className = "btn btn--small btn--ghost"; delBtn.style.cssText = "font-size:10px;padding:2px 5px;color:#b03b48;";
+    delBtn.addEventListener("click", () => {
+      if (!confirm("この過去の画像を完全に削除しますか？この操作は取り消せません。")) return;
+      item.imgHistory.splice(hi, 1);
+      onChange();
+    });
+    btnRow.appendChild(restoreBtn); btnRow.appendChild(delBtn);
+    box.appendChild(btnRow);
+    row.appendChild(box);
+  });
+  wrap.appendChild(row);
+  container.appendChild(wrap);
+}
+
 // 公開/非表示トグルを img-item に追加する共通ヘルパー
 function appendVisibleToggle(item, getVisible, onToggle) {
   const v = getVisible();
@@ -1189,9 +1244,10 @@ function renderHero() {
         { label: "日本語タイトル(<br>で改行可)", key: "titleJp", value: s.titleJp || "", type: "textarea" }
       ],
       onChange: (k, v) => { workingData.hero[i][k] = v; if (k === "src") refreshPreview(grid.children[i], v); updateSaveBar(); },
-      onFile: u => { workingData.hero[i].src = u; renderHero(); updateSaveBar(); },
+      onFile: historyAwareOnFile(s, "src", () => { renderHero(); updateSaveBar(); }),
       onDelete: workingData.hero.length > 1 ? () => { workingData.hero.splice(i,1); renderHero(); updateSaveBar(); } : null
     });
+    appendImageHistoryUI(item, s, "src", () => { renderHero(); updateSaveBar(); });
     appendVisibleToggle(item, () => workingData.hero[i].visible, () => { workingData.hero[i].visible = !workingData.hero[i].visible; renderHero(); updateSaveBar(); });
     grid.appendChild(item);
   });
@@ -1225,9 +1281,10 @@ function renderCategories() {
         { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: c.desc||"", type: "textarea" }
       ],
       onChange: (k, v) => { workingData.categories[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
-      onFile: u => { workingData.categories[i].img = u; renderCategories(); updateSaveBar(); },
+      onFile: historyAwareOnFile(c, "img", () => { renderCategories(); updateSaveBar(); }),
       onDelete: () => { workingData.categories.splice(i,1); renderCategories(); updateSaveBar(); }
     });
+    appendImageHistoryUI(item, c, "img", () => { renderCategories(); updateSaveBar(); });
     item.appendChild(makeGalleryEditor(c.gallery, { maxWidth: 900, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.categories[i].visible, () => { workingData.categories[i].visible = !workingData.categories[i].visible; renderCategories(); updateSaveBar(); });
     grid.appendChild(item);
@@ -1249,9 +1306,10 @@ function renderRecommended() {
         { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: r.desc||"", type: "textarea" }
       ],
       onChange: (k, v) => { workingData.recommended[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
-      onFile: u => { workingData.recommended[i].img = u; renderRecommended(); updateSaveBar(); },
+      onFile: historyAwareOnFile(r, "img", () => { renderRecommended(); updateSaveBar(); }),
       onDelete: () => { workingData.recommended.splice(i,1); renderRecommended(); updateSaveBar(); }
     });
+    appendImageHistoryUI(item, r, "img", () => { renderRecommended(); updateSaveBar(); });
     item.appendChild(makeGalleryEditor(r.gallery, { maxWidth: 700, max: 6, onChange: () => { renderRecommended(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.recommended[i].visible, () => { workingData.recommended[i].visible = !workingData.recommended[i].visible; renderRecommended(); updateSaveBar(); });
     grid.appendChild(item);
@@ -1275,9 +1333,10 @@ function renderExperiences() {
         { label: "画像URL", key: "img", value: e.img, type: "input" }
       ],
       onChange: (k, v) => { workingData.experiences[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
-      onFile: u => { workingData.experiences[i].img = u; renderExperiences(); updateSaveBar(); },
+      onFile: historyAwareOnFile(e, "img", () => { renderExperiences(); updateSaveBar(); }),
       onDelete: () => { if (confirm("このプログラムを削除しますか？")) { workingData.experiences.splice(i,1); renderExperiences(); updateSaveBar(); } }
     });
+    appendImageHistoryUI(item, e, "img", () => { renderExperiences(); updateSaveBar(); });
     // 表示/非表示トグル を追加
     const toggleBox = document.createElement("div");
     toggleBox.style.cssText = "padding:12px 14px; margin-top:10px; background:" + (e.visible ? "rgba(93,138,78,0.08)" : "rgba(176,59,72,0.08)") + "; border-left:3px solid " + (e.visible ? "var(--color-success)" : "var(--color-accent)") + "; display:flex; align-items:center; justify-content:space-between; gap:10px;";
@@ -1322,7 +1381,7 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) { /* ローカルキャッシュへの反映は失敗しても致命的ではないため無視 */ }
     renderAll();
     if (conflicts.length) {
-      showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${conflicts.join("、")}。該当箇所はご自身の変更が必要であれば編集し直してください。`, "error");
+      showToast(`他の人も同時に編集していた項目がありましたが、今回保存した内容を優先して反映しました: ${conflicts.join("、")}。内容に相違がないかご確認ください。`, "error");
     } else {
       showToast("保存しました（サイトに反映されます）");
     }
@@ -2436,7 +2495,7 @@ function afterSave(result, applyFn, successMsg) {
   if (!result) return; // 失敗時は既にエラートーストが表示済み
   applyFn(result.merged);
   if (result.conflicts.length) {
-    showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${result.conflicts.join("、")}。該当箇所はご自身の変更が必要であれば編集し直してください。`, "error");
+    showToast(`他の人も同時に編集していた項目がありましたが、今回保存した内容を優先して反映しました: ${result.conflicts.join("、")}。内容に相違がないかご確認ください。`, "error");
   } else {
     showToast(successMsg);
   }
@@ -3034,7 +3093,7 @@ function applyFetchedContent(all) {
     }
   });
   if (allConflicts.length) {
-    showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${allConflicts.join("、")}。ご自身の変更が必要な場合は再度編集してください。`, "error");
+    showToast(`他の人が次の項目を更新しましたが、あなたの未保存の変更を優先して残しています: ${allConflicts.join("、")}。「保存する」を押すとあなたの内容がサイトに反映されます。`, "error");
   }
 }
 </script>
