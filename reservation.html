@@ -847,11 +847,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="field__label" for="pickupTime">引き取り希望時間 (Pickup Time) <span id="pickupTimeBadge" class="req">必須 Required</span></label>
             <select id="pickupTime" name="pickupTime" class="select">
               <option value="">選択してください (Please select)</option>
-              <option value="10:00">10:00</option><option value="11:00">11:00</option>
-              <option value="12:00">12:00</option><option value="13:00">13:00</option>
-              <option value="14:00">14:00</option><option value="15:00">15:00</option>
-              <option value="16:00">16:00</option><option value="17:00">17:00</option>
-              <option value="18:00">18:00</option><option value="19:00">19:00</option>
+              <option value="10:00">10:00</option><option value="10:30">10:30</option>
+              <option value="11:00">11:00</option><option value="11:30">11:30</option>
+              <option value="12:00">12:00</option><option value="12:30">12:30</option>
+              <option value="13:00">13:00</option><option value="13:30">13:30</option>
+              <option value="14:00">14:00</option><option value="14:30">14:30</option>
+              <option value="15:00">15:00</option><option value="15:30">15:30</option>
+              <option value="16:00">16:00</option><option value="16:30">16:30</option>
+              <option value="17:00">17:00</option><option value="17:30">17:30</option>
+              <option value="18:00">18:00</option><option value="18:30">18:30</option>
+              <option value="19:00">19:00</option><option value="19:30">19:30</option>
               <option value="20:00">20:00</option>
             </select>
             <span class="error" data-for="pickupTime"></span>
@@ -889,8 +894,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="field">
           <label class="field__label" for="message">メッセージプレート (Message Plate) <span class="opt">任意 Optional</span></label>
-          <input type="text" id="message" name="message" class="input" placeholder="例: Happy Birthday Mari (15文字以内)" maxlength="15">
-          <span class="field__hint">15文字以内でご記入ください（記号含む）(Up to 15 characters, symbols included)</span>
+          <input type="text" id="message" name="message" class="input" placeholder="例: Happy Birthday Mari" maxlength="23">
+          <span class="field__hint">20文字程度でお願いいたします。(Please keep it to around 20 characters)</span>
         </div>
 
         <div class="field">
@@ -1139,8 +1144,7 @@ updateRequiredFields();
 function updatePickupTimeHoursNote() {
   const noteEl = document.getElementById("pickupTimeHoursNote");
   const timeVal = document.getElementById("pickupTime").value;
-  const lateSlots = ["18:00", "19:00", "20:00"];
-  if (noteEl) noteEl.style.display = lateSlots.includes(timeVal) ? "block" : "none";
+  if (noteEl) noteEl.style.display = (timeVal && timeVal >= "18:00") ? "block" : "none";
 }
 document.getElementById("pickupTime").addEventListener("change", updatePickupTimeHoursNote);
 document.getElementById("pickupDate").addEventListener("change", updatePickupTimeHoursNote);
