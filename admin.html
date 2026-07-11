@@ -812,6 +812,64 @@ function updateCounts() {
 }
 
 /* ============================================================
+   サイト画像データのマージ処理
+   複数人（オーナー・従業員）が同時に管理画面を開いても、
+   保存のたびにリスト全体を上書きして他人の変更を消してしまわないよう、
+   「前回同期した内容(base)」「Firebase側の最新(fresh)」「自分の未保存編集(working)」の
+   3者を項目単位で比較し、変更が無い側を残す形でマージする。
+   同じ項目を両者が変更していた場合のみ「競合」として最新側を優先し、警告を出す。
+   ============================================================ */
+function deepEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+
+function mergeArraySection(base, fresh, working, label, conflicts) {
+  base = base || []; fresh = fresh || []; working = working || [];
+  if (fresh.length !== base.length || working.length !== base.length) {
+    // 追加・削除が絡む場合はどちらかが無変更ならそのまま採用、両方変更していたら競合扱い
+    if (deepEqual(working, base)) return JSON.parse(JSON.stringify(fresh));
+    if (deepEqual(fresh, base)) return working;
+    conflicts.push(label);
+    return JSON.parse(JSON.stringify(fresh));
+  }
+  return base.map((baseItem, i) => {
+    const freshItem = fresh[i], workingItem = working[i];
+    if (deepEqual(freshItem, baseItem)) return workingItem; // 他の人はこの項目を変更していない
+    if (deepEqual(workingItem, baseItem)) return freshItem;  // 自分はこの項目を変更していない → 最新を採用
+    const itemLabel = (baseItem && (baseItem.name || baseItem.title)) || `#${i + 1}`;
+    conflicts.push(`${label}「${itemLabel}」`);
+    return freshItem; // 同じ項目を両者が変更 → 競合。安全のため最新側を優先
+  });
+}
+
+function mergeSiteImages(base, fresh, working) {
+  base = base || DEFAULT_IMAGES; fresh = fresh || base; working = working || base;
+  const conflicts = [];
+  let greeting;
+  if (deepEqual(fresh.greeting, base.greeting)) greeting = working.greeting;
+  else if (deepEqual(working.greeting, base.greeting)) greeting = fresh.greeting;
+  else { conflicts.push("店舗紹介画像"); greeting = fresh.greeting; }
+  const merged = {
+    hero: mergeArraySection(base.hero, fresh.hero, working.hero, "ヒーロー画像", conflicts),
+    greeting,
+    categories: mergeArraySection(base.categories, fresh.categories, working.categories, "商品カテゴリー", conflicts),
+    recommended: mergeArraySection(base.recommended, fresh.recommended, working.recommended, "おすすめ商品", conflicts),
+    experiences: mergeArraySection(base.experiences, fresh.experiences, working.experiences, "体験プログラム", conflicts)
+  };
+  return { merged, conflicts };
+}
+
+function applySiteImagesSnapshot(fbData) {
+  if (!fbData || !workingData) return; // Firebase側に何も無い、またはまだログイン処理中
+  const { merged, conflicts } = mergeSiteImages(savedData, fbData, workingData);
+  workingData = merged;
+  savedData = JSON.parse(JSON.stringify(fbData));
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) {}
+  renderAll();
+  if (conflicts.length) {
+    showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${conflicts.join("、")}。ご自身の変更が必要な場合は再度編集してください。`, "error");
+  }
+}
+
+/* ============================================================
    ログイン
    ============================================================ */
 function showLogin() {
@@ -828,21 +886,10 @@ function showAdmin() {
   renderDashboard();
   renderSalesGoal();
   updateCounts();
-  // Firebase側に保存済みの画像データがあれば、それを正として取り込み直す
-  if (typeof window.fbLoadSiteImages === "function") {
-    window.fbLoadSiteImages().then(fbData => {
-      if (!fbData) return; // Firebase側にまだ何も保存されていない場合は現状(localStorage/デフォルト)を維持
-      workingData = {
-        hero: fbData.hero || workingData.hero,
-        greeting: fbData.greeting || workingData.greeting,
-        categories: fbData.categories || workingData.categories,
-        recommended: fbData.recommended || workingData.recommended,
-        experiences: fbData.experiences || workingData.experiences
-      };
-      savedData = JSON.parse(JSON.stringify(workingData));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData));
-      renderAll();
-    });
+  // Firebase側の画像データをライブ購読し、他の人が保存した最新内容を自動で取り込む
+  // （画面を開きっぱなしにしていても内容が古いままにならないようにするため。詳細はmergeSiteImages参照）
+  if (typeof window.fbSubscribeSiteImages === "function") {
+    window.fbSubscribeSiteImages();
   }
   // お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役も
   // 同様にFirebase側を正として取り込み直す（複数端末・複数従業員での運用に対応するため）
@@ -1252,16 +1299,25 @@ document.getElementById("addCategory").addEventListener("click", () => { working
 document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRecommended(); updateSaveBar(); });
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
 document.getElementById("saveBtn").addEventListener("click", async () => {
-  if (typeof window.fbSaveSiteImages !== "function") {
+  if (typeof window.fbSaveSiteImages !== "function" || typeof window.fbLoadSiteImages !== "function") {
     showToast("保存機能の読み込み中です。少し待って再度お試しください。", "error");
     return;
   }
   try {
-    await window.fbSaveSiteImages(workingData);
+    // 保存直前にFirebase側の最新状態を取得し、自分の未保存編集とマージしてから書き込む
+    // （他の人が別の項目、あるいは自分がまだ触っていない項目を先に保存していても、それを消さないため）
+    const fresh = await window.fbLoadSiteImages();
+    const { merged, conflicts } = mergeSiteImages(savedData, fresh || savedData, workingData);
+    await window.fbSaveSiteImages(merged);
+    workingData = merged;
+    savedData = JSON.parse(JSON.stringify(merged));
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) { /* ローカルキャッシュへの反映は失敗しても致命的ではないため無視 */ }
-    savedData = JSON.parse(JSON.stringify(workingData));
-    updateSaveBar();
-    showToast("保存しました（サイトに反映されます）");
+    renderAll();
+    if (conflicts.length) {
+      showToast(`他の人が同時に編集していたため、次の項目は最新の内容を優先しました: ${conflicts.join("、")}。該当箇所はご自身の変更が必要であれば編集し直してください。`, "error");
+    } else {
+      showToast("保存しました（サイトに反映されます）");
+    }
   } catch (e) {
     console.warn("Firebase保存失敗:", e);
     showToast("保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
@@ -2952,6 +3008,15 @@ window.fbLoadSiteImages = async function () {
 };
 window.fbSaveSiteImages = async function (data) {
   await set(siteImagesRef, data);
+};
+let unsubSiteImages = null;
+window.fbSubscribeSiteImages = function () {
+  if (unsubSiteImages) return; // 既に購読中なら何もしない（再ログイン時の二重購読防止）
+  unsubSiteImages = onValue(siteImagesRef, (snapshot) => {
+    if (typeof window.applySiteImagesSnapshot === "function") {
+      window.applySiteImagesSnapshot(snapshot.val());
+    }
+  });
 };
 
 // お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役
