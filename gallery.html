@@ -29,7 +29,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <style>
 :root{--color-bg: #f7f3ee;--color-bg-soft: #ede3d4;--color-paper:#fefcf8;--color-text:#2e2118;--color-text-soft: #4a3a2a;--color-accent: #c9a96e;--color-accent-dark: #a88a52;--color-gold: #c9a96e;--color-line: #d8baa4;--font-mincho:"Shippori Mincho",serif;--font-sans:"Noto Sans JP",sans-serif;--font-en:"Cormorant Garamond",serif}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.85;font-size:17px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.9;font-size:21px;font-weight:600;-webkit-font-smoothing:antialiased}
 img{max-width:100%;height:auto;display:block}
 a{color:inherit;text-decoration:none}
 .header{position:relative;overflow:hidden;background:linear-gradient(135deg,#5c4a38 0%,#4a3a2a 100%)}
@@ -75,7 +75,7 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 .gal-card__cat{position:absolute;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
 .gal-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
 .gal-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:8px;font-weight:600;line-height:1.5}
-.gal-card__desc{font-size:13px;color:var(--color-text-soft);line-height:1.85;margin-bottom:14px;flex:1}
+.gal-card__desc{font-size:16px;font-weight:600;color:var(--color-text-soft);line-height:1.85;margin-bottom:14px;flex:1}
 .gal-card__meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--color-text-soft);font-family:var(--font-mincho);padding-top:12px;border-top:1px dashed var(--color-line);align-items:center}
 .gal-card__meta-item{display:inline-flex;align-items:center;gap:5px}
 .gal-card__meta-item strong{color:var(--color-accent);font-family:var(--font-en);font-weight:500;font-size:14px}
@@ -94,9 +94,9 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 .voice-card{background:var(--color-paper);padding:34px 32px;border:1px solid var(--color-line);position:relative;display:flex;flex-direction:column}
 .voice-card::before{content:"\201C";position:absolute;top:-8px;left:18px;font-family:var(--font-en);font-size:80px;color:var(--color-gold);opacity:.4;line-height:1;font-weight:500}
 .voice-card__stars{color:var(--color-accent);font-size:16px;letter-spacing:.15em;margin-bottom:14px;position:relative;z-index:1;padding-top:14px}
-.voice-card__text{font-size:15px;line-height:2;margin-bottom:22px;color:var(--color-text);position:relative;z-index:1;flex:1}
-.voice-card__author{display:flex;align-items:center;justify-content:space-between;font-size:13px;color:var(--color-text-soft);padding-top:16px;border-top:1px dashed var(--color-line);font-family:var(--font-mincho);letter-spacing:.06em}
-.voice-card__name{font-weight:600;color:var(--color-text);font-size:14px}
+.voice-card__text{font-size:18px;font-weight:600;line-height:2;margin-bottom:22px;color:var(--color-text);position:relative;z-index:1;flex:1}
+.voice-card__author{display:flex;align-items:center;justify-content:space-between;font-size:15px;color:var(--color-text-soft);padding-top:16px;border-top:1px dashed var(--color-line);font-family:var(--font-mincho);letter-spacing:.06em}
+.voice-card__name{font-weight:600;color:var(--color-text);font-size:16px}
 
 /* ===== 大きなCTAバナー ===== */
 .cta-banner{margin-top:90px;background:linear-gradient(135deg,#2b1f1a 0%,#3d2c25 100%);color:#fff;padding:70px 50px;text-align:center;position:relative;overflow:hidden}
@@ -122,7 +122,7 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 .footer__mark{font-family:var(--font-mincho);font-size:13px;letter-spacing:.4em;color:#b09a82;margin-bottom:10px}
 
 @media(max-width:900px){.gallery-grid{grid-template-columns:repeat(2,1fr);gap:16px}.voices-grid{grid-template-columns:1fr}.cta-banner{padding:50px 26px}.cat-tab{padding:10px 18px;font-size:14px}.gal-card__body{padding:16px 18px 18px}.gal-card__title{font-size:15px}}
-@media(max-width:700px){body{font-size:16px}.page-head{padding:44px 22px 40px}main{padding:60px 16px 60px}.gallery-grid{grid-template-columns:1fr;gap:18px}.cat-tabs{gap:6px}.cat-tab{padding:9px 14px;font-size:13px}.cta-banner__btns{flex-direction:column;align-items:stretch}.cta-banner__btn{padding:16px 30px;font-size:15px}}
+@media(max-width:700px){body{font-size:18px}.page-head{padding:44px 22px 40px}main{padding:60px 16px 60px}.gallery-grid{grid-template-columns:1fr;gap:18px}.cat-tabs{gap:6px}.cat-tab{padding:9px 14px;font-size:13px}.cta-banner__btns{flex-direction:column;align-items:stretch}.cta-banner__btn{padding:16px 30px;font-size:15px}}
 </style>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
