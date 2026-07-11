@@ -173,9 +173,9 @@ koimari_reservations     予約一覧
 koimari_experiences      体験プログラム応募一覧
 koimari_corporate        法人ご相談一覧
 koimari_views            ページビュー記録（90日）
-koimari_manual_sales     手動売上記録
-koimari_sales_goal       売上目標
-koimari_coupons          クーポン
+koimari_manual_sales     手動売上記録（2026-07-11〜：Firebase `koimariOps/manualSales` が正、こちらはローカルキャッシュ）
+koimari_sales_goal       売上目標（同上、`koimariOps/salesGoal`）
+koimari_coupons          クーポン（同上、`koimariOps/coupons`）
 koimari_newsletter       メルマガ
 koimari_page_errors      エラーログ
 koimari_news             お知らせ（2026-07-09〜：Firebase `koimariContent/news` が正、こちらはローカルキャッシュ）
@@ -190,6 +190,8 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 ```
 
 上記9項目は2026-07-09まで管理者本人のブラウザのlocalStorageにしか保存されず、他の端末・他の従業員・実際のサイト訪問者には一切反映されない「ガラパゴス状態」だった（オーナー指摘により発覚）。同日、`siteImages`と同じ設計思想で`koimariContent`パスに集約し、複数拠点・複数従業員での運用と、実訪問者への反映の両方に対応した。
+
+**2026-07-11追加発覚**：同種の点検を行ったところ、`koimari_manual_sales`・`koimari_sales_goal`・`koimari_coupons`の3項目も同じくlocalStorage単独保存のままだったことが判明。売上金額という機微データのため、一般公開されている`koimariContent`とは分けて非公開の`koimariOps`パスへ移行した（詳細は上記「Firebase Realtime Database」セクション参照）。
 
 ---
 
@@ -207,6 +209,7 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 | `siteImages` | ヒーロー/店舗紹介/カテゴリ/おすすめ/体験プログラムの画像一式 | admin.html（保存ボタン） |
 | `siteConfig/eventBanner` | 季節イベントバナー設定 | admin.html |
 | `koimariContent/{news\|holidays\|faq\|gallery\|voices\|blog\|insta\|stats\|spotlight}` | お知らせ・営業日設定・FAQ・ギャラリー・お客様の声・ブログ・Instagram投稿・数字で見る・今月の主役（2026-07-09〜、旧`koimari_*`のlocalStorage単独保存から移行） | admin.html（各パネルの保存ボタン）。読み取りはindex.html/gallery.html/faq.html/blog.html |
+| `koimariOps/{manualSales\|salesGoal\|coupons}` | 手動売上記録・売上目標・クーポン（2026-07-11〜、旧`koimari_*`のlocalStorage単独保存から移行）。売上金額等の機微データのため公開ページからは読まない前提で`koimariContent`とは別パスにし、`.read`も要ログインにしている | admin.html（各パネルの保存ボタン） |
 | `trash/{reservations\|experiences\|corporate}/{batchKey}` | 「全削除」時の退避先（復元・完全削除が可能） | admin.html |
 | `dashboardTasks` | 会社全体のTODOダッシュボード（別プロジェクト`dashboard/`用） | dashboard/index.html |
 | `noritate/contacts/{id}` | NORI&TATEサイトのお問い合わせ（プロジェクト共用） | nori&tate site/index.html（新規作成）／admin.html（ステータス更新） |
@@ -292,12 +295,18 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
     "koimariContent": {
       ".read": true,
       ".write": "auth != null"
+    },
+    "koimariOps": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     }
   }
 }
 ```
 
 **⚠️ 未反映（要オーナー対応）**：上記の`koimariContent`ブロックは2026-07-09にコード側（admin.html / index.html / gallery.html / faq.html / blog.html）へ実装済みだが、**Firebase Console側のルールにはまだ反映されていない**。反映して「公開」するまでは、お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役の保存がすべて`PERMISSION_DENIED`で失敗する（画面上は保存成功に見えることがある）。
+
+**⚠️ 未反映（要オーナー対応・2026-07-11追加）**：上記の`koimariOps`ブロックも同様にコード側（admin.html：手動売上記録・売上目標・クーポン）へ実装済みだが、Firebase Console側のルールにはまだ反映されていない。反映するまでこの3項目の保存が`PERMISSION_DENIED`で失敗する。
 
 **重要な教訓（2026-07-09）**：このルールは「明示的に許可したパス以外はデフォルトで拒否」という設計（許可制）。新しいFirebaseパスをコードに追加しただけではルール側は自動的に追従しないため、**新しいパスを使うコードを書いたら、必ずこのルールにも対応するブロックを追加し、Firebase Console側で「公開」まで行うこと**。今回、`corporate`と`siteImages`（`noritate`も含む）のルール追加を忘れたまま実装し、画面上は「送信/保存成功」に見えても実際には`PERMISSION_DENIED`で裏側では失敗し続けるという不具合が発生した（ブラウザのDevTools Consoleで気づいた）。新しいFirebaseパスを追加する際のチェックリストに加える。
 

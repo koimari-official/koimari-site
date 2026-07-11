@@ -900,6 +900,10 @@ function showAdmin() {
   if (typeof window.fbSubscribeContent === "function") {
     window.fbSubscribeContent();
   }
+  // 売上目標・手動売上記録・クーポンも同様（旧: localStorageのみで他端末に一切反映されなかった）
+  if (typeof window.fbSubscribeOps === "function") {
+    window.fbSubscribeOps();
+  }
 }
 function login() {
   const email = document.getElementById("loginEmail").value.trim();
@@ -1653,9 +1657,6 @@ document.getElementById("resetViews").addEventListener("click", () => {
 function loadManualSales() {
   try { return JSON.parse(localStorage.getItem(MANUAL_SALES_KEY)) || []; } catch { return []; }
 }
-function saveManualSales(list) {
-  localStorage.setItem(MANUAL_SALES_KEY, JSON.stringify(list));
-}
 function renderManualSalesTable() {
   const list = loadManualSales().sort((a,b) => b.month.localeCompare(a.month));
   const el = document.getElementById("manualSalesTable");
@@ -1672,15 +1673,12 @@ function renderManualSalesTable() {
   html += '</tbody></table>';
   el.innerHTML = html;
 }
-function deleteManualSales(idx) {
+async function deleteManualSales(idx) {
   const list = loadManualSales().sort((a,b) => b.month.localeCompare(a.month));
   list.splice(idx, 1);
-  saveManualSales(list);
-  renderManualSalesTable();
-  renderStats();
-  showToast("削除しました");
+  afterSave(await saveByOpsKey(MANUAL_SALES_KEY, list), () => { renderManualSalesTable(); renderStats(); }, "削除しました");
 }
-document.getElementById("mSalesSave").addEventListener("click", () => {
+document.getElementById("mSalesSave").addEventListener("click", async () => {
   const month = document.getElementById("mSalesMonth").value;
   const orders = parseInt(document.getElementById("mSalesOrders").value) || 0;
   const revenue = parseInt(document.getElementById("mSalesRevenue").value) || 0;
@@ -1692,10 +1690,7 @@ document.getElementById("mSalesSave").addEventListener("click", () => {
   } else {
     list.push({ month, orders, revenue });
   }
-  saveManualSales(list);
-  renderManualSalesTable();
-  renderStats();
-  showToast("保存しました");
+  afterSave(await saveByOpsKey(MANUAL_SALES_KEY, list), () => { renderManualSalesTable(); renderStats(); }, "保存しました");
 });
 
 /* ============================================================
@@ -1790,12 +1785,12 @@ function renderSalesGoal() {
     }
   }
 }
-document.getElementById("salesGoalSave").addEventListener("click", () => {
+document.getElementById("salesGoalSave").addEventListener("click", async () => {
   const val = parseInt(document.getElementById("salesGoalInput").value) || 0;
-  localStorage.setItem(SALES_GOAL_KEY, val);
-  renderSalesGoal();
-  if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
-  showToast("目標を設定しました");
+  afterSave(await saveByOpsKey(SALES_GOAL_KEY, val), () => {
+    renderSalesGoal();
+    if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
+  }, "目標を設定しました");
 });
 
 /* ============================================================
@@ -1891,7 +1886,6 @@ function renderTemplates() {
    クーポン管理
    ============================================================ */
 function loadCoupons() { try { return JSON.parse(localStorage.getItem(COUPON_KEY)) || []; } catch { return []; } }
-function saveCoupons(list) { localStorage.setItem(COUPON_KEY, JSON.stringify(list)); }
 function renderCoupons() {
   const list = loadCoupons();
   const el = document.getElementById("couponList");
@@ -1912,9 +1906,10 @@ function renderCoupons() {
   html += '</tbody></table></div>';
   el.innerHTML = html;
 }
-function deleteCoupon(idx) {
+async function deleteCoupon(idx) {
   if (!confirm("このクーポンを削除しますか？")) return;
-  const list = loadCoupons(); list.splice(idx,1); saveCoupons(list); renderCoupons(); showToast("削除しました");
+  const list = loadCoupons(); list.splice(idx,1);
+  afterSave(await saveByOpsKey(COUPON_KEY, list), () => renderCoupons(), "削除しました");
 }
 document.getElementById("addCouponBtn").addEventListener("click", () => {
   document.getElementById("couponFormArea").style.display = "block";
@@ -1923,7 +1918,7 @@ document.getElementById("addCouponBtn").addEventListener("click", () => {
 document.getElementById("couponCancel").addEventListener("click", () => {
   document.getElementById("couponFormArea").style.display = "none";
 });
-document.getElementById("couponSave").addEventListener("click", () => {
+document.getElementById("couponSave").addEventListener("click", async () => {
   const code = document.getElementById("couponCode").value.trim().toUpperCase();
   const discount = document.getElementById("couponDiscount").value.trim();
   const expiry = document.getElementById("couponExpiry").value;
@@ -1932,11 +1927,12 @@ document.getElementById("couponSave").addEventListener("click", () => {
   const list = loadCoupons();
   if (list.some(c => c.code === code)) { showToast("同じコードがすでに存在します", "error"); return; }
   list.push({ code, discount, expiry, memo, createdAt: new Date().toISOString() });
-  saveCoupons(list);
-  renderCoupons();
-  document.getElementById("couponFormArea").style.display = "none";
-  ["couponCode","couponDiscount","couponExpiry","couponMemo"].forEach(id => document.getElementById(id).value = "");
-  showToast("クーポンを発行しました");
+  const result = await saveByOpsKey(COUPON_KEY, list);
+  afterSave(result, () => renderCoupons(), "クーポンを発行しました");
+  if (result) {
+    document.getElementById("couponFormArea").style.display = "none";
+    ["couponCode","couponDiscount","couponExpiry","couponMemo"].forEach(id => document.getElementById(id).value = "");
+  }
 });
 
 /* ============================================================
@@ -2499,6 +2495,46 @@ function afterSave(result, applyFn, successMsg) {
   } else {
     showToast(successMsg);
   }
+}
+
+// 売上目標・手動売上記録・クーポンは、koimariContentとは別の非公開パス(koimariOps)を使う
+// （売上金額等の機微な数値を、一般公開ページと同じ「誰でも読める」ルールに置きたくないため）。
+// マージ処理自体はsaveByKeyと同じ仕組みを流用する。
+const OPS_SHAPES = { manualSales: "array", salesGoal: "object", coupons: "array" };
+const OPS_LABELS = { manualSales: "手動売上記録", salesGoal: "売上目標", coupons: "クーポン" };
+let savedOpsByKey = {};
+async function saveByOpsKey(key, data) {
+  const opsKey = key.replace(/^koimari_/, "");
+  const shape = OPS_SHAPES[opsKey] || "array";
+  const label = OPS_LABELS[opsKey] || opsKey;
+  const conflicts = [];
+  let merged = data;
+  try {
+    if (typeof window.fbLoadOpsKey === "function") {
+      const fresh = await window.fbLoadOpsKey(opsKey);
+      const base = savedOpsByKey[opsKey];
+      if (fresh !== null && fresh !== undefined && base !== undefined) {
+        merged = shape === "array"
+          ? mergeArraySection(base, fresh, data, label, conflicts)
+          : mergeScalarSection(base, fresh, data, label, conflicts);
+      }
+    }
+  } catch (e) {
+    showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    return null;
+  }
+  try { localStorage.setItem(key, JSON.stringify(merged)); }
+  catch(e) { showToast("保存に失敗しました", "error"); return null; }
+  try {
+    if (typeof window.fbSaveOpsKey === "function") {
+      await window.fbSaveOpsKey(opsKey, merged);
+    }
+  } catch(e) {
+    showToast("サーバーへの保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    return null;
+  }
+  savedOpsByKey[opsKey] = JSON.parse(JSON.stringify(merged));
+  return { merged, conflicts };
 }
 
 /* ============ お知らせ管理 ============ */
@@ -3096,11 +3132,27 @@ function applyFetchedContent(all) {
     showToast(`他の人が次の項目を更新しましたが、あなたの未保存の変更を優先して残しています: ${allConflicts.join("、")}。「保存する」を押すとあなたの内容がサイトに反映されます。`, "error");
   }
 }
+// 売上目標・手動売上記録・クーポンは、入力フォーム自体に「未保存の途中入力」を保持しない作り
+// （一覧への追加・削除のたびに都度保存する方式）のため、ここでは単純にキャッシュを更新して
+// 表示中のパネルだけ再描画すればよい（他パネルのように複雑な3者マージは不要）。
+function applyFetchedOpsContent(all) {
+  if (!all) return;
+  const KEYMAP = { manualSales: MANUAL_SALES_KEY, salesGoal: SALES_GOAL_KEY, coupons: COUPON_KEY };
+  Object.keys(KEYMAP).forEach(opsKey => {
+    const fresh = all[opsKey];
+    if (fresh === undefined) return;
+    savedOpsByKey[opsKey] = JSON.parse(JSON.stringify(fresh));
+    try { localStorage.setItem(KEYMAP[opsKey], JSON.stringify(fresh)); } catch(e) {}
+  });
+  if (document.getElementById("panel-stats")?.classList.contains("active")) { renderManualSalesTable(); renderStats(); renderSalesGoal(); }
+  if (document.getElementById("panel-coupons")?.classList.contains("active")) { renderCoupons(); }
+  if (document.getElementById("panel-dashboard")?.classList.contains("active")) { renderDashboard(); }
+}
 </script>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, update, remove, get, push, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove, get, push, set, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -3167,6 +3219,32 @@ window.fbSubscribeContent = function () {
   unsubContent = onValue(contentRef, (snapshot) => {
     if (typeof window.applyFetchedContent === "function") {
       window.applyFetchedContent(snapshot.exists() ? snapshot.val() : null);
+    }
+  });
+};
+
+// 売上目標・手動売上記録・クーポン（旧: ブラウザのlocalStorageのみで、他端末・他の従業員には
+// 一切反映されなかった機微データ）。一般公開ページからは読まれないため、koimariContentとは
+// 別の非公開パス（要ログイン）にする。
+const opsRef = ref(fbDb, "koimariOps");
+window.fbLoadOpsKey = async function (opsKey) {
+  try {
+    const snap = await get(ref(fbDb, "koimariOps/" + opsKey));
+    return snap.exists() ? snap.val() : null;
+  } catch (err) {
+    console.warn("運営データの読み込み失敗:", err);
+    return null;
+  }
+};
+window.fbSaveOpsKey = async function (opsKey, data) {
+  await set(ref(fbDb, "koimariOps/" + opsKey), data);
+};
+let unsubOps = null;
+window.fbSubscribeOps = function () {
+  if (unsubOps) return;
+  unsubOps = onValue(opsRef, (snapshot) => {
+    if (typeof window.applyFetchedOpsContent === "function") {
+      window.applyFetchedOpsContent(snapshot.exists() ? snapshot.val() : null);
     }
   });
 };
@@ -3252,11 +3330,16 @@ const TRASH_REFS = { reservations: trashReservationsRef, experiences: trashExper
 window.fbClearAll = async function (type) {
   const liveRef = LIVE_REFS[type], trashRef = TRASH_REFS[type];
   if (!liveRef || !trashRef) return false;
-  const snap = await get(liveRef);
-  const items = snap.val();
+  // get()→remove()の2回に分けると、その間に届いた新着（例：顧客からの新規予約）が
+  // ゴミ箱にも退避されずそのまま消えてしまう。runTransactionで「読み取りとクリアの原子性」を保証する
+  // （読み取り後に他の書き込みが割り込んだ場合はFirebase側が自動的にやり直す）。
+  let items = null;
+  await runTransaction(liveRef, (current) => {
+    items = current;
+    return null;
+  });
   if (!items) return false; // 元々データが無ければ何もしない
   await push(trashRef, { deletedAt: new Date().toISOString(), items });
-  await remove(liveRef);
   return true;
 };
 
