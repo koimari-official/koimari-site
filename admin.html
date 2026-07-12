@@ -863,6 +863,33 @@ function escapeHtml(s) {
   if (!s) return "";
   return String(s).replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 }
+// 予約データの商品情報を人が読めるテキストにまとめる（2026-07-12〜複数商品対応のitems配列と、
+// それより前の単一商品(cakeType/size/message)の記録の両方に対応する）
+function reservationItemsSummary(r) {
+  if (Array.isArray(r.items) && r.items.length) {
+    return r.items.map((it, i) => `${i + 1}. ${it.category || "（種類未選択）"}${it.size ? " / " + it.size : ""}${it.message ? " / メッセージ: " + it.message : ""}`).join("\n");
+  }
+  if (r.cakeType || r.size || r.message) {
+    return `${r.cakeType || "（種類未選択）"}${r.size ? " / " + r.size : ""}${r.message ? " / メッセージ: " + r.message : ""}`;
+  }
+  return "";
+}
+// 予約一覧テーブルの「商品」列用HTML（サムネイル付き）
+function reservationItemsHtml(r) {
+  if (Array.isArray(r.items) && r.items.length) {
+    return r.items.map((it, i) => `
+      <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px;">
+        ${it.image ? `<img src="${escapeHtml(it.image)}" alt="選択写真" style="width:40px;height:40px;object-fit:cover;border:1px solid #ddd;flex-shrink:0;cursor:pointer;" onclick="window.open('${escapeHtml(it.image)}','_blank')">` : ""}
+        <span class="small">${i + 1}. ${escapeHtml(it.category || "（種類未選択）")}${it.size ? "<br>" + escapeHtml(it.size) : ""}${it.message ? "<br>" + escapeHtml(it.message) : ""}</span>
+      </div>
+    `).join("");
+  }
+  // 旧形式（単一商品）のフォールバック
+  if (r.cakeType || r.cakeTypeImage || r.size || r.message) {
+    return `${r.cakeTypeImage?`<img src="${escapeHtml(r.cakeTypeImage)}" alt="選択写真" style="width:56px;height:56px;object-fit:cover;border:1px solid #ddd;display:block;margin-bottom:4px;cursor:pointer;" onclick="window.open('${escapeHtml(r.cakeTypeImage)}','_blank')">`:""}${escapeHtml(r.cakeType)}<br>${escapeHtml(r.size)}<br><span class="small">${escapeHtml(r.message)}</span>`;
+  }
+  return "";
+}
 function fmtDate(iso) {
   const d = new Date(iso);
   return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,"0")}/${d.getDate().toString().padStart(2,"0")} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
@@ -1655,7 +1682,7 @@ function showDayDetail(key, date, data) {
   } else {
     let html = `<h3>${date.getFullYear()}年${date.getMonth()+1}月${date.getDate()}日（予約${data.res.length}件・応募${data.exp.length}件）</h3><ul class="cal-detail__list">`;
     data.res.forEach(r => {
-      html += `<li><span class="cal-detail__type cal-detail__type--res">予約</span>${escapeHtml(r.name)} 様 / ${escapeHtml(r.cakeType||"")} ${escapeHtml(r.size||"")} / ${escapeHtml(r.pickupTime||"時間未指定")} / ${escapeHtml(r.tel)}</li>`;
+      html += `<li><span class="cal-detail__type cal-detail__type--res">予約</span>${escapeHtml(r.name)} 様 / ${escapeHtml(reservationItemsSummary(r).replace(/\n/g," / "))} / ${escapeHtml(r.pickupTime||"時間未指定")} / ${escapeHtml(r.tel)}</li>`;
     });
     data.exp.forEach(e => {
       html += `<li><span class="cal-detail__type cal-detail__type--exp">応募</span>${escapeHtml(e.participantName)} 様 / ${escapeHtml(e.program)} / ${escapeHtml(e.grade||"")} / ${escapeHtml(e.tel)}</li>`;
@@ -1754,7 +1781,13 @@ function renderStats() {
 
   // ----- ケーキ別販売数 -----
   const cakeCounts = {};
-  reservations.forEach(r => { if (r.cakeType) cakeCounts[r.cakeType] = (cakeCounts[r.cakeType]||0) + 1; });
+  reservations.forEach(r => {
+    if (Array.isArray(r.items) && r.items.length) {
+      r.items.forEach(it => { if (it.category) cakeCounts[it.category] = (cakeCounts[it.category]||0) + 1; });
+    } else if (r.cakeType) {
+      cakeCounts[r.cakeType] = (cakeCounts[r.cakeType]||0) + 1;
+    }
+  });
   const cakeLabels = Object.keys(cakeCounts);
   const cakeData = cakeLabels.map(k => cakeCounts[k]);
 
@@ -1931,7 +1964,7 @@ function renderPickupBlock(title, dateStr, list) {
       html += `<tr>
         <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
         <td style="font-weight:600;">${escapeHtml(r.pickupTime)}</td>
-        <td>${escapeHtml(r.cakeType)} ${escapeHtml(r.size)}</td>
+        <td>${escapeHtml(reservationItemsSummary(r)).replace(/\n/g,"<br>")}</td>
         <td style="color:${color};font-weight:600;">${status}</td>
         <td>${escapeHtml(r.tel)}</td>
       </tr>`;
@@ -2008,8 +2041,8 @@ const TEMPLATES = {
 ━━━━━━━━━━━━━━━━
 ▶ ご予約種別: ${r.type}
 ▶ 引取日時: ${r.pickupDate} ${r.pickupTime}
-▶ 商品: ${r.cakeType} ${r.size}
-${r.message ? `▶ メッセージプレート: ${r.message}` : ""}
+▶ ご注文商品:
+${reservationItemsSummary(r) || "（商品未選択）"}
 ━━━━━━━━━━━━━━━━
 
 ご不明な点がございましたら、お気軽にお問い合わせください。
@@ -2409,7 +2442,7 @@ function renderReservations() {
       <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
       <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span>${r.birthday?`<br><span class="small">生: ${escapeHtml(r.birthday)}</span>`:""}${r.newsletter?'<br><span class="small" style="color:#5d8a4e;">■メルマガ</span>':""}</td>
       <td>${escapeHtml(r.pickupDate)} ${escapeHtml(r.pickupTime)}</td>
-      <td>${r.cakeTypeImage?`<img src="${escapeHtml(r.cakeTypeImage)}" alt="選択写真" style="width:56px;height:56px;object-fit:cover;border:1px solid #ddd;display:block;margin-bottom:4px;cursor:pointer;" onclick="window.open('${escapeHtml(r.cakeTypeImage)}','_blank')">`:""}${escapeHtml(r.cakeType)}<br>${escapeHtml(r.size)}<br><span class="small">${escapeHtml(r.message)}</span></td>
+      <td>${reservationItemsHtml(r)}</td>
       <td><span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
       <td><textarea rows="2" style="font-size:12px;width:120px;padding:4px;border:1px solid #ddd;resize:vertical;" onchange="updateResNotes(${idx},this.value)">${escapeHtml(r.notes||"")}</textarea></td>
       <td>
@@ -2577,8 +2610,8 @@ function downloadCsv(filename, headers, rows) {
 document.getElementById("exportRes").addEventListener("click", () => {
   const list = loadList(RES_KEY);
   if (!list.length) { showToast("出力するデータがありません", "error"); return; }
-  const headers = ["受信日時","種別","お名前","ふりがな","電話","メール","郵便番号","住所","引取日","引取時間","ケーキ","サイズ","メッセージ","アレルギー","のし","表書き","名入れ","ラッピング","備考"];
-  const rows = list.map(r => [r.submittedAt,r.type,r.name,r.furigana,r.tel,r.email,r.zipcode,r.address,r.pickupDate,r.pickupTime,r.cakeType,r.size,r.message,(r.allergy||[]).join("/"),r.noshi,r.noshiTitle,r.noshiName,r.wrapping,(r.note||"").replace(/\n/g," ")]);
+  const headers = ["受信日時","種別","お名前","ふりがな","電話","メール","郵便番号","住所","引取日","引取時間","ご注文商品","のし","表書き","名入れ","ラッピング","備考"];
+  const rows = list.map(r => [r.submittedAt,r.type,r.name,r.furigana,r.tel,r.email,r.zipcode,r.address,r.pickupDate,r.pickupTime,reservationItemsSummary(r).replace(/\n/g," | "),r.noshi,r.noshiTitle,r.noshiName,r.wrapping,(r.note||"").replace(/\n/g," ")]);
   downloadCsv(`koimari_reservations_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
 });
 document.getElementById("exportExp").addEventListener("click", () => {
