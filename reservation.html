@@ -905,25 +905,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <span class="field__hint">20文字程度でお願いいたします。(Please keep it to around 20 characters)</span>
         </div>
 
-        <div class="field">
-          <label class="field__label">アレルギー (Allergy Information) <span class="opt">任意 Optional</span></label>
-          <div class="checkbox-group">
-            <label><input type="checkbox" name="allergy" value="卵"> 卵 (Egg)</label>
-            <label><input type="checkbox" name="allergy" value="乳"> 乳 (Dairy)</label>
-            <label><input type="checkbox" name="allergy" value="小麦"> 小麦 (Wheat)</label>
-            <label><input type="checkbox" name="allergy" value="ナッツ類"> ナッツ類 (Nuts)</label>
-            <label><input type="checkbox" name="allergy" value="その他"> その他 (Other)</label>
-          </div>
-        </div>
-
-        <div class="field">
-          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
-            <input type="checkbox" id="allergyConsent" name="allergyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
-            <span>アレルギー等の健康に関する情報の取得について同意します (I agree to the collection of allergy/health information) <span class="req">必須 Required</span></span>
-          </label>
-          <span class="error" data-for="allergyConsent"></span>
-        </div>
-
         <!-- ===== のし・ギフト対応 ===== -->
         <div id="seasonBanner" class="gift-section__season-banner" style="display:none;"></div>
 
@@ -1102,9 +1083,8 @@ function setError(name, msg) {
 
 function validate(data) {
   let ok = true;
-  ["name", "furigana", "tel", "email", "zipcode", "pickupDate", "pickupTime", "note", "privacyConsent", "allergyConsent"].forEach(k => setError(k, ""));
+  ["name", "furigana", "tel", "email", "zipcode", "pickupDate", "pickupTime", "note", "privacyConsent"].forEach(k => setError(k, ""));
   if (!data.privacyConsent) { setError("privacyConsent", "プライバシーポリシーへの同意が必要です (Please agree to the Privacy Policy)"); ok = false; }
-  if (!data.allergyConsent) { setError("allergyConsent", "アレルギー情報の取得への同意が必要です (Please agree to the collection of allergy information)"); ok = false; }
   if (!data.name.trim()) { setError("name", "お名前をご入力ください"); ok = false; }
   if (!data.furigana.trim()) { setError("furigana", "ふりがなをご入力ください"); ok = false; }
   else if (!/^[ぁ-んー\s　]+$/.test(data.furigana)) { setError("furigana", "ひらがなでご入力ください"); ok = false; }
@@ -1181,7 +1161,6 @@ async function sendToFormspree(data) {
         種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
         ケーキ種類: data.cakeType, サイズ: data.size,
         メッセージプレート: data.message,
-        アレルギー: (data.allergy||[]).join(", "),
         備考: data.note,
         受信日時: data.submittedAt
       })
@@ -1208,11 +1187,10 @@ form.addEventListener("submit", async (e) => {
     zipcode: fd.get("zipcode") || "", address: fd.get("address") || "",
     birthday: fd.get("birthday") || "", newsletter: fd.get("newsletter") === "1",
     privacyConsent: fd.get("privacyConsent") === "1",
-    allergyConsent: fd.get("allergyConsent") === "1",
     type: fd.get("type") || "", pickupDate: fd.get("pickupDate") || "",
     pickupTime: fd.get("pickupTime") || "", cakeType: fd.get("cakeType") || "",
     size: fd.get("size") || "", message: fd.get("message") || "",
-    allergy: fd.getAll("allergy"), note: fd.get("note") || "",
+    note: fd.get("note") || "",
     noshi: fd.get("noshi") || "", noshiTitle: fd.get("noshiTitle") || "",
     noshiName: fd.get("noshiName") || "", messageCard: fd.get("messageCard") || "",
     wrapping: fd.get("wrapping") || "",
