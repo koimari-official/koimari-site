@@ -359,6 +359,7 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 - **ケーキの種類は写真選択式（タブ切り替え）**（2026-07-12変更、同日タブ化）：固定のプルダウンではなく、`siteImages.categories`のうち`name`が「デコレーションケーキ」「ロールケーキ」の2カテゴリの`img`+`gallery`写真を、カテゴリごとのタブ（`#cakePhotoTabs`）で切り替えながら4列グリッド（`#cakePhotoGrid`）で表示し、クリックで選択する方式。タブを切り替えても選択状態（`selectedCakePhotoSrc`）は保持される。選択結果は非表示input `cakeType`（カテゴリ名）と`cakeTypeImage`（画像URL）に格納され、admin.htmlの予約一覧にサムネイル表示される。選択肢を増やすには管理画面「カテゴリ画像」タブでこの2カテゴリにギャラリー写真を追加すればよい（コード変更不要）。対象カテゴリを増やす場合は`reservation.html`内の`CAKE_PHOTO_SOURCE_CATEGORIES`配列にカテゴリ名を追加する
 - **サイズ比較チャート**（2026-07-12追加）：サイズ欄の下に4号/5号/6号/7号を直径比例の円で並べた`.size-compare`を常時表示。身近な物との比較は正確に検証できるもの（CD/DVD=12cm、A4用紙短辺=21cm）を優先し、正確な既知の物が無い5号・6号は「〜くらい（目安）」と明示して過大な精度を主張しない
 - **予約締切は「1営業日前」（定休日・臨時休業を除く直近の営業日）**（2026-07-12変更）：従来は「前日まで」という文言・カレンダー日数ベースの判定だったが、前日が定休日の場合に実際は間に合わない予約を受け付けてしまう不具合があった。`reservation.html`で`koimariContent/holidays`（管理画面「営業日設定」と同じデータ、`weeklyClosed`=定休曜日の配列、`extraClosed`=臨時休業日の配列）を購読し、`computeOrderDeadline()`で定休日・臨時休業をスキップした直近の営業日を締切として計算する。あわせて引き取り希望日自体が定休日の場合もエラーにするチェックを追加。terms.html・tokushoho.htmlの記載も合わせて更新済み。引き取り希望日欄に`index.html#bcal`（営業日カレンダー）を別タブで開くリンク「定休日カレンダーをチェック」も追加
+- **プライバシーポリシー同意欄に本文プレビュー**（2026-07-12追加）：reservation.html/experience.html/corporate.htmlの同意チェックボックス直下に、高さ200pxのスクロールボックス（`#policyEmbed`）でprivacy.htmlの本文を表示。内容を複製せず、`fetch("privacy.html")`→`DOMParser`で`.doc`要素のHTMLを取り込む方式のため、privacy.htmlを更新すれば3フォームとも自動的に反映される（二重管理にならない）。同じ本文プレビューを新しいフォームに追加する場合はこのfetchパターンをコピーする
 
 ### 送信フォーム（reservation.html / experience.html / corporate.html）の送信失敗が画面に出ない不具合（2026-07-12発覚・修正）
 
