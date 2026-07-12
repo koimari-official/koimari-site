@@ -2409,7 +2409,7 @@ function renderReservations() {
       <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
       <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span>${r.birthday?`<br><span class="small">生: ${escapeHtml(r.birthday)}</span>`:""}${r.newsletter?'<br><span class="small" style="color:#5d8a4e;">■メルマガ</span>':""}</td>
       <td>${escapeHtml(r.pickupDate)} ${escapeHtml(r.pickupTime)}</td>
-      <td>${escapeHtml(r.cakeType)}<br>${escapeHtml(r.size)}<br><span class="small">${escapeHtml(r.message)}</span></td>
+      <td>${r.cakeTypeImage?`<img src="${escapeHtml(r.cakeTypeImage)}" alt="選択写真" style="width:56px;height:56px;object-fit:cover;border:1px solid #ddd;display:block;margin-bottom:4px;cursor:pointer;" onclick="window.open('${escapeHtml(r.cakeTypeImage)}','_blank')">`:""}${escapeHtml(r.cakeType)}<br>${escapeHtml(r.size)}<br><span class="small">${escapeHtml(r.message)}</span></td>
       <td><span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
       <td><textarea rows="2" style="font-size:12px;width:120px;padding:4px;border:1px solid #ddd;resize:vertical;" onchange="updateResNotes(${idx},this.value)">${escapeHtml(r.notes||"")}</textarea></td>
       <td>

@@ -351,6 +351,24 @@ main { padding: 90px 24px 110px; }
   background: rgba(201,169,110,0.06);
   color: var(--color-accent);
 }
+.cake-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.cake-photo-item {
+  cursor: pointer;
+  border: 2px solid var(--color-line);
+  background: #fdfaf6;
+  padding: 6px;
+  transition: all 0.2s;
+}
+.cake-photo-item:hover { border-color: var(--color-gold); }
+.cake-photo-item.selected { border-color: var(--color-accent); background: rgba(201,169,110,0.08); }
+.cake-photo-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
+.cake-photo-item__label { font-size: 12px; text-align: center; margin-top: 6px; color: var(--color-text-soft); letter-spacing: 0.02em; }
+.cake-photo-item.selected .cake-photo-item__label { color: var(--color-accent); font-weight: 600; }
+
 .event-cake-option {
   border: 1px solid #c75a6e !important;
   background: #fbeef1 !important;
@@ -693,6 +711,8 @@ main { padding: 90px 24px 110px; }
   .form-section__title { font-size: 19px; }
   .radio-group label, .checkbox-group label { padding: 12px 18px; font-size: 17px; }
   .input, .select, .textarea { font-size: 17px; padding: 14px 14px; }
+  .cake-photo-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .cake-photo-item__label { font-size: 11px; }
   .same-day { padding: 20px 22px; gap: 18px; }
   .same-day__tel { font-size: 22px; padding: 12px 18px; width: 100%; justify-content: center; }
   .same-day__icon { width: 44px; height: 44px; }
@@ -843,6 +863,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
 
+        <div id="reservationOnlyFields">
         <div class="row">
           <div class="field">
             <label class="field__label" for="pickupDate">引き取り希望日 (Pickup Date) <span id="pickupDateBadge" class="req">必須 Required</span></label>
@@ -874,29 +895,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
 
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="cakeType">ケーキの種類 (Cake Type) <span class="opt">任意 Optional</span></label>
-            <select id="cakeType" name="cakeType" class="select">
-              <option value="">選択してください (Please select)</option>
-              <option value="苺のショートケーキ">苺のショートケーキ (Strawberry Shortcake)</option>
-              <option value="ガトーショコラ">ガトーショコラ (Gateau Chocolat)</option>
-              <option value="モンブラン">モンブラン (Mont Blanc)</option>
-              <option value="フルーツタルト">フルーツタルト (Fruit Tart)</option>
-              <option value="チーズケーキ">チーズケーキ (Cheesecake)</option>
-              <option value="その他">その他（備考欄にご記入ください） (Other - please specify below)</option>
-            </select>
+        <div class="field">
+          <label class="field__label">ケーキの種類 (Cake Type) <span class="opt">任意 Optional</span></label>
+          <p class="field__hint" style="margin:0 0 10px;">写真をクリックしてお選びください（未選択でもご予約いただけます）(Click a photo to select. You can also leave this blank.)</p>
+          <div class="cake-photo-grid" id="cakePhotoGrid">
+            <p style="grid-column:1/-1;font-size:13px;color:var(--color-text-soft);">読み込み中... (Loading...)</p>
           </div>
-          <div class="field">
-            <label class="field__label" for="size">サイズ (Size) <span class="opt">任意 Optional</span></label>
-            <select id="size" name="size" class="select">
-              <option value="">選択してください (Please select)</option>
-              <option value="4号(直径12cm/2-3名)">4号（直径12cm / 2〜3名）(4-inch, serves 2-3)</option>
-              <option value="5号(直径15cm/4-6名)">5号（直径15cm / 4〜6名）(5-inch, serves 4-6)</option>
-              <option value="6号(直径18cm/6-8名)">6号（直径18cm / 6〜8名）(6-inch, serves 6-8)</option>
-              <option value="7号(直径21cm/8-10名)">7号（直径21cm / 8〜10名）(7-inch, serves 8-10)</option>
-            </select>
-          </div>
+          <input type="hidden" id="cakeType" name="cakeType" value="">
+          <input type="hidden" id="cakeTypeImage" name="cakeTypeImage" value="">
+        </div>
+
+        <div class="field">
+          <label class="field__label" for="size">サイズ (Size) <span class="opt">任意 Optional</span></label>
+          <select id="size" name="size" class="select">
+            <option value="">選択してください (Please select)</option>
+            <option value="4号(直径12cm/2-3名)">4号（直径12cm / 2〜3名）(4-inch, serves 2-3)</option>
+            <option value="5号(直径15cm/4-6名)">5号（直径15cm / 4〜6名）(5-inch, serves 4-6)</option>
+            <option value="6号(直径18cm/6-8名)">6号（直径18cm / 6〜8名）(6-inch, serves 6-8)</option>
+            <option value="7号(直径21cm/8-10名)">7号（直径21cm / 8〜10名）(7-inch, serves 8-10)</option>
+          </select>
         </div>
 
         <div class="field">
@@ -980,6 +997,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
           </div>
         </div>
+        </div>
 
         <div class="field">
           <label class="field__label" for="note">備考・お問合せ内容 (Notes / Other Inquiries) <span id="noteBadge" class="opt">任意 Optional</span></label>
@@ -1043,6 +1061,48 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 const reservationsRef = ref(db, "reservations");
+
+// ===== ケーキの種類：デコレーションケーキ・ロールケーキの商品写真を選択式で表示 =====
+const CAKE_PHOTO_SOURCE_CATEGORIES = ["デコレーションケーキ", "ロールケーキ"];
+function renderCakePhotoGrid(categories) {
+  const grid = document.getElementById("cakePhotoGrid");
+  if (!grid) return;
+  const photos = [];
+  (Array.isArray(categories) ? categories : []).forEach(cat => {
+    if (!cat || !CAKE_PHOTO_SOURCE_CATEGORIES.includes(cat.name)) return;
+    [cat.img].concat(Array.isArray(cat.gallery) ? cat.gallery : []).filter(Boolean).forEach(src => {
+      photos.push({ src, label: cat.name });
+    });
+  });
+  if (!photos.length) {
+    grid.innerHTML = '<p style="grid-column:1/-1;font-size:13px;color:var(--color-text-soft);">現在お選びいただける写真がありません。備考欄にご希望をご記入ください。 (No photos available right now — please describe your preference in the notes field.)</p>';
+    return;
+  }
+  const cakeTypeInput = document.getElementById("cakeType");
+  const cakeTypeImageInput = document.getElementById("cakeTypeImage");
+  grid.innerHTML = "";
+  photos.forEach(p => {
+    const item = document.createElement("div");
+    item.className = "cake-photo-item";
+    item.innerHTML = `<img src="${p.src}" alt="${p.label}" loading="lazy"><div class="cake-photo-item__label">${p.label}</div>`;
+    item.addEventListener("click", () => {
+      const alreadySelected = item.classList.contains("selected");
+      grid.querySelectorAll(".cake-photo-item.selected").forEach(el => el.classList.remove("selected"));
+      if (alreadySelected) {
+        cakeTypeInput.value = "";
+        cakeTypeImageInput.value = "";
+      } else {
+        item.classList.add("selected");
+        cakeTypeInput.value = p.label;
+        cakeTypeImageInput.value = p.src;
+      }
+    });
+    grid.appendChild(item);
+  });
+}
+onValue(ref(db, "siteImages/categories"), (snapshot) => {
+  renderCakePhotoGrid(snapshot.val());
+});
 
 // 現在開催中のイベント名（管理画面「季節イベント設定」から一括変更可能）
 const EVENT_NAME_EN_MAP = {
@@ -1124,6 +1184,9 @@ function updateRequiredFields() {
   if (dateBadge) { dateBadge.className = isReservation ? "req" : "opt"; dateBadge.textContent = isReservation ? "必須 Required" : "任意 Optional"; }
   if (timeBadge) { timeBadge.className = isReservation ? "req" : "opt"; timeBadge.textContent = isReservation ? "必須 Required" : "任意 Optional"; }
   if (noteBadge) { noteBadge.className = isInquiry ? "req" : "opt"; noteBadge.textContent = isInquiry ? "必須 Required" : "任意 Optional"; }
+  // 「その他お問合せ」の場合は、ケーキ予約専用の入力欄（引取日時・ケーキ種類・サイズ・メッセージプレート・のし/ラッピング）を丸ごと非表示にする
+  const reservationOnlyFields = document.getElementById("reservationOnlyFields");
+  if (reservationOnlyFields) reservationOnlyFields.style.display = isInquiry ? "none" : "";
 }
 document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener("change", updateRequiredFields));
 updateRequiredFields();
@@ -1159,7 +1222,7 @@ async function sendToFormspree(data) {
         電話番号: data.tel, メールアドレス: data.email,
         生年月日: data.birthday, メルマガ登録: data.newsletter ? "希望する" : "希望しない",
         種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
-        ケーキ種類: data.cakeType, サイズ: data.size,
+        ケーキ種類: data.cakeType, 選択写真: data.cakeTypeImage, サイズ: data.size,
         メッセージプレート: data.message,
         備考: data.note,
         受信日時: data.submittedAt
@@ -1189,6 +1252,7 @@ form.addEventListener("submit", async (e) => {
     privacyConsent: fd.get("privacyConsent") === "1",
     type: fd.get("type") || "", pickupDate: fd.get("pickupDate") || "",
     pickupTime: fd.get("pickupTime") || "", cakeType: fd.get("cakeType") || "",
+    cakeTypeImage: fd.get("cakeTypeImage") || "",
     size: fd.get("size") || "", message: fd.get("message") || "",
     note: fd.get("note") || "",
     noshi: fd.get("noshi") || "", noshiTitle: fd.get("noshiTitle") || "",
