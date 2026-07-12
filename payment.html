@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MB2XHF6J');</script>
+<!-- End Google Tag Manager -->
+<script src="error-tracker.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
+<title>お支払い｜こいまり</title>
+<meta name="description" content="こいまりのご予約お支払いページです。">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://koimari-official.github.io/koimari-site/payment.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--color-bg: #f7f3ee;--color-bg-soft: #ede3d4;--color-paper:#fefcf8;--color-text:#2e2118;--color-text-soft: #4a3a2a;--color-accent: #c9a96e;--color-gold: #c9a96e;--color-line: #d8baa4;--color-error:#b03b48;--font-mincho:"Shippori Mincho",serif;--font-sans:"Noto Sans JP",sans-serif;--font-en:"Cormorant Garamond",serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.95;font-size:21px;font-weight:600;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.header{position:relative;overflow:hidden;background:linear-gradient(135deg,#5c4a38 0%,#4a3a2a 100%)}
+.header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
+.header__inner{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.header__logo{display:flex;align-items:center;gap:10px;line-height:1}
+.header__logo-mark{width:82px;height:82px;object-fit:contain}
+.header__logo-text{display:flex;flex-direction:column;line-height:1}
+.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
+.header__logo-jp{font-family:var(--font-mincho);font-size:18px;letter-spacing:.08em;color:#fff;font-weight:600;margin-top:8px;white-space:nowrap}
+.back-link{font-family:var(--font-mincho);font-size:18px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
+.back-link:hover{color:var(--color-accent)}
+.page-head{position:relative;text-align:center;padding:48px 24px 42px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#efe3d2 100%);overflow:hidden}
+.page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none;opacity:.7}
+.page-head__inner{position:relative;z-index:1}
+.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:17px;display:inline-block;margin-bottom:14px;font-weight:500}
+.page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
+.page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
+main{max-width:640px;margin:0 auto;padding:70px 24px 100px}
+.notice-box{background:var(--color-paper);border:1px solid var(--color-line);padding:36px 30px;text-align:center;margin-bottom:36px;}
+.notice-box__icon{font-size:36px;margin-bottom:16px;}
+.notice-box__title{font-family:var(--font-mincho);font-size:19px;font-weight:700;margin-bottom:14px;letter-spacing:.06em;}
+.notice-box__desc{font-size:15px;color:var(--color-text-soft);line-height:1.9;}
+.order-summary{background:var(--color-paper);border:1px solid var(--color-line);padding:28px 30px;margin-bottom:24px;}
+.order-summary__title{font-family:var(--font-mincho);font-size:15px;font-weight:700;color:var(--color-accent);letter-spacing:.06em;margin-bottom:14px;padding-bottom:10px;border-bottom:1px dashed var(--color-line);}
+.order-summary__row{display:flex;gap:12px;font-size:14px;margin-bottom:6px;flex-wrap:wrap;}
+.order-summary__label{flex:0 0 110px;color:var(--color-text-soft);}
+.order-summary__value{flex:1;min-width:150px;font-weight:600;}
+/* ===== 決済SDK設置エリア（決済代行業者の選定後、ここにウィジェット/ボタンを実装する） ===== */
+#paymentWidget{background:#fdfaf6;border:1px dashed var(--color-line);padding:40px 24px;text-align:center;font-size:14px;color:var(--color-text-soft);margin-bottom:24px;}
+.actions{text-align:center;}
+.btn{display:inline-block;padding:16px 40px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.14em;color:#fff;background:var(--color-accent);font-weight:500;transition:background .2s;border:none;cursor:pointer;}
+.btn:hover{background:#a88a52}
+.footer{background:#2b1f1a;color:#e3d5c2;padding:44px 24px;text-align:center;font-family:var(--font-en);font-size:14px;letter-spacing:.18em}
+.footer__mark{font-family:var(--font-mincho);font-size:13px;letter-spacing:.4em;color:#b09a82;margin-bottom:10px}
+@media(max-width:700px){body{font-size:18px}.header__inner{flex-wrap:wrap;row-gap:12px}.header__logo-mark{width:56px;height:56px}.header__logo-en{font-size:26px}.header__logo-jp{font-size:15px}.back-link{font-size:16px}.page-head{padding:44px 22px 40px}main{padding:56px 16px 80px}.notice-box{padding:28px 20px}.order-summary{padding:22px 20px}}
+</style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MB2XHF6J"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header class="header">
+  <div class="header__inner">
+    <a href="index.html" class="header__logo">
+      <img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark">
+      <span class="header__logo-text">
+        <span class="header__logo-en">KOIMARI</span>
+        <span class="header__logo-jp">ケーキ屋さんこいまり</span>
+      </span>
+    </a>
+    <a href="reservation.html" class="back-link">← ご予約ページへ戻る</a>
+  </div>
+</header>
+<div class="page-head">
+  <div class="page-head__inner">
+    <span class="page-head__en">Payment</span>
+    <h1 class="page-head__title">お支払い</h1>
+  </div>
+</div>
+<main>
+  <div class="notice-box">
+    <div class="notice-box__icon">🛠️</div>
+    <div class="notice-box__title">ただいまオンライン決済システムを準備中です</div>
+    <div class="notice-box__desc">
+      現在、こちらのページからのオンラインお支払いは承っておりません。<br>
+      ご予約内容は通常どおり承っておりますので、お支払いにつきましては、当店より別途ご連絡させていただきます。
+    </div>
+  </div>
+
+  <!--
+    ===== 実装メモ（決済代行業者の選定後にここから対応する） =====
+    1. 下記 #orderSummary に、reservationsノードから該当予約の内容（商品・金額等）を
+       表示する（現状はプレースホルダー。表示には該当予約1件だけを未ログインでも読める
+       ようFirebaseセキュリティルールの調整が必要 - 例: "reservations/$id/.read": true
+       のようなキー単位の許可。一覧の丸ごと公開はしないこと）
+    2. #paymentWidget 内に、決済代行業者のSDK（例: STORES決済SDK / stera smart one
+       Client SDK）を組み込み、決済ボタン・カード入力欄等を設置する
+    3. 決済確定後の処理（Firebase側のreservationレコードにpaymentStatus等を記録する
+       処理）はサーバー側（Firebase Cloud Functions等）で行うこと。secret keyや
+       決済確定の検証をブラウザ側だけで完結させない
+    4. reservation.htmlの確認画面（#confirmScreen）の「この内容で送信する」ボタンの
+       送信完了後に、このpayment.htmlへ予約IDを引き継いで遷移する導線を追加する
+       （例: payment.html?resId=xxxxx ）
+  -->
+
+  <div class="order-summary" id="orderSummary">
+    <div class="order-summary__title">ご予約内容 (Order Summary)</div>
+    <div class="order-summary__row"><span class="order-summary__label">状態</span><span class="order-summary__value">決済システム準備中のため未表示</span></div>
+  </div>
+
+  <div id="paymentWidget">
+    決済フォーム設置予定エリア<br>（決済代行業者の導入後、ここに決済フォームが表示されます）
+  </div>
+
+  <div class="actions">
+    <a href="reservation.html" class="btn">ご予約ページへ戻る</a>
+  </div>
+</main>
+<footer class="footer">
+  <div class="footer__mark">こ い ま り</div>
+  © 2026 Koimari. All Rights Reserved.
+</footer>
+</body>
+</html>
