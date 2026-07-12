@@ -976,7 +976,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
 
         <div class="field">
-          <label class="field__label">ケーキの種類 (Cake Type) <span class="opt">任意 Optional</span></label>
+          <label class="field__label"><span id="cakeTypeFieldLabelText">ケーキの種類 (Cake Type)</span> <span class="opt">任意 Optional</span></label>
           <p class="field__hint" style="margin:0 0 10px;">写真をクリックしてお選びください（未選択でもご予約いただけます）(Click a photo to select. You can also leave this blank.)</p>
           <div class="cake-photo-tabs" id="cakePhotoTabs"></div>
           <div class="cake-photo-grid" id="cakePhotoGrid">
@@ -1185,16 +1185,36 @@ const reservationsRef = ref(db, "reservations");
   }
 })();
 
-// ===== ケーキの種類：デコレーションケーキ・ロールケーキをタブで切り替えて商品写真から選択 =====
-const CAKE_PHOTO_SOURCE_CATEGORIES = ["デコレーションケーキ", "ロールケーキ"];
-let cakePhotosByCategory = {}; // { "デコレーションケーキ": [src, ...], "ロールケーキ": [src, ...] }
+// ===== ケーキの種類：予約種別に応じて対象カテゴリを切り替え、タブで商品写真から選択 =====
+// デコレーションケーキ予約/イベントケーキ予約→デコレーションケーキ・ロールケーキ、焼き菓子予約→焼き菓子・ギフト
+const CAKE_PHOTO_CATEGORY_MAP = {
+  "デコレーションケーキ予約": ["デコレーションケーキ", "ロールケーキ"],
+  "イベントケーキ予約": ["デコレーションケーキ", "ロールケーキ"],
+  "焼き菓子予約": ["焼き菓子", "ギフト"]
+};
+const CAKE_PHOTO_FIELD_LABELS = {
+  "デコレーションケーキ予約": "ケーキの種類 (Cake Type)",
+  "イベントケーキ予約": "ケーキの種類 (Cake Type)",
+  "焼き菓子予約": "商品の種類 (Product Type)"
+};
+const ALL_CAKE_PHOTO_CATEGORIES = ["デコレーションケーキ", "ロールケーキ", "焼き菓子", "ギフト"];
+let cakePhotosByCategory = {}; // { "デコレーションケーキ": [src, ...], "ロールケーキ": [src, ...], ... }
 let activeCakePhotoTab = null;
 let selectedCakePhotoSrc = "";
+
+function currentCakePhotoCategories() {
+  const type = (document.querySelector('input[name="type"]:checked') || {}).value;
+  return CAKE_PHOTO_CATEGORY_MAP[type] || CAKE_PHOTO_CATEGORY_MAP["デコレーションケーキ予約"];
+}
 
 function renderCakePhotoTabs() {
   const tabsEl = document.getElementById("cakePhotoTabs");
   if (!tabsEl) return;
-  const availableTabs = CAKE_PHOTO_SOURCE_CATEGORIES.filter(name => (cakePhotosByCategory[name] || []).length);
+  const sourceCategories = currentCakePhotoCategories();
+  const labelEl = document.getElementById("cakeTypeFieldLabelText");
+  const type = (document.querySelector('input[name="type"]:checked') || {}).value;
+  if (labelEl) labelEl.textContent = CAKE_PHOTO_FIELD_LABELS[type] || CAKE_PHOTO_FIELD_LABELS["デコレーションケーキ予約"];
+  const availableTabs = sourceCategories.filter(name => (cakePhotosByCategory[name] || []).length);
   if (!activeCakePhotoTab || !availableTabs.includes(activeCakePhotoTab)) activeCakePhotoTab = availableTabs[0] || null;
   tabsEl.innerHTML = "";
   availableTabs.forEach(name => {
@@ -1246,12 +1266,31 @@ onValue(ref(db, "siteImages/categories"), (snapshot) => {
   const categories = snapshot.val();
   cakePhotosByCategory = {};
   (Array.isArray(categories) ? categories : []).forEach(cat => {
-    if (!cat || !CAKE_PHOTO_SOURCE_CATEGORIES.includes(cat.name)) return;
+    if (!cat || !ALL_CAKE_PHOTO_CATEGORIES.includes(cat.name)) return;
     cakePhotosByCategory[cat.name] = [cat.img].concat(Array.isArray(cat.gallery) ? cat.gallery : []).filter(Boolean);
   });
   renderCakePhotoTabs();
   renderCakePhotoGridForActiveTab();
 });
+
+// 予約種別が切り替わったら、対象カテゴリ（タブ）を再計算し、選択が新しいカテゴリに含まれない場合はリセットする
+document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener("change", () => {
+  const sourceCategories = currentCakePhotoCategories();
+  if (selectedCakePhotoSrc && !sourceCategories.includes(cakeTypeInputValueCategory())) {
+    selectedCakePhotoSrc = "";
+    const cakeTypeInput = document.getElementById("cakeType");
+    const cakeTypeImageInput = document.getElementById("cakeTypeImage");
+    if (cakeTypeInput) cakeTypeInput.value = "";
+    if (cakeTypeImageInput) cakeTypeImageInput.value = "";
+  }
+  activeCakePhotoTab = null;
+  renderCakePhotoTabs();
+  renderCakePhotoGridForActiveTab();
+}));
+function cakeTypeInputValueCategory() {
+  const el = document.getElementById("cakeType");
+  return el ? el.value : "";
+}
 
 // ===== 営業日カレンダーに基づく「1営業日前」判定 =====
 // 定休日（曜日）・臨時休業日を考慮せずに「前日」とだけ案内すると、前日が定休日の場合に
