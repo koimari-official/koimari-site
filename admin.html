@@ -792,7 +792,7 @@ const DEFAULT_IMAGES = {
   ],
   greeting: "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=900&q=80",
   categories: [
-    { name: "ホールケーキ", en: "Whole Cake", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80" },
+    { name: "デコレーションケーキ", en: "Decoration Cake", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80" },
     { name: "カットケーキ", en: "Cut Cake",   img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80" },
     { name: "ロールケーキ", en: "Roll Cake",  img: "https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80" },
     { name: "焼き菓子",     en: "Baked Sweets", img: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80" },
@@ -2052,7 +2052,7 @@ function copyTemplate(type, rJson) {
 }
 function renderTemplates() {
   const area = document.getElementById("templatesArea");
-  const sample = { name: "山田 花子", type: "ホールケーキ予約", pickupDate: "2026-06-01", pickupTime: "14:00", cakeType: "いちごショートケーキ", size: "5号", message: "Happy Birthday" };
+  const sample = { name: "山田 花子", type: "デコレーションケーキ予約", pickupDate: "2026-06-01", pickupTime: "14:00", cakeType: "いちごショートケーキ", size: "5号", message: "Happy Birthday" };
   area.innerHTML = ["confirm","complete","cancel"].map(type => {
     const labels = { confirm:"予約確認", complete:"受渡し完了", cancel:"キャンセル" };
     return `<div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;margin-bottom:16px;">
@@ -2613,13 +2613,13 @@ const BLOG_KEY = "koimari_blog";
 
 const DEFAULT_NEWS_LIST = [
   {date:"2026.04.20",tag:"NEW",title:"春限定 苺のショートケーキ販売中",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。",img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",url:"#recommended"},
-  {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なホールケーキ。大切なお母様への感謝を込めて。",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
+  {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
   {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
 ];
 const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };
 const DEFAULT_FAQ = [
   { category: "ご予約について", items: [
-    { q: "ホールケーキの予約はいつまでに必要ですか？", a: "ホールケーキは原則として引き取り希望日の前日までにご予約をお願いしております。当日のご予約はお電話にて承ります。" }
+    { q: "デコレーションケーキの予約はいつまでに必要ですか？", a: "デコレーションケーキは原則として引き取り希望日の前日までにご予約をお願いしております。当日のご予約はお電話にて承ります。" }
   ]}
 ];
 const DEFAULT_GALLERY = [];
@@ -2799,7 +2799,7 @@ const DEFAULT_SPOTLIGHT = {
   en: "Pick of the Month",
   title: "母の日の<br>フラワーケーキ",
   sub: "感謝のひと皿に、季節の花を咲かせて。",
-  desc: "苺と季節のフルーツを花のように飾った、母の日限定のホールケーキです。生クリームをそっと絞ってお花のかたちに。お母様への「ありがとう」を、ひと皿のお菓子に込めて。",
+  desc: "苺と季節のフルーツを花のように飾った、母の日限定のデコレーションケーキです。生クリームをそっと絞ってお花のかたちに。お母様への「ありがとう」を、ひと皿のお菓子に込めて。",
   price: "¥4,200",
   priceNote: "5号(直径15cm)/4〜6名様",
   cta: "ご予約はこちら",
@@ -2959,7 +2959,7 @@ const DEFAULT_INSTA = {
   imgCount: 3,
   likes: 25,
   date: "4月17日",
-  caption: "こいまり城東店です！\n\nフルーツがキラキラしていて宝石箱のようなタルトのホールケーキです♪\n\nこちらは6号サイズでございます🌼\nタルトの上にカスタードを絞り、色々なフルーツを飾りました☺️",
+  caption: "こいまり城東店です！\n\nフルーツがキラキラしていて宝石箱のようなタルトのデコレーションケーキです♪\n\nこちらは6号サイズでございます🌼\nタルトの上にカスタードを絞り、色々なフルーツを飾りました☺️",
   hashtags: "#こいまり #城東区スイーツ #大阪スイーツ #大阪ケーキ屋 #フルーツタルト",
   url: "https://www.instagram.com/_koimari_"
 };
@@ -3704,11 +3704,11 @@ function i18nSaveKey(){
 function i18nCollectData(){
   const news=JSON.parse(localStorage.getItem('koimari_news')||'null')||[
     {date:"2026.04.20",tag:"NEW",title:"春限定 苺のショートケーキ販売中",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。"},
-    {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なホールケーキ。大切なお母様への感謝を込めて。"},
+    {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。"},
     {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。"}
   ];
   const spRaw=JSON.parse(localStorage.getItem('koimari_spotlight')||'null');
-  const sp=(Array.isArray(spRaw)?spRaw.find(s=>s.visible!==false):spRaw)||{badge:"今月の主役",title:"母の日の フラワーケーキ",sub:"感謝のひと皿に、季節の花を咲かせて。",desc:"苺と季節のフルーツを花のように飾った母の日限定のホールケーキです。",priceNote:"5号(直径15cm)/4〜6名様",cta:"ご予約はこちら"};
+  const sp=(Array.isArray(spRaw)?spRaw.find(s=>s.visible!==false):spRaw)||{badge:"今月の主役",title:"母の日の フラワーケーキ",sub:"感謝のひと皿に、季節の花を咲かせて。",desc:"苺と季節のフルーツを花のように飾った母の日限定のデコレーションケーキです。",priceNote:"5号(直径15cm)/4〜6名様",cta:"ご予約はこちら"};
   const voices=JSON.parse(localStorage.getItem('koimari_voices')||'null')||[
     {text:"娘の誕生日にオーダーしました。本人がとても気に入っていたキャラクターを丁寧に再現していただき、家族みんなで感動しました。",attr:"お子様のお誕生日"},
     {text:"職場へのお礼の品として焼き菓子の詰め合わせをお願いしました。包装も上品で、皆さんからとても好評でした。",attr:"贈答品"},

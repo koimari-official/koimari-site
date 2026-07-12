@@ -569,7 +569,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="greeting__text">
         <h2 data-i18n="greeting.heading">四季の彩りを<br>ひと皿のお菓子に。</h2>
         <p data-i18n="greeting.body1">こいまりは、季節の素材を大切にした手作りのケーキと焼き菓子のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
-        <p data-i18n="greeting.body2">誕生日や記念日のホールケーキ、贈り物の焼き菓子など、お客様の大切なひとときに寄り添えるお菓子作りを心がけています。お気軽にご相談ください。</p>
+        <p data-i18n="greeting.body2">誕生日や記念日のデコレーションケーキ、贈り物の焼き菓子など、お客様の大切なひとときに寄り添えるお菓子作りを心がけています。お気軽にご相談ください。</p>
         <p data-i18n="greeting.body3">近年、原材料費や人件費の高騰により、業界全体で手間や材料費を抑える傾向が進んでいます。それでも私たちは、素材と製法にこだわり、昔ながらの手間を惜しまないものづくりをこれからも大切にしてまいります。</p>
       </div>
     </div>
@@ -811,7 +811,7 @@ const DEFAULT_IMAGES = {
   ],
   greeting:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=900&q=80",
   categories:[
-    {name:"ホールケーキ",en:"Whole Cake",img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
+    {name:"デコレーションケーキ",en:"Decoration Cake",img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
     {name:"カットケーキ",en:"Cut Cake",img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
     {name:"ロールケーキ",en:"Roll Cake",img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
     {name:"焼き菓子",en:"Baked Sweets",img:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
@@ -836,7 +836,7 @@ const DEFAULT_IMAGES = {
 };
 const DEFAULT_NEWS = [
   {date:"2026.04.20",tag:"NEW",tagEn:"NEW",title:"春限定 苺のショートケーキ販売中",titleEn:"Spring Special: Strawberry Shortcake",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。",excerptEn:"Freshly picked strawberries from local farms, used generously. A limited-season treat not to be missed.",img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",url:"#recommended"},
-  {date:"2026.04.05",tag:"おすすめ",tagEn:"Featured",title:"母の日ケーキのご予約承り中",titleEn:"Mother's Day Cakes: Now Accepting Reservations",excerpt:"お花のような絞りで彩った特別なホールケーキ。大切なお母様への感謝を込めて。",excerptEn:"A special whole cake adorned with flower-like piping — a heartfelt gift of appreciation.",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
+  {date:"2026.04.05",tag:"おすすめ",tagEn:"Featured",title:"母の日ケーキのご予約承り中",titleEn:"Mother's Day Cakes: Now Accepting Reservations",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。",excerptEn:"A special whole cake adorned with flower-like piping — a heartfelt gift of appreciation.",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
   {date:"2026.03.18",tag:"お知らせ",tagEn:"Notice",title:"5月の営業日についてのご案内",titleEn:"May Operating Hours",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",excerptEn:"Information on Golden Week hours and Mother's Day pickup arrangements.",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
 ];
 const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };
@@ -848,7 +848,7 @@ const DEFAULT_SPOTLIGHT = {
   titleEn: "Mother's Day<br>Flower Cake",
   sub: "感謝のひと皿に、季節の花を咲かせて。",
   subEn: "A plateful of gratitude, blooming with seasonal flowers.",
-  desc: "苺と季節のフルーツを花のように飾った、母の日限定のホールケーキです。生クリームをそっと絞ってお花のかたちに。お母様への「ありがとう」を、ひと皿のお菓子に込めて。",
+  desc: "苺と季節のフルーツを花のように飾った、母の日限定のデコレーションケーキです。生クリームをそっと絞ってお花のかたちに。お母様への「ありがとう」を、ひと皿のお菓子に込めて。",
   descEn: "A Mother's Day exclusive: a whole cake adorned with strawberries and seasonal fruits arranged like flowers, finished with softly piped fresh cream. A heartfelt way to say thank you.",
   price: "¥4,200",
   priceNote: "5号(直径15cm)/4〜6名様",
@@ -873,7 +873,7 @@ const DEFAULT_INSTA = {
   imgCount: 3,
   likes: 25,
   date: "4月17日",
-  caption: "こいまり城東店です！\n\nフルーツがキラキラしていて宝石箱のようなタルトのホールケーキです♪\n\nこちらは6号サイズでございます🌼\nタルトの上にカスタードを絞り、色々なフルーツを飾りました☺️\n\n色々なフルーツでカラフルな見た目なのでパーティーを彩ってくれること間違いなし🤚🏻",
+  caption: "こいまり城東店です！\n\nフルーツがキラキラしていて宝石箱のようなタルトのデコレーションケーキです♪\n\nこちらは6号サイズでございます🌼\nタルトの上にカスタードを絞り、色々なフルーツを飾りました☺️\n\n色々なフルーツでカラフルな見た目なのでパーティーを彩ってくれること間違いなし🤚🏻",
   hashtags: "#こいまり #城東区スイーツ #大阪スイーツ #大阪ケーキ屋 #フルーツタルト",
   url: "https://www.instagram.com/_koimari_"
 };

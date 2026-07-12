@@ -13,11 +13,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>ご予約・お問合せ｜こいまり</title>
-<meta name="description" content="こいまり（大阪市城東区・京橋・蒲生四丁目）のケーキご予約はこちらから。ホールケーキ・焼き菓子のご予約、のし・メッセージカード対応も承ります。">
+<meta name="description" content="こいまり（大阪市城東区・京橋・蒲生四丁目）のケーキご予約はこちらから。デコレーションケーキ・焼き菓子のご予約、のし・メッセージカード対応も承ります。">
 <link rel="canonical" href="https://koimari-official.github.io/koimari-site/reservation.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ご予約・お問合せ｜こいまり">
-<meta property="og:description" content="ホールケーキ・焼き菓子のご予約はこちらから。のし・メッセージカードにも対応しています。">
+<meta property="og:description" content="デコレーションケーキ・焼き菓子のご予約はこちらから。のし・メッセージカードにも対応しています。">
 <meta property="og:url" content="https://koimari-official.github.io/koimari-site/reservation.html">
 <meta property="og:site_name" content="こいまり">
 <meta property="og:image" content="https://koimari-official.github.io/koimari-site/ogp.jpg">
@@ -741,7 +741,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <span class="page-head__en">Reservation &amp; Inquiry</span>
     <h1 class="page-head__title">ご予約・お問合せ</h1>
     <p class="page-head__lead">
-      ホールケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。<br>
+      デコレーションケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。<br>
       お問合せのみの場合は備考欄にその旨ご記入ください。
     </p>
   </div>
@@ -837,7 +837,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
 
           <div class="radio-group">
-            <label><input type="radio" name="type" value="ホールケーキ予約" checked> ホールケーキのご予約 (Whole Cake Reservation)</label>
+            <label><input type="radio" name="type" value="デコレーションケーキ予約" checked> デコレーションケーキのご予約 (Decoration Cake Reservation)</label>
             <label><input type="radio" name="type" value="焼き菓子予約"> 焼き菓子・ギフトのご予約 (Baked Goods / Gift Reservation)</label>
             <label><input type="radio" name="type" value="その他"> その他お問合せ (Other Inquiry)</label>
           </div>
@@ -1011,7 +1011,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <strong>ご予約に関するご注意</strong>
         <ul>
           <li>ご予約内容の確認のため、当店よりお電話またはメールにてご連絡を差し上げます。</li>
-          <li>ホールケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。</li>
+          <li>デコレーションケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。</li>
           <li>お問合せのみの場合は備考欄にその旨ご記入ください。</li>
           <li>ご予約確定後のキャンセルは前日までにご連絡ください。</li>
           <li>送信いただいた個人情報は、ご予約・お問合せ対応のみに使用いたします。</li>
@@ -1116,7 +1116,7 @@ function validate(data) {
   else if (!/^\d{3}-?\d{4}$/.test(data.zipcode.trim())) { setError("zipcode", "正しい郵便番号をご入力ください（例: 123-4567）"); ok = false; }
 
   // 種別ごとの必須切り替え
-  const isReservation = data.type === "ホールケーキ予約" || data.type === "焼き菓子予約" || data.type === "イベントケーキ予約";
+  const isReservation = data.type === "デコレーションケーキ予約" || data.type === "焼き菓子予約" || data.type === "イベントケーキ予約";
   const isInquiry = data.type === "その他";
   if (isReservation) {
     if (!data.pickupDate) { setError("pickupDate", "引き取り希望日をご入力ください"); ok = false; }
@@ -1136,7 +1136,7 @@ function validate(data) {
 // 種別変更で必須/任意のバッジと表示を切り替え
 function updateRequiredFields() {
   const type = (document.querySelector('input[name="type"]:checked')||{}).value;
-  const isReservation = type === "ホールケーキ予約" || type === "焼き菓子予約" || type === "イベントケーキ予約";
+  const isReservation = type === "デコレーションケーキ予約" || type === "焼き菓子予約" || type === "イベントケーキ予約";
   const isInquiry = type === "その他";
   const dateBadge = document.getElementById("pickupDateBadge");
   const timeBadge = document.getElementById("pickupTimeBadge");
