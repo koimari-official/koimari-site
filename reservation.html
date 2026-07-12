@@ -351,6 +351,25 @@ main { padding: 90px 24px 110px; }
   background: rgba(201,169,110,0.06);
   color: var(--color-accent);
 }
+.cake-photo-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.cake-photo-tab {
+  cursor: pointer;
+  padding: 9px 20px;
+  border: 1px solid var(--color-line);
+  background: #fdfaf6;
+  font-family: var(--font-mincho);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+.cake-photo-tab:hover { border-color: var(--color-gold); }
+.cake-photo-tab.active { border-color: var(--color-accent); background: var(--color-accent); color: #fff; }
 .cake-photo-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -366,7 +385,42 @@ main { padding: 90px 24px 110px; }
 .cake-photo-item:hover { border-color: var(--color-gold); }
 .cake-photo-item.selected { border-color: var(--color-accent); background: rgba(201,169,110,0.08); }
 .cake-photo-item img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; }
-.cake-photo-item__label { font-size: 12px; text-align: center; margin-top: 6px; color: var(--color-text-soft); letter-spacing: 0.02em; }
+
+.size-compare {
+  display: flex;
+  align-items: flex-end;
+  gap: 22px;
+  margin-top: 16px;
+  padding: 20px 16px 12px;
+  background: #fdfaf6;
+  border: 1px solid var(--color-line);
+  flex-wrap: wrap;
+}
+.size-compare__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.size-compare__circle {
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-accent) 100%);
+  opacity: 0.75;
+  flex-shrink: 0;
+}
+.size-compare__label {
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.6;
+  color: var(--color-text);
+  font-weight: 600;
+}
+.size-compare__label span {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--color-text-soft);
+}
 .cake-photo-item.selected .cake-photo-item__label { color: var(--color-accent); font-weight: 600; }
 
 .event-cake-option {
@@ -712,7 +766,7 @@ main { padding: 90px 24px 110px; }
   .radio-group label, .checkbox-group label { padding: 12px 18px; font-size: 17px; }
   .input, .select, .textarea { font-size: 17px; padding: 14px 14px; }
   .cake-photo-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .cake-photo-item__label { font-size: 11px; }
+  .size-compare { gap: 14px; padding: 16px 12px 10px; justify-content: space-around; }
   .same-day { padding: 20px 22px; gap: 18px; }
   .same-day__tel { font-size: 22px; padding: 12px 18px; width: 100%; justify-content: center; }
   .same-day__icon { width: 44px; height: 44px; }
@@ -761,7 +815,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <span class="page-head__en">Reservation &amp; Inquiry</span>
     <h1 class="page-head__title">ご予約・お問合せ</h1>
     <p class="page-head__lead">
-      デコレーションケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。<br>
+      デコレーションケーキのご予約は1営業日前までにご連絡ください。当日はお電話にて承ります。<br>
       お問合せのみの場合は備考欄にその旨ご記入ください。
     </p>
   </div>
@@ -778,7 +832,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="same-day__body">
         <span class="same-day__label">当日予約はお電話にて承ります</span>
-        <span class="same-day__sub">フォームでのご予約は前日までにお願いいたします。<br>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
+        <span class="same-day__sub">フォームでのご予約は1営業日前までにお願いいたします。<br>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
       </div>
       <a href="tel:0672210705" class="same-day__tel">
         <span>06-7221-0705<small>火-土 10:00-20:00 / 日 10:00-19:00</small></span>
@@ -869,7 +923,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="field__label" for="pickupDate">引き取り希望日 (Pickup Date) <span id="pickupDateBadge" class="req">必須 Required</span></label>
             <input type="date" id="pickupDate" name="pickupDate" class="input">
             <span class="error" data-for="pickupDate"></span>
-            <span class="field__hint">前日までにご指定ください。当日のご予約はお電話にて承ります（Please select a date by the day before. For same-day requests, please call us）</span>
+            <span class="field__hint">1営業日前（定休日・臨時休業を除く直近の営業日）までにご指定ください。当日のご予約はお電話にて承ります（Please select a date at least 1 business day in advance (excluding closed days). For same-day requests, please call us）</span><br>
+            <span class="field__hint"><a href="index.html#bcal" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">定休日カレンダーをチェック (Check the business day calendar) ↗</a></span>
           </div>
           <div class="field">
             <label class="field__label" for="pickupTime">引き取り希望時間 (Pickup Time) <span id="pickupTimeBadge" class="req">必須 Required</span></label>
@@ -898,6 +953,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field">
           <label class="field__label">ケーキの種類 (Cake Type) <span class="opt">任意 Optional</span></label>
           <p class="field__hint" style="margin:0 0 10px;">写真をクリックしてお選びください（未選択でもご予約いただけます）(Click a photo to select. You can also leave this blank.)</p>
+          <div class="cake-photo-tabs" id="cakePhotoTabs"></div>
           <div class="cake-photo-grid" id="cakePhotoGrid">
             <p style="grid-column:1/-1;font-size:13px;color:var(--color-text-soft);">読み込み中... (Loading...)</p>
           </div>
@@ -914,6 +970,24 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option value="6号(直径18cm/6-8名)">6号（直径18cm / 6〜8名）(6-inch, serves 6-8)</option>
             <option value="7号(直径21cm/8-10名)">7号（直径21cm / 8〜10名）(7-inch, serves 8-10)</option>
           </select>
+          <div class="size-compare">
+            <div class="size-compare__item">
+              <div class="size-compare__circle" style="width:48px;height:48px;"></div>
+              <div class="size-compare__label">4号 (12cm)<br><span>CD・DVDと同じくらい</span></div>
+            </div>
+            <div class="size-compare__item">
+              <div class="size-compare__circle" style="width:60px;height:60px;"></div>
+              <div class="size-compare__label">5号 (15cm)<br><span>取り皿くらい（目安）</span></div>
+            </div>
+            <div class="size-compare__item">
+              <div class="size-compare__circle" style="width:72px;height:72px;"></div>
+              <div class="size-compare__label">6号 (18cm)<br><span>中皿くらい（目安）</span></div>
+            </div>
+            <div class="size-compare__item">
+              <div class="size-compare__circle" style="width:84px;height:84px;"></div>
+              <div class="size-compare__label">7号 (21cm)<br><span>A4用紙の短辺と同じ</span></div>
+            </div>
+          </div>
         </div>
 
         <div class="field">
@@ -1010,7 +1084,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <strong>ご予約に関するご注意</strong>
         <ul>
           <li>ご予約内容の確認のため、当店よりお電話またはメールにてご連絡を差し上げます。</li>
-          <li>デコレーションケーキのご予約は前日までにお願いいたします。当日はお電話にて承ります。</li>
+          <li>デコレーションケーキのご予約は1営業日前までにご連絡ください。当日はお電話にて承ります。</li>
           <li>お問合せのみの場合は備考欄にその旨ご記入ください。</li>
           <li>ご予約確定後のキャンセルは前日までにご連絡ください。</li>
           <li>送信いただいた個人情報は、ご予約・お問合せ対応のみに使用いたします。</li>
@@ -1062,47 +1136,98 @@ const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 const reservationsRef = ref(db, "reservations");
 
-// ===== ケーキの種類：デコレーションケーキ・ロールケーキの商品写真を選択式で表示 =====
+// ===== ケーキの種類：デコレーションケーキ・ロールケーキをタブで切り替えて商品写真から選択 =====
 const CAKE_PHOTO_SOURCE_CATEGORIES = ["デコレーションケーキ", "ロールケーキ"];
-function renderCakePhotoGrid(categories) {
+let cakePhotosByCategory = {}; // { "デコレーションケーキ": [src, ...], "ロールケーキ": [src, ...] }
+let activeCakePhotoTab = null;
+let selectedCakePhotoSrc = "";
+
+function renderCakePhotoTabs() {
+  const tabsEl = document.getElementById("cakePhotoTabs");
+  if (!tabsEl) return;
+  const availableTabs = CAKE_PHOTO_SOURCE_CATEGORIES.filter(name => (cakePhotosByCategory[name] || []).length);
+  if (!activeCakePhotoTab || !availableTabs.includes(activeCakePhotoTab)) activeCakePhotoTab = availableTabs[0] || null;
+  tabsEl.innerHTML = "";
+  availableTabs.forEach(name => {
+    const tab = document.createElement("div");
+    tab.className = "cake-photo-tab" + (name === activeCakePhotoTab ? " active" : "");
+    tab.textContent = name;
+    tab.addEventListener("click", () => {
+      activeCakePhotoTab = name;
+      renderCakePhotoTabs();
+      renderCakePhotoGridForActiveTab();
+    });
+    tabsEl.appendChild(tab);
+  });
+}
+
+function renderCakePhotoGridForActiveTab() {
   const grid = document.getElementById("cakePhotoGrid");
   if (!grid) return;
-  const photos = [];
-  (Array.isArray(categories) ? categories : []).forEach(cat => {
-    if (!cat || !CAKE_PHOTO_SOURCE_CATEGORIES.includes(cat.name)) return;
-    [cat.img].concat(Array.isArray(cat.gallery) ? cat.gallery : []).filter(Boolean).forEach(src => {
-      photos.push({ src, label: cat.name });
-    });
-  });
+  const photos = cakePhotosByCategory[activeCakePhotoTab] || [];
+  const cakeTypeInput = document.getElementById("cakeType");
+  const cakeTypeImageInput = document.getElementById("cakeTypeImage");
   if (!photos.length) {
     grid.innerHTML = '<p style="grid-column:1/-1;font-size:13px;color:var(--color-text-soft);">現在お選びいただける写真がありません。備考欄にご希望をご記入ください。 (No photos available right now — please describe your preference in the notes field.)</p>';
     return;
   }
-  const cakeTypeInput = document.getElementById("cakeType");
-  const cakeTypeImageInput = document.getElementById("cakeTypeImage");
   grid.innerHTML = "";
-  photos.forEach(p => {
+  photos.forEach(src => {
     const item = document.createElement("div");
-    item.className = "cake-photo-item";
-    item.innerHTML = `<img src="${p.src}" alt="${p.label}" loading="lazy"><div class="cake-photo-item__label">${p.label}</div>`;
+    item.className = "cake-photo-item" + (src === selectedCakePhotoSrc ? " selected" : "");
+    item.innerHTML = `<img src="${src}" alt="${activeCakePhotoTab}" loading="lazy">`;
     item.addEventListener("click", () => {
-      const alreadySelected = item.classList.contains("selected");
-      grid.querySelectorAll(".cake-photo-item.selected").forEach(el => el.classList.remove("selected"));
+      const alreadySelected = src === selectedCakePhotoSrc;
       if (alreadySelected) {
+        selectedCakePhotoSrc = "";
         cakeTypeInput.value = "";
         cakeTypeImageInput.value = "";
       } else {
-        item.classList.add("selected");
-        cakeTypeInput.value = p.label;
-        cakeTypeImageInput.value = p.src;
+        selectedCakePhotoSrc = src;
+        cakeTypeInput.value = activeCakePhotoTab;
+        cakeTypeImageInput.value = src;
       }
+      renderCakePhotoGridForActiveTab();
     });
     grid.appendChild(item);
   });
 }
+
 onValue(ref(db, "siteImages/categories"), (snapshot) => {
-  renderCakePhotoGrid(snapshot.val());
+  const categories = snapshot.val();
+  cakePhotosByCategory = {};
+  (Array.isArray(categories) ? categories : []).forEach(cat => {
+    if (!cat || !CAKE_PHOTO_SOURCE_CATEGORIES.includes(cat.name)) return;
+    cakePhotosByCategory[cat.name] = [cat.img].concat(Array.isArray(cat.gallery) ? cat.gallery : []).filter(Boolean);
+  });
+  renderCakePhotoTabs();
+  renderCakePhotoGridForActiveTab();
 });
+
+// ===== 営業日カレンダーに基づく「1営業日前」判定 =====
+// 定休日（曜日）・臨時休業日を考慮せずに「前日」とだけ案内すると、前日が定休日の場合に
+// 実際には間に合わないご予約を受け付けてしまうため、管理画面の営業日設定と連動させる。
+let currentHolidays = { weeklyClosed: [1], extraClosed: [] };
+onValue(ref(db, "koimariContent/holidays"), (snapshot) => {
+  const val = snapshot.val();
+  if (val) currentHolidays = val;
+});
+function dateKeyLocal(d) {
+  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}-${d.getDate().toString().padStart(2,"0")}`;
+}
+function isClosedDate(d) {
+  const weeklyClosed = currentHolidays.weeklyClosed || [];
+  const extraClosed = currentHolidays.extraClosed || [];
+  return weeklyClosed.includes(d.getDay()) || extraClosed.includes(dateKeyLocal(d));
+}
+// 引き取り希望日の「1営業日前」（定休日・臨時休業をスキップした直近の営業日）を返す
+function computeOrderDeadline(pickupDate) {
+  const d = new Date(pickupDate);
+  d.setDate(d.getDate() - 1);
+  let guard = 0;
+  while (isClosedDate(d) && guard < 30) { d.setDate(d.getDate() - 1); guard++; }
+  return d;
+}
 
 // 現在開催中のイベント名（管理画面「季節イベント設定」から一括変更可能）
 const EVENT_NAME_EN_MAP = {
@@ -1163,7 +1288,12 @@ function validate(data) {
     else {
       const today = new Date(); today.setHours(0,0,0,0);
       const pick = new Date(data.pickupDate);
-      if ((pick - today) / 86400000 < 1) { setError("pickupDate", "ご予約は前日までにお願いいたします（当日はお電話で承ります）"); ok = false; }
+      if (isClosedDate(pick)) {
+        setError("pickupDate", "その日は定休日・臨時休業のためお引き取りいただけません。別の日をお選びください"); ok = false;
+      } else {
+        const deadline = computeOrderDeadline(pick);
+        if (today > deadline) { setError("pickupDate", "ご予約は1営業日前まで（定休日・臨時休業を除く直近の営業日まで）にお願いいたします（当日はお電話で承ります）"); ok = false; }
+      }
     }
     if (!data.pickupTime) { setError("pickupTime", "引き取り希望時間をご選択ください"); ok = false; }
   }
