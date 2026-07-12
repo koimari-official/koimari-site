@@ -148,6 +148,13 @@ main { padding: 90px 24px 110px; }
 
 .error { display: block; color: var(--color-error); font-size: 14px; margin-top: 8px; min-height: 1px; letter-spacing: 0.03em; font-weight: 500; }
 .error:not(:empty)::before { content: "※ "; }
+.policy-embed { margin-top: 12px; max-height: 200px; overflow-y: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--color-line); background: #fdfaf6; padding: 16px 18px; font-size: 13px; line-height: 1.8; color: var(--color-text-soft); }
+.policy-embed h2 { font-family: var(--font-mincho); font-size: 14px; font-weight: 600; margin: 18px 0 8px; color: var(--color-text); }
+.policy-embed h2:first-child { margin-top: 0; }
+.policy-embed p { margin-bottom: 10px; }
+.policy-embed ul, .policy-embed ol { margin: 8px 0 12px 20px; }
+.policy-embed li { margin-bottom: 4px; }
+.policy-embed .doc__intro { font-weight: 600; color: var(--color-text); margin-bottom: 14px; }
 .input.invalid, .select.invalid, .textarea.invalid { border-color: var(--color-error); background: #fef5f4; }
 
 .notice { background: var(--color-bg-soft); padding: 26px 30px; font-size: 16px; color: var(--color-text); margin: 50px 0; line-height: 2.1; border-left: 4px solid var(--color-gold); }
@@ -413,6 +420,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <input type="checkbox" id="privacyConsent" name="privacyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
           <span><a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">プライバシーポリシー</a>に同意する (I agree to the <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">Privacy Policy</a>) <span class="req">必須 Required</span></span>
         </label>
+        <div class="policy-embed" id="policyEmbed">読み込み中... (Loading...)</div>
         <span class="error" data-for="privacyConsent"></span>
       </div>
 
@@ -452,6 +460,29 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 const experiencesRef = ref(db, "experiences");
+
+// ===== プライバシーポリシー本文をスクロール枠内に埋め込み表示 =====
+// privacy.htmlを別途複製すると内容がズレる可能性があるため、privacy.htmlの本文(.doc)を
+// fetchして取り込む方式にする（privacy.htmlを更新すればここも自動的に最新化される）。
+(async () => {
+  const embedEl = document.getElementById("policyEmbed");
+  if (!embedEl) return;
+  try {
+    const res = await fetch("privacy.html");
+    if (!res.ok) throw new Error("status " + res.status);
+    const html = await res.text();
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const article = doc.querySelector(".doc");
+    if (article) {
+      embedEl.innerHTML = article.innerHTML;
+    } else {
+      throw new Error("本文が見つかりませんでした");
+    }
+  } catch (err) {
+    console.warn("プライバシーポリシー本文の読み込みに失敗:", err);
+    embedEl.innerHTML = '<p>本文の読み込みに失敗しました。お手数ですが、上記の「プライバシーポリシー」リンクからご確認ください。(Failed to load. Please check the "Privacy Policy" link above.)</p>';
+  }
+})();
 
 // ===== 「お子様 一日店長体験」候補日（管理画面で設定）を反映 =====
 let availableExpDates = [];
