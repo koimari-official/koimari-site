@@ -82,6 +82,18 @@ function buildFaqKnowledgeText(faqData) {
   return lines.length ? lines.join("\n\n") : "（FAQ未設定）";
 }
 
+// AIが「店舗情報・FAQだけでは十分に答えられなかった」と自己判断した返信には、
+// 末尾に [[REVIEW: 理由]] という内部タグが付く（プロンプト側で指示）。
+// お客様には絶対に見せず、スタッフ確認用にこの関数で抽出・除去する。
+const REVIEW_TAG_RE = /\n*\[\[REVIEW:\s*([^\]]*)\]\]\s*$/;
+
+function extractReviewTag(rawText) {
+  const text = String(rawText || "");
+  const match = REVIEW_TAG_RE.exec(text);
+  if (!match) return { text: text.trim(), reviewReason: null };
+  return { text: text.slice(0, match.index).trim(), reviewReason: match[1].trim() || "要確認" };
+}
+
 async function buildReplyText(anthropic, userText, todayStatus, faqKnowledgeText) {
   const response = await anthropic.messages.create({
     model: "claude-haiku-4-5",
@@ -102,15 +114,19 @@ ${faqKnowledgeText}
 - 営業時間・定休日・場所・電話番号・上記のFAQで答えられる質問には、その内容に沿って正確に答えてください
 - アレルギーに関するご質問には、内容には一切触れず「恐れ入りますが、アレルギーに関するご質問はお電話（06-7221-0705）にて承っております」とご案内してください
 - それ以外で、上記の情報だけでは答えられない質問（価格の詳細、在庫状況、予約の可否等）には、憶測で答えず「スタッフが確認してご連絡します」という趣旨で丁寧に答えてください
-- 返信は3〜4文程度、簡潔にまとめてください`,
+- 返信は3〜4文程度、簡潔にまとめてください
+- 【内部確認タグ・必須】上記の店舗情報・FAQだけでは十分に答えられなかった質問（憶測で答えた、「スタッフが確認します」で対応した等）には、返信の一番最後に改行してから \`[[REVIEW: 理由を15字以内で]]\` という内部タグを必ず付けてください。このタグはお客様には表示されず、後でスタッフが内容を確認して正しい情報を登録するための業務用マーカーです。FAQ等の情報で十分正確に答えられた場合や、アレルギー質問を電話案内した場合はタグを付けないでください。`,
     messages: [{ role: "user", content: userText }],
   });
   const textBlock = response.content.find((b) => b.type === "text");
-  return textBlock ? textBlock.text : "申し訳ございません、うまく回答できませんでした。お手数ですが再度お試しください。";
+  if (!textBlock) {
+    return { text: "申し訳ございません、うまく回答できませんでした。お手数ですが再度お試しください。", reviewReason: null };
+  }
+  return extractReviewTag(textBlock.text);
 }
 
 // ローカルテスト用に内部ロジックも公開する（Cloud Functionsとしてはデプロイされない、ただのプロパティ）。
-exports._internal = { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText };
+exports._internal = { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag };
 
 exports.lineWebhook = onRequest(
   {
@@ -140,8 +156,18 @@ exports.lineWebhook = onRequest(
         ]);
         const todayStatus = computeTodayStatus(holidaysSnap.val(), new Date());
         const faqKnowledgeText = buildFaqKnowledgeText(faqSnap.val());
-        const replyText = await buildReplyText(anthropic, event.message.text, todayStatus, faqKnowledgeText);
+        const { text: replyText, reviewReason } = await buildReplyText(anthropic, event.message.text, todayStatus, faqKnowledgeText);
         await replyToLine(event.replyToken, replyText, LINE_CHANNEL_ACCESS_TOKEN.value());
+        if (reviewReason) {
+          await admin.database().ref("aiReviewQueue").push({
+            question: event.message.text,
+            aiAnswer: replyText,
+            reason: reviewReason,
+            userId: (event.source && event.source.userId) || null,
+            timestamp: Date.now(),
+            status: "pending",
+          });
+        }
       } catch (err) {
         console.error("lineWebhook event processing error:", err);
       }

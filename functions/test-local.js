@@ -2,7 +2,7 @@
 // 実行: node test-local.js
 const assert = require("assert");
 const crypto = require("crypto");
-const { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText } = require("./index.js")._internal;
+const { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
   assert.strictEqual(actual, expected, `${label}: expected "${expected}" but got "${actual}"`);
@@ -105,5 +105,24 @@ console.log("OK: buildFaqKnowledgeText はアレルギー関連を除外する")
 assert.strictEqual(buildFaqKnowledgeText([]), "（FAQ未設定）", "空配列の場合のフォールバック文言");
 assert.strictEqual(buildFaqKnowledgeText(null), "（FAQ未設定）", "nullの場合のフォールバック文言");
 console.log("OK: buildFaqKnowledgeText の未設定時フォールバック");
+
+// --- extractReviewTag ---
+// AIが「答えに自信がない」と判断した際に付ける内部タグ [[REVIEW: 理由]] を、
+// お客様向け本文から正しく分離できるかのテスト。
+
+const withTag = extractReviewTag("スタッフが確認してご連絡いたします。\n[[REVIEW: 価格の詳細不明]]");
+assert.strictEqual(withTag.text, "スタッフが確認してご連絡いたします。", "タグ部分が本文から除去される");
+assert.strictEqual(withTag.reviewReason, "価格の詳細不明", "理由が正しく抽出される");
+console.log("OK: extractReviewTag はタグと理由を分離する");
+
+const withoutTag = extractReviewTag("本日は10:00〜20:00で営業しております。");
+assert.strictEqual(withoutTag.text, "本日は10:00〜20:00で営業しております。", "タグが無い場合は本文をそのまま返す");
+assert.strictEqual(withoutTag.reviewReason, null, "タグが無い場合はreviewReasonがnull");
+console.log("OK: extractReviewTag はタグが無い場合そのまま返す");
+
+const emptyReason = extractReviewTag("ご案内いたします。\n[[REVIEW:]]");
+assert.strictEqual(emptyReason.text, "ご案内いたします。", "理由が空でも本文は除去される");
+assert.strictEqual(emptyReason.reviewReason, "要確認", "理由が空文字の場合はデフォルト文言になる");
+console.log("OK: extractReviewTag は理由が空でもデフォルト値を補う");
 
 console.log("\nすべてのローカルテストに合格しました。");

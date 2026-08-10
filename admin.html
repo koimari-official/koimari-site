@@ -245,6 +245,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
       <button class="tab" data-panel="corporate">法人ご相談 <span class="tab__count" id="corpCount">0</span></button>
+      <button class="tab" data-panel="aiReview">🤖 AI要確認 <span class="tab__count tab__count--warn" id="aiReviewCount" style="display:none;"></span></button>
 
       <span class="tab-group-label">トップページコンテンツ</span>
       <button class="tab" data-panel="news">お知らせ</button>
@@ -450,6 +451,16 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       </div>
       <div id="trashAreaCorp" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
       <div id="corporateArea"></div>
+    </section>
+
+    <!-- ===== AI要確認一覧 ===== -->
+    <section class="panel" id="panel-aiReview">
+      <div class="panel__head">
+        <h2 class="panel__title">AIが答えられなかった質問</h2>
+        <label style="font-size:13px; color:var(--color-text-soft); display:flex; align-items:center; gap:6px;"><input type="checkbox" id="aiReviewShowResolved"> 解決済みも表示</label>
+      </div>
+      <p class="panel__desc">LINE公式アカウントのAIが、店舗情報・FAQだけでは自信を持って回答できなかった質問の一覧です。正しい回答をFAQに登録すると、次回から同じ質問にAIが正確に答えられるようになります。</p>
+      <div id="aiReviewArea"></div>
     </section>
 
     <!-- ===== 画像管理 (既存5タブ) ===== -->
@@ -832,6 +843,7 @@ const SESSION_KEY = "koimari_admin_session";
 const RES_KEY = "koimari_reservations";
 const EXP_KEY = "koimari_experiences";
 const CORP_KEY = "koimari_corporate";
+const AI_REVIEW_KEY = "koimari_aiReviewQueue";
 const VIEWS_KEY = "koimari_views";
 const MANUAL_SALES_KEY = "koimari_manual_sales";
 const SALES_GOAL_KEY = "koimari_sales_goal";
@@ -1051,6 +1063,12 @@ function updateCounts() {
   document.getElementById("expCount").textContent = loadList(EXP_KEY).length;
   const cc = document.getElementById("corpCount");
   if (cc) cc.textContent = loadList(CORP_KEY).length;
+  const arc = document.getElementById("aiReviewCount");
+  if (arc) {
+    const pendingCount = loadList(AI_REVIEW_KEY).filter(r => r.status !== "resolved").length;
+    arc.textContent = pendingCount;
+    arc.style.display = pendingCount > 0 ? "" : "none";
+  }
   if (typeof updateConfirmCallWarning === "function") updateConfirmCallWarning();
 }
 
@@ -1181,6 +1199,7 @@ document.querySelectorAll(".tab").forEach(t => {
     if (t.dataset.panel === "reservations") renderReservations();
     if (t.dataset.panel === "applications") renderApplications();
     if (t.dataset.panel === "corporate") renderCorporate();
+    if (t.dataset.panel === "aiReview") renderAiReview();
     if (t.dataset.panel === "calendar") renderCalendar();
     if (t.dataset.panel === "stats") { renderStats(); renderSalesGoal(); }
     if (t.dataset.panel === "templates") renderTemplates();
@@ -2252,6 +2271,79 @@ function renderLineMembers() {
   });
 }
 document.getElementById("lineMembersBirthdayFilter").addEventListener("change", () => renderLineMembers());
+
+/* ============================================================
+   AI要確認一覧（LINE AIが自信を持って回答できなかった質問）
+   ============================================================ */
+function renderAiReview() {
+  const el = document.getElementById("aiReviewArea");
+  const showResolved = document.getElementById("aiReviewShowResolved").checked;
+  const list = loadList(AI_REVIEW_KEY);
+  const indices = list.map((_, i) => i).filter(i => showResolved || list[i].status !== "resolved");
+  indices.sort((a, b) => (list[b].timestamp || 0) - (list[a].timestamp || 0));
+  if (!indices.length) { el.innerHTML = `<div class="empty">${showResolved ? "まだ質問がありません" : "未解決の質問はありません"}</div>`; return; }
+  let html = "";
+  indices.forEach(idx => {
+    const data = list[idx];
+    const resolved = data.status === "resolved";
+    html += `<div class="card" style="margin-bottom:16px;${resolved ? " opacity:0.6;" : ""}">
+      <div class="card__body">
+        <div style="font-size:12px; color:var(--color-text-soft); margin-bottom:6px;">${fmtDate(data.timestamp)}${resolved ? "・解決済み" : ""}｜AIが要確認と判断した理由: ${escapeHtml(data.reason || "")}</div>
+        <div style="font-weight:600; margin-bottom:6px;">Q. ${escapeHtml(data.question || "")}</div>
+        <div style="font-size:13px; color:var(--color-text-soft); margin-bottom:12px;">AIが実際に返信した内容: ${escapeHtml(data.aiAnswer || "")}</div>
+        ${resolved
+          ? (data.resolvedAnswer ? `<div style="font-size:13px;">登録した正しい回答: ${escapeHtml(data.resolvedAnswer)}</div>` : "")
+          : `<label style="font-size:12px; color:var(--color-text-soft);">正しい回答</label>
+             <textarea data-ai-idx="${idx}" rows="2" placeholder="お客様への正しい回答を入力してください" style="width:100%; padding:9px 12px; border:1px solid var(--color-line); margin:4px 0 10px; font-family:inherit; resize:vertical;"></textarea>
+             <div style="display:flex; gap:10px; flex-wrap:wrap;">
+               <button class="btn btn--small ai-review-resolve-faq" data-idx="${idx}">FAQに追加して解決</button>
+               <button class="btn btn--small btn--ghost ai-review-resolve-only" data-idx="${idx}">FAQに追加せず解決済みにする</button>
+             </div>`}
+      </div>
+    </div>`;
+  });
+  el.innerHTML = html;
+  el.querySelectorAll(".ai-review-resolve-faq").forEach(b => b.addEventListener("click", () => resolveAiReviewToFaq(+b.dataset.idx)));
+  el.querySelectorAll(".ai-review-resolve-only").forEach(b => b.addEventListener("click", () => markAiReviewResolved(+b.dataset.idx)));
+}
+document.getElementById("aiReviewShowResolved").addEventListener("change", () => renderAiReview());
+
+async function resolveAiReviewToFaq(idx) {
+  const list = loadList(AI_REVIEW_KEY);
+  const item = list[idx];
+  const key = aiReviewKeys[idx];
+  if (!item || !key) return;
+  const textarea = document.querySelector(`textarea[data-ai-idx="${idx}"]`);
+  const correctAnswer = (textarea ? textarea.value : "").trim();
+  if (!correctAnswer) { showToast("正しい回答を入力してください", "error"); return; }
+  if (!faqData) faqData = loadByKey(FAQ_KEY, DEFAULT_FAQ);
+  const CATEGORY_NAME = "AIチャットからの質問";
+  let cat = faqData.find(c => c.category === CATEGORY_NAME);
+  if (!cat) { cat = { category: CATEGORY_NAME, items: [] }; faqData.push(cat); }
+  if (!cat.items) cat.items = [];
+  cat.items.push({ q: item.question, a: correctAnswer });
+  const result = await saveByKey(FAQ_KEY, faqData);
+  if (!result) return; // 保存失敗時は既にエラートースト表示済み
+  faqData = result.merged;
+  if (document.getElementById("panel-faq")?.classList.contains("active") && typeof renderFaqAdmin === "function") renderFaqAdmin();
+  try {
+    await update(ref(fbDb, "aiReviewQueue/" + key), { status: "resolved", resolvedAt: new Date().toISOString(), resolvedAnswer: correctAnswer });
+    showToast("FAQに追加し、解決済みにしました（次回からAIもこの内容で回答します）");
+  } catch (e) {
+    showToast("FAQには追加しましたが、一覧の更新に失敗しました", "error");
+  }
+}
+
+async function markAiReviewResolved(idx) {
+  const key = aiReviewKeys[idx];
+  if (!key) return;
+  try {
+    await update(ref(fbDb, "aiReviewQueue/" + key), { status: "resolved", resolvedAt: new Date().toISOString() });
+    showToast("解決済みにしました");
+  } catch (e) {
+    showToast("更新に失敗しました", "error");
+  }
+}
 document.getElementById("exportLineMembers").addEventListener("click", () => {
   const list = loadList(LINE_MEMBERS_KEY);
   if (!list.length) { showToast("会員がいません", "error"); return; }
@@ -3514,6 +3606,7 @@ const trashExperiencesRef = ref(fbDb, "trash/experiences");
 const trashCorporateRef = ref(fbDb, "trash/corporate");
 const siteImagesRef = ref(fbDb, "siteImages");
 const lineMembersRef = ref(fbDb, "lineMembers");
+const aiReviewQueueRef = ref(fbDb, "aiReviewQueue");
 
 window.fbLoadSiteImages = async function () {
   try {
@@ -3651,6 +3744,23 @@ function syncLineMembersFromFirebase() {
     localStorage.setItem("koimari_lineMembers", JSON.stringify(list));
     const panel = document.getElementById("panel-lineMembers");
     if (panel && panel.classList.contains("active") && typeof window.renderLineMembers === "function") window.renderLineMembers();
+  });
+}
+
+let aiReviewKeys = []; // 配列インデックス → Firebaseのキー（koimari_aiReviewQueueと同じ並び順を保つ）
+let unsubAiReview = null;
+function syncAiReviewFromFirebase() {
+  if (unsubAiReview) return;
+  unsubAiReview = onValue(aiReviewQueueRef, (snapshot) => {
+    const val = snapshot.val() || {};
+    const entries = Object.entries(val);
+    entries.sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0));
+    aiReviewKeys = entries.map(([k]) => k);
+    const list = entries.map(([, data]) => data);
+    localStorage.setItem(AI_REVIEW_KEY, JSON.stringify(list));
+    if (typeof window.updateCounts === "function") window.updateCounts();
+    const panel = document.getElementById("panel-aiReview");
+    if (panel && panel.classList.contains("active") && typeof window.renderAiReview === "function") window.renderAiReview();
   });
 }
 
@@ -3946,6 +4056,7 @@ onAuthStateChanged(fbAuth, (user) => {
     syncExperiencesFromFirebase();
     syncCorporateFromFirebase();
     syncLineMembersFromFirebase();
+    syncAiReviewFromFirebase();
     initEventConfigPanel();
     initExpDatesPanel();
     initCakeFlavorsPanel();
