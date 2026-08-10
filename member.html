@@ -258,12 +258,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-/*
-  ===== 実装メモ =====
-  LIFF_ID は LINE Developers Console でLIFFアプリを登録すると発行される。
-  現状は仮の値。LINE公式アカウントの審査完了後、実際のIDに差し替えること。
-*/
-const LIFF_ID = "REPLACE_WITH_LIFF_ID";
+// LIFF_ID: LINEログインチャネル「こいマル」（プロバイダー: ケーキ屋さんこいまり）で発行（2026-08-10）
+const LIFF_ID = "2011059940-hMTBZaUz";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
