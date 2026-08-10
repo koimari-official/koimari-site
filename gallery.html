@@ -148,7 +148,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <li><a href="faq.html" class="nav-link">よくある質問</a></li>
     <li><a href="index.html#bcal" class="nav-link">営業日</a></li>
     <li><a href="index.html#shop" class="nav-link">店舗情報</a></li>
-    <li><a href="reservation.html" class="nav-link">ご予約</a></li>
+    <li><a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="nav-link">ご予約</a></li>
   </ul>
 </nav>
 <div class="page-head">
@@ -189,7 +189,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         まずはお気軽にご相談ください。
       </p>
       <div class="cta-banner__btns">
-        <a href="reservation.html" class="cta-banner__btn cta-banner__btn--primary">ご予約・ご相談はこちら</a>
+        <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="cta-banner__btn cta-banner__btn--primary">ご予約・ご相談はこちら</a>
         <a href="faq.html" class="cta-banner__btn cta-banner__btn--ghost">よくあるご質問</a>
       </div>
     </div>
@@ -285,7 +285,7 @@ function renderGrid(){
           ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
-        <a href="reservation.html?ref=${encodeURIComponent(g.title)}" class="gal-card__cta">同じテイストでご相談する →</a>
+        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("『" + g.title + "』と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>
       </div>`;
     card.querySelector(".gal-card__img").addEventListener("click", () => {
       document.getElementById("lightboxImg").src = g.img;

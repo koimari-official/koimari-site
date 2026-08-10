@@ -65,6 +65,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .tab-group-label { flex-basis: 100%; font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.1em; color: var(--color-text-soft); opacity: .6; padding: 14px 22px 3px 4px; }
 .tab-group-label:first-of-type { padding-top: 4px; }
 .tab__count { display: inline-block; margin-left: 8px; font-family: var(--font-en); background: var(--color-accent); color: #fff; padding: 2px 9px; border-radius: 10px; font-size: 12px; letter-spacing: 0; font-weight: 500; }
+.tab__count--warn { background: #b03b48; }
+.confirm-call-warning { display: none; align-items: center; gap: 10px; background: #fdecec; border: 1px solid #b03b48; color: #8a2c37; padding: 12px 16px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
+.confirm-call-warning.show { display: flex; }
+.res-row--overdue { background: #fdecec !important; }
 
 .panel { display: none; }
 .panel.active { display: block; }
@@ -238,7 +242,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
       <span class="tab-group-label">予約・問い合わせ管理</span>
       <button class="tab" data-panel="notify">🔔 店舗通知モード</button>
-      <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span></button>
+      <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
       <button class="tab" data-panel="corporate">法人ご相談 <span class="tab__count" id="corpCount">0</span></button>
 
@@ -259,13 +263,14 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="blogAdmin">ブログ</button>
       <button class="tab" data-panel="experiences">体験プログラム</button>
       <button class="tab" data-panel="expDates">体験プログラム候補日</button>
+      <button class="tab" data-panel="cakeFlavors">ケーキの種類</button>
       <button class="tab" data-panel="holidays">営業日設定</button>
 
       <span class="tab-group-label">販促・システム設定</span>
       <button class="tab" data-panel="i18n">英語翻訳</button>
       <button class="tab" data-panel="templates">テンプレート</button>
       <button class="tab" data-panel="coupons">クーポン</button>
-      <button class="tab" data-panel="newsletter">メルマガ</button>
+      <button class="tab" data-panel="lineMembers">LINE会員管理</button>
       <button class="tab" data-panel="eventConfig">季節イベント設定</button>
       <button class="tab" data-panel="checker">サイトチェック</button>
     </nav>
@@ -415,6 +420,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         </div>
       </div>
       <div id="trashAreaRes" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
+      <div class="confirm-call-warning" id="confirmCallWarning">⚠️ <span id="confirmCallWarningText"></span></div>
       <div id="reservationsArea"></div>
     </section>
 
@@ -674,14 +680,20 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div id="couponList"></div>
     </section>
 
-    <!-- ===== メルマガ ===== -->
-    <section class="panel" id="panel-newsletter">
+    <!-- ===== LINE会員管理 ===== -->
+    <section class="panel" id="panel-lineMembers">
       <div class="panel__head">
-        <h2 class="panel__title">メルマガ登録管理</h2>
-        <button class="btn btn--small btn--ghost" id="exportNewsletter">CSV出力</button>
+        <h2 class="panel__title">LINE会員管理</h2>
+        <button class="btn btn--small btn--ghost" id="exportLineMembers">CSV出力</button>
       </div>
-      <p class="panel__desc">予約フォームでメルマガ登録を希望したお客様の一覧です。</p>
-      <div id="newsletterList"></div>
+      <p class="panel__desc">LINE公式アカウントの友だち追加＝会員登録となった方の一覧です。スタンプ数はここから増減できます。</p>
+      <div class="field" style="max-width:320px;margin-bottom:16px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-mincho);font-size:15px;">
+          <input type="checkbox" id="lineMembersBirthdayFilter" style="width:18px;height:18px;accent-color:var(--color-accent);">
+          今月誕生日の会員のみ表示
+        </label>
+      </div>
+      <div id="lineMembersList"></div>
     </section>
 
     <!-- ===== 季節イベント設定 ===== -->
@@ -737,6 +749,49 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       </div>
     </section>
 
+    <!-- ===== ケーキの種類（デコレーションケーキ／ロールケーキ予約用） ===== -->
+    <section class="panel" id="panel-cakeFlavors">
+      <div class="panel__head">
+        <h2 class="panel__title">ケーキの種類</h2>
+      </div>
+      <p class="panel__desc">LINE予約（member.html）で、お客様が選ぶ「ケーキの種類」の選択肢です。保存するとLINE予約フォームに即時反映されます。未設定の場合は仮の一覧（たたき台）が表示されるので、スタッフとの打合せ後、正式な一覧に差し替えてください。</p>
+      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;margin-bottom:20px;">
+        <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:14px;">デコレーションケーキの種類</h3>
+        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:end;">
+          <div style="flex:1;min-width:200px;">
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">種類を追加</label>
+            <input type="text" id="cfNewFlavor" class="input" placeholder="例: 苺のショートケーキ">
+          </div>
+          <button class="btn btn--small" id="cfAddFlavor">追加</button>
+        </div>
+        <div id="cfFlavorList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;">
+        <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:14px;">ロールケーキの種類</h3>
+        <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:end;">
+          <div style="flex:1;min-width:200px;">
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">種類を追加</label>
+            <input type="text" id="cfNewRollFlavor" class="input" placeholder="例: 抹茶ロール">
+          </div>
+          <button class="btn btn--small" id="cfAddRollFlavor">追加</button>
+        </div>
+        <div id="cfRollFlavorList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;margin-top:20px;">
+        <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:6px;">デコレーションケーキのサイズ別基本料金</h3>
+        <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:16px;">未設定の場合は仮の金額（たたき台）が表示されます。実際の金額に差し替えてください。LINE予約フォームの各サイズの横に表示されます。</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">4号（12cm）</label><input type="number" id="cfPrice4" class="input" placeholder="3000"></div>
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">5号（15cm）</label><input type="number" id="cfPrice5" class="input" placeholder="4200"></div>
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">6号（18cm）</label><input type="number" id="cfPrice6" class="input" placeholder="5400"></div>
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">7号（21cm）</label><input type="number" id="cfPrice7" class="input" placeholder="6800"></div>
+        </div>
+        <button class="btn" id="cfSavePrices">保存して反映</button>
+        <span id="cfPricesSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
+      </div>
+    </section>
+
   </main>
 </div>
 
@@ -781,7 +836,7 @@ const VIEWS_KEY = "koimari_views";
 const MANUAL_SALES_KEY = "koimari_manual_sales";
 const SALES_GOAL_KEY = "koimari_sales_goal";
 const COUPON_KEY = "koimari_coupons";
-const NEWSLETTER_KEY = "koimari_newsletter";
+const LINE_MEMBERS_KEY = "koimari_lineMembers";
 const PAGE_ERRORS_KEY = "koimari_page_errors";
 
 const DEFAULT_IMAGES = {
@@ -867,7 +922,7 @@ function escapeHtml(s) {
 // それより前の単一商品(cakeType/size/message)の記録の両方に対応する）
 function reservationItemsSummary(r) {
   if (Array.isArray(r.items) && r.items.length) {
-    return r.items.map((it, i) => `${i + 1}. ${it.category || "（種類未選択）"}${it.size ? " / " + it.size : ""}${it.message ? " / メッセージ: " + it.message : ""}`).join("\n");
+    return r.items.map((it, i) => `${i + 1}. ${it.category || "（種類未選択）"}${it.flavor ? " / " + it.flavor : ""}${it.size ? " / " + it.size : ""}${it.message ? " / メッセージ: " + it.message : ""}`).join("\n");
   }
   if (r.cakeType || r.size || r.message) {
     return `${r.cakeType || "（種類未選択）"}${r.size ? " / " + r.size : ""}${r.message ? " / メッセージ: " + r.message : ""}`;
@@ -880,7 +935,7 @@ function reservationItemsHtml(r) {
     return r.items.map((it, i) => `
       <div style="display:flex;gap:6px;align-items:flex-start;margin-bottom:6px;">
         ${it.image ? `<img src="${escapeHtml(it.image)}" alt="選択写真" style="width:40px;height:40px;object-fit:cover;border:1px solid #ddd;flex-shrink:0;cursor:pointer;" onclick="window.open('${escapeHtml(it.image)}','_blank')">` : ""}
-        <span class="small">${i + 1}. ${escapeHtml(it.category || "（種類未選択）")}${it.size ? "<br>" + escapeHtml(it.size) : ""}${it.message ? "<br>" + escapeHtml(it.message) : ""}</span>
+        <span class="small">${i + 1}. ${escapeHtml(it.category || "（種類未選択）")}${it.flavor ? "<br>種類: " + escapeHtml(it.flavor) : ""}${it.size ? "<br>" + escapeHtml(it.size) : ""}${it.message ? "<br>" + escapeHtml(it.message) : ""}</span>
       </div>
     `).join("");
   }
@@ -996,6 +1051,7 @@ function updateCounts() {
   document.getElementById("expCount").textContent = loadList(EXP_KEY).length;
   const cc = document.getElementById("corpCount");
   if (cc) cc.textContent = loadList(CORP_KEY).length;
+  if (typeof updateConfirmCallWarning === "function") updateConfirmCallWarning();
 }
 
 /* ============================================================
@@ -1129,7 +1185,7 @@ document.querySelectorAll(".tab").forEach(t => {
     if (t.dataset.panel === "stats") { renderStats(); renderSalesGoal(); }
     if (t.dataset.panel === "templates") renderTemplates();
     if (t.dataset.panel === "coupons") renderCoupons();
-    if (t.dataset.panel === "newsletter") renderNewsletter();
+    if (t.dataset.panel === "lineMembers") renderLineMembers();
     if (t.dataset.panel === "checker") renderChecker();
     if (t.dataset.panel === "news") renderNewsAdmin();
     if (t.dataset.panel === "spotlight") renderSpotlightAdmin();
@@ -2152,32 +2208,58 @@ document.getElementById("couponSave").addEventListener("click", async () => {
 });
 
 /* ============================================================
-   メルマガ管理
+   LINE会員管理
    ============================================================ */
-function renderNewsletter() {
-  const el = document.getElementById("newsletterList");
-  const list = loadList(RES_KEY).filter(r => r.newsletter);
-  if (!list.length) { el.innerHTML = '<div class="empty">メルマガ登録者はまだいません</div>'; return; }
-  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>登録日</th><th>お名前</th><th>メールアドレス</th><th>生年月日</th></tr></thead><tbody>';
-  list.forEach(r => {
+function renderLineMembers() {
+  const el = document.getElementById("lineMembersList");
+  let list = loadList(LINE_MEMBERS_KEY);
+  if (document.getElementById("lineMembersBirthdayFilter").checked) {
+    const thisMonth = new Date().getMonth() + 1;
+    list = list.filter(m => m.profile && m.profile.birthday && Number(m.profile.birthday.split("-")[1]) === thisMonth);
+  }
+  if (!list.length) { el.innerHTML = '<div class="empty">LINE会員はまだいません</div>'; return; }
+  list.sort((a, b) => new Date(b.registeredAt || 0) - new Date(a.registeredAt || 0));
+  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>写真</th><th>表示名</th><th>登録日</th><th>最終来訪</th><th>誕生日</th><th>スタンプ</th></tr></thead><tbody>';
+  list.forEach(m => {
+    const p = m.profile || {};
     html += `<tr>
-      <td>${fmtDate(r.submittedAt)}</td>
-      <td>${escapeHtml(r.name)}</td>
-      <td>${escapeHtml(r.email)}</td>
-      <td>${escapeHtml(r.birthday||"—")}</td>
+      <td>${p.pictureUrl ? `<img src="${escapeHtml(p.pictureUrl)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` : "—"}</td>
+      <td>${escapeHtml(p.displayName || "—")}</td>
+      <td>${fmtDate(m.registeredAt)}</td>
+      <td>${fmtDate(p.lastSeenAt)}</td>
+      <td>${escapeHtml(p.birthday || "—")}</td>
+      <td>
+        <button class="btn btn--small btn--ghost" data-uid="${escapeHtml(m.uid)}" data-delta="-1">−</button>
+        <span style="display:inline-block;min-width:24px;text-align:center;">${m.stamps || 0}</span>
+        <button class="btn btn--small btn--ghost" data-uid="${escapeHtml(m.uid)}" data-delta="1">＋</button>
+      </td>
     </tr>`;
   });
   html += '</tbody></table></div>';
   el.innerHTML = html;
+  el.querySelectorAll("button[data-uid]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const uid = btn.dataset.uid;
+      const delta = Number(btn.dataset.delta);
+      const current = loadList(LINE_MEMBERS_KEY).find(m => m.uid === uid);
+      const next = Math.max(0, (current?.stamps || 0) + delta);
+      try {
+        await update(ref(fbDb, "lineMembers/" + uid), { stamps: next });
+      } catch (e) {
+        showToast("スタンプの更新に失敗しました（Firebaseルール未公開の可能性があります）", "error");
+      }
+    });
+  });
 }
-document.getElementById("exportNewsletter").addEventListener("click", () => {
-  const list = loadList(RES_KEY).filter(r => r.newsletter);
-  if (!list.length) { showToast("登録者がいません", "error"); return; }
-  const header = "登録日,お名前,メールアドレス,生年月日";
-  const rows = list.map(r => [fmtDate(r.submittedAt), r.name, r.email, r.birthday||""].map(v => `"${v}"`).join(","));
+document.getElementById("lineMembersBirthdayFilter").addEventListener("change", () => renderLineMembers());
+document.getElementById("exportLineMembers").addEventListener("click", () => {
+  const list = loadList(LINE_MEMBERS_KEY);
+  if (!list.length) { showToast("会員がいません", "error"); return; }
+  const header = "登録日,表示名,最終来訪,誕生日,スタンプ";
+  const rows = list.map(m => [fmtDate(m.registeredAt), (m.profile||{}).displayName||"", fmtDate((m.profile||{}).lastSeenAt), (m.profile||{}).birthday||"", m.stamps||0].map(v => `"${v}"`).join(","));
   const csv = "﻿" + header + "\n" + rows.join("\n");
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], {type:"text/csv"}));
-  a.download = "newsletter_list.csv"; a.click();
+  a.download = "line_members.csv"; a.click();
 });
 
 /* ============================================================
@@ -2420,30 +2502,68 @@ document.getElementById("runSeoCheck").addEventListener("click", async () => {
    予約・応募一覧
    ============================================================ */
 const STATUS_COLORS = { "受付済":"#4a6f9c", "対応中":"#a98554", "完了":"#5d8a4e", "キャンセル":"#b03b48", "未対応":"#a98554", "対応完了":"#5d8a4e" };
+const CONFIRM_CALL_OVERDUE_HOURS = 3;
+function isConfirmCallOverdue(r) {
+  if (r.confirmCallDone || r.status === "キャンセル" || !r.submittedAt) return false;
+  return (Date.now() - new Date(r.submittedAt).getTime()) > CONFIRM_CALL_OVERDUE_HOURS * 60 * 60 * 1000;
+}
+function updateConfirmCallWarning() {
+  const overdueCount = loadList(RES_KEY).filter(isConfirmCallOverdue).length;
+  const badge = document.getElementById("resUnconfirmedCount");
+  if (badge) { badge.textContent = overdueCount; badge.style.display = overdueCount ? "inline-block" : "none"; }
+  const warning = document.getElementById("confirmCallWarning");
+  const warningText = document.getElementById("confirmCallWarningText");
+  if (warning && warningText) {
+    if (overdueCount) {
+      warningText.textContent = `確認電話が未実施のまま${CONFIRM_CALL_OVERDUE_HOURS}時間以上経過している予約が${overdueCount}件あります`;
+      warning.classList.add("show");
+    } else {
+      warning.classList.remove("show");
+    }
+  }
+}
+function updateResConfirmCall(idx, checked) {
+  const list = loadList(RES_KEY);
+  if (!list[idx]) return;
+  const patch = { confirmCallDone: checked, confirmCallAt: checked ? new Date().toISOString() : null };
+  Object.assign(list[idx], patch);
+  localStorage.setItem(RES_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
+  renderReservations();
+}
+// 管理画面を開きっぱなしにしていても「未確認が3時間経過」の状態を検知できるよう、定期的にバッジを再計算する
+setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
 function renderReservations() {
   const area = document.getElementById("reservationsArea");
   const list = loadList(RES_KEY);
+  updateConfirmCallWarning();
   if (!list.length) { area.innerHTML = '<div class="empty">予約データはまだありません</div>'; return; }
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>ステータス</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
+  html += '<th>ステータス</th><th>確認電話</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
   html += '</tr></thead><tbody>';
   list.forEach((r, idx) => {
     const status = r.status || "受付済";
     const color = STATUS_COLORS[status] || "#999";
-    html += `<tr>
+    const overdue = isConfirmCallOverdue(r);
+    html += `<tr${overdue?' class="res-row--overdue"':""}>
       <td>
         <select onchange="updateResStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
           ${["受付済","対応中","完了","キャンセル"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
         </select>
         ${r.emailSent===false?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ メール未送信</div>':""}
       </td>
+      <td style="text-align:center;">
+        <input type="checkbox" onchange="updateResConfirmCall(${idx},this.checked)" ${r.confirmCallDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
+        ${overdue?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 未確認</div>':""}
+        ${r.confirmCallDone && r.confirmCallAt?`<div class="small" style="margin-top:4px;white-space:nowrap;">${fmtDate(r.confirmCallAt)}</div>`:""}
+      </td>
       <td>${fmtDate(r.submittedAt)}</td>
-      <td>${escapeHtml(r.type)}</td>
+      <td>${escapeHtml(r.type)}${r.channel==="LINE"?'<br><span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;color:#06962c;border:1px solid #06962c;border-radius:3px;padding:1px 5px;">LINE</span>':""}</td>
       <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
-      <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span>${r.birthday?`<br><span class="small">生: ${escapeHtml(r.birthday)}</span>`:""}${r.newsletter?'<br><span class="small" style="color:#5d8a4e;">■メルマガ</span>':""}</td>
+      <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span>${r.birthday?`<br><span class="small">生: ${escapeHtml(r.birthday)}</span>`:""}</td>
       <td>${escapeHtml(r.pickupDate)} ${escapeHtml(r.pickupTime)}</td>
       <td>${reservationItemsHtml(r)}</td>
-      <td><span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
+      <td>${r.receiptNeeded?`<div style="font-size:11px;font-weight:700;color:#a98554;margin-bottom:4px;">🧾 領収書必要<br>宛名: ${escapeHtml(r.receiptName)}</div>`:""}<span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
       <td><textarea rows="2" style="font-size:12px;width:120px;padding:4px;border:1px solid #ddd;resize:vertical;" onchange="updateResNotes(${idx},this.value)">${escapeHtml(r.notes||"")}</textarea></td>
       <td>
         <button class="btn btn--small" onclick="copyTemplate('confirm',${JSON.stringify(JSON.stringify(r))})" style="padding:4px 8px;font-size:11px;white-space:nowrap;margin-bottom:4px;">確認文</button><br>
@@ -3393,6 +3513,7 @@ const trashReservationsRef = ref(fbDb, "trash/reservations");
 const trashExperiencesRef = ref(fbDb, "trash/experiences");
 const trashCorporateRef = ref(fbDb, "trash/corporate");
 const siteImagesRef = ref(fbDb, "siteImages");
+const lineMembersRef = ref(fbDb, "lineMembers");
 
 window.fbLoadSiteImages = async function () {
   try {
@@ -3518,6 +3639,18 @@ function syncExperiencesFromFirebase() {
     if (expPanel && expPanel.classList.contains("active") && typeof window.renderApplications === "function") window.renderApplications();
     const dashPanel = document.getElementById("panel-dashboard");
     if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
+  });
+}
+
+let unsubLineMembers = null;
+function syncLineMembersFromFirebase() {
+  if (unsubLineMembers) return;
+  unsubLineMembers = onValue(lineMembersRef, (snapshot) => {
+    const val = snapshot.val() || {};
+    const list = Object.entries(val).map(([uid, data]) => ({ uid, ...data }));
+    localStorage.setItem("koimari_lineMembers", JSON.stringify(list));
+    const panel = document.getElementById("panel-lineMembers");
+    if (panel && panel.classList.contains("active") && typeof window.renderLineMembers === "function") window.renderLineMembers();
   });
 }
 
@@ -3709,13 +3842,115 @@ function initExpDatesPanel() {
   }
 }
 
+/* ===== ケーキの種類一覧エディタ（デコレーションケーキ／ロールケーキ共通の仕組み） =====
+   スタッフとの打合せ前の「たたき台」。Firebase未設定時のみ各仮リストを表示する。 */
+function createFlavorListEditor({ fbPath, defaultList, listElId, inputElId, addBtnId }) {
+  const fbRef = ref(fbDb, fbPath);
+  let current = [];
+  function render() {
+    const listEl = document.getElementById(listElId);
+    if (!listEl) return;
+    listEl.innerHTML = current.map(name => `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid var(--color-line);">
+      <span>${escapeHtml(name)}</span>
+      <button class="btn btn--small btn--danger" data-flavor="${escapeHtml(name)}">削除</button>
+    </div>`).join("") || `<p style="font-size:13px;color:var(--color-text-soft);">種類がまだ登録されていません。</p>`;
+    listEl.querySelectorAll("button[data-flavor]").forEach(btn => {
+      btn.addEventListener("click", () => { save("remove", btn.dataset.flavor); });
+    });
+  }
+  async function save(action, name) {
+    try {
+      const snap = await get(fbRef);
+      let fresh = snap.val() || [...defaultList];
+      if (action === "add" && !fresh.includes(name)) fresh = [...fresh, name];
+      if (action === "remove") fresh = fresh.filter(f => f !== name);
+      await update(ref(fbDb, "koimariContent"), { [fbPath.split("/")[1]]: fresh });
+      current = fresh;
+      render();
+    } catch (err) {
+      console.warn("種類の保存失敗:", err);
+      showToast("保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    }
+  }
+  function init() {
+    onValue(fbRef, (snapshot) => {
+      current = snapshot.val() || [...defaultList];
+      render();
+    });
+    const addBtn = document.getElementById(addBtnId);
+    if (addBtn && !addBtn.dataset.bound) {
+      addBtn.dataset.bound = "1";
+      addBtn.addEventListener("click", () => {
+        const input = document.getElementById(inputElId);
+        const val = input.value.trim();
+        if (!val) return;
+        if (!current.includes(val)) save("add", val);
+        input.value = "";
+      });
+    }
+  }
+  return { init };
+}
+const cakeFlavorsEditor = createFlavorListEditor({
+  fbPath: "koimariContent/cakeFlavors",
+  defaultList: ["苺のショートケーキ", "ガトーショコラ", "抹茶あずき", "季節のフルーツタルト"],
+  listElId: "cfFlavorList", inputElId: "cfNewFlavor", addBtnId: "cfAddFlavor"
+});
+const rollFlavorsEditor = createFlavorListEditor({
+  fbPath: "koimariContent/rollCakeFlavors",
+  defaultList: ["プレーンロール", "抹茶ロール", "いちごロール", "チョコロール"],
+  listElId: "cfRollFlavorList", inputElId: "cfNewRollFlavor", addBtnId: "cfAddRollFlavor"
+});
+const cakeSizePricesRef = ref(fbDb, "koimariContent/cakeSizePrices");
+const CAKE_SIZE_PRICE_KEYS = {
+  cfPrice4: "4号(直径12cm/2-3名)", cfPrice5: "5号(直径15cm/4-6名)",
+  cfPrice6: "6号(直径18cm/6-8名)", cfPrice7: "7号(直径21cm/8-10名)"
+};
+function initCakeSizePricesPanel() {
+  let loadedOnce = false;
+  onValue(cakeSizePricesRef, (snapshot) => {
+    if (loadedOnce) return;
+    loadedOnce = true;
+    const prices = snapshot.val() || {};
+    Object.entries(CAKE_SIZE_PRICE_KEYS).forEach(([elId, key]) => {
+      const el = document.getElementById(elId);
+      if (el && prices[key] != null) el.value = prices[key];
+    });
+  });
+  const saveBtn = document.getElementById("cfSavePrices");
+  if (saveBtn && !saveBtn.dataset.bound) {
+    saveBtn.dataset.bound = "1";
+    saveBtn.addEventListener("click", () => {
+      const prices = {};
+      Object.entries(CAKE_SIZE_PRICE_KEYS).forEach(([elId, key]) => {
+        const val = Number(document.getElementById(elId).value);
+        if (val > 0) prices[key] = val;
+      });
+      update(ref(fbDb, "koimariContent"), { cakeSizePrices: prices }).then(() => {
+        const note = document.getElementById("cfPricesSavedNote");
+        if (note) { note.textContent = "保存しました"; setTimeout(() => { note.textContent = ""; }, 3000); }
+      }).catch(err => {
+        console.warn("料金の保存失敗:", err);
+        showToast("保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+      });
+    });
+  }
+}
+function initCakeFlavorsPanel() {
+  cakeFlavorsEditor.init();
+  rollFlavorsEditor.init();
+  initCakeSizePricesPanel();
+}
+
 onAuthStateChanged(fbAuth, (user) => {
   if (user) {
     syncReservationsFromFirebase();
     syncExperiencesFromFirebase();
     syncCorporateFromFirebase();
+    syncLineMembersFromFirebase();
     initEventConfigPanel();
     initExpDatesPanel();
+    initCakeFlavorsPanel();
     if (typeof window.showAdmin === "function") window.showAdmin();
   } else {
     if (typeof window.showLogin === "function") window.showLogin();

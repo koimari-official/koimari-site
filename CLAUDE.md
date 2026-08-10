@@ -78,9 +78,9 @@
 | `error-tracker.js` | エラー記録 | 完成 |
 | `MANUAL.md` | 汎用HP設計ガイド（Claude作業指示含む） | 完成 |
 
-### 管理画面のパスワード
+### 管理画面の認証（2026-07-13訂正）
 
-`admin.html` ログインパスワード: `koimari2026`（sessionStorage・ハードコード）
+`admin.html`の認証はFirebase Authentication（メール+パスワード）。`login()`（`admin.html:1100`付近）が`window.firebaseLogin(email, pass)`→`signInWithEmailAndPassword(fbAuth, email, password)`（`admin.html:3607`付近）を呼び、画面の出し分けは`onAuthStateChanged`（`admin.html:3744`付近）に委ねられている。旧`ADMIN_PASSWORD = "koimari2026"`/`SESSION_KEY`の定数は宣言されているだけの未使用コード（今後削除候補）。
 
 ---
 
@@ -176,7 +176,7 @@ koimari_views            ページビュー記録（90日）
 koimari_manual_sales     手動売上記録（2026-07-11〜：Firebase `koimariOps/manualSales` が正、こちらはローカルキャッシュ）
 koimari_sales_goal       売上目標（同上、`koimariOps/salesGoal`）
 koimari_coupons          クーポン（同上、`koimariOps/coupons`）
-koimari_newsletter       メルマガ
+koimari_lineMembers      LINE会員（2026-07-13〜：Firebase `lineMembers` が正、こちらはローカルキャッシュ。旧メルマガ機能は廃止しLINE公式アカウントに一本化）
 koimari_page_errors      エラーログ
 koimari_news             お知らせ（2026-07-09〜：Firebase `koimariContent/news` が正、こちらはローカルキャッシュ）
 koimari_holidays         営業日設定（定休日・臨時休業）（同上、`koimariContent/holidays`）
@@ -242,7 +242,7 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
 
 **画像アップロード履歴（2026-07-11追加）**：ヒーロー画像・商品カテゴリー・おすすめ商品・体験プログラムの画像は、新しいものに差し替えても直近5件まで「過去の画像」として`item.imgHistory`配列に保持され、削除するまで管理画面上で選び直し（復元）・完全削除ができる（`pushImageHistory`/`historyAwareOnFile`/`appendImageHistoryUI`）。1件あたり数十〜数百KBのdata URLを保持するため、`siteImages`ノードの総容量が増える点に留意（上限5件のキャップはこのため）。
 
-### セキュリティルール（2026-07-09時点、Firebase Console → Realtime Database → Rules）
+### セキュリティルール（2026-07-13時点でオーナーがFirebase Consoleから取得した現行の公開内容）
 
 ```json
 {
@@ -252,6 +252,10 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
       ".write": "auth != null"
     },
     "sessions": {
+      ".read": true,
+      ".write": true
+    },
+    "sweetsLab": {
       ".read": true,
       ".write": true
     },
@@ -310,14 +314,22 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
     "koimariOps": {
       ".read": "auth != null",
       ".write": "auth != null"
+    },
+    "lineMembers": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": true,
+        ".write": "auth != null || !data.exists()",
+        "profile": { ".write": true }
+      }
     }
   }
 }
 ```
 
-**⚠️ 未反映（要オーナー対応）**：上記の`koimariContent`ブロックは2026-07-09にコード側（admin.html / index.html / gallery.html / faq.html / blog.html）へ実装済みだが、**Firebase Console側のルールにはまだ反映されていない**。反映して「公開」するまでは、お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役の保存がすべて`PERMISSION_DENIED`で失敗する（画面上は保存成功に見えることがある）。
+**✅ 解消済み（2026-07-13確認）**：`koimariContent`/`koimariOps`について2026-07-09・07-11に記載していた「未反映」警告は、2026-07-13にオーナーがFirebase Consoleの現行ルールを確認した結果、既に公開済みであることが判明した。過去の警告文は解消済みとしてここに記録のみ残す。
 
-**⚠️ 未反映（要オーナー対応・2026-07-11追加）**：上記の`koimariOps`ブロックも同様にコード側（admin.html：手動売上記録・売上目標・クーポン）へ実装済みだが、Firebase Console側のルールにはまだ反映されていない。反映するまでこの3項目の保存が`PERMISSION_DENIED`で失敗する。
+**✅ 解消済み（2026-07-13）**：`lineMembers`ブロックはオーナーがFirebase Console側で追加・公開済み。LINE会員登録・スタンプ加算はFirebase側の準備が整った状態。あとはLINE公式アカウントの審査完了後、LIFF IDを`member.html`の`LIFF_ID`定数に反映すれば実機テスト可能。
 
 **重要な教訓（2026-07-09）**：このルールは「明示的に許可したパス以外はデフォルトで拒否」という設計（許可制）。新しいFirebaseパスをコードに追加しただけではルール側は自動的に追従しないため、**新しいパスを使うコードを書いたら、必ずこのルールにも対応するブロックを追加し、Firebase Console側で「公開」まで行うこと**。今回、`corporate`と`siteImages`（`noritate`も含む）のルール追加を忘れたまま実装し、画面上は「送信/保存成功」に見えても実際には`PERMISSION_DENIED`で裏側では失敗し続けるという不具合が発生した（ブラウザのDevTools Consoleで気づいた）。新しいFirebaseパスを追加する際のチェックリストに加える。
 
@@ -441,12 +453,64 @@ koimari_blog             ブログ記事（同上、`koimariContent/blog`）
     - 当初Squareを提案 → 手数料比較の結果、オンラインのクレカ手数料はSquare 3.6%に対しSTORES決済1.98%（中小支援プラン・2024年12月〜業界最安水準）と判明し、STORES決済の方が有利と判断（QRコード決済もSTORES決済の方が対応ブランド数多い）
     - その後、店舗の決済端末が「stera pack」（三井住友カード・GMOペイメントゲートウェイ・Visa Worldwide Japan共同のsteraプラットフォーム）であることが判明。stera pack自体はオンライン決済非対応だが、同じsteraプラットフォーム上に**stera smart one**（2024年4月開始、三井住友カード×ELESTYLE、EC決済対応・開発者向けAPI/SDKあり）という兄弟サービスが存在し、店舗とネットの決済データを一元管理できるメリットがある。手数料は非公開（個別見積もり制）
     - オーナーが2026-07-13にstera pack担当へ問い合わせ予定（手数料・CSV出力対応可否を確認）。STORES決済のCSV出力は公式サポートページで確認済み（管理画面「売上」→「売上一覧」から期間指定してダウンロード可）、stera smart oneのCSV対応可否は未確認
+    - **2社（STORES決済／stera smart one）に相見積もりを取得中（2026-07-13）**。見積もり結果が揃い次第、比較の上で決済代行業者を確定する
   - **技術メモ**：どの業者でもカード情報を安全に処理するには決済確定処理をサーバー側（秘密鍵を露出させない場所）で行う必要があり、現状Firebaseのみで構成されている本サイトにFirebase Cloud Functions（Blazeプランへの切り替えが必要）等の裏側の仕組みを新設することになる見込み。業者確定後に改めて設計案を提示する
 
 ### 低優先
-- [ ] 焼き菓子のオンライン販売（BASE/STORES連携）
-- [ ] LINE公式アカウント連携
 - [ ] PWA化
+
+### 将来フェーズ：LINE上でのEC購入フロー（2026-07-13オーナー要望・要計画）
+デコレーションケーキ・ホールケーキ・焼き菓子・ギフトの商品写真掲載→商品選択→サイズ選択→受け取り日時選択→LINE上で決済完結、という一連のEC購入フローを将来的に構築したいとの要望あり。
+
+**着手はまだ**。理由：
+- 決済代行業者が未確定（STORES決済 vs stera smart one、`operations/finance/`または`operations/loyalty/`の関連メモ参照）。決済の土台が決まらないと購入フローの設計が固まらない
+- 旧・低優先項目「焼き菓子のオンライン販売（BASE/STORES連携）」を包含・上書きする、より大きな構想として整理（LINE／LIFFベースに一本化する方向）
+- 商品カタログ（写真・価格・在庫）をどこで管理するか（Firebase新規パス）、既存`reservation.html`との役割分担も要設計
+
+決済代行業者が確定した段階で、`member.html`（LIFF会員ページ）の仕組みを土台に、正式なプランニングに着手する。
+
+### LINE公式アカウント連携（2026-07-13〜、`operations/loyalty/overview.md`参照）
+- [x] 予約フォーム（`reservation.html`）のメルマガ登録チェックボックスを撤去し、LINE公式アカウントへの案内文言に置き換え（2026-07-13）
+- [x] `admin.html`「メルマガ」タブを「LINE会員管理」タブに置き換え（`lineMembers` Firebaseパスを読み書き）（2026-07-13）
+- [x] `privacy.html`のメルマガ関連記述をLINE公式アカウント経由の案内に修正（2026-07-13）
+- [x] `member.html`（LIFF会員ページ）の新規実装：`payment.html`を雛形に、友だち追加=会員登録、スタンプカード、誕生日登録、ギャラリー抜粋表示（2026-07-13）
+- [x] LINE公式アカウント開設完了（こいまり名義、2026-08-10オーナー報告）
+- [x] **友だち追加URL確定**：`https://lin.ee/tgXqHoK`（アカウント名「ケーキ屋さんこいまり城東店」、Basic ID `@744lgqjn`。オーナーがLINE Official Account Managerから直接取得・スクリーンショットで確認済み、2026-08-10）。コード内に以前からあった`https://line.me/R/ti/p/@koimari`は未確認の推測IDだったため誤りと判明し、全箇所を差し替え済み
+- [ ] **LIFF ID取得・反映**（次のボトルネック）：LINE Developersコンソールでの設定が必要（オーナー作業）。`member.html:150`の`LIFF_ID`は`"REPLACE_WITH_LIFF_ID"`のまま。IDが発行され次第Jobsが反映。友だち追加URL自体は既に機能しているため、これが完了するまでは「友だち追加→チャットでやりとり」で予約・問合せ運用は既に成立する
+- [ ] `lineMembers`・`reservations`のFirebaseルールが実際にConsole上で公開されているか実機確認
+- [ ] リッチメニュー設定（会員ページ + 予約 + ギャラリーの3エリア構成案）
+
+### 予約・問合せのLINE全面移行（2026-08-10実装）
+オーナー指示により、ケーキ予約・体験予約・イベント予約等の**すべての予約・問合せ導線をLINE公式アカウントに一本化**した。各ページのHTML/Firebase送信フォームは廃止し、「内容説明＋LINE友だち追加ボタン」の構成に統一。法人向け見積もり相談（`corporate.html`の`#contact`フォーム）のみ、書面記録が残る形が適するため対象外・現状維持。
+
+- **`member.html`**：デコレーションケーキ・ロールケーキ・焼き菓子/ギフトの予約セクションを新設。サイズ（`SIZE_OPTIONS`）・引取日時（`computeOrderDeadline`ロジック）は旧`reservation.html`から移植。焼き菓子/ギフト選択時のみ領収書要否＋宛名の入力欄が出る。送信先は既存`reservations` Firebaseパスに`push()`（`type`は`"デコレーションケーキ予約"`または`"焼き菓子予約"`、`channel:"LINE"`、`lineUserId`付き）。`admin.html`の「予約一覧」に追加コードなしでそのまま表示される
+- **`reservation.html`**：フォーム本体（カート・Formspree送信・Firebase pushの一切）を削除し、「LINE友だち追加ボタン＋商品説明＋サイズ早見表」の説明ページに作り替え。URL自体は維持（既存リンク・検索エンジンのインデックス切れを避けるため）
+- **`experience.html`**：同様にフォームを削除し、3プログラム（一日店長体験／職業体験／訓練研修）の説明＋LINE誘導ボタンに変更。保護者情報・アレルギー等の機微情報はLINEチャットでスタッフが個別にヒアリングする運用に変わった（**安全に関わる情報のため、電話確認同様スタッフ側の聞き漏らし防止の目線が必要**という申し送りあり）
+- **`mothers-day.html`**：6種の商品カードの「このケーキを予約」ボタンは、LINEの**メッセージ事前入力機能**（`https://line.me/R/oaMessage/@744lgqjn/?<ケーキ名>を予約したいです`）でケーキ名を伝える体験を再現。旧`reservation.html?cake=...`のURLパラメータは**実は一度も読まれておらず完全に無効化された機能だった**ため、失った機能は無い。`gallery.html`の「同じテイストでご相談する」リンクも同じ仕組みに変更
+- サイト全体のナビ「ご予約」リンク・ヒーローCTA・footer・fab等（約15ファイル、`https://lin.ee/tgXqHoK`への機械的なリンク差し替え）も完了
+- 電話番号（06-7221-0705）は全ページのヘッダー/フッターに引き続き掲載し、LINEを使わない少数のお客様向けの静かな代替導線として機能させる方針
+
+### デコレーションケーキ予約の詳細化（2026-08-10追加実装）
+`member.html`のデコレーションケーキ予約に、段数・種類・サイズ別料金・チョコプレート文字を追加。ロールケーキにも種類選択を追加（ロールケーキはサイズ選択なし＝「ホール」固定）。
+
+- **段数**：1段〜3段（ラジオ）。2段以上を選ぶと、段数分の「サイズ」セレクトが動的に表示される（`renderTierSizeSelects()`）。1段=`items`配列1件、N段=N件（各要素`category:"デコレーションケーキ"`）
+- **ケーキの種類**：Firebase `koimariContent/cakeFlavors`（デコレーションケーキ用）・`koimariContent/rollCakeFlavors`（ロールケーキ用）から選択肢を読み込み。未設定時はコード内のたたき台リストを表示。admin.html「ケーキの種類」タブ（`createFlavorListEditor()`という汎用ファクトリ関数で両リストを実装、コード重複を回避）で追加・削除できる。**実在するフレーバー名は未確定（2026-08-10時点、オーナーが今後スタッフと打合せ予定）**なので、初期値はたたき台と明記してある
+- **サイズ別基本料金**：Firebase `koimariContent/cakeSizePrices`（4号〜7号、admin.html「ケーキの種類」タブ内で編集）。未設定時はたたき台の金額（4号¥3,000〜7号¥6,800）。**実在する金額は未確定**。5号に「（定番）」表示を付け、一番安いサイズでなく1つ上のサイズへ視線を誘導するアンカリング狙い（オーナー要望：「心理的に金額の高いものを選んでもらえるような案内」への提案）。確認画面に基本料金の目安（段数分の合計）を表示
+- **チョコプレートの文字**：20字以内・任意、デコレーションケーキのみ表示。段数分の`items`のうち1件目の`message`に格納
+- **「その他ご要望・仕様の相談がある」欄**（旧「ご要望・備考」から改称）：オーナー指示で、記入があれば追加料金・別途お見積もりが発生しうる旨のヒント文を常時表示。この欄は全カテゴリ共通の既存フィールドをそのまま再利用（新規UI要素は追加していない）
+- `admin.html`の予約一覧・メール通知テンプレートにも`flavor`（種類）を表示するよう`reservationItemsHtml`/`reservationItemsSummary`を拡張
+
+### 確認電話チェック＋アラーム（`admin.html`「予約一覧」、2026-08-10実装）
+新規予約は担当者以外のスタッフが内容確認の電話をする運用のため、「確認電話」チェック欄を追加。未チェックのまま3時間経過すると該当行を赤くハイライトし、タブに未確認件数バッジ、一覧上部に警告文を表示（5分毎に自動再判定）。**画面を開いている人向けの表示であり、無人時にLINE/メールへ自動プッシュする仕組みではない**点に注意。同様に「AIが答えられなかった質問を一覧化して知らせる」仕組みも要望があれば同じパターンで追加可能（現状`lineWebhook`は分からない質問に「スタッフが確認してご連絡します」とLINEチャット上で自動返信するのみで、スタッフ側がそれを検知する仕組みは未実装）。
+
+### LINE AI自動応答（Messaging API + Webhook）（2026-07-13〜実装済み・未デプロイ）
+Lシンク（外部AI活用支援サービス、月額3万円）の代替として、Jobsが自作。`functions/index.js`の`lineWebhook`としてコード自体は完成済み（営業時間/定休日をFirebaseから判定→Claude Haikuが丁寧な返信文を生成→LINEへ返信。価格・在庫等の憶測回答を避けるガードレール入り）。詳細は`operations/loyalty/ai-vendor-lsync-evaluation_20260713.md`参照。
+
+**2026-08-10、オーナーがFirebase Blazeプラン移行を承認し、本格デプロイに着手**。残作業：
+- [ ] オーナー：Firebaseコンソールで Blazeプランへアップグレード
+- [ ] オーナー：LINE Developersコンソールで Channel Secret / Channel Access Token を取得（LIFF ID取得と同じ画面で対応可能）
+- [ ] オーナー：Anthropic APIキーを新規発行（Driveに平文保存しない）
+- [ ] Jobs：上記シークレットを`firebase functions:secrets:set`で登録し`firebase deploy --only functions`でデプロイ、LINE Developersコンソールの Webhook URL に設定
 
 ---
 

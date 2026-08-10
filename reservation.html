@@ -13,7 +13,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>ご予約・お問合せ｜こいまり</title>
-<meta name="description" content="こいまり（大阪市城東区・京橋・蒲生四丁目）のケーキご予約はこちらから。デコレーションケーキ・焼き菓子のご予約、のし・メッセージカード対応も承ります。">
+<meta name="description" content="こいまり（大阪市城東区・京橋・蒲生四丁目）のケーキご予約はLINE公式アカウントから。デコレーションケーキ・ロールケーキ・焼き菓子のご予約、のし・メッセージカード対応も承ります。">
 <link rel="canonical" href="https://koimari-official.github.io/koimari-site/reservation.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="ご予約・お問合せ｜こいまり">
@@ -852,8 +852,6 @@ main { padding: 90px 24px 110px; }
   .same-day__label { font-size: 16px; }
 }
 </style>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={corePlugins:{preflight:false}}</script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -894,7 +892,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <h1 class="page-head__title">ご予約・お問合せ</h1>
     <p class="page-head__lead">
       デコレーションケーキのご予約は1営業日前までにご連絡ください。当日はお電話にて承ります。<br>
-      お問合せのみの場合は備考欄にその旨ご記入ください。
+      ご予約・お問合せはLINE公式アカウントのチャットから承っております。
     </p>
   </div>
 </div>
@@ -910,276 +908,57 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="same-day__body">
         <span class="same-day__label">当日予約はお電話にて承ります</span>
-        <span class="same-day__sub">フォームでのご予約は1営業日前までにお願いいたします。<br>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
+        <span class="same-day__sub">LINEでのご予約は1営業日前までにお願いいたします。<br>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
       </div>
       <a href="tel:0672210705" class="same-day__tel">
         <span>06-7221-0705<small>火-土 10:00-20:00 / 日 10:00-19:00</small></span>
       </a>
     </div>
 
-    <form id="reservationForm" novalidate>
-      <div class="form-section">
-        <h2 class="form-section__title">お客様情報 <span style="font-size:.55em;letter-spacing:.05em;opacity:.7;">(Customer Information)</span><span class="form-section__num">01</span></h2>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="name">お名前 (Name) <span class="req">必須 Required</span></label>
-            <input type="text" id="name" name="name" class="input" autocomplete="name" placeholder="例: 田中 花子 / Hanako Tanaka">
-            <span class="error" data-for="name"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="furigana">ふりがな (Furigana) <span class="req">必須 Required</span></label>
-            <input type="text" id="furigana" name="furigana" class="input" placeholder="ひらがなでご記入ください">
-            <span class="error" data-for="furigana"></span>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="tel">電話番号 (Phone Number) <span class="req">必須 Required</span></label>
-            <input type="tel" id="tel" name="tel" class="input" autocomplete="tel" placeholder="例: 090-1234-5678">
-            <span class="error" data-for="tel"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="email">メールアドレス (Email) <span class="req">必須 Required</span></label>
-            <input type="email" id="email" name="email" class="input" autocomplete="email" placeholder="例: name@example.com">
-            <span class="error" data-for="email"></span>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="zipcode">郵便番号 (Postal Code) <span class="req">必須 Required</span></label>
-            <input type="text" id="zipcode" name="zipcode" class="input" autocomplete="postal-code" placeholder="例: 123-4567" inputmode="numeric" maxlength="8">
-            <span class="error" data-for="zipcode"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="address">ご住所 (Address) <span class="opt">任意 Optional</span></label>
-            <input type="text" id="address" name="address" class="input" autocomplete="address-line1" placeholder="例: 大阪市城東区〇〇1-2-3">
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="birthday">生年月日 (Date of Birth) <span class="opt">任意 Optional</span></label>
-            <input type="date" id="birthday" name="birthday" class="input" autocomplete="bday" value="2000-01-01">
-            <span class="error" data-for="birthday"></span>
-          </div>
-          <div class="field" style="display:flex;align-items:flex-end;padding-bottom:4px;">
-            <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:15px;font-family:var(--font-mincho);color:var(--color-text-soft);">
-              <input type="checkbox" name="newsletter" value="1" style="width:18px;height:18px;accent-color:var(--color-accent);">
-              お得な情報・お知らせメールを受け取る (Receive newsletter)
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2 class="form-section__title">ご予約内容 <span style="font-size:.55em;letter-spacing:.05em;opacity:.7;">(Reservation Details)</span><span class="form-section__num">02</span></h2>
-
-        <div class="field">
-          <label class="field__label">お問合せ種別 (Inquiry Type) <span class="req">必須 Required</span></label>
-
-          <div class="radio-group" style="margin-bottom:14px;">
-            <label class="event-cake-option">
-              <input type="radio" name="type" value="イベントケーキ予約">
-              <span class="event-cake-option__badge">季節限定のイベントケーキ</span>
-              ご予約：<span id="currentEventName">母の日</span><span id="currentEventNameEn"> / Mother's Day</span>
-            </label>
-          </div>
-
-          <div class="radio-group">
-            <label><input type="radio" name="type" value="デコレーションケーキ予約" checked> デコレーションケーキのご予約 (Decoration Cake Reservation)</label>
-            <label><input type="radio" name="type" value="焼き菓子予約"> 焼き菓子・ギフトのご予約 (Baked Goods / Gift Reservation)</label>
-            <label><input type="radio" name="type" value="その他"> その他お問合せ (Other Inquiry)</label>
-          </div>
-        </div>
-
-        <div id="reservationOnlyFields">
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="pickupDate">引き取り希望日 (Pickup Date) <span id="pickupDateBadge" class="req">必須 Required</span></label>
-            <input type="date" id="pickupDate" name="pickupDate" class="input">
-            <span class="error" data-for="pickupDate"></span>
-            <span class="field__hint">1営業日前（定休日・臨時休業を除く直近の営業日）までにご指定ください。当日のご予約はお電話にて承ります（Please select a date at least 1 business day in advance (excluding closed days). For same-day requests, please call us）</span><br>
-            <span class="field__hint"><a href="index.html#bcal" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">定休日カレンダーをチェック (Check the business day calendar) ↗</a></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="pickupTime">引き取り希望時間 (Pickup Time) <span id="pickupTimeBadge" class="req">必須 Required</span></label>
-            <select id="pickupTime" name="pickupTime" class="select">
-              <option value="">選択してください (Please select)</option>
-              <option value="10:00">10:00</option><option value="10:30">10:30</option>
-              <option value="11:00">11:00</option><option value="11:30">11:30</option>
-              <option value="12:00">12:00</option><option value="12:30">12:30</option>
-              <option value="13:00">13:00</option><option value="13:30">13:30</option>
-              <option value="14:00">14:00</option><option value="14:30">14:30</option>
-              <option value="15:00">15:00</option><option value="15:30">15:30</option>
-              <option value="16:00">16:00</option><option value="16:30">16:30</option>
-              <option value="17:00">17:00</option><option value="17:30">17:30</option>
-              <option value="18:00">18:00</option><option value="18:30">18:30</option>
-              <option value="19:00">19:00</option><option value="19:30">19:30</option>
-              <option value="20:00">20:00</option>
-            </select>
-            <span class="error" data-for="pickupTime"></span>
-            <span class="field__hint" id="pickupTimeHoursNote" style="display:none;color:#9a3d50;">
-              ご注意：営業時間は曜日によって異なります（日曜は19:00閉店）。お引き取り時間がその日の閉店時間を過ぎていないかご確認ください。<br>
-              Please note: business hours vary by day (Sundays close at 19:00). Please make sure your pickup time is before closing on your selected day.
-            </span>
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="field__label"><span id="cakeTypeFieldLabelText">ご注文商品 (Items)</span> <span class="opt">任意 Optional</span></label>
-          <p class="field__hint" style="margin:0 0 10px;">「＋ 商品を追加」で欲しい商品をひとつずつ追加してください。複数選択できます（未選択でもご予約いただけます）(Click "+ Add Item" to add each product you'd like. Multiple items allowed. You can also leave this blank.)</p>
-
-          <div id="cartItemsContainer"></div>
-          <button type="button" class="btn btn--ghost" id="addCartItemBtn" style="margin-top:4px;">＋ 商品を追加 (Add Item)</button>
-
-          <div class="size-compare" style="margin-top:20px;">
-            <div class="size-compare__item">
-              <div class="size-compare__circle" style="width:48px;height:48px;"></div>
-              <div class="size-compare__label">4号 (12cm)<br><span>グレープフルーツくらい</span></div>
-            </div>
-            <div class="size-compare__item">
-              <div class="size-compare__circle" style="width:60px;height:60px;"></div>
-              <div class="size-compare__label">5号 (15cm)<br><span>小玉メロンくらい</span></div>
-            </div>
-            <div class="size-compare__item">
-              <div class="size-compare__circle" style="width:72px;height:72px;"></div>
-              <div class="size-compare__label">6号 (18cm)<br><span>ドッジボールくらい</span></div>
-            </div>
-            <div class="size-compare__item">
-              <div class="size-compare__circle" style="width:84px;height:84px;"></div>
-              <div class="size-compare__label">7号 (21cm)<br><span>サッカーボールくらい</span></div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ===== のし・ギフト対応 ===== -->
-        <div id="seasonBanner" class="gift-section__season-banner" style="display:none;"></div>
-
-        <div class="gift-section" id="giftSection">
-          <div class="gift-section__toggle" id="giftToggle">
-            <span>のし・贈答用ラッピング (Noshi Gift Wrap)</span>
-            <span class="gift-section__hint">クリックで開閉 (Click to open/close)</span>
-          </div>
-          <div class="gift-section__body">
-
-            <div class="field">
-              <label class="field__label">のしの有無 (Noshi Gift Wrap) <span class="opt">任意 Optional</span></label>
-              <div class="radio-group">
-                <label><input type="radio" name="noshi" value="不要" checked> のしは不要 (No noshi)</label>
-                <label><input type="radio" name="noshi" value="内のし"> のしを付ける（内のし） (Inner noshi)</label>
-                <label><input type="radio" name="noshi" value="外のし"> のしを付ける（外のし） (Outer noshi)</label>
-              </div>
-              <span class="field__hint">内のし=包装紙の中／外のし=包装紙の外。改まった贈答や郵送には内のし、手渡しには外のしが一般的です。<br>"Noshi" is traditional Japanese gift wrapping paper. Inner noshi is placed under the wrapping (for formal gifts/shipping); outer noshi is placed on top (for handing gifts in person).</span>
-
-              <div style="display:flex;gap:16px;margin-top:14px;flex-wrap:wrap;">
-                <div style="flex:1;min-width:140px;max-width:220px;">
-                  <img src="https://images.unsplash.com/photo-1607344645866-009c320b63e0?w=400&q=70" alt="内のしの例" style="width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--color-line);">
-                  <p style="text-align:center;font-size:12px;color:var(--color-text-soft);margin-top:6px;">内のしの例 (Inner noshi example)</p>
-                </div>
-                <div style="flex:1;min-width:140px;max-width:220px;">
-                  <img src="https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=400&q=70" alt="外のしの例" style="width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--color-line);">
-                  <p style="text-align:center;font-size:12px;color:var(--color-text-soft);margin-top:6px;">外のしの例 (Outer noshi example)</p>
-                </div>
-              </div>
-              <p style="font-size:11px;color:var(--color-text-mute,#856e58);margin-top:6px;">※ イメージ画像です。実際の仕上がりとは多少異なる場合があります。(Images are for reference only and may differ slightly from the actual product.)</p>
-            </div>
-
-            <div class="row">
-              <div class="field">
-                <label class="field__label" for="noshiTitle">表書き (Noshi Inscription) <span class="opt">任意 Optional</span></label>
-                <select id="noshiTitle" name="noshiTitle" class="select">
-                  <option value="">選択してください (Please select)</option>
-                  <option value="母の日">母の日 (Mother's Day)</option>
-                  <option value="父の日">父の日 (Father's Day)</option>
-                  <option value="御祝">御祝 (Celebration)</option>
-                  <option value="寿">寿 (Congratulations)</option>
-                  <option value="内祝">内祝 (Return Gift)</option>
-                  <option value="御礼">御礼 (Thank You)</option>
-                  <option value="御中元">御中元 (Summer Gift)</option>
-                  <option value="御歳暮">御歳暮 (Year-End Gift)</option>
-                  <option value="御挨拶">御挨拶 (Greeting)</option>
-                  <option value="開店祝">開店祝 (Shop Opening)</option>
-                  <option value="記念品">記念品 (Commemorative Gift)</option>
-                  <option value="その他">その他（備考欄に記入） (Other - please specify below)</option>
-                </select>
-              </div>
-              <div class="field">
-                <label class="field__label" for="noshiName">名入れ（贈り主のお名前） (Sender's Name on Noshi) <span class="opt">任意 Optional</span></label>
-                <input type="text" id="noshiName" name="noshiName" class="input" placeholder="例: 田中 / 田中太郎・花子">
-                <span class="field__hint">空欄の場合は名入れなしになります (Leave blank for no name printed)</span>
-              </div>
-            </div>
-
-            <div class="field">
-              <label class="field__label" for="messageCard">メッセージカード文面 (Message Card Text) <span class="opt">任意 Optional</span></label>
-              <textarea id="messageCard" name="messageCard" class="textarea" rows="3" placeholder="例: お母さん、いつも本当にありがとう。&#10;これからも元気でいてね。"></textarea>
-              <span class="field__hint">無料でカードをお付けし、ご記入の文面を手書きまたは印字でお入れします。(A free card is included with your message, handwritten or printed.)</span>
-            </div>
-
-            <div class="field">
-              <label class="field__label">ラッピング希望 (Gift Wrapping) <span class="opt">任意 Optional</span></label>
-              <div class="radio-group">
-                <label><input type="radio" name="wrapping" value="標準" checked> 標準ラッピング (Standard Wrapping)</label>
-                <label><input type="radio" name="wrapping" value="贈答用"> 贈答用（上品なラッピング） (Gift Wrapping - Elegant)</label>
-                <label><input type="radio" name="wrapping" value="希望なし"> 希望なし (No Wrapping)</label>
-              </div>
-            </div>
-
-          </div>
-        </div>
-        </div>
-
-        <div class="field">
-          <label class="field__label" for="note">備考・お問合せ内容 (Notes / Other Inquiries) <span id="noteBadge" class="opt">任意 Optional</span></label>
-          <textarea id="note" name="note" class="textarea" placeholder="ご質問やご要望がございましたらこちらにご記入ください (Please write any questions or requests here)"></textarea>
-          <span class="error" data-for="note"></span>
-        </div>
-      </div>
-
-      <div class="notice">
-        <strong>ご予約に関するご注意</strong>
-        <ul>
-          <li>ご予約内容の確認のため、当店よりお電話またはメールにてご連絡を差し上げます。</li>
-          <li>デコレーションケーキのご予約は1営業日前までにご連絡ください。当日はお電話にて承ります。</li>
-          <li>お問合せのみの場合は備考欄にその旨ご記入ください。</li>
-          <li>ご予約確定後のキャンセルは前日までにご連絡ください。</li>
-          <li>送信いただいた個人情報は、ご予約・お問合せ対応のみに使用いたします。</li>
-        </ul>
-      </div>
-
-      <div class="field" style="margin-top:4px;">
-        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
-          <input type="checkbox" id="privacyConsent" name="privacyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
-          <span><a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">プライバシーポリシー</a>に同意する (I agree to the <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">Privacy Policy</a>) <span class="req">必須 Required</span></span>
-        </label>
-        <div class="policy-embed" id="policyEmbed">読み込み中... (Loading...)</div>
-        <span class="error" data-for="privacyConsent"></span>
-      </div>
-
-      <div class="error" id="submitError" style="text-align:center;font-size:15px;margin-top:4px;"></div>
-      <div class="actions"><button type="submit" class="btn">注文内容を確認 (Review Order)</button></div>
-    </form>
-
-    <div id="confirmScreen" class="hidden">
-      <h2 class="form-section__title" style="margin-bottom:24px;">ご入力内容の確認 <span style="font-size:.55em;letter-spacing:.05em;opacity:.7;">(Please Confirm)</span></h2>
-      <div id="confirmSummary" class="confirm-summary"></div>
-      <div class="error" id="confirmSubmitError" style="text-align:center;font-size:15px;margin-top:12px;"></div>
-      <div class="actions" style="flex-direction:row;justify-content:center;gap:16px;flex-wrap:wrap;">
-        <button type="button" class="btn btn--ghost" id="backToFormBtn">戻って修正する (Back to Edit)</button>
-        <button type="button" class="btn" id="finalSubmitBtn">この内容で送信する (Submit)</button>
+    <div class="form-section">
+      <h2 class="form-section__title">ご予約はLINE公式アカウントから <span class="form-section__num">01</span></h2>
+      <p style="margin-bottom:20px;">
+        こいまりのご予約・お問合せは、LINE公式アカウントで承っております。<br>
+        友だち追加後、チャットでご希望の商品・お引き取り日時をお知らせください。担当より内容確認のご連絡をいたします。
+      </p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="btn" style="display:inline-block;padding:18px 48px;font-size:16px;">LINE公式アカウントを友だち追加する</a>
       </div>
     </div>
 
-    <div id="thanksScreen" class="thanks hidden">
-      <div class="thanks__icon"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 7"/></svg></div>
-      <span class="thanks__title-en">Thank you</span>
-      <h2 class="thanks__title">ご送信ありがとうございました</h2>
-      <p>ご予約・お問合せ内容を承りました。</p>
-      <p>確認のため、当店よりお電話またはメールにて<br>ご連絡を差し上げますので、しばらくお待ちくださいませ。</p>
-      <div class="actions"><a href="index.html" class="btn">トップへ戻る</a></div>
+    <div class="form-section">
+      <h2 class="form-section__title">ご予約いただける商品 <span class="form-section__num">02</span></h2>
+      <ul style="line-height:2.1;padding-left:1.4em;">
+        <li>デコレーションケーキ（お誕生日・記念日等）</li>
+        <li>ロールケーキ</li>
+        <li>焼き菓子・ギフト（のし・領収書対応可）</li>
+        <li>季節限定のイベントケーキ</li>
+      </ul>
+      <p style="margin-top:16px;font-size:15px;color:var(--color-text-mute);">
+        メッセージプレート・のし・ラッピングのご希望も、チャットで承ります。
+      </p>
+    </div>
+
+    <div class="form-section">
+      <h2 class="form-section__title">サイズの目安 <span class="form-section__num">03</span></h2>
+      <div class="size-compare" style="margin-top:20px;">
+        <div class="size-compare__item">
+          <div class="size-compare__circle" style="width:48px;height:48px;"></div>
+          <div class="size-compare__label">4号 (12cm・2〜3名)<br><span>グレープフルーツくらい</span></div>
+        </div>
+        <div class="size-compare__item">
+          <div class="size-compare__circle" style="width:60px;height:60px;"></div>
+          <div class="size-compare__label">5号 (15cm・4〜6名)<br><span>小玉メロンくらい</span></div>
+        </div>
+        <div class="size-compare__item">
+          <div class="size-compare__circle" style="width:72px;height:72px;"></div>
+          <div class="size-compare__label">6号 (18cm・6〜8名)<br><span>ドッジボールくらい</span></div>
+        </div>
+        <div class="size-compare__item">
+          <div class="size-compare__circle" style="width:84px;height:84px;"></div>
+          <div class="size-compare__label">7号 (21cm・8〜10名)<br><span>サッカーボールくらい</span></div>
+        </div>
+      </div>
     </div>
   </div>
 </main>
@@ -1189,501 +968,5 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
-  authDomain: "koimari-tasting.firebaseapp.com",
-  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "koimari-tasting",
-  storageBucket: "koimari-tasting.firebasestorage.app",
-  messagingSenderId: "852851855633",
-  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
-};
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
-const reservationsRef = ref(db, "reservations");
-
-// ===== プライバシーポリシー本文をスクロール枠内に埋め込み表示 =====
-// privacy.htmlを別途複製すると内容がズレる可能性があるため、privacy.htmlの本文(.doc)を
-// fetchして取り込む方式にする（privacy.htmlを更新すればここも自動的に最新化される）。
-(async () => {
-  const embedEl = document.getElementById("policyEmbed");
-  if (!embedEl) return;
-  try {
-    const res = await fetch("privacy.html");
-    if (!res.ok) throw new Error("status " + res.status);
-    const html = await res.text();
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const article = doc.querySelector(".doc");
-    if (article) {
-      embedEl.innerHTML = article.innerHTML;
-    } else {
-      throw new Error("本文が見つかりませんでした");
-    }
-  } catch (err) {
-    console.warn("プライバシーポリシー本文の読み込みに失敗:", err);
-    embedEl.innerHTML = '<p>本文の読み込みに失敗しました。お手数ですが、上記の「プライバシーポリシー」リンクからご確認ください。(Failed to load. Please check the "Privacy Policy" link above.)</p>';
-  }
-})();
-
-// ===== ご注文商品：複数追加可能なカート方式。予約種別に応じて対象カテゴリのタブを切り替え、商品写真から選択 =====
-// デコレーションケーキ予約/イベントケーキ予約→デコレーションケーキ・ロールケーキ、焼き菓子予約→焼き菓子・ギフト
-const CAKE_PHOTO_CATEGORY_MAP = {
-  "デコレーションケーキ予約": ["デコレーションケーキ", "ロールケーキ"],
-  "イベントケーキ予約": ["デコレーションケーキ", "ロールケーキ"],
-  "焼き菓子予約": ["焼き菓子", "ギフト"]
-};
-const CAKE_PHOTO_FIELD_LABELS = {
-  "デコレーションケーキ予約": "ご注文商品 (Items)",
-  "イベントケーキ予約": "ご注文商品 (Items)",
-  "焼き菓子予約": "ご注文商品 (Items)"
-};
-const ALL_CAKE_PHOTO_CATEGORIES = ["デコレーションケーキ", "ロールケーキ", "焼き菓子", "ギフト"];
-const SIZE_OPTIONS = [
-  { value: "", label: "選択してください (Please select)" },
-  { value: "4号(直径12cm/2-3名)", label: "4号（直径12cm / 2〜3名）(4-inch, serves 2-3)" },
-  { value: "5号(直径15cm/4-6名)", label: "5号（直径15cm / 4〜6名）(5-inch, serves 4-6)" },
-  { value: "6号(直径18cm/6-8名)", label: "6号（直径18cm / 6〜8名）(6-inch, serves 6-8)" },
-  { value: "7号(直径21cm/8-10名)", label: "7号（直径21cm / 8〜10名）(7-inch, serves 8-10)" }
-];
-
-let cakePhotosByCategory = {}; // { "デコレーションケーキ": [src, ...], "ロールケーキ": [src, ...], ... }
-let cartItems = []; // [{ id, activeTab, selectedPhotoSrc, size, message }]
-let cartItemIdSeq = 0;
-
-function currentCakePhotoCategories() {
-  const type = (document.querySelector('input[name="type"]:checked') || {}).value;
-  return CAKE_PHOTO_CATEGORY_MAP[type] || CAKE_PHOTO_CATEGORY_MAP["デコレーションケーキ予約"];
-}
-
-function addCartItem() {
-  cartItems.push({ id: ++cartItemIdSeq, activeTab: null, selectedPhotoSrc: "", size: "", message: "" });
-  renderCartItems();
-}
-function removeCartItem(id) {
-  cartItems = cartItems.filter(it => it.id !== id);
-  renderCartItems();
-}
-
-function renderCartItems() {
-  const labelEl = document.getElementById("cakeTypeFieldLabelText");
-  const type = (document.querySelector('input[name="type"]:checked') || {}).value;
-  if (labelEl) labelEl.textContent = CAKE_PHOTO_FIELD_LABELS[type] || CAKE_PHOTO_FIELD_LABELS["デコレーションケーキ予約"];
-
-  const container = document.getElementById("cartItemsContainer");
-  if (!container) return;
-  const sourceCategories = currentCakePhotoCategories();
-
-  if (!cartItems.length) {
-    container.innerHTML = '<p class="cart-item-empty">まだ商品が追加されていません。「＋ 商品を追加」から選んでください。 (No items added yet. Click "+ Add Item" to choose one.)</p>';
-    return;
-  }
-
-  container.innerHTML = "";
-  cartItems.forEach((item, idx) => {
-    // 予約種別が切り替わって選択済み写真が対象カテゴリに含まれなくなった場合はリセット
-    if (item.selectedPhotoSrc) {
-      const stillValid = sourceCategories.some(cat => (cakePhotosByCategory[cat] || []).includes(item.selectedPhotoSrc));
-      if (!stillValid) { item.selectedPhotoSrc = ""; item.activeTab = null; }
-    }
-    const availableTabs = sourceCategories.filter(name => (cakePhotosByCategory[name] || []).length);
-    if (!item.activeTab || !availableTabs.includes(item.activeTab)) item.activeTab = availableTabs[0] || null;
-
-    const card = document.createElement("div");
-    card.className = "cart-item";
-    card.innerHTML = `
-      <div class="cart-item__head">
-        <span class="cart-item__num">商品${idx + 1} (Item ${idx + 1})</span>
-        <button type="button" class="cart-item__remove">✕ 削除 (Remove)</button>
-      </div>
-      <div class="cake-photo-tabs"></div>
-      <div class="cake-photo-grid"></div>
-      <div class="field" style="margin-top:14px;">
-        <label class="field__label">サイズ (Size)</label>
-        <select class="select cart-item__size"></select>
-      </div>
-      <div class="field">
-        <label class="field__label">メッセージプレート (Message Plate)</label>
-        <input type="text" class="input cart-item__message" placeholder="例: Happy Birthday Mari" maxlength="23" value="${item.message.replace(/"/g, "&quot;")}">
-        <span class="field__hint">20文字程度でお願いいたします。(Please keep it to around 20 characters)</span>
-      </div>
-    `;
-    card.querySelector(".cart-item__remove").addEventListener("click", () => removeCartItem(item.id));
-
-    // サイズ選択肢
-    const sizeSelect = card.querySelector(".cart-item__size");
-    SIZE_OPTIONS.forEach(opt => {
-      const optEl = document.createElement("option");
-      optEl.value = opt.value; optEl.textContent = opt.label;
-      if (opt.value === item.size) optEl.selected = true;
-      sizeSelect.appendChild(optEl);
-    });
-    sizeSelect.addEventListener("change", () => { item.size = sizeSelect.value; });
-
-    // メッセージプレート
-    card.querySelector(".cart-item__message").addEventListener("input", (e) => { item.message = e.target.value; });
-
-    // タブ
-    const tabsEl = card.querySelector(".cake-photo-tabs");
-    availableTabs.forEach(name => {
-      const tab = document.createElement("div");
-      tab.className = "cake-photo-tab" + (name === item.activeTab ? " active" : "");
-      tab.textContent = name;
-      tab.addEventListener("click", () => { item.activeTab = name; renderCartItems(); });
-      tabsEl.appendChild(tab);
-    });
-
-    // 写真グリッド
-    const gridEl = card.querySelector(".cake-photo-grid");
-    const photos = cakePhotosByCategory[item.activeTab] || [];
-    if (!photos.length) {
-      gridEl.innerHTML = '<p style="grid-column:1/-1;font-size:13px;color:var(--color-text-soft);">現在お選びいただける写真がありません。備考欄にご希望をご記入ください。 (No photos available right now — please describe your preference in the notes field.)</p>';
-    } else {
-      photos.forEach(src => {
-        const photoEl = document.createElement("div");
-        photoEl.className = "cake-photo-item" + (src === item.selectedPhotoSrc ? " selected" : "");
-        photoEl.innerHTML = `<img src="${src}" alt="${item.activeTab}" loading="lazy">`;
-        photoEl.addEventListener("click", () => {
-          item.selectedPhotoSrc = (src === item.selectedPhotoSrc) ? "" : src;
-          renderCartItems();
-        });
-        gridEl.appendChild(photoEl);
-      });
-    }
-
-    container.appendChild(card);
-  });
-}
-
-document.getElementById("addCartItemBtn").addEventListener("click", addCartItem);
-
-onValue(ref(db, "siteImages/categories"), (snapshot) => {
-  const categories = snapshot.val();
-  cakePhotosByCategory = {};
-  (Array.isArray(categories) ? categories : []).forEach(cat => {
-    if (!cat || !ALL_CAKE_PHOTO_CATEGORIES.includes(cat.name)) return;
-    cakePhotosByCategory[cat.name] = [cat.img].concat(Array.isArray(cat.gallery) ? cat.gallery : []).filter(Boolean);
-  });
-  renderCartItems();
-});
-
-// 予約種別が切り替わったら、対象カテゴリ（タブ）を再計算する
-document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener("change", renderCartItems));
-
-
-// ===== 営業日カレンダーに基づく「1営業日前」判定 =====
-// 定休日（曜日）・臨時休業日を考慮せずに「前日」とだけ案内すると、前日が定休日の場合に
-// 実際には間に合わないご予約を受け付けてしまうため、管理画面の営業日設定と連動させる。
-let currentHolidays = { weeklyClosed: [1], extraClosed: [] };
-onValue(ref(db, "koimariContent/holidays"), (snapshot) => {
-  const val = snapshot.val();
-  if (val) currentHolidays = val;
-});
-function dateKeyLocal(d) {
-  return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}-${d.getDate().toString().padStart(2,"0")}`;
-}
-function isClosedDate(d) {
-  const weeklyClosed = currentHolidays.weeklyClosed || [];
-  const extraClosed = currentHolidays.extraClosed || [];
-  return weeklyClosed.includes(d.getDay()) || extraClosed.includes(dateKeyLocal(d));
-}
-// 引き取り希望日の「1営業日前」（定休日・臨時休業をスキップした直近の営業日）を返す
-function computeOrderDeadline(pickupDate) {
-  const d = new Date(pickupDate);
-  d.setDate(d.getDate() - 1);
-  let guard = 0;
-  while (isClosedDate(d) && guard < 30) { d.setDate(d.getDate() - 1); guard++; }
-  return d;
-}
-
-// 現在開催中のイベント名（管理画面「季節イベント設定」から一括変更可能）
-const EVENT_NAME_EN_MAP = {
-  "母の日": "Mother's Day",
-  "父の日": "Father's Day",
-  "クリスマス": "Christmas",
-  "バレンタイン": "Valentine's Day",
-  "ホワイトデー": "White Day",
-  "ひな祭り": "Girls' Festival",
-  "敬老の日": "Respect for the Aged Day",
-  "お正月": "New Year",
-  "ハロウィン": "Halloween",
-};
-onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
-  const cfg = snapshot.val() || {};
-  const eventName = cfg.eventName || "母の日";
-  const currentEventNameEl = document.getElementById("currentEventName");
-  const currentEventNameEnEl = document.getElementById("currentEventNameEn");
-  if (currentEventNameEl) currentEventNameEl.textContent = eventName;
-  if (currentEventNameEnEl) {
-    const en = EVENT_NAME_EN_MAP[eventName];
-    currentEventNameEnEl.textContent = en ? ` / ${en}` : "";
-  }
-});
-
-const form = document.getElementById("reservationForm");
-const thanks = document.getElementById("thanksScreen");
-
-function setError(name, msg) {
-  const el = document.querySelector(`[data-for="${name}"]`);
-  const input = document.querySelector(`[name="${name}"]`);
-  if (el) el.textContent = msg || "";
-  if (input) {
-    if (msg) input.classList.add("invalid");
-    else input.classList.remove("invalid");
-  }
-}
-
-function validate(data) {
-  let ok = true;
-  ["name", "furigana", "tel", "email", "zipcode", "pickupDate", "pickupTime", "note", "privacyConsent"].forEach(k => setError(k, ""));
-  if (!data.privacyConsent) { setError("privacyConsent", "プライバシーポリシーへの同意が必要です (Please agree to the Privacy Policy)"); ok = false; }
-  if (!data.name.trim()) { setError("name", "お名前をご入力ください"); ok = false; }
-  if (!data.furigana.trim()) { setError("furigana", "ふりがなをご入力ください"); ok = false; }
-  else if (!/^[ぁ-んー\s　]+$/.test(data.furigana)) { setError("furigana", "ひらがなでご入力ください"); ok = false; }
-  if (!data.tel.trim()) { setError("tel", "電話番号をご入力ください"); ok = false; }
-  else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setError("tel", "正しい電話番号をご入力ください"); ok = false; }
-  if (!data.email.trim()) { setError("email", "メールアドレスをご入力ください"); ok = false; }
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { setError("email", "正しいメールアドレスをご入力ください"); ok = false; }
-  if (!data.zipcode.trim()) { setError("zipcode", "郵便番号をご入力ください"); ok = false; }
-  else if (!/^\d{3}-?\d{4}$/.test(data.zipcode.trim())) { setError("zipcode", "正しい郵便番号をご入力ください（例: 123-4567）"); ok = false; }
-
-  // 種別ごとの必須切り替え
-  const isReservation = data.type === "デコレーションケーキ予約" || data.type === "焼き菓子予約" || data.type === "イベントケーキ予約";
-  const isInquiry = data.type === "その他";
-  if (isReservation) {
-    if (!data.pickupDate) { setError("pickupDate", "引き取り希望日をご入力ください"); ok = false; }
-    else {
-      const today = new Date(); today.setHours(0,0,0,0);
-      const pick = new Date(data.pickupDate);
-      if (isClosedDate(pick)) {
-        setError("pickupDate", "その日は定休日・臨時休業のためお引き取りいただけません。別の日をお選びください"); ok = false;
-      } else {
-        const deadline = computeOrderDeadline(pick);
-        if (today > deadline) { setError("pickupDate", "ご予約は1営業日前まで（定休日・臨時休業を除く直近の営業日まで）にお願いいたします（当日はお電話で承ります）"); ok = false; }
-      }
-    }
-    if (!data.pickupTime) { setError("pickupTime", "引き取り希望時間をご選択ください"); ok = false; }
-  }
-  if (isInquiry) {
-    if (!data.note.trim()) { setError("note", "お問合せ内容をご記入ください"); ok = false; }
-  }
-  return ok;
-}
-
-// 種別変更で必須/任意のバッジと表示を切り替え
-function updateRequiredFields() {
-  const type = (document.querySelector('input[name="type"]:checked')||{}).value;
-  const isReservation = type === "デコレーションケーキ予約" || type === "焼き菓子予約" || type === "イベントケーキ予約";
-  const isInquiry = type === "その他";
-  const dateBadge = document.getElementById("pickupDateBadge");
-  const timeBadge = document.getElementById("pickupTimeBadge");
-  const noteBadge = document.getElementById("noteBadge");
-  if (dateBadge) { dateBadge.className = isReservation ? "req" : "opt"; dateBadge.textContent = isReservation ? "必須 Required" : "任意 Optional"; }
-  if (timeBadge) { timeBadge.className = isReservation ? "req" : "opt"; timeBadge.textContent = isReservation ? "必須 Required" : "任意 Optional"; }
-  if (noteBadge) { noteBadge.className = isInquiry ? "req" : "opt"; noteBadge.textContent = isInquiry ? "必須 Required" : "任意 Optional"; }
-  // 「その他お問合せ」の場合は、ケーキ予約専用の入力欄（引取日時・ケーキ種類・サイズ・メッセージプレート・のし/ラッピング）を丸ごと非表示にする
-  const reservationOnlyFields = document.getElementById("reservationOnlyFields");
-  if (reservationOnlyFields) reservationOnlyFields.style.display = isInquiry ? "none" : "";
-}
-document.querySelectorAll('input[name="type"]').forEach(r => r.addEventListener("change", updateRequiredFields));
-updateRequiredFields();
-
-// 営業時間は曜日によって異なるため、閉店間際の時間帯を選んだ場合は注意喚起を表示
-function updatePickupTimeHoursNote() {
-  const noteEl = document.getElementById("pickupTimeHoursNote");
-  const timeVal = document.getElementById("pickupTime").value;
-  if (noteEl) noteEl.style.display = (timeVal && timeVal >= "18:00") ? "block" : "none";
-}
-document.getElementById("pickupTime").addEventListener("change", updatePickupTimeHoursNote);
-document.getElementById("pickupDate").addEventListener("change", updatePickupTimeHoursNote);
-
-// ===== メール通知設定 =====
-// Formspreeに登録後、ここに発行されたエンドポイントを設定してください
-// 例: "https://formspree.io/f/xxxxxxxx"
-// 空の場合はメール送信されず、localStorage保存のみとなります(開発中の動作)
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/mwvddbqk";
-
-async function sendToFormspree(data) {
-  if (!FORMSPREE_ENDPOINT) return true; // 未設定時はスキップして成功扱い
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        _subject: `【こいまり】新規ご予約: ${data.name} 様 (${data.type})`,
-        _replyto: data.email,
-        お名前: data.name, ふりがな: data.furigana,
-        電話番号: data.tel, メールアドレス: data.email,
-        生年月日: data.birthday, メルマガ登録: data.newsletter ? "希望する" : "希望しない",
-        種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
-        ご注文商品: itemsToSummaryText(data.items || []),
-        備考: data.note,
-        受信日時: data.submittedAt
-      })
-    });
-    clearTimeout(timer);
-    return res.ok;
-  } catch (err) { console.warn("Formspree送信失敗:", err); return false; }
-}
-
-// Firebase保存が固まって画面が「送信中」のまま無限に止まらないよう、必ず一定時間で諦める
-function withTimeout(promise, ms, label) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(label + "がタイムアウトしました")), ms))
-  ]);
-}
-
-// 商品カートの内容を人が読めるテキスト・確認画面用の項目一覧に変換
-function buildItemsFromCart() {
-  return cartItems
-    .filter(it => it.selectedPhotoSrc || it.size || it.message)
-    .map(it => ({ category: it.activeTab || "", image: it.selectedPhotoSrc || "", size: it.size || "", message: it.message || "" }));
-}
-function itemsToSummaryText(items) {
-  if (!items.length) return "（商品未選択）";
-  return items.map((it, i) => `${i + 1}. ${it.category || "（種類未選択）"}${it.size ? " / " + it.size : ""}${it.message ? " / メッセージ: " + it.message : ""}`).join("\n");
-}
-
-const TYPE_LABELS = { "デコレーションケーキ予約": "デコレーションケーキのご予約", "焼き菓子予約": "焼き菓子・ギフトのご予約", "イベントケーキ予約": "季節限定のイベントケーキ", "その他": "その他お問合せ" };
-const NOSHI_LABELS = { "不要": "のしは不要", "内のし": "内のし", "外のし": "外のし" };
-const WRAPPING_LABELS = { "標準": "標準ラッピング", "贈答用": "贈答用（上品なラッピング）", "希望なし": "希望なし" };
-
-function escapeHtmlLocal(s) {
-  return String(s || "").replace(/[&<>"']/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-}
-
-function renderConfirmSummary(data) {
-  const el = document.getElementById("confirmSummary");
-  if (!el) return;
-  const isReservation = data.type === "デコレーションケーキ予約" || data.type === "焼き菓子予約" || data.type === "イベントケーキ予約";
-
-  let itemsHtml = '<p style="color:var(--color-text-soft);font-size:14px;">商品未選択（備考欄をご確認ください）</p>';
-  if (data.items && data.items.length) {
-    itemsHtml = data.items.map((it, i) => `
-      <div class="confirm-item">
-        ${it.image ? `<img src="${escapeHtmlLocal(it.image)}" alt="${escapeHtmlLocal(it.category)}">` : ""}
-        <div class="confirm-item__body">
-          <span class="confirm-item__num">商品${i + 1}</span>${escapeHtmlLocal(it.category || "（種類未選択）")}
-          ${it.size ? `<br>サイズ: ${escapeHtmlLocal(it.size)}` : ""}
-          ${it.message ? `<br>メッセージプレート: ${escapeHtmlLocal(it.message)}` : ""}
-        </div>
-      </div>
-    `).join("");
-  }
-
-  el.innerHTML = `
-    <div class="confirm-summary__section">
-      <div class="confirm-summary__title">お客様情報 (Customer Information)</div>
-      <div class="confirm-summary__row"><span class="confirm-summary__label">お名前</span><span class="confirm-summary__value">${escapeHtmlLocal(data.name)}（${escapeHtmlLocal(data.furigana)}）</span></div>
-      <div class="confirm-summary__row"><span class="confirm-summary__label">電話番号</span><span class="confirm-summary__value">${escapeHtmlLocal(data.tel)}</span></div>
-      <div class="confirm-summary__row"><span class="confirm-summary__label">メールアドレス</span><span class="confirm-summary__value">${escapeHtmlLocal(data.email)}</span></div>
-      ${data.address ? `<div class="confirm-summary__row"><span class="confirm-summary__label">ご住所</span><span class="confirm-summary__value">${escapeHtmlLocal(data.address)}</span></div>` : ""}
-      <div class="confirm-summary__row"><span class="confirm-summary__label">郵便番号</span><span class="confirm-summary__value">${escapeHtmlLocal(data.zipcode)}</span></div>
-    </div>
-    <div class="confirm-summary__section">
-      <div class="confirm-summary__title">ご予約内容 (Reservation Details)</div>
-      <div class="confirm-summary__row"><span class="confirm-summary__label">お問合せ種別</span><span class="confirm-summary__value">${escapeHtmlLocal(TYPE_LABELS[data.type] || data.type)}</span></div>
-      ${isReservation ? `<div class="confirm-summary__row"><span class="confirm-summary__label">引き取り希望日</span><span class="confirm-summary__value">${escapeHtmlLocal(data.pickupDate)} ${escapeHtmlLocal(data.pickupTime)}</span></div>` : ""}
-      ${isReservation ? `<div class="confirm-summary__row" style="margin-top:10px;"><div style="width:100%;">${itemsHtml}</div></div>` : ""}
-      ${isReservation && data.noshi ? `<div class="confirm-summary__row"><span class="confirm-summary__label">のし</span><span class="confirm-summary__value">${escapeHtmlLocal(NOSHI_LABELS[data.noshi] || data.noshi)}${data.noshiTitle ? "（" + escapeHtmlLocal(data.noshiTitle) + "）" : ""}</span></div>` : ""}
-      ${isReservation && data.wrapping ? `<div class="confirm-summary__row"><span class="confirm-summary__label">ラッピング</span><span class="confirm-summary__value">${escapeHtmlLocal(WRAPPING_LABELS[data.wrapping] || data.wrapping)}</span></div>` : ""}
-      ${data.note ? `<div class="confirm-summary__row"><span class="confirm-summary__label">備考・お問合せ内容</span><span class="confirm-summary__value">${escapeHtmlLocal(data.note)}</span></div>` : ""}
-    </div>
-  `;
-}
-
-let pendingSubmitData = null;
-
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-  const fd = new FormData(form);
-  const data = {
-    name: fd.get("name") || "", furigana: fd.get("furigana") || "",
-    tel: fd.get("tel") || "", email: fd.get("email") || "",
-    zipcode: fd.get("zipcode") || "", address: fd.get("address") || "",
-    birthday: fd.get("birthday") || "", newsletter: fd.get("newsletter") === "1",
-    privacyConsent: fd.get("privacyConsent") === "1",
-    type: fd.get("type") || "", pickupDate: fd.get("pickupDate") || "",
-    pickupTime: fd.get("pickupTime") || "",
-    items: buildItemsFromCart(),
-    note: fd.get("note") || "",
-    noshi: fd.get("noshi") || "", noshiTitle: fd.get("noshiTitle") || "",
-    noshiName: fd.get("noshiName") || "", messageCard: fd.get("messageCard") || "",
-    wrapping: fd.get("wrapping") || "",
-    status: "受付済", notes: "",
-    submittedAt: new Date().toISOString()
-  };
-  if (!validate(data)) {
-    const firstInvalid = document.querySelector(".invalid");
-    if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
-    return;
-  }
-  pendingSubmitData = data;
-  renderConfirmSummary(data);
-  form.classList.add("hidden");
-  document.getElementById("confirmScreen").classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-document.getElementById("backToFormBtn").addEventListener("click", () => {
-  document.getElementById("confirmScreen").classList.add("hidden");
-  form.classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-document.getElementById("finalSubmitBtn").addEventListener("click", async () => {
-  if (!pendingSubmitData) return;
-  const data = pendingSubmitData;
-  const btn = document.getElementById("finalSubmitBtn");
-  const backBtn = document.getElementById("backToFormBtn");
-  const originalText = btn.textContent;
-  const errEl = document.getElementById("confirmSubmitError");
-  if (errEl) errEl.textContent = "";
-  btn.disabled = true; backBtn.disabled = true; btn.textContent = "送信中...";
-
-  // メール通知の結果を、保存前に（最大8秒だけ待って）確定させる。
-  // ※Firebaseのセキュリティルール上、お客様（未ログイン）は新規レコードの「作成」のみ許可されており、
-  //   保存後に別途update()で書き戻すことはできない（権限エラーになる）。そのため結果は必ず最初の
-  //   保存に含める。8秒でメール送信を諦めても予約自体の保存は続行し、その場合はemailSent:falseとして
-  //   記録することで、管理画面で「メール未送信」を確実に検知できるようにする。
-  const emailSent = await withTimeout(sendToFormspree(data), 8000, "メール通知").catch(() => false);
-  data.emailSent = !!emailSent;
-
-  // Firebase保存（管理画面に表示される正式な記録）の成否のみで「送信完了」を判定する。
-  // 12秒でタイムアウトさせ、通信不良時でも画面が「送信中」のまま止まらないようにする。
-  try {
-    await withTimeout(push(reservationsRef, data), 12000, "予約保存");
-  } catch (err) {
-    console.warn("Firebase保存失敗:", err);
-    btn.disabled = false; backBtn.disabled = false; btn.textContent = originalText;
-    if (errEl) errEl.textContent = "送信に失敗しました。恐れ入りますが、お電話（06-7221-0705）にてご連絡いただくか、時間をおいて再度お試しください。";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    return;
-  }
-
-  // ここまで来れば予約データ（メール送信結果を含む）は確実に保存済み。お客様には確定で「完了」を表示してよい。
-  btn.disabled = false; backBtn.disabled = false; btn.textContent = originalText;
-  document.getElementById("confirmScreen").classList.add("hidden");
-  thanks.classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-form.querySelectorAll(".input").forEach(el => {
-  el.addEventListener("input", () => {
-    if (el.classList.contains("invalid")) {
-      el.classList.remove("invalid");
-      const err = document.querySelector(`[data-for="${el.name}"]`);
-      if (err) err.textContent = "";
-    }
-  });
-});
-</script>
 </body>
 </html>

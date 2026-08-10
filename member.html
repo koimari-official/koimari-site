@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MB2XHF6J');</script>
+<!-- End Google Tag Manager -->
+<script src="error-tracker.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
+<title>会員ページ｜こいまり</title>
+<meta name="description" content="こいまりのLINE会員ページです。スタンプ・お誕生日特典をご確認いただけます。">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://koimari-official.github.io/koimari-site/member.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--color-bg: #f7f3ee;--color-bg-soft: #ede3d4;--color-paper:#fefcf8;--color-text:#2e2118;--color-text-soft: #4a3a2a;--color-accent: #c9a96e;--color-gold: #c9a96e;--color-line: #d8baa4;--color-error:#b03b48;--font-mincho:"Shippori Mincho",serif;--font-sans:"Noto Sans JP",sans-serif;--font-en:"Cormorant Garamond",serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.95;font-size:21px;font-weight:600;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+.header{position:relative;overflow:hidden;background:linear-gradient(135deg,#5c4a38 0%,#4a3a2a 100%)}
+.header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
+.header__inner{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:22px 24px;display:flex;align-items:center;justify-content:space-between}
+.header__logo{display:flex;align-items:center;gap:10px;line-height:1}
+.header__logo-mark{width:82px;height:82px;object-fit:contain}
+.header__logo-text{display:flex;flex-direction:column;line-height:1}
+.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
+.header__logo-jp{font-family:var(--font-mincho);font-size:18px;letter-spacing:.08em;color:#fff;font-weight:600;margin-top:8px;white-space:nowrap}
+.page-head{position:relative;text-align:center;padding:48px 24px 42px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#efe3d2 100%);overflow:hidden}
+.page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none;opacity:.7}
+.page-head__inner{position:relative;z-index:1}
+.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:17px;display:inline-block;margin-bottom:14px;font-weight:500}
+.page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
+.page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
+main{max-width:640px;margin:0 auto;padding:50px 24px 100px}
+.notice-box{background:var(--color-paper);border:1px solid var(--color-line);padding:36px 30px;text-align:center;margin-bottom:24px;}
+.notice-box__icon{font-size:36px;margin-bottom:16px;}
+.notice-box__title{font-family:var(--font-mincho);font-size:19px;font-weight:700;margin-bottom:14px;letter-spacing:.06em;}
+.notice-box__desc{font-size:15px;color:var(--color-text-soft);line-height:1.9;}
+.profile-card{background:var(--color-paper);border:1px solid var(--color-line);padding:28px 30px;margin-bottom:24px;display:flex;align-items:center;gap:18px;}
+.profile-card__img{width:64px;height:64px;border-radius:50%;object-fit:cover;background:var(--color-bg-soft);flex-shrink:0;}
+.profile-card__name{font-family:var(--font-mincho);font-size:18px;font-weight:700;}
+.profile-card__sub{font-size:13px;color:var(--color-text-soft);margin-top:4px;}
+.section{background:var(--color-paper);border:1px solid var(--color-line);padding:28px 30px;margin-bottom:24px;}
+.section__title{font-family:var(--font-mincho);font-size:15px;font-weight:700;color:var(--color-accent);letter-spacing:.06em;margin-bottom:16px;padding-bottom:10px;border-bottom:1px dashed var(--color-line);}
+.stamp-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
+.stamp{width:38px;height:38px;border-radius:50%;border:2px solid var(--color-accent);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.stamp--filled{background:var(--color-accent);color:#fff;}
+.stamp-text{font-size:14px;color:var(--color-text-soft);}
+.field{margin-bottom:14px;}
+.field__label{display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;}
+.input{width:100%;padding:12px 14px;border:1px solid var(--color-line);background:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;}
+.btn{display:inline-block;padding:14px 32px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.14em;color:#fff;background:var(--color-accent);font-weight:500;transition:background .2s;border:none;cursor:pointer;}
+.btn:hover{background:#a88a52}
+.gallery-teaser{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.gallery-teaser img{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--color-line);}
+.link-more{font-size:14px;color:var(--color-accent);text-decoration:underline;}
+.req-mark{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--color-error);padding:2px 8px;border-radius:2px;margin-left:6px;vertical-align:middle;}
+.radio-list{display:flex;flex-direction:column;gap:8px;}
+.radio-list__opt{display:flex;align-items:center;gap:10px;padding:13px 14px;border:1px solid var(--color-line);background:#fff;font-size:15px;cursor:pointer;}
+.radio-list__opt input{accent-color:var(--color-accent);width:17px;height:17px;flex-shrink:0;}
+select.input{appearance:auto;}
+textarea.input{resize:vertical;font-family:var(--font-sans);}
+.field__hint{font-size:12.5px;color:var(--color-text-soft);margin-top:6px;line-height:1.7;}
+.error{font-size:12.5px;color:var(--color-error);margin-top:6px;font-weight:700;}
+.field__check{display:flex;align-items:flex-start;gap:8px;font-size:14px;line-height:1.7;}
+.field__check input{margin-top:4px;accent-color:var(--color-accent);width:16px;height:16px;flex-shrink:0;}
+.field__check a{color:var(--color-accent);text-decoration:underline;}
+.btn--ghost{background:transparent;color:var(--color-text-soft);border:1px solid var(--color-line);}
+.btn--ghost:hover{background:var(--color-bg-soft);}
+.btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+.confirm-box{background:var(--color-bg-soft);border:1px solid var(--color-line);padding:18px;font-size:14px;line-height:2;margin-bottom:16px;}
+.confirm-box dt{font-weight:700;color:var(--color-text-soft);font-size:12.5px;margin-top:10px;}
+.confirm-box dt:first-child{margin-top:0;}
+.confirm-box dd{margin-left:0;}
+.footer{background:#2b1f1a;color:#e3d5c2;padding:44px 24px;text-align:center;font-family:var(--font-en);font-size:14px;letter-spacing:.18em}
+.footer__mark{font-family:var(--font-mincho);font-size:13px;letter-spacing:.4em;color:#b09a82;margin-bottom:10px}
+@media(max-width:700px){body{font-size:18px}.header__inner{flex-wrap:wrap;row-gap:12px}.header__logo-mark{width:56px;height:56px}.header__logo-en{font-size:26px}.header__logo-jp{font-size:15px}.page-head{padding:44px 22px 40px}main{padding:40px 16px 80px}.notice-box,.profile-card,.section{padding:22px 20px}}
+</style>
+</head>
+<body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MB2XHF6J"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<header class="header">
+  <div class="header__inner">
+    <a href="index.html" class="header__logo">
+      <img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark">
+      <span class="header__logo-text">
+        <span class="header__logo-en">KOIMARI</span>
+        <span class="header__logo-jp">ケーキ屋さんこいまり</span>
+      </span>
+    </a>
+  </div>
+</header>
+<div class="page-head">
+  <div class="page-head__inner">
+    <span class="page-head__en">Member</span>
+    <h1 class="page-head__title">会員ページ</h1>
+  </div>
+</div>
+<main>
+  <div id="loadingBox" class="notice-box">
+    <div class="notice-box__icon">🎀</div>
+    <div class="notice-box__title">読み込み中です…</div>
+    <div class="notice-box__desc">LINEアプリでこのページを開くと、自動的に会員登録されます。</div>
+  </div>
+
+  <div id="memberArea" style="display:none;">
+    <div class="profile-card">
+      <img id="profileImg" class="profile-card__img" src="" alt="">
+      <div>
+        <div class="profile-card__name" id="profileName">—</div>
+        <div class="profile-card__sub" id="profileSince">—</div>
+      </div>
+    </div>
+
+    <div class="section" id="reserveSection">
+      <div class="section__title">ご予約</div>
+
+      <div id="reserveFormWrap">
+        <div class="field">
+          <label class="field__label">商品<span class="req-mark">必須</span></label>
+          <div class="radio-list">
+            <label class="radio-list__opt"><input type="radio" name="reserveType" value="デコレーションケーキ" checked> デコレーションケーキ</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveType" value="ロールケーキ"> ロールケーキ</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveType" value="焼き菓子・ギフト"> 焼き菓子・ギフト</label>
+          </div>
+        </div>
+        <div class="field" id="reserveTiersField" style="display:none;">
+          <label class="field__label">段数<span class="req-mark">必須</span></label>
+          <div class="radio-list" style="flex-direction:row;">
+            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="1" checked> 1段</label>
+            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="2"> 2段</label>
+            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="3"> 3段</label>
+          </div>
+        </div>
+        <div class="field" id="reserveFlavorField" style="display:none;">
+          <label class="field__label" for="reserveFlavor">ケーキの種類<span class="req-mark">必須</span></label>
+          <select id="reserveFlavor" class="input select"></select>
+          <div class="error" id="reserveFlavorError"></div>
+        </div>
+        <div class="field" id="reserveSizeField">
+          <label class="field__label" id="reserveSizeFieldLabel">サイズ<span class="req-mark">必須</span></label>
+          <div id="reserveTierSizesWrap"></div>
+          <div class="error" id="reserveSizeError"></div>
+        </div>
+        <div class="field" id="reserveChocoField" style="display:none;">
+          <label class="field__label" for="reserveChocoText">チョコプレートの文字（20字以内・任意）</label>
+          <input type="text" id="reserveChocoText" class="input" maxlength="20" placeholder="例: Happy Birthday">
+        </div>
+        <div class="field">
+          <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
+          <input type="date" id="reserveDate" class="input">
+          <div class="field__hint">1営業日前（定休日・臨時休業を除く直近の営業日）までにご予約ください。当日のご希望はお電話（06-7221-0705）にて承ります。</div>
+          <div class="error" id="reserveDateError"></div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="reserveTime">引き取り希望時間<span class="req-mark">必須</span></label>
+          <select id="reserveTime" class="input select"></select>
+          <div class="error" id="reserveTimeError"></div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="reserveName">お名前<span class="req-mark">必須</span></label>
+          <input type="text" id="reserveName" class="input">
+          <div class="error" id="reserveNameError"></div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="reserveTel">お電話番号<span class="req-mark">必須</span></label>
+          <input type="tel" id="reserveTel" class="input" placeholder="例: 090-1234-5678">
+          <div class="error" id="reserveTelError"></div>
+        </div>
+        <div class="field" id="reserveReceiptField" style="display:none;">
+          <label class="field__check">
+            <input type="checkbox" id="reserveReceiptNeeded">
+            <span>領収書が必要です</span>
+          </label>
+          <div id="reserveReceiptNameWrap" style="display:none;margin-top:10px;">
+            <label class="field__label" for="reserveReceiptName">領収書の宛名<span class="req-mark">必須</span></label>
+            <input type="text" id="reserveReceiptName" class="input" placeholder="例: 株式会社〇〇 様、上様 など">
+            <div class="error" id="reserveReceiptNameError"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="reserveNote">その他ご要望・仕様の相談がある<span id="reserveNoteReq" class="req-mark" style="display:none;">必須</span></label>
+          <textarea id="reserveNote" class="input" rows="3" placeholder="例: クッキー缶2つ、焼き菓子ギフトセット1つ など、ご希望の商品をご記入ください"></textarea>
+          <div class="field__hint">追加のご要望がある場合はご記入ください。内容確認のためスタッフより別途お電話し、追加料金を含むお見積もりをご案内いたします。</div>
+          <div class="error" id="reserveNoteError"></div>
+        </div>
+        <div class="field">
+          <label class="field__check">
+            <input type="checkbox" id="reserveConsent">
+            <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意する</span>
+          </label>
+          <div class="error" id="reserveConsentError"></div>
+        </div>
+        <button class="btn" id="reserveSubmitBtn" type="button">ご予約内容を確認する</button>
+      </div>
+
+      <div id="reserveConfirmWrap" style="display:none;">
+        <div class="confirm-box" id="reserveConfirmSummary"></div>
+        <div class="btn-row">
+          <button class="btn" id="reserveFinalBtn" type="button">この内容でご予約を確定する</button>
+          <button class="btn btn--ghost" id="reserveBackBtn" type="button">修正する</button>
+        </div>
+        <div class="error" id="reserveSubmitError"></div>
+      </div>
+
+      <div id="reserveThanksWrap" class="notice-box" style="display:none;padding:0;border:none;text-align:left;">
+        <div class="notice-box__icon">🎂</div>
+        <div class="notice-box__title">ご予約ありがとうございました</div>
+        <div class="notice-box__desc">担当より確認のご連絡をいたします。ご不明な点はお電話（06-7221-0705）でもお問合せいただけます。</div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section__title">スタンプカード</div>
+      <div class="stamp-row" id="stampRow"></div>
+      <div class="stamp-text" id="stampText"></div>
+    </div>
+
+    <div class="section">
+      <div class="section__title">お誕生日特典</div>
+      <div class="field">
+        <label class="field__label" for="birthdayInput">お誕生日を登録すると特典対象になります</label>
+        <input type="date" id="birthdayInput" class="input">
+      </div>
+      <button class="btn" id="saveBirthdayBtn">保存する</button>
+    </div>
+
+    <div class="section">
+      <div class="section__title">過去のデコケーキギャラリー</div>
+      <div class="gallery-teaser" id="galleryTeaser"></div>
+      <a href="gallery.html" class="link-more">ギャラリー全体を見る →</a>
+    </div>
+  </div>
+
+  <div id="errorBox" class="notice-box" style="display:none;">
+    <div class="notice-box__icon">🙏</div>
+    <div class="notice-box__title">読み込みに失敗しました</div>
+    <div class="notice-box__desc">お手数ですが、LINEアプリ内のリッチメニューから再度お試しください。</div>
+  </div>
+</main>
+<footer class="footer">
+  <div class="footer__mark">こ い ま り</div>
+  © 2026 Koimari. All Rights Reserved.
+</footer>
+
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+/*
+  ===== 実装メモ =====
+  LIFF_ID は LINE Developers Console でLIFFアプリを登録すると発行される。
+  現状は仮の値。LINE公式アカウントの審査完了後、実際のIDに差し替えること。
+*/
+const LIFF_ID = "REPLACE_WITH_LIFF_ID";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
+  authDomain: "koimari-tasting.firebaseapp.com",
+  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "koimari-tasting",
+  storageBucket: "koimari-tasting.firebasestorage.app",
+  messagingSenderId: "852851855633",
+  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
+};
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+function escape(str) {
+  return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function showError() {
+  document.getElementById("loadingBox").style.display = "none";
+  document.getElementById("errorBox").style.display = "block";
+}
+
+function renderStamps(stamps, goal) {
+  const row = document.getElementById("stampRow");
+  row.innerHTML = "";
+  for (let i = 0; i < goal; i++) {
+    const el = document.createElement("div");
+    el.className = "stamp" + (i < stamps ? " stamp--filled" : "");
+    el.textContent = i < stamps ? "✓" : "";
+    row.appendChild(el);
+  }
+  document.getElementById("stampText").textContent = stamps >= goal
+    ? "スタンプがたまりました！ご来店時にスタッフへお申し出ください。"
+    : `あと${goal - stamps}個でスタンプ達成です。`;
+}
+
+async function renderGalleryTeaser() {
+  const snap = await get(ref(db, "koimariContent/gallery"));
+  const gallery = snap.val() || [];
+  const el = document.getElementById("galleryTeaser");
+  el.innerHTML = "";
+  gallery.slice(0, 3).forEach(g => {
+    const img = document.createElement("img");
+    img.src = g.img; img.alt = escape(g.title || "");
+    el.appendChild(img);
+  });
+}
+
+// ===== デコレーションケーキ・ロールケーキ予約（reservation.htmlのロジックを踏襲） =====
+const reservationsRef = ref(db, "reservations");
+const FORMSPREE_ENDPOINT = "https://formspree.io/f/mwvddbqk";
+
+const SIZE_OPTIONS = [
+  { value: "", label: "選択してください" },
+  { value: "4号(直径12cm/2-3名)", label: "4号（直径12cm／2〜3名）" },
+  { value: "5号(直径15cm/4-6名)", label: "5号（直径15cm／4〜6名）" },
+  { value: "6号(直径18cm/6-8名)", label: "6号（直径18cm／6〜8名）" },
+  { value: "7号(直径21cm/8-10名)", label: "7号（直径21cm／8〜10名）" }
+];
+const TIME_OPTIONS = ["10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00"];
+
+// サイズ別の基本料金（Firebase koimariContent/cakeSizePrices、admin.htmlで編集。未設定時はたたき台の金額）
+// 「定番」表示は、一番安いサイズではなく1つ上のサイズに付け、松竹梅の「竹」を選びやすくする狙い（アンカリング）。
+const DEFAULT_SIZE_PRICES = {
+  "4号(直径12cm/2-3名)": 3000,
+  "5号(直径15cm/4-6名)": 4200,
+  "6号(直径18cm/6-8名)": 5400,
+  "7号(直径21cm/8-10名)": 6800
+};
+const RECOMMENDED_SIZE_VALUE = "5号(直径15cm/4-6名)";
+let currentSizePrices = DEFAULT_SIZE_PRICES;
+onValue(ref(db, "koimariContent/cakeSizePrices"), (snap) => {
+  currentSizePrices = snap.val() || DEFAULT_SIZE_PRICES;
+  const wrap = document.getElementById("reserveTierSizesWrap");
+  if (wrap && wrap.querySelector("select")) renderTierSizeSelects(currentTierCount());
+});
+function sizeOptionLabel(o) {
+  if (!o.value) return o.label;
+  const price = currentSizePrices[o.value];
+  const priceText = price ? ` - ¥${price.toLocaleString()}` : "";
+  const badge = o.value === RECOMMENDED_SIZE_VALUE ? "（定番）" : "";
+  return `${o.label}${priceText}${badge}`;
+}
+
+function populateReserveSelects() {
+  const timeEl = document.getElementById("reserveTime");
+  timeEl.innerHTML = '<option value="">選択してください</option>' + TIME_OPTIONS.map(t => `<option value="${t}">${t}</option>`).join("");
+}
+
+const TIER_LABELS = ["1段目のサイズ", "2段目のサイズ", "3段目のサイズ"];
+function renderTierSizeSelects(tierCount) {
+  const wrap = document.getElementById("reserveTierSizesWrap");
+  const prevValues = Array.from(wrap.querySelectorAll("select")).map(s => s.value);
+  wrap.innerHTML = Array.from({ length: tierCount }).map((_, i) => `
+    <div style="margin-bottom:${i < tierCount - 1 ? "10px" : "0"};">
+      ${tierCount > 1 ? `<label class="field__label" style="font-size:12px;">${TIER_LABELS[i]}</label>` : ""}
+      <select class="input select tier-size-select" data-tier="${i}">
+        ${SIZE_OPTIONS.map(o => `<option value="${escape(o.value)}">${escape(sizeOptionLabel(o))}</option>`).join("")}
+      </select>
+    </div>
+  `).join("");
+  wrap.querySelectorAll("select").forEach((s, i) => { if (prevValues[i]) s.value = prevValues[i]; });
+}
+
+// ケーキの種類（Firebase koimariContent/cakeFlavors・rollCakeFlavors、admin.htmlで編集）
+const DEFAULT_CAKE_FLAVORS = ["苺のショートケーキ", "ガトーショコラ", "抹茶あずき", "季節のフルーツタルト"];
+const DEFAULT_ROLL_FLAVORS = ["プレーンロール", "抹茶ロール", "いちごロール", "チョコロール"];
+let currentCakeFlavors = DEFAULT_CAKE_FLAVORS;
+let currentRollFlavors = DEFAULT_ROLL_FLAVORS;
+onValue(ref(db, "koimariContent/cakeFlavors"), (snap) => {
+  currentCakeFlavors = snap.val() || DEFAULT_CAKE_FLAVORS;
+  if ((document.querySelector('input[name="reserveType"]:checked') || {}).value === "デコレーションケーキ") populateFlavorSelect(currentCakeFlavors);
+});
+onValue(ref(db, "koimariContent/rollCakeFlavors"), (snap) => {
+  currentRollFlavors = snap.val() || DEFAULT_ROLL_FLAVORS;
+  if ((document.querySelector('input[name="reserveType"]:checked') || {}).value === "ロールケーキ") populateFlavorSelect(currentRollFlavors);
+});
+function populateFlavorSelect(list) {
+  const el = document.getElementById("reserveFlavor");
+  const prev = el.value;
+  el.innerHTML = '<option value="">選択してください</option>' + list.map(f => `<option value="${escape(f)}">${escape(f)}</option>`).join("");
+  if (list.includes(prev)) el.value = prev;
+}
+
+let reserveHolidays = { weeklyClosed: [1], extraClosed: [] };
+onValue(ref(db, "koimariContent/holidays"), (snap) => { const v = snap.val(); if (v) reserveHolidays = v; });
+function dateKeyLocal(d) { return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}-${d.getDate().toString().padStart(2,"0")}`; }
+function isClosedDate(d) {
+  return (reserveHolidays.weeklyClosed || []).includes(d.getDay()) || (reserveHolidays.extraClosed || []).includes(dateKeyLocal(d));
+}
+function computeOrderDeadline(pickupDate) {
+  const d = new Date(pickupDate);
+  d.setDate(d.getDate() - 1);
+  let guard = 0;
+  while (isClosedDate(d) && guard < 30) { d.setDate(d.getDate() - 1); guard++; }
+  return d;
+}
+
+function withTimeout(promise, ms, label) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(label + "がタイムアウトしました")), ms))
+  ]);
+}
+
+const BAKED_GOODS_CATEGORY = "焼き菓子・ギフト";
+
+async function sendReserveToFormspree(data) {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 12000);
+    const item = data.items[0];
+    const productLines = data.items.map((it, i) => {
+      const label = data.items.length > 1 ? `${TIER_LABELS[i] || (i + 1) + "段目"}: ` : "";
+      return `${label}${it.category}${it.size ? " / " + it.size : ""}`;
+    }).join("\n");
+    const body = {
+      _subject: `【こいまり】LINE新規ご予約: ${data.name} 様 (${data.type})`,
+      お名前: data.name, 電話番号: data.tel,
+      種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
+      商品: productLines,
+      ケーキの種類: item.flavor || "", チョコプレートの文字: item.message || "",
+      領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
+      備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
+    };
+    const res = await fetch(FORMSPREE_ENDPOINT, {
+      method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+      signal: controller.signal, body: JSON.stringify(body)
+    });
+    clearTimeout(timer);
+    return res.ok;
+  } catch (err) { console.warn("Formspree送信失敗:", err); return false; }
+}
+
+function setReserveError(id, msg) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = msg || "";
+}
+
+function currentTierCount() {
+  return Number((document.querySelector('input[name="reserveTiers"]:checked') || {}).value || "1");
+}
+function updateReserveFieldVisibility() {
+  const category = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
+  const isCake = category === "デコレーションケーキ";
+  const isRoll = category === "ロールケーキ";
+  const isBaked = category === BAKED_GOODS_CATEGORY;
+
+  document.getElementById("reserveTiersField").style.display = isCake ? "" : "none";
+  document.getElementById("reserveFlavorField").style.display = (isCake || isRoll) ? "" : "none";
+  document.getElementById("reserveChocoField").style.display = isCake ? "" : "none";
+  document.getElementById("reserveReceiptField").style.display = isBaked ? "" : "none";
+  document.getElementById("reserveNoteReq").style.display = isBaked ? "inline-block" : "none";
+
+  const sizeField = document.getElementById("reserveSizeField");
+  if (isRoll) {
+    sizeField.style.display = "none";
+  } else if (isBaked) {
+    sizeField.style.display = "none";
+  } else {
+    sizeField.style.display = "";
+    document.getElementById("reserveSizeFieldLabel").innerHTML = currentTierCount() > 1 ? "各段のサイズ<span class=\"req-mark\">必須</span>" : "サイズ<span class=\"req-mark\">必須</span>";
+    renderTierSizeSelects(currentTierCount());
+  }
+
+  if (isCake) populateFlavorSelect(currentCakeFlavors);
+  else if (isRoll) populateFlavorSelect(currentRollFlavors);
+}
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.name === "reserveType") updateReserveFieldVisibility();
+  if (e.target && e.target.name === "reserveTiers") updateReserveFieldVisibility();
+  if (e.target && e.target.id === "reserveReceiptNeeded") {
+    document.getElementById("reserveReceiptNameWrap").style.display = e.target.checked ? "block" : "none";
+  }
+});
+
+function validateReserve(data) {
+  let ok = true;
+  ["reserveSizeError","reserveFlavorError","reserveDateError","reserveTimeError","reserveNameError","reserveTelError","reserveConsentError","reserveNoteError","reserveReceiptNameError"].forEach(id => setReserveError(id, ""));
+  const isBaked = data.type === "焼き菓子予約";
+  const isRoll = data.items[0] && data.items[0].category === "ロールケーキ";
+  if (!isBaked && !isRoll && data.items.some(it => !it.size)) { setReserveError("reserveSizeError", "サイズをお選びください"); ok = false; }
+  if ((!isBaked) && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
+  if (isBaked && !data.note.trim()) { setReserveError("reserveNoteError", "ご希望の商品をご記入ください"); ok = false; }
+  if (!data.pickupDate) { setReserveError("reserveDateError", "引き取り希望日をご入力ください"); ok = false; }
+  else {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const pick = new Date(data.pickupDate);
+    if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
+    else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は1営業日前までにお願いいたします（当日はお電話で承ります）"); ok = false; }
+  }
+  if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }
+  if (!data.name.trim()) { setReserveError("reserveNameError", "お名前をご入力ください"); ok = false; }
+  if (!data.tel.trim()) { setReserveError("reserveTelError", "電話番号をご入力ください"); ok = false; }
+  else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setReserveError("reserveTelError", "正しい電話番号をご入力ください"); ok = false; }
+  if (data.receiptNeeded && !data.receiptName.trim()) { setReserveError("reserveReceiptNameError", "領収書の宛名をご入力ください"); ok = false; }
+  if (!data.privacyConsent) { setReserveError("reserveConsentError", "プライバシーポリシーへの同意が必要です"); ok = false; }
+  return ok;
+}
+
+function renderReserveConfirm(data) {
+  const item = data.items[0];
+  const isCake = item.category === "デコレーションケーキ";
+  const sizesLine = data.items.length > 1
+    ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
+    : (item.size || "");
+  const subtotal = isCake ? data.items.reduce((sum, it) => sum + (currentSizePrices[it.size] || 0), 0) : 0;
+  document.getElementById("reserveConfirmSummary").innerHTML = `
+    <dt>商品</dt><dd>${escape(item.category)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
+    ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
+    ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
+    ${subtotal ? `<dt>基本料金の目安</dt><dd>¥${subtotal.toLocaleString()}${data.note ? "（その他ご要望あり・追加料金が発生する場合があります）" : ""}</dd>` : ""}
+    ${item.message ? `<dt>チョコプレートの文字</dt><dd>${escape(item.message)}</dd>` : ""}
+    <dt>引き取り希望日時</dt><dd>${escape(data.pickupDate)} ${escape(data.pickupTime)}</dd>
+    <dt>お名前</dt><dd>${escape(data.name)}</dd>
+    <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
+    ${data.receiptNeeded ? `<dt>領収書</dt><dd>必要（宛名: ${escape(data.receiptName)}）</dd>` : ""}
+    ${data.note ? `<dt>その他ご要望・仕様の相談</dt><dd>${escape(data.note)}</dd>` : ""}
+  `;
+}
+
+function setupReserveForm(uid, displayName) {
+  populateReserveSelects();
+  updateReserveFieldVisibility();
+  document.getElementById("reserveName").value = displayName || "";
+
+  let pendingData = null;
+
+  document.getElementById("reserveSubmitBtn").addEventListener("click", () => {
+    // reservation.htmlと同じ型に合わせる：デコレーションケーキ/ロールケーキはtype「デコレーションケーキ予約」、
+    // 焼き菓子・ギフトはtype「焼き菓子予約」。商品の違い・段数はitems[]の各要素（1段=1要素）で表現する。
+    const category = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
+    const isBaked = category === BAKED_GOODS_CATEGORY;
+    const isRoll = category === "ロールケーキ";
+    const receiptNeeded = document.getElementById("reserveReceiptNeeded").checked;
+    const flavor = (isBaked ? "" : document.getElementById("reserveFlavor").value) || "";
+    const chocoText = document.getElementById("reserveChocoText").value || "";
+
+    let items;
+    if (isBaked) {
+      items = [{ category: "焼き菓子", image: "", size: "", flavor: "", message: "" }];
+    } else if (isRoll) {
+      items = [{ category: "ロールケーキ", image: "", size: "ホール", flavor, message: "" }];
+    } else {
+      const tierSizes = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
+      items = tierSizes.map((size, i) => ({ category: "デコレーションケーキ", image: "", size, flavor, message: i === 0 ? chocoText : "" }));
+    }
+
+    const data = {
+      name: document.getElementById("reserveName").value || "",
+      furigana: "", tel: document.getElementById("reserveTel").value || "",
+      email: "", zipcode: "", address: "", birthday: "",
+      privacyConsent: document.getElementById("reserveConsent").checked,
+      type: isBaked ? "焼き菓子予約" : "デコレーションケーキ予約",
+      pickupDate: document.getElementById("reserveDate").value || "",
+      pickupTime: document.getElementById("reserveTime").value || "",
+      items,
+      note: document.getElementById("reserveNote").value || "",
+      noshi: "", noshiTitle: "", noshiName: "", messageCard: "", wrapping: "",
+      receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : "",
+      status: "受付済", notes: "",
+      submittedAt: new Date().toISOString(),
+      channel: "LINE", lineUserId: uid
+    };
+    if (!validateReserve(data)) return;
+    pendingData = data;
+    renderReserveConfirm(data);
+    document.getElementById("reserveFormWrap").style.display = "none";
+    document.getElementById("reserveConfirmWrap").style.display = "block";
+  });
+
+  document.getElementById("reserveBackBtn").addEventListener("click", () => {
+    document.getElementById("reserveConfirmWrap").style.display = "none";
+    document.getElementById("reserveFormWrap").style.display = "block";
+  });
+
+  document.getElementById("reserveFinalBtn").addEventListener("click", async () => {
+    if (!pendingData) return;
+    const data = pendingData;
+    const finalBtn = document.getElementById("reserveFinalBtn");
+    const backBtn = document.getElementById("reserveBackBtn");
+    const errEl = document.getElementById("reserveSubmitError");
+    errEl.textContent = "";
+    finalBtn.disabled = true; backBtn.disabled = true; finalBtn.textContent = "送信中...";
+
+    // reservation.htmlと同じ制約：お客様（未ログイン扱い）は新規作成のみ許可のため、
+    // メール送信結果は保存前に確定させ、最初のpush()に含める（保存後のupdate()は権限エラーになる）。
+    const emailSent = await withTimeout(sendReserveToFormspree(data), 8000, "メール通知").catch(() => false);
+    data.emailSent = !!emailSent;
+
+    try {
+      await withTimeout(push(reservationsRef, data), 12000, "予約保存");
+    } catch (err) {
+      console.warn("Firebase保存失敗:", err);
+      finalBtn.disabled = false; backBtn.disabled = false; finalBtn.textContent = "この内容でご予約を確定する";
+      errEl.textContent = "送信に失敗しました。お手数ですがお電話（06-7221-0705）にてご連絡いただくか、時間をおいて再度お試しください。";
+      return;
+    }
+
+    document.getElementById("reserveConfirmWrap").style.display = "none";
+    document.getElementById("reserveThanksWrap").style.display = "block";
+    document.getElementById("reserveSection").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
+
+async function main() {
+  try {
+    await liff.init({ liffId: LIFF_ID });
+    if (!liff.isLoggedIn()) { liff.login(); return; }
+
+    const profile = await liff.getProfile();
+    const uid = profile.userId;
+    const memberRef = ref(db, "lineMembers/" + uid);
+    const snap = await get(memberRef);
+
+    if (!snap.exists()) {
+      await set(memberRef, {
+        registeredAt: new Date().toISOString(),
+        stamps: 0,
+        profile: { displayName: profile.displayName || "", pictureUrl: profile.pictureUrl || "", lastSeenAt: new Date().toISOString() }
+      });
+    } else {
+      await update(ref(db, "lineMembers/" + uid + "/profile"), {
+        displayName: profile.displayName || "", pictureUrl: profile.pictureUrl || "", lastSeenAt: new Date().toISOString()
+      });
+    }
+
+    document.getElementById("loadingBox").style.display = "none";
+    document.getElementById("memberArea").style.display = "block";
+    document.getElementById("profileImg").src = profile.pictureUrl || "";
+    document.getElementById("profileName").textContent = profile.displayName || "会員さま";
+
+    let configSnap;
+    try { configSnap = await get(ref(db, "koimariContent/loyaltyConfig")); } catch (e) { configSnap = null; }
+    const config = (configSnap && configSnap.val()) || { stampGoal: 5, rewardText: "" };
+
+    onValue(memberRef, (s) => {
+      const data = s.val() || {};
+      document.getElementById("profileSince").textContent = "登録日: " + (data.registeredAt ? data.registeredAt.slice(0, 10) : "—");
+      renderStamps(data.stamps || 0, config.stampGoal || 5);
+      if (data.profile && data.profile.birthday) document.getElementById("birthdayInput").value = data.profile.birthday;
+    });
+
+    document.getElementById("saveBirthdayBtn").addEventListener("click", async () => {
+      const val = document.getElementById("birthdayInput").value;
+      if (!val) return;
+      await update(ref(db, "lineMembers/" + uid + "/profile"), { birthday: val });
+    });
+
+    setupReserveForm(uid, profile.displayName || "");
+    if (location.hash === "#reserve") {
+      document.getElementById("reserveSection").scrollIntoView({ block: "start" });
+    }
+
+    renderGalleryTeaser();
+  } catch (e) {
+    console.error(e);
+    showError();
+  }
+}
+main();
+</script>
+</body>
+</html>

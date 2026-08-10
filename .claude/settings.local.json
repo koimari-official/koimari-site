@@ -8,7 +8,11 @@
       "Bash(python3 -c ' *)",
       "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" add .)",
       "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" commit -m \"電話番号・駐車場情報を更新\")",
-      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" push)"
+      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" push)",
+      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" remote set-url origin https://github.com/koimari-official/koimari-site.git)",
+      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" remote -v)",
+      "Bash(git -C \"c:\\\\Users\\\\user\\\\.claude\\\\Claude code app\\\\claude code koimari site\" status)",
+      "Bash(git push *)"
     ]
   }
 }

@@ -206,8 +206,6 @@ main { padding: 90px 24px 110px; }
   .input, .select, .textarea { font-size: 17px; padding: 14px; }
 }
 </style>
-<script src="https://cdn.tailwindcss.com"></script>
-<script>tailwind.config={corePlugins:{preflight:false}}</script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -237,7 +235,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <li><a href="faq.html" class="nav-link">よくある質問</a></li>
     <li><a href="index.html#bcal" class="nav-link">営業日</a></li>
     <li><a href="index.html#shop" class="nav-link">店舗情報</a></li>
-    <li><a href="reservation.html" class="nav-link">ご予約</a></li>
+    <li><a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="nav-link">ご予約</a></li>
   </ul>
 </nav>
 
@@ -257,184 +255,46 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="form-wrap">
     <span class="corner-tr"></span><span class="corner-br"></span>
 
-    <form id="experienceForm" novalidate>
-      <div class="form-section">
-        <h2 class="form-section__title">ご希望のプログラム<span class="form-section__num">01</span></h2>
-
-        <div class="field">
-          <label class="field__label">プログラム種別 <span class="req">必須</span></label>
-          <div class="radio-group radio-group--vertical">
-            <label>
-              <input type="radio" name="program" value="一日店長体験">
-              <span>お子様 一日店長体験
-                <span class="opt-detail">小学1〜6年生対象 / 約2時間 / 3,000円(材料費込)</span>
-              </span>
-            </label>
-            <label>
-              <input type="radio" name="program" value="中高生職業体験">
-              <span>中高生 職業体験
-                <span class="opt-detail">中学生・高校生対象 / 要相談 / 無料（学校関係者様限定）</span>
-              </span>
-            </label>
-            <label>
-              <input type="radio" name="program" value="訓練・研修">
-              <span>製菓 訓練・研修
-                <span class="opt-detail">専門学生・社会人対象 / 1週間〜 / 要相談</span>
-              </span>
-            </label>
-          </div>
-          <span class="error" data-for="program"></span>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="preferredDate">希望日 <span class="opt">任意</span></label>
-            <input type="date" id="preferredDate" name="preferredDate" class="input">
-            <select id="preferredDateSelect" name="preferredDateSelect" class="select" style="display:none;">
-              <option value="">候補日から選択してください</option>
-            </select>
-            <span class="field__hint" id="preferredDateHint">第1希望のお日にちをご記入ください</span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="preferredDate2">希望日(第2) <span class="opt">任意</span></label>
-            <input type="date" id="preferredDate2" name="preferredDate2" class="input">
-            <select id="preferredDate2Select" name="preferredDate2Select" class="select" style="display:none;">
-              <option value="">候補日から選択してください</option>
-            </select>
-          </div>
-        </div>
+    <div class="form-section">
+      <h2 class="form-section__title">ご応募はLINE公式アカウントから <span class="form-section__num">01</span></h2>
+      <p style="margin-bottom:20px;">
+        体験プログラムへのご応募・お問合せは、LINE公式アカウントで承っております。<br>
+        友だち追加後、チャットでご希望のプログラム・参加者情報をお知らせください。担当より内容確認のご連絡をいたします。
+      </p>
+      <div style="text-align:center;margin:32px 0;">
+        <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="btn" style="display:inline-block;padding:18px 48px;font-size:16px;">LINE公式アカウントを友だち追加する</a>
       </div>
+    </div>
 
-      <div class="form-section">
-        <h2 class="form-section__title">参加者情報<span class="form-section__num">02</span></h2>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="participantName">お名前 <span class="req">必須</span></label>
-            <input type="text" id="participantName" name="participantName" class="input" placeholder="例: 城東　コスモ">
-            <span class="error" data-for="participantName"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="participantFurigana">ふりがな <span class="req">必須</span></label>
-            <input type="text" id="participantFurigana" name="participantFurigana" class="input" placeholder="ひらがなでご記入ください">
-            <span class="error" data-for="participantFurigana"></span>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="grade">学年・年齢 <span class="req">必須</span></label>
-            <input type="text" id="grade" name="grade" class="input" placeholder="例: 小学3年生 / 中学2年生 / 18歳">
-            <span class="error" data-for="grade"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="school">学校名 <span class="opt">任意</span></label>
-            <input type="text" id="school" name="school" class="input" placeholder="例: 〇〇小学校">
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="field__label">アレルギー <span class="opt">任意</span></label>
-          <div class="checkbox-group">
-            <label><input type="checkbox" name="allergy" value="卵"> 卵</label>
-            <label><input type="checkbox" name="allergy" value="乳"> 乳</label>
-            <label><input type="checkbox" name="allergy" value="小麦"> 小麦</label>
-            <label><input type="checkbox" name="allergy" value="ナッツ類"> ナッツ類</label>
-            <label><input type="checkbox" name="allergy" value="その他"> その他</label>
-          </div>
-          <span class="field__hint">食材を扱うため、アレルギーがございましたらご記入ください</span>
-        </div>
-
-        <div class="field">
-          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
-            <input type="checkbox" id="allergyConsent" name="allergyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
-            <span>アレルギー等の健康に関する情報の取得について同意します (I agree to the collection of allergy/health information) <span class="req">必須 Required</span></span>
-          </label>
-          <span class="error" data-for="allergyConsent"></span>
-        </div>
-      </div>
-
-      <div class="form-section">
-        <h2 class="form-section__title">保護者・ご連絡先<span class="form-section__num">03</span></h2>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="guardianName">保護者氏名 <span class="req">必須</span></label>
-            <input type="text" id="guardianName" name="guardianName" class="input" placeholder="ご本人が18歳以上の場合はご本人氏名">
-            <span class="error" data-for="guardianName"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="relation">参加者との関係 <span class="opt">任意</span></label>
-            <select id="relation" name="relation" class="select">
-              <option value="">選択してください</option>
-              <option value="父">父</option><option value="母">母</option>
-              <option value="祖父母">祖父母</option><option value="本人">本人</option>
-              <option value="教員">教員(学校引率)</option><option value="その他">その他</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="tel">電話番号 <span class="req">必須</span></label>
-            <input type="tel" id="tel" name="tel" class="input" autocomplete="tel" placeholder="例: 090-1234-5678">
-            <span class="error" data-for="tel"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="email">メールアドレス <span class="req">必須</span></label>
-            <input type="email" id="email" name="email" class="input" autocomplete="email" placeholder="例: name@example.com">
-            <span class="error" data-for="email"></span>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="field">
-            <label class="field__label" for="zipcode">郵便番号 <span class="req">必須</span></label>
-            <input type="text" id="zipcode" name="zipcode" class="input" autocomplete="postal-code" placeholder="例: 123-4567" inputmode="numeric" maxlength="8">
-            <span class="error" data-for="zipcode"></span>
-          </div>
-          <div class="field">
-            <label class="field__label" for="address">ご住所 <span class="opt">任意</span></label>
-            <input type="text" id="address" name="address" class="input" autocomplete="address-line1" placeholder="例: 大阪市城東区〇〇1-2-3">
-          </div>
-        </div>
-
-        <div class="field">
-          <label class="field__label" for="motivation">志望動機・お聞きしたいこと <span class="opt">任意</span></label>
-          <textarea id="motivation" name="motivation" class="textarea" placeholder="ご応募のきっかけや、当日聞いてみたいことなどがあればご記入ください"></textarea>
-        </div>
-      </div>
-
-      <div class="notice">
-        <strong>応募に関するご注意</strong>
-        <ul>
-          <li>お申し込み後、内容確認のため当店よりご連絡を差し上げます。</li>
-          <li>定員・営業状況によりご希望日に添えない場合がございます。</li>
-          <li>食材を扱うプログラムのため、当日の体調管理にご配慮ください。</li>
-          <li>送信いただいた個人情報は、応募対応のみに使用いたします。</li>
-        </ul>
-      </div>
-
-      <div class="field" style="margin-top:4px;">
-        <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
-          <input type="checkbox" id="privacyConsent" name="privacyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
-          <span><a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">プライバシーポリシー</a>に同意する (I agree to the <a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">Privacy Policy</a>) <span class="req">必須 Required</span></span>
+    <div class="form-section">
+      <h2 class="form-section__title">体験プログラム一覧 <span class="form-section__num">02</span></h2>
+      <div class="radio-group radio-group--vertical" style="pointer-events:none;">
+        <label>
+          <span>お子様 一日店長体験
+            <span class="opt-detail">小学1〜6年生対象 / 約2時間 / 3,000円(材料費込)</span>
+          </span>
         </label>
-        <div class="policy-embed" id="policyEmbed">読み込み中... (Loading...)</div>
-        <span class="error" data-for="privacyConsent"></span>
+        <label>
+          <span>中高生 職業体験
+            <span class="opt-detail">中学生・高校生対象 / 要相談 / 無料（学校関係者様限定）</span>
+          </span>
+        </label>
+        <label>
+          <span>製菓 訓練・研修
+            <span class="opt-detail">専門学生・社会人対象 / 1週間〜 / 要相談</span>
+          </span>
+        </label>
       </div>
+    </div>
 
-      <div class="error" id="submitError" style="text-align:center;font-size:15px;margin-top:4px;"></div>
-      <div class="actions"><button type="submit" class="btn">応募する</button></div>
-    </form>
-
-    <div id="thanksScreen" class="thanks hidden">
-      <div class="thanks__icon"><svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 7"/></svg></div>
-      <span class="thanks__title-en">Thank you</span>
-      <h2 class="thanks__title">ご応募ありがとうございました</h2>
-      <p>応募内容を承りました。</p>
-      <p>確認のため、当店よりお電話またはメールにて<br>ご連絡を差し上げますので、しばらくお待ちくださいませ。</p>
-      <div class="actions"><a href="index.html" class="btn">トップへ戻る</a></div>
+    <div class="notice">
+      <strong>ご応募に関するご注意</strong>
+      <ul>
+        <li>LINEでのご応募後、内容確認のため当店よりご連絡を差し上げます。</li>
+        <li>定員・営業状況によりご希望日に添えない場合がございます。</li>
+        <li>食材を扱うプログラムのため、アレルギーの有無は必ずチャットでお知らせください。</li>
+        <li>参加者のお名前・学年・保護者様のご連絡先も、チャットでお知らせいただく形になります。</li>
+      </ul>
     </div>
   </div>
 </main>
@@ -444,232 +304,5 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
-  authDomain: "koimari-tasting.firebaseapp.com",
-  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "koimari-tasting",
-  storageBucket: "koimari-tasting.firebasestorage.app",
-  messagingSenderId: "852851855633",
-  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
-};
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
-const experiencesRef = ref(db, "experiences");
-
-// ===== プライバシーポリシー本文をスクロール枠内に埋め込み表示 =====
-// privacy.htmlを別途複製すると内容がズレる可能性があるため、privacy.htmlの本文(.doc)を
-// fetchして取り込む方式にする（privacy.htmlを更新すればここも自動的に最新化される）。
-(async () => {
-  const embedEl = document.getElementById("policyEmbed");
-  if (!embedEl) return;
-  try {
-    const res = await fetch("privacy.html");
-    if (!res.ok) throw new Error("status " + res.status);
-    const html = await res.text();
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    const article = doc.querySelector(".doc");
-    if (article) {
-      embedEl.innerHTML = article.innerHTML;
-    } else {
-      throw new Error("本文が見つかりませんでした");
-    }
-  } catch (err) {
-    console.warn("プライバシーポリシー本文の読み込みに失敗:", err);
-    embedEl.innerHTML = '<p>本文の読み込みに失敗しました。お手数ですが、上記の「プライバシーポリシー」リンクからご確認ください。(Failed to load. Please check the "Privacy Policy" link above.)</p>';
-  }
-})();
-
-// ===== 「お子様 一日店長体験」候補日（管理画面で設定）を反映 =====
-let availableExpDates = [];
-function formatDateJp(iso) {
-  const d = new Date(iso);
-  const w = ["日","月","火","水","木","金","土"][d.getDay()];
-  return `${d.getMonth() + 1}/${d.getDate()}（${w}）`;
-}
-function populateDateSelect(selectEl) {
-  if (!selectEl) return;
-  const today = new Date(); today.setHours(0, 0, 0, 0);
-  const future = availableExpDates.filter(d => new Date(d) >= today).sort();
-  selectEl.innerHTML = `<option value="">候補日から選択してください</option>` +
-    future.map(d => `<option value="${d}">${formatDateJp(d)}</option>`).join("");
-}
-onValue(ref(db, "siteConfig/experienceDates"), (snapshot) => {
-  availableExpDates = snapshot.val() || [];
-  populateDateSelect(document.getElementById("preferredDateSelect"));
-  populateDateSelect(document.getElementById("preferredDate2Select"));
-});
-
-function toggleDateInputMode() {
-  const isKidsProgram = (document.querySelector('input[name="program"]:checked') || {}).value === "一日店長体験";
-  [["preferredDate", "preferredDateSelect"], ["preferredDate2", "preferredDate2Select"]].forEach(([dateId, selectId]) => {
-    const dateEl = document.getElementById(dateId);
-    const selectEl = document.getElementById(selectId);
-    if (!dateEl || !selectEl) return;
-    dateEl.style.display = isKidsProgram ? "none" : "";
-    selectEl.style.display = isKidsProgram ? "" : "none";
-  });
-  const hintEl = document.getElementById("preferredDateHint");
-  if (hintEl) hintEl.textContent = isKidsProgram ? "候補日の中から第1希望をお選びください" : "第1希望のお日にちをご記入ください";
-}
-document.querySelectorAll('input[name="program"]').forEach(el => el.addEventListener("change", toggleDateInputMode));
-toggleDateInputMode();
-
-const form = document.getElementById("experienceForm");
-const thanks = document.getElementById("thanksScreen");
-
-const urlParams = new URLSearchParams(window.location.search);
-const typeParam = urlParams.get("type");
-const typeMap = { "ichinichi-tencho": "一日店長体験", "shokugyo-taiken": "中高生職業体験", "kunren-kenshu": "訓練・研修" };
-if (typeParam && typeMap[typeParam]) {
-  const radio = document.querySelector(`input[name="program"][value="${typeMap[typeParam]}"]`);
-  if (radio) radio.checked = true;
-}
-toggleDateInputMode();
-
-function setError(name, msg) {
-  const el = document.querySelector(`[data-for="${name}"]`);
-  const input = document.querySelector(`[name="${name}"]`);
-  if (el) el.textContent = msg || "";
-  if (input && input.classList) {
-    if (msg) input.classList.add("invalid");
-    else input.classList.remove("invalid");
-  }
-}
-
-function validate(d) {
-  let ok = true;
-  ["program","participantName","participantFurigana","grade","guardianName","tel","email","zipcode","privacyConsent","allergyConsent"].forEach(k => setError(k, ""));
-  if (!d.privacyConsent) { setError("privacyConsent", "プライバシーポリシーへの同意が必要です (Please agree to the Privacy Policy)"); ok = false; }
-  if (!d.allergyConsent) { setError("allergyConsent", "アレルギー情報の取得への同意が必要です (Please agree to the collection of allergy information)"); ok = false; }
-  if (!d.program) { setError("program", "プログラムをお選びください"); ok = false; }
-  if (!d.participantName.trim()) { setError("participantName", "お名前をご入力ください"); ok = false; }
-  if (!d.participantFurigana.trim()) { setError("participantFurigana", "ふりがなをご入力ください"); ok = false; }
-  else if (!/^[ぁ-んー\s　]+$/.test(d.participantFurigana)) { setError("participantFurigana", "ひらがなでご入力ください"); ok = false; }
-  if (!d.grade.trim()) { setError("grade", "学年・年齢をご入力ください"); ok = false; }
-  if (!d.guardianName.trim()) { setError("guardianName", "保護者氏名をご入力ください"); ok = false; }
-  if (!d.tel.trim()) { setError("tel", "電話番号をご入力ください"); ok = false; }
-  else if (!/^[\d\-+()\s]{8,}$/.test(d.tel)) { setError("tel", "正しい電話番号をご入力ください"); ok = false; }
-  if (!d.email.trim()) { setError("email", "メールアドレスをご入力ください"); ok = false; }
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(d.email)) { setError("email", "正しいメールアドレスをご入力ください"); ok = false; }
-  if (!d.zipcode.trim()) { setError("zipcode", "郵便番号をご入力ください"); ok = false; }
-  else if (!/^\d{3}-?\d{4}$/.test(d.zipcode.trim())) { setError("zipcode", "正しい郵便番号をご入力ください（例: 123-4567）"); ok = false; }
-  return ok;
-}
-
-// ===== メール通知設定 =====
-// Formspreeに登録後、ここに発行されたエンドポイントを設定してください
-// 例: "https://formspree.io/f/xxxxxxxx"
-const FORMSPREE_ENDPOINT = "https://formspree.io/f/mwvddbqk";
-
-async function sendToFormspree(data) {
-  if (!FORMSPREE_ENDPOINT) return true;
-  try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 12000);
-    const res = await fetch(FORMSPREE_ENDPOINT, {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Accept": "application/json" },
-      signal: controller.signal,
-      body: JSON.stringify({
-        _subject: `【こいまり】体験プログラム応募: ${data.participantName} 様 (${data.program})`,
-        _replyto: data.email,
-        プログラム: data.program,
-        希望日1: data.preferredDate, 希望日2: data.preferredDate2,
-        参加者氏名: data.participantName, ふりがな: data.participantFurigana,
-        学年年齢: data.grade, 学校: data.school,
-        アレルギー: (data.allergy||[]).join(", "),
-        保護者氏名: data.guardianName, 続柄: data.relation,
-        電話番号: data.tel, メールアドレス: data.email,
-        志望動機: data.motivation,
-        受信日時: data.submittedAt
-      })
-    });
-    clearTimeout(timer);
-    return res.ok;
-  } catch (err) { console.warn("Formspree送信失敗:", err); return false; }
-}
-
-// Firebase保存が固まって画面が「送信中」のまま無限に止まらないよう、必ず一定時間で諦める
-function withTimeout(promise, ms, label) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => setTimeout(() => reject(new Error(label + "がタイムアウトしました")), ms))
-  ]);
-}
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const fd = new FormData(form);
-  const data = {
-    program: fd.get("program") || "",
-    preferredDate: (document.getElementById("preferredDateSelect").style.display !== "none" ? fd.get("preferredDateSelect") : fd.get("preferredDate")) || "",
-    preferredDate2: (document.getElementById("preferredDate2Select").style.display !== "none" ? fd.get("preferredDate2Select") : fd.get("preferredDate2")) || "",
-    participantName: fd.get("participantName") || "", participantFurigana: fd.get("participantFurigana") || "",
-    grade: fd.get("grade") || "", school: fd.get("school") || "",
-    allergy: fd.getAll("allergy"),
-    guardianName: fd.get("guardianName") || "", relation: fd.get("relation") || "",
-    tel: fd.get("tel") || "", email: fd.get("email") || "",
-    zipcode: fd.get("zipcode") || "", address: fd.get("address") || "",
-    motivation: fd.get("motivation") || "",
-    privacyConsent: fd.get("privacyConsent") === "1",
-    allergyConsent: fd.get("allergyConsent") === "1",
-    submittedAt: new Date().toISOString()
-  };
-  if (!validate(data)) {
-    const firstInvalid = document.querySelector(".invalid");
-    if (firstInvalid) firstInvalid.scrollIntoView({ behavior: "smooth", block: "center" });
-    return;
-  }
-  const btn = form.querySelector("button[type=submit]");
-  const originalText = btn.textContent;
-  const errEl = document.getElementById("submitError");
-  if (errEl) errEl.textContent = "";
-  btn.disabled = true; btn.textContent = "送信中...";
-
-  // メール通知の結果を、保存前に（最大8秒だけ待って）確定させる。
-  // ※Firebaseのセキュリティルール上、お客様（未ログイン）は新規レコードの「作成」のみ許可されており、
-  //   保存後に別途update()で書き戻すことはできない（権限エラーになる）。そのため結果は必ず最初の
-  //   保存に含める。8秒でメール送信を諦めても応募自体の保存は続行し、その場合はemailSent:falseとして
-  //   記録することで、管理画面で「メール未送信」を確実に検知できるようにする。
-  const emailSent = await withTimeout(sendToFormspree(data), 8000, "メール通知").catch(() => false);
-  data.emailSent = !!emailSent;
-
-  // Firebase保存（管理画面に表示される正式な記録）の成否のみで「送信完了」を判定する。
-  // 12秒でタイムアウトさせ、通信不良時でも画面が「送信中」のまま止まらないようにする。
-  try {
-    await withTimeout(push(experiencesRef, data), 12000, "応募保存");
-  } catch (err) {
-    console.warn("Firebase保存失敗:", err);
-    btn.disabled = false; btn.textContent = originalText;
-    if (errEl) errEl.textContent = "送信に失敗しました。恐れ入りますが、お電話（06-7221-0705）にてご連絡いただくか、時間をおいて再度お試しください。";
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    return;
-  }
-
-  // ここまで来れば応募データ（メール送信結果を含む）は確実に保存済み。お客様には確定で「完了」を表示してよい。
-  btn.disabled = false; btn.textContent = originalText;
-  form.classList.add("hidden");
-  thanks.classList.remove("hidden");
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-
-form.querySelectorAll(".input").forEach(el => {
-  el.addEventListener("input", () => {
-    if (el.classList.contains("invalid")) {
-      el.classList.remove("invalid");
-      const err = document.querySelector(`[data-for="${el.name}"]`);
-      if (err) err.textContent = "";
-    }
-  });
-});
-form.querySelectorAll('input[name="program"]').forEach(el => {
-  el.addEventListener("change", () => setError("program", ""));
-});
-</script>
 </body>
 </html>
