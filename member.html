@@ -327,12 +327,10 @@ const TIME_OPTIONS = ["10:00","10:30","11:00","11:30","12:00","12:30","13:00","1
 
 // サイズ別の基本料金（Firebase koimariContent/cakeSizePrices、admin.htmlで編集。未設定時はたたき台の金額）
 // 「定番」表示は、一番安いサイズではなく1つ上のサイズに付け、松竹梅の「竹」を選びやすくする狙い（アンカリング）。
-const DEFAULT_SIZE_PRICES = {
-  "4号(直径12cm/2-3名)": 3000,
-  "5号(直径15cm/4-6名)": 4200,
-  "6号(直径18cm/6-8名)": 5400,
-  "7号(直径21cm/8-10名)": 6800
-};
+// キーはSIZE_OPTIONSの値そのもの（例: "4号(直径12cm/2-3名)"）ではなく、先頭の号数だけを使う。
+// Firebase Realtime Databaseのキーには"/"を含められないため（フルの値には"2-3名"の"/"が含まれる）。
+function sizeKeyOf(value) { return String(value || "").split("(")[0]; }
+const DEFAULT_SIZE_PRICES = { "4号": 3000, "5号": 4200, "6号": 5400, "7号": 6800 };
 const RECOMMENDED_SIZE_VALUE = "5号(直径15cm/4-6名)";
 let currentSizePrices = DEFAULT_SIZE_PRICES;
 onValue(ref(db, "koimariContent/cakeSizePrices"), (snap) => {
@@ -342,7 +340,7 @@ onValue(ref(db, "koimariContent/cakeSizePrices"), (snap) => {
 });
 function sizeOptionLabel(o) {
   if (!o.value) return o.label;
-  const price = currentSizePrices[o.value];
+  const price = currentSizePrices[sizeKeyOf(o.value)];
   const priceText = price ? ` - ¥${price.toLocaleString()}` : "";
   const badge = o.value === RECOMMENDED_SIZE_VALUE ? "（定番）" : "";
   return `${o.label}${priceText}${badge}`;
@@ -369,8 +367,8 @@ function renderTierSizeSelects(tierCount) {
 }
 
 // ケーキの種類（Firebase koimariContent/cakeFlavors・rollCakeFlavors、admin.htmlで編集）
-const DEFAULT_CAKE_FLAVORS = ["苺のショートケーキ", "ガトーショコラ", "抹茶あずき", "季節のフルーツタルト"];
-const DEFAULT_ROLL_FLAVORS = ["プレーンロール", "抹茶ロール", "いちごロール", "チョコロール"];
+const DEFAULT_CAKE_FLAVORS = ["イチゴ", "チョコ"];
+const DEFAULT_ROLL_FLAVORS = ["こいまりロール", "フルーツロール"];
 let currentCakeFlavors = DEFAULT_CAKE_FLAVORS;
 let currentRollFlavors = DEFAULT_ROLL_FLAVORS;
 onValue(ref(db, "koimariContent/cakeFlavors"), (snap) => {
@@ -510,7 +508,7 @@ function renderReserveConfirm(data) {
   const sizesLine = data.items.length > 1
     ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
     : (item.size || "");
-  const subtotal = isCake ? data.items.reduce((sum, it) => sum + (currentSizePrices[it.size] || 0), 0) : 0;
+  const subtotal = isCake ? data.items.reduce((sum, it) => sum + (currentSizePrices[sizeKeyOf(it.size)] || 0), 0) : 0;
   document.getElementById("reserveConfirmSummary").innerHTML = `
     <dt>商品</dt><dd>${escape(item.category)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}

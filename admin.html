@@ -754,7 +754,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="panel__head">
         <h2 class="panel__title">ケーキの種類</h2>
       </div>
-      <p class="panel__desc">LINE予約（member.html）で、お客様が選ぶ「ケーキの種類」の選択肢です。保存するとLINE予約フォームに即時反映されます。未設定の場合は仮の一覧（たたき台）が表示されるので、スタッフとの打合せ後、正式な一覧に差し替えてください。</p>
+      <p class="panel__desc">LINE予約（member.html）で、お客様が選ぶ「ケーキの種類」の選択肢です。保存するとLINE予約フォームに即時反映されます（2026-08-10オーナー確認済みの本番データを設定済み）。</p>
       <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;margin-bottom:20px;">
         <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:14px;">デコレーションケーキの種類</h3>
         <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:end;">
@@ -780,7 +780,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
       <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;margin-top:20px;">
         <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:6px;">デコレーションケーキのサイズ別基本料金</h3>
-        <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:16px;">未設定の場合は仮の金額（たたき台）が表示されます。実際の金額に差し替えてください。LINE予約フォームの各サイズの横に表示されます。</p>
+        <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:16px;">LINE予約フォームの各サイズの横に表示されます（2026-08-10オーナー確認済みの本番データを設定済み）。</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
           <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">4号（12cm）</label><input type="number" id="cfPrice4" class="input" placeholder="3000"></div>
           <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">5号（15cm）</label><input type="number" id="cfPrice5" class="input" placeholder="4200"></div>
@@ -3893,19 +3893,17 @@ function createFlavorListEditor({ fbPath, defaultList, listElId, inputElId, addB
 }
 const cakeFlavorsEditor = createFlavorListEditor({
   fbPath: "koimariContent/cakeFlavors",
-  defaultList: ["苺のショートケーキ", "ガトーショコラ", "抹茶あずき", "季節のフルーツタルト"],
+  defaultList: ["イチゴ", "チョコ"],
   listElId: "cfFlavorList", inputElId: "cfNewFlavor", addBtnId: "cfAddFlavor"
 });
 const rollFlavorsEditor = createFlavorListEditor({
   fbPath: "koimariContent/rollCakeFlavors",
-  defaultList: ["プレーンロール", "抹茶ロール", "いちごロール", "チョコロール"],
+  defaultList: ["こいまりロール", "フルーツロール"],
   listElId: "cfRollFlavorList", inputElId: "cfNewRollFlavor", addBtnId: "cfAddRollFlavor"
 });
 const cakeSizePricesRef = ref(fbDb, "koimariContent/cakeSizePrices");
-const CAKE_SIZE_PRICE_KEYS = {
-  cfPrice4: "4号(直径12cm/2-3名)", cfPrice5: "5号(直径15cm/4-6名)",
-  cfPrice6: "6号(直径18cm/6-8名)", cfPrice7: "7号(直径21cm/8-10名)"
-};
+// キーはmember.htmlのsizeKeyOf()と揃えて号数のみ（Firebaseのキーに"/"を含められないため、フルの値は使えない）。
+const CAKE_SIZE_PRICE_KEYS = { cfPrice4: "4号", cfPrice5: "5号", cfPrice6: "6号", cfPrice7: "7号" };
 function initCakeSizePricesPanel() {
   let loadedOnce = false;
   onValue(cakeSizePricesRef, (snapshot) => {
