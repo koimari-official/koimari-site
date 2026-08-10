@@ -3318,10 +3318,10 @@ function renderGalleryAdmin() {
       maxWidth: 1000,
       aspectRatio: 1,
       fields: [
-        { label: "タイトル", key: "title", value: g.title||"", type: "input" },
+        { label: `タイトル（サイト上の表示は「作品No.${String(i+1).padStart(2,"0")}」）`, key: "title", value: g.title||"", type: "input" },
         { label: "説明", key: "desc", value: g.desc||"", type: "textarea" },
         { label: "サイズ（例: 5号、6号、1本）", key: "size", value: g.size||"", type: "input" },
-        { label: "価格目安（例: ¥4,800〜）", key: "price", value: g.price||"", type: "input" },
+        { label: "価格目安（サイト上には表示されません・内部管理用、例: ¥4,800〜）", key: "price", value: g.price||"", type: "input" },
         { label: "納期（例: 前日）", key: "lead", value: g.lead||"", type: "input" },
         { label: "日付（例: 2026.04）", key: "date", value: g.date||"", type: "input" },
         { label: "画像URL", key: "img", value: g.img||"", type: "input" }

@@ -74,6 +74,7 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 .gal-card:hover .gal-card__img img{transform:scale(1.06)}
 .gal-card__cat{position:absolute;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
 .gal-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
+.gal-card__no{font-family:var(--font-en);font-size:12px;letter-spacing:.1em;color:var(--color-accent);font-weight:700;margin-bottom:4px}
 .gal-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:8px;font-weight:600;line-height:1.5}
 .gal-card__desc{font-size:16px;font-weight:600;color:var(--color-text-soft);line-height:1.85;margin-bottom:14px;flex:1}
 .gal-card__meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--color-text-soft);font-family:var(--font-mincho);padding-top:12px;border-top:1px dashed var(--color-line);align-items:center}
@@ -238,8 +239,11 @@ const DEFAULT_VOICES = [
 
 function loadList(key, fallback){try{const r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return fallback}
 function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+// 各作品に通し番号を振る（カテゴリ絞り込みで並びが変わっても番号は一覧全体での並び順で固定）。
+// 金額はギャラリー上に出さず、この番号でお問合せいただいてから個別に見積もる運用にするため。
+function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = i+1; }); return arr; }
 
-let gallery = loadList("koimari_gallery", DEFAULT_GALLERY);
+let gallery = assignGalleryNumbers(loadList("koimari_gallery", DEFAULT_GALLERY));
 let voices = loadList("koimari_voices", DEFAULT_VOICES);
 
 let currentCat = "all";
@@ -277,15 +281,15 @@ function renderGrid(){
         <img src="${escape(g.img)}" alt="${escape(g.title)}">
       </div>
       <div class="gal-card__body">
+        <div class="gal-card__no">作品 No.${String(g.__no).padStart(2,"0")}</div>
         <h3 class="gal-card__title">${escape(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong></span>` : ""}
-          ${g.price ? `<span class="gal-card__meta-item">価格: <strong>${escape(g.price)}</strong></span>` : ""}
           ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
-        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("『" + g.title + "』と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>
+        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + String(g.__no).padStart(2,"0") + "『" + g.title + "』と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>
       </div>`;
     card.querySelector(".gal-card__img").addEventListener("click", () => {
       document.getElementById("lightboxImg").src = g.img;
@@ -317,7 +321,7 @@ renderVoicesGrid();
 // Firebase側の最新データを取り込み直す（以前はlocalStorageのみで、管理者本人の端末にしか反映されなかったための対応）
 function applyFetchedGalleryContent(data){
   if (!data) return;
-  if (data.gallery !== undefined) { try { localStorage.setItem("koimari_gallery", JSON.stringify(data.gallery)); } catch(e){} gallery = data.gallery; renderGalleryPage(); }
+  if (data.gallery !== undefined) { try { localStorage.setItem("koimari_gallery", JSON.stringify(data.gallery)); } catch(e){} gallery = assignGalleryNumbers(data.gallery); renderGalleryPage(); }
   if (data.voices !== undefined) { try { localStorage.setItem("koimari_voices", JSON.stringify(data.voices)); } catch(e){} voices = data.voices; renderVoicesGrid(); }
 }
 window.applyFetchedGalleryContent = applyFetchedGalleryContent;

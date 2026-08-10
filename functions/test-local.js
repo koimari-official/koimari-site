@@ -2,7 +2,7 @@
 // 実行: node test-local.js
 const assert = require("assert");
 const crypto = require("crypto");
-const { computeTodayStatus, verifyLineSignature } = require("./index.js")._internal;
+const { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
   assert.strictEqual(actual, expected, `${label}: expected "${expected}" but got "${actual}"`);
@@ -78,5 +78,32 @@ console.log("OK: 正しい署名はtrueを返す");
 
 assert.strictEqual(verifyLineSignature(body, "invalid-signature", secret), false, "不正な署名はfalseを返す");
 console.log("OK: 不正な署名はfalseを返す");
+
+// --- isAllergyRelated / buildFaqKnowledgeText ---
+// アレルギーはHP上でもAIでも触れず電話対応に一本化する方針（2026-08-10）のための安全網テスト。
+
+assert.strictEqual(isAllergyRelated("アレルギー対応はしていただけますか？"), true, "「アレルギー」を含む文字列を検知する");
+assert.strictEqual(isAllergyRelated("卵・乳・小麦等のアレルゲンを含みます"), true, "「アレルゲン」を含む文字列を検知する");
+assert.strictEqual(isAllergyRelated("賞味期限はどのくらいですか？"), false, "無関係な文字列は検知しない");
+console.log("OK: isAllergyRelated");
+
+const faqWithAllergy = [
+  { category: "商品について", items: [
+    { q: "賞味期限はどのくらいですか？", a: "当日中を目安にお召し上がりください。" },
+    { q: "アレルギー対応はしていただけますか？", a: "対応内容は非公開のはずのテキスト" },
+  ]},
+  { category: "アレルギーについて", items: [
+    { q: "アレルゲン表示はありますか？", a: "これも除外されるべきテキスト" },
+  ]},
+];
+const faqText = buildFaqKnowledgeText(faqWithAllergy);
+assert.ok(faqText.includes("賞味期限"), "アレルギー以外のFAQは含まれる");
+assert.ok(!faqText.includes("非公開のはず"), "アレルギー関連のQ&Aはカテゴリ内でも除外される");
+assert.ok(!faqText.includes("除外されるべき"), "アレルギー関連カテゴリ自体が丸ごと除外される");
+console.log("OK: buildFaqKnowledgeText はアレルギー関連を除外する");
+
+assert.strictEqual(buildFaqKnowledgeText([]), "（FAQ未設定）", "空配列の場合のフォールバック文言");
+assert.strictEqual(buildFaqKnowledgeText(null), "（FAQ未設定）", "nullの場合のフォールバック文言");
+console.log("OK: buildFaqKnowledgeText の未設定時フォールバック");
 
 console.log("\nすべてのローカルテストに合格しました。");

@@ -60,7 +60,29 @@ async function replyToLine(replyToken, text, accessToken) {
   }
 }
 
-async function buildReplyText(anthropic, userText, todayStatus) {
+// アレルギーは「HP上でもあまり触れず、聞かれたら電話で個別回答する」という運用方針（2026-08-10オーナー指示）。
+// FAQデータの中にアレルギー関連の項目が将来紛れ込んでも、AIには絶対に渡さないための安全網。
+function isAllergyRelated(text) {
+  return /アレルギ|アレルゲン/.test(String(text || ""));
+}
+
+// faq.html・admin.html「FAQ管理」タブと同じ koimariContent/faq を読み、AIの回答知識として使う。
+// ハードコードせずFirebaseから都度取得することで、HP掲載のFAQを更新すればAIの回答も自動的に同じ内容になり、
+// 「HPとAIで言っていることが違う」という齟齬が起きない設計にしている。
+function buildFaqKnowledgeText(faqData) {
+  if (!Array.isArray(faqData) || !faqData.length) return "（FAQ未設定）";
+  const lines = [];
+  for (const cat of faqData) {
+    if (isAllergyRelated(cat.category)) continue;
+    for (const item of cat.items || []) {
+      if (isAllergyRelated(item.q) || isAllergyRelated(item.a)) continue;
+      lines.push(`Q: ${item.q}\nA: ${item.a}`);
+    }
+  }
+  return lines.length ? lines.join("\n\n") : "（FAQ未設定）";
+}
+
+async function buildReplyText(anthropic, userText, todayStatus, faqKnowledgeText) {
   const response = await anthropic.messages.create({
     model: "claude-haiku-4-5",
     max_tokens: 300,
@@ -72,10 +94,14 @@ ${STORE_INFO}
 【本日の状況（システムが自動算出した正確な情報です。この内容を優先してください）】
 ${todayStatus}
 
+【よくあるご質問（HPのFAQページと同じ内容です。該当する質問にはここから正確に答えてください）】
+${faqKnowledgeText}
+
 【回答ルール】
 - 標準語・関西弁どちらで聞かれても、内容を正しく理解して答えてください（無理に関西弁で返答する必要はありません）
-- 営業時間・定休日・場所・電話番号など、上記の情報で答えられる質問には正確に答えてください
-- 上記の情報だけでは答えられない質問（価格の詳細、アレルギー対応の可否、在庫状況、予約の可否等）には、憶測で答えず「スタッフが確認してご連絡します」という趣旨で丁寧に答えてください
+- 営業時間・定休日・場所・電話番号・上記のFAQで答えられる質問には、その内容に沿って正確に答えてください
+- アレルギーに関するご質問には、内容には一切触れず「恐れ入りますが、アレルギーに関するご質問はお電話（06-7221-0705）にて承っております」とご案内してください
+- それ以外で、上記の情報だけでは答えられない質問（価格の詳細、在庫状況、予約の可否等）には、憶測で答えず「スタッフが確認してご連絡します」という趣旨で丁寧に答えてください
 - 返信は3〜4文程度、簡潔にまとめてください`,
     messages: [{ role: "user", content: userText }],
   });
@@ -84,7 +110,7 @@ ${todayStatus}
 }
 
 // ローカルテスト用に内部ロジックも公開する（Cloud Functionsとしてはデプロイされない、ただのプロパティ）。
-exports._internal = { computeTodayStatus, verifyLineSignature };
+exports._internal = { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText };
 
 exports.lineWebhook = onRequest(
   {
@@ -108,9 +134,13 @@ exports.lineWebhook = onRequest(
       if (event.type !== "message" || !event.message || event.message.type !== "text") continue;
 
       try {
-        const holidaysSnap = await admin.database().ref("koimariContent/holidays").once("value");
+        const [holidaysSnap, faqSnap] = await Promise.all([
+          admin.database().ref("koimariContent/holidays").once("value"),
+          admin.database().ref("koimariContent/faq").once("value"),
+        ]);
         const todayStatus = computeTodayStatus(holidaysSnap.val(), new Date());
-        const replyText = await buildReplyText(anthropic, event.message.text, todayStatus);
+        const faqKnowledgeText = buildFaqKnowledgeText(faqSnap.val());
+        const replyText = await buildReplyText(anthropic, event.message.text, todayStatus, faqKnowledgeText);
         await replyToLine(event.replyToken, replyText, LINE_CHANNEL_ACCESS_TOKEN.value());
       } catch (err) {
         console.error("lineWebhook event processing error:", err);
