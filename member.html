@@ -218,6 +218,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="notice-box__icon">🎂</div>
         <div class="notice-box__title">ご予約ありがとうございました</div>
         <div class="notice-box__desc">担当より確認のご連絡をいたします。ご不明な点はお電話（06-7221-0705）でもお問合せいただけます。</div>
+        <div class="confirm-box" id="reserveThanksSummary" style="margin-top:20px;"></div>
       </div>
     </div>
 
@@ -499,14 +500,14 @@ function validateReserve(data) {
   return ok;
 }
 
-function renderReserveConfirm(data) {
+function renderReserveConfirm(data, targetId) {
   const item = data.items[0];
   const isCake = item.category === "デコレーションケーキ";
   const sizesLine = data.items.length > 1
     ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
     : (item.size || "");
   const subtotal = isCake ? data.items.reduce((sum, it) => sum + (currentSizePrices[sizeKeyOf(it.size)] || 0), 0) : 0;
-  document.getElementById("reserveConfirmSummary").innerHTML = `
+  document.getElementById(targetId || "reserveConfirmSummary").innerHTML = `
     <dt>商品</dt><dd>${escape(item.category)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
@@ -641,6 +642,7 @@ function setupReserveForm(uid, displayName) {
       console.warn("LINEチャットへの投稿に失敗:", err);
     }
 
+    renderReserveConfirm(data, "reserveThanksSummary");
     document.getElementById("reserveConfirmWrap").style.display = "none";
     document.getElementById("reserveThanksWrap").style.display = "block";
     document.getElementById("reserveSection").scrollIntoView({ behavior: "smooth", block: "start" });
