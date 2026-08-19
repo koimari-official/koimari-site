@@ -140,8 +140,10 @@ assertEqual(getStoreComfortLine(new Date(2026, 7, 15)).emoji, "🍹", "8月=夏�
 assertEqual(getStoreComfortLine(new Date(2026, 0, 15)).emoji, "☕", "1月=冬は温かい系の絵文字");
 assertEqual(getStoreComfortLine(new Date(2026, 3, 15)).text, "お店でお待ちしております。", "4月=春は季節を限定しない文言");
 
-assertEqual(productLabel({ items: [{ category: "デコレーションケーキ" }] }), "デコレーションケーキ", "単段の商品ラベル");
-assertEqual(productLabel({ items: [{ category: "デコレーションケーキ" }, { category: "デコレーションケーキ" }] }), "デコレーションケーキ（2段）", "複数段の商品ラベル");
+assertEqual(productLabel({ items: [{ category: "デコレーションケーキ" }] }), "デコレーションケーキ", "フレーバー未指定時は商品カテゴリのみ");
+assertEqual(productLabel({ items: [{ category: "デコレーションケーキ", flavor: "イチゴ" }] }), "イチゴのデコレーションケーキ", "デコレーションケーキはフレーバー+カテゴリ名");
+assertEqual(productLabel({ items: [{ category: "ロールケーキ", flavor: "こいまりロール" }] }), "こいまりロール", "ロールケーキはフレーバー名自体が商品名");
+assertEqual(productLabel({ items: [{ category: "デコレーションケーキ", flavor: "イチゴ" }, { category: "デコレーションケーキ", flavor: "イチゴ" }] }), "イチゴのデコレーションケーキ（2段）", "複数段の商品ラベル");
 
 const pickupAt = computePickupDateTime({ pickupDate: "2026-08-20", pickupTime: "15:00" });
 assert.ok(pickupAt instanceof Date && !isNaN(pickupAt.getTime()), "引き取り日時が正しくDateに変換される");

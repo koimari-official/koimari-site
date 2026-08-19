@@ -67,10 +67,15 @@ function getStoreComfortLine(now) {
   return { text: "お店でお待ちしております。", emoji: "🍓" };
 }
 
+// お客様にメッセージで案内する「商品名」を組み立てる。
+// ロールケーキはフレーバー名自体が商品名（例:「こいまりロール」）だが、デコレーションケーキは
+// フレーバーが「イチゴ」等の形容にとどまるため、カテゴリ名と組み合わせて商品名らしくする。
 function productLabel(data) {
   const item = data.items && data.items[0];
   if (!item) return "ご予約商品";
-  return item.category + (data.items.length > 1 ? `（${data.items.length}段）` : "");
+  const isRoll = item.category === "ロールケーキ";
+  const base = !item.flavor ? item.category : (isRoll ? item.flavor : `${item.flavor}の${item.category}`);
+  return base + (data.items.length > 1 ? `（${data.items.length}段）` : "");
 }
 
 // 引き取り日時をJSTの絶対時刻として計算する。process.env.TZの設定に依存せず正しく動くよう、
