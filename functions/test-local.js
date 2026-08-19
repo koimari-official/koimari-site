@@ -2,7 +2,10 @@
 // 実行: node test-local.js
 const assert = require("assert");
 const crypto = require("crypto");
-const { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag } = require("./index.js")._internal;
+const {
+  computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
+  getSeasonCareLine, productLabel, computePickupDateTime, buildReminderMessage,
+} = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
   assert.strictEqual(actual, expected, `${label}: expected "${expected}" but got "${actual}"`);
@@ -124,5 +127,27 @@ const emptyReason = extractReviewTag("ご案内いたします。\n[[REVIEW:]]")
 assert.strictEqual(emptyReason.text, "ご案内いたします。", "理由が空でも本文は除去される");
 assert.strictEqual(emptyReason.reviewReason, "要確認", "理由が空文字の場合はデフォルト文言になる");
 console.log("OK: extractReviewTag は理由が空でもデフォルト値を補う");
+
+// --- 予約引き取りリマインダー関連 ---
+
+assertEqual(getSeasonCareLine(new Date(2026, 7, 15)), "厳しい暑さが続いております。水分補給などどうぞお気をつけてお過ごしください。", "8月=夏の労わりメッセージ");
+assertEqual(getSeasonCareLine(new Date(2026, 0, 15)), "寒さの厳しい時期です。どうぞ暖かくしてお過ごしくださいませ。", "1月=冬の労わりメッセージ");
+assertEqual(getSeasonCareLine(new Date(2026, 3, 15)), "季節の変わり目で寒暖差もございますので、どうぞご自愛くださいませ。", "4月=春の労わりメッセージ");
+assertEqual(getSeasonCareLine(new Date(2026, 9, 15)), "朝晩は冷え込む季節となりました。どうぞ暖かくしてお過ごしください。", "10月=秋の労わりメッセージ");
+
+assertEqual(productLabel({ items: [{ category: "デコレーションケーキ" }] }), "デコレーションケーキ", "単段の商品ラベル");
+assertEqual(productLabel({ items: [{ category: "デコレーションケーキ" }, { category: "デコレーションケーキ" }] }), "デコレーションケーキ（2段）", "複数段の商品ラベル");
+
+const pickupAt = computePickupDateTime({ pickupDate: "2026-08-20", pickupTime: "15:00" });
+assert.ok(pickupAt instanceof Date && !isNaN(pickupAt.getTime()), "引き取り日時が正しくDateに変換される");
+assertEqual(pickupAt.toISOString(), "2026-08-20T06:00:00.000Z", "JST 15:00 は UTC 06:00 と一致する");
+assert.strictEqual(computePickupDateTime({ pickupDate: "", pickupTime: "15:00" }), null, "引き取り日が空の場合はnull");
+
+const reminderData = { name: "山田", items: [{ category: "デコレーションケーキ" }], pickupDate: "2026-08-20", pickupTime: "15:00" };
+const summerNow = new Date(2026, 7, 17);
+assert.ok(buildReminderMessage("threeDay", reminderData, summerNow).includes("あと3日"), "3日前メッセージに「あと3日」を含む");
+assert.ok(buildReminderMessage("oneDay", reminderData, summerNow).includes("明日"), "24時間前メッセージに「明日」を含む");
+assert.ok(buildReminderMessage("oneHour", reminderData, summerNow).includes("まもなく"), "1時間前メッセージに「まもなく」を含む");
+console.log("OK: 予約引き取りリマインダー関連の関数");
 
 console.log("\nすべてのローカルテストに合格しました。");

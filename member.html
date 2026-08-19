@@ -520,6 +520,30 @@ function renderReserveConfirm(data) {
   `;
 }
 
+// 予約確定後、LINEチャットに投稿するサマリーテキスト（renderReserveConfirmのHTML版と内容は揃える）。
+// チャットに残ることで、お客様の履歴にも、スタッフが見るLINE Official Account Managerのチャット画面にも
+// 予約内容が記録される（2026-08-19オーナー指示：メール通知だけでなくLINE側にも通知が必要）。
+function buildReserveSummaryText(data) {
+  const item = data.items[0];
+  const isCake = item.category === "デコレーションケーキ";
+  const sizesLine = data.items.length > 1
+    ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
+    : (item.size || "");
+  const subtotal = isCake ? data.items.reduce((sum, it) => sum + (currentSizePrices[sizeKeyOf(it.size)] || 0), 0) : 0;
+  const lines = ["【ご予約を送信しました】", `商品: ${item.category}${data.items.length > 1 ? `（${data.items.length}段）` : ""}`];
+  if (item.flavor) lines.push(`ケーキの種類: ${item.flavor}`);
+  if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
+  if (subtotal) lines.push(`基本料金の目安: ¥${subtotal.toLocaleString()}`);
+  if (item.message) lines.push(`チョコプレートの文字: ${item.message}`);
+  lines.push(`引き取り希望日時: ${data.pickupDate} ${data.pickupTime}`);
+  lines.push(`お名前: ${data.name}`);
+  lines.push(`お電話番号: ${data.tel}`);
+  if (data.receiptNeeded) lines.push(`領収書: 必要（宛名: ${data.receiptName}）`);
+  if (data.note) lines.push(`その他ご要望: ${data.note}`);
+  lines.push("", "内容の確認後、スタッフよりご連絡いたします。");
+  return lines.join("\n");
+}
+
 function setupReserveForm(uid, displayName) {
   populateReserveSelects();
   updateReserveFieldVisibility();
@@ -605,6 +629,16 @@ function setupReserveForm(uid, displayName) {
       finalBtn.disabled = false; backBtn.disabled = false; finalBtn.textContent = "この内容でご予約を確定する";
       errEl.textContent = "送信に失敗しました。お手数ですがお電話（06-7221-0705）にてご連絡いただくか、時間をおいて再度お試しください。";
       return;
+    }
+
+    // LINEチャットに予約内容を投稿する（お客様の履歴・スタッフの受信箱の両方に残すため）。
+    // 外部ブラウザから開かれた場合はsendMessagesが使えないため、失敗しても予約自体は成立させる。
+    try {
+      if (liff.isInClient()) {
+        await liff.sendMessages([{ type: "text", text: buildReserveSummaryText(data) }]);
+      }
+    } catch (err) {
+      console.warn("LINEチャットへの投稿に失敗:", err);
     }
 
     document.getElementById("reserveConfirmWrap").style.display = "none";

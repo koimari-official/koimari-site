@@ -1,4 +1,9 @@
+// Cloud Functionsはデフォルトで動作環境がUTCになるため、営業時間判定・リマインダー送信時刻の計算が
+// 日本時間基準で正しく動くよう、Dateがロケール依存の値を返す前（ファイル先頭）で明示的に設定する。
+process.env.TZ = "Asia/Tokyo";
+
 const { onRequest } = require("firebase-functions/v2/https");
+const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const crypto = require("crypto");
 const admin = require("firebase-admin");
@@ -41,6 +46,59 @@ function computeTodayStatus(holidays, now) {
 function verifyLineSignature(rawBody, signature, channelSecret) {
   const hash = crypto.createHmac("sha256", channelSecret).update(rawBody).digest("base64");
   return hash === signature;
+}
+
+// 予約引き取りリマインダー（3日前・24時間前・1時間前）用ロジック。
+// 季節ごとに労わりの一言を添えることで、事務的な通知にならないようにする（2026-08-19オーナー指示）。
+function getSeasonCareLine(now) {
+  const month = now.getMonth() + 1;
+  if (month >= 3 && month <= 5) return "季節の変わり目で寒暖差もございますので、どうぞご自愛くださいませ。";
+  if (month >= 6 && month <= 8) return "厳しい暑さが続いております。水分補給などどうぞお気をつけてお過ごしください。";
+  if (month >= 9 && month <= 11) return "朝晩は冷え込む季節となりました。どうぞ暖かくしてお過ごしください。";
+  return "寒さの厳しい時期です。どうぞ暖かくしてお過ごしくださいませ。";
+}
+
+function productLabel(data) {
+  const item = data.items && data.items[0];
+  if (!item) return "ご予約商品";
+  return item.category + (data.items.length > 1 ? `（${data.items.length}段）` : "");
+}
+
+// 引き取り日時をJSTの絶対時刻として計算する。process.env.TZの設定に依存せず正しく動くよう、
+// タイムゾーンオフセットをISO文字列に明示的に含める。
+function computePickupDateTime(data) {
+  if (!data || !data.pickupDate || !data.pickupTime) return null;
+  const d = new Date(`${data.pickupDate}T${data.pickupTime}:00+09:00`);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function buildReminderMessage(stage, data, now) {
+  const name = data.name || "お客様";
+  const product = productLabel(data);
+  const careLine = getSeasonCareLine(now);
+  if (stage === "threeDay") {
+    return `${name}様\n\nご予約いただいた「${product}」のお引き取りまで、あと3日となりました🎂\n\n${careLine}\n\n当日のご来店を心よりお待ちしております。\nケーキ屋さんこいまり`;
+  }
+  if (stage === "oneDay") {
+    return `${name}様\n\n明日 ${data.pickupDate} ${data.pickupTime}〜 に「${product}」のお引き取りをご予約いただいております。\n\n${careLine}\n\nお気をつけてお越しくださいね。\nケーキ屋さんこいまり`;
+  }
+  return `${name}様\n\nまもなくお引き取りのお時間です（${data.pickupTime}〜）。\n\n当店でお待ちしております🍰\nケーキ屋さんこいまり`;
+}
+
+async function pushLineMessage(userId, text, accessToken) {
+  const res = await fetch("https://api.line.me/v2/bot/message/push", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: JSON.stringify({ to: userId, messages: [{ type: "text", text }] }),
+  });
+  if (!res.ok) {
+    console.error("LINE push failed:", res.status, await res.text());
+    return false;
+  }
+  return true;
 }
 
 async function replyToLine(replyToken, text, accessToken) {
@@ -127,7 +185,10 @@ ${faqKnowledgeText}
 }
 
 // ローカルテスト用に内部ロジックも公開する（Cloud Functionsとしてはデプロイされない、ただのプロパティ）。
-exports._internal = { computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag };
+exports._internal = {
+  computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
+  getSeasonCareLine, productLabel, computePickupDateTime, buildReminderMessage,
+};
 
 exports.lineWebhook = onRequest(
   {
@@ -175,5 +236,48 @@ exports.lineWebhook = onRequest(
     }
 
     res.status(200).send("OK");
+  }
+);
+
+// 予約引き取りリマインダー（3日前・24時間前・1時間前、2026-08-19オーナー指示）。
+// 15分おきに全予約を確認し、各リマインダー段階の時間帯に入った未送信のものへLINEプッシュメッセージを送る。
+// 「4日以上前に予約した人だけ3日前通知が届く」は、3日前の時点でその予約がまだ存在しない
+// （まだ予約していない）人には自然に届かないため、時間帯判定だけで意図通りになる。
+const REMINDER_STAGES = [
+  { key: "threeDay", minHours: 66, maxHours: 78 },
+  { key: "oneDay", minHours: 20, maxHours: 28 },
+  { key: "oneHour", minHours: 0, maxHours: 2 },
+];
+
+exports.sendPickupReminders = onSchedule(
+  {
+    schedule: "every 15 minutes",
+    region: "asia-northeast1",
+    timeZone: "Asia/Tokyo",
+    secrets: [LINE_CHANNEL_ACCESS_TOKEN],
+  },
+  async () => {
+    const accessToken = LINE_CHANNEL_ACCESS_TOKEN.value();
+    const snap = await admin.database().ref("reservations").once("value");
+    const all = snap.val() || {};
+    const now = new Date();
+
+    for (const [key, data] of Object.entries(all)) {
+      if (!data || data.channel !== "LINE" || !data.lineUserId || data.status === "キャンセル") continue;
+      const pickupAt = computePickupDateTime(data);
+      if (!pickupAt) continue;
+      const hoursUntil = (pickupAt.getTime() - now.getTime()) / 3600000;
+      const sent = data.reminderSent || {};
+
+      for (const stage of REMINDER_STAGES) {
+        if (sent[stage.key]) continue;
+        if (hoursUntil < stage.minHours || hoursUntil > stage.maxHours) continue;
+        const text = buildReminderMessage(stage.key, data, now);
+        const ok = await pushLineMessage(data.lineUserId, text, accessToken);
+        if (ok) {
+          await admin.database().ref(`reservations/${key}/reminderSent/${stage.key}`).set(true);
+        }
+      }
+    }
   }
 );
