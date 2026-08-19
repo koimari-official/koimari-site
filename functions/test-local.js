@@ -4,7 +4,7 @@ const assert = require("assert");
 const crypto = require("crypto");
 const {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
-  getSeasonCareLine, productLabel, computePickupDateTime, buildReminderMessage,
+  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
 } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
@@ -130,10 +130,15 @@ console.log("OK: extractReviewTag は理由が空でもデフォルト値を補�
 
 // --- 予約引き取りリマインダー関連 ---
 
-assertEqual(getSeasonCareLine(new Date(2026, 7, 15)), "厳しい暑さが続いております。水分補給などどうぞお気をつけてお過ごしください。", "8月=夏の労わりメッセージ");
-assertEqual(getSeasonCareLine(new Date(2026, 0, 15)), "寒さの厳しい時期です。どうぞ暖かくしてお過ごしくださいませ。", "1月=冬の労わりメッセージ");
-assertEqual(getSeasonCareLine(new Date(2026, 3, 15)), "季節の変わり目で寒暖差もございますので、どうぞご自愛くださいませ。", "4月=春の労わりメッセージ");
-assertEqual(getSeasonCareLine(new Date(2026, 9, 15)), "朝晩は冷え込む季節となりました。どうぞ暖かくしてお過ごしください。", "10月=秋の労わりメッセージ");
+assertEqual(getSeasonCareLine(new Date(2026, 7, 15)), "暑い日が続きますね。涼しい服装でゆっくりお越しくださいね。", "8月=夏の労わりメッセージ");
+assertEqual(getSeasonCareLine(new Date(2026, 0, 15)), "寒い日が続きますね。暖かくしてゆっくりお越しくださいね。", "1月=冬の労わりメッセージ");
+assertEqual(getSeasonCareLine(new Date(2026, 3, 15)), "過ごしやすい季節になりましたね。", "4月=春の労わりメッセージ");
+assertEqual(getSeasonCareLine(new Date(2026, 9, 15)), "涼しく過ごしやすい季節になりましたね。", "10月=秋の労わりメッセージ");
+assert.ok(!getSeasonCareLine(new Date(2026, 7, 15)).includes("申し訳"), "労わりメッセージに詫びの言葉を含まない（感謝・歓迎トーンの方針）");
+
+assertEqual(getStoreComfortLine(new Date(2026, 7, 15)).emoji, "🍹", "8月=夏は涼しい系の絵文字");
+assertEqual(getStoreComfortLine(new Date(2026, 0, 15)).emoji, "☕", "1月=冬は温かい系の絵文字");
+assertEqual(getStoreComfortLine(new Date(2026, 3, 15)).text, "お店でお待ちしております。", "4月=春は季節を限定しない文言");
 
 assertEqual(productLabel({ items: [{ category: "デコレーションケーキ" }] }), "デコレーションケーキ", "単段の商品ラベル");
 assertEqual(productLabel({ items: [{ category: "デコレーションケーキ" }, { category: "デコレーションケーキ" }] }), "デコレーションケーキ（2段）", "複数段の商品ラベル");

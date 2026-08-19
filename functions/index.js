@@ -49,13 +49,22 @@ function verifyLineSignature(rawBody, signature, channelSecret) {
 }
 
 // 予約引き取りリマインダー（3日前・24時間前・1時間前）用ロジック。
-// 季節ごとに労わりの一言を添えることで、事務的な通知にならないようにする（2026-08-19オーナー指示）。
+// 「暑いのに/寒いのにすみません」という詫びの方向ではなく、実家に帰ってきたような温かみ・
+// 感謝・お会いできる楽しみを伝える方向のトーンにする（2026-08-19オーナー指示、2回のフィードバックで確定）。
 function getSeasonCareLine(now) {
   const month = now.getMonth() + 1;
-  if (month >= 3 && month <= 5) return "季節の変わり目で寒暖差もございますので、どうぞご自愛くださいませ。";
-  if (month >= 6 && month <= 8) return "厳しい暑さが続いております。水分補給などどうぞお気をつけてお過ごしください。";
-  if (month >= 9 && month <= 11) return "朝晩は冷え込む季節となりました。どうぞ暖かくしてお過ごしください。";
-  return "寒さの厳しい時期です。どうぞ暖かくしてお過ごしくださいませ。";
+  if (month >= 3 && month <= 5) return "過ごしやすい季節になりましたね。";
+  if (month >= 6 && month <= 8) return "暑い日が続きますね。涼しい服装でゆっくりお越しくださいね。";
+  if (month >= 9 && month <= 11) return "涼しく過ごしやすい季節になりましたね。";
+  return "寒い日が続きますね。暖かくしてゆっくりお越しくださいね。";
+}
+
+// 1時間前メッセージ用：お店側の気遣いの一言と、それに合わせた絵文字。
+function getStoreComfortLine(now) {
+  const month = now.getMonth() + 1;
+  if (month >= 6 && month <= 8) return { text: "店内を涼しくしてお待ちしております。", emoji: "🍹" };
+  if (month === 12 || month <= 2) return { text: "店内を暖かくしてお待ちしております。", emoji: "☕" };
+  return { text: "お店でお待ちしております。", emoji: "🍓" };
 }
 
 function productLabel(data) {
@@ -75,14 +84,15 @@ function computePickupDateTime(data) {
 function buildReminderMessage(stage, data, now) {
   const name = data.name || "お客様";
   const product = productLabel(data);
-  const careLine = getSeasonCareLine(now);
   if (stage === "threeDay") {
-    return `${name}様\n\nご予約いただいた「${product}」のお引き取りまで、あと3日となりました🎂\n\n${careLine}\n\n当日のご来店を心よりお待ちしております。\nケーキ屋さんこいまり`;
+    const careLine = getSeasonCareLine(now);
+    return `${name}様、ご予約いただいた「${product}」のお引き取りまであと3日となりました🍓\n内容の変更がございましたらLINE公式アカウント上、もしくはお気軽に店舗までご連絡くださいませ🎵\n${careLine}${name}様にお会いできる日を、こいまり一同楽しみにお待ちしております。`;
   }
   if (stage === "oneDay") {
-    return `${name}様\n\n明日 ${data.pickupDate} ${data.pickupTime}〜 に「${product}」のお引き取りをご予約いただいております。\n\n${careLine}\n\nお気をつけてお越しくださいね。\nケーキ屋さんこいまり`;
+    return `${name}様、明日 ${data.pickupDate} ${data.pickupTime}に「${product}」のお引き取りをご予約いただいております。お会いできるのを楽しみにしております🍓 道中お気をつけてお越しくださいね。`;
   }
-  return `${name}様\n\nまもなくお引き取りのお時間です（${data.pickupTime}〜）。\n\n当店でお待ちしております🍰\nケーキ屋さんこいまり`;
+  const comfort = getStoreComfortLine(now);
+  return `${name}様、まもなくお引き取りのお時間です（${data.pickupTime}〜）。${comfort.text}ゆっくりいらしてくださいね${comfort.emoji}`;
 }
 
 async function pushLineMessage(userId, text, accessToken) {
@@ -187,7 +197,7 @@ ${faqKnowledgeText}
 // ローカルテスト用に内部ロジックも公開する（Cloud Functionsとしてはデプロイされない、ただのプロパティ）。
 exports._internal = {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
-  getSeasonCareLine, productLabel, computePickupDateTime, buildReminderMessage,
+  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
 };
 
 exports.lineWebhook = onRequest(
