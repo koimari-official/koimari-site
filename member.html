@@ -562,11 +562,16 @@ function setupReserveForm(uid, displayName) {
       submittedAt: new Date().toISOString(),
       channel: "LINE", lineUserId: uid
     };
-    if (!validateReserve(data)) return;
+    if (!validateReserve(data)) {
+      const firstError = document.querySelector("#reserveFormWrap .error:not(:empty)");
+      if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     pendingData = data;
     renderReserveConfirm(data);
     document.getElementById("reserveFormWrap").style.display = "none";
     document.getElementById("reserveConfirmWrap").style.display = "block";
+    document.getElementById("reserveConfirmWrap").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   document.getElementById("reserveBackBtn").addEventListener("click", () => {
