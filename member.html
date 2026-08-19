@@ -201,6 +201,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </label>
           <div class="error" id="reserveConsentError"></div>
         </div>
+        <div id="reserveFormErrorBanner" style="display:none;margin-bottom:16px;padding:14px 16px;background:#fdecec;border:1.5px solid var(--color-error);border-radius:6px;color:var(--color-error);font-weight:700;font-size:14px;line-height:1.7;"></div>
         <button class="btn" id="reserveSubmitBtn" type="button">ご予約内容を確認する</button>
       </div>
 
@@ -562,11 +563,15 @@ function setupReserveForm(uid, displayName) {
       submittedAt: new Date().toISOString(),
       channel: "LINE", lineUserId: uid
     };
+    const banner = document.getElementById("reserveFormErrorBanner");
     if (!validateReserve(data)) {
-      const firstError = document.querySelector("#reserveFormWrap .error:not(:empty)");
-      if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
+      const messages = Array.from(document.querySelectorAll("#reserveFormWrap .error")).map(el => el.textContent).filter(Boolean);
+      banner.innerHTML = "⚠️ 入力内容をご確認ください<br>" + messages.map(m => "・" + escape(m)).join("<br>");
+      banner.style.display = "block";
+      banner.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
+    banner.style.display = "none";
     pendingData = data;
     renderReserveConfirm(data);
     document.getElementById("reserveFormWrap").style.display = "none";
