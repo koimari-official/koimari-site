@@ -698,6 +698,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <button class="btn btn--small btn--ghost" id="exportLineMembers">CSV出力</button>
       </div>
       <p class="panel__desc">LINE公式アカウントの友だち追加＝会員登録となった方の一覧です。スタンプ数はここから増減できます。</p>
+      <div class="field" style="max-width:420px;margin-bottom:16px;padding:14px 16px;background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:6px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-mincho);font-size:15px;">
+          <input type="checkbox" id="stampCardEnabled" style="width:18px;height:18px;accent-color:var(--color-accent);">
+          会員ページにスタンプカードを表示する
+        </label>
+        <div style="font-size:12.5px;color:var(--color-text-soft);margin-top:6px;">オフにすると、LINE会員ページ（member.html）からスタンプカードのセクションが非表示になります（現在オフ＝施策検討中のため非表示）。</div>
+      </div>
       <div class="field" style="max-width:320px;margin-bottom:16px;">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-mincho);font-size:15px;">
           <input type="checkbox" id="lineMembersBirthdayFilter" style="width:18px;height:18px;accent-color:var(--color-accent);">
@@ -2272,6 +2279,17 @@ function renderLineMembers() {
 }
 document.getElementById("lineMembersBirthdayFilter").addEventListener("change", () => renderLineMembers());
 
+// スタンプカードの表示ON/OFF（2026-08-19オーナー指示：良い施策が固まるまで非表示にしておく）
+document.getElementById("stampCardEnabled").addEventListener("change", async (e) => {
+  try {
+    await update(ref(fbDb, "koimariContent/loyaltyConfig"), { enabled: e.target.checked });
+    showToast(e.target.checked ? "スタンプカードを表示にしました" : "スタンプカードを非表示にしました");
+  } catch (err) {
+    e.target.checked = !e.target.checked;
+    showToast("更新に失敗しました", "error");
+  }
+});
+
 /* ============================================================
    AI要確認一覧（LINE AIが自信を持って回答できなかった質問）
    ============================================================ */
@@ -3747,6 +3765,16 @@ function syncLineMembersFromFirebase() {
   });
 }
 
+let unsubLoyaltyConfig = null;
+function syncLoyaltyConfigFromFirebase() {
+  if (unsubLoyaltyConfig) return;
+  unsubLoyaltyConfig = onValue(ref(fbDb, "koimariContent/loyaltyConfig"), (snapshot) => {
+    const val = snapshot.val() || {};
+    const cb = document.getElementById("stampCardEnabled");
+    if (cb) cb.checked = val.enabled === true;
+  });
+}
+
 let aiReviewKeys = []; // 配列インデックス → Firebaseのキー（koimari_aiReviewQueueと同じ並び順を保つ）
 let unsubAiReview = null;
 function syncAiReviewFromFirebase() {
@@ -4056,6 +4084,7 @@ onAuthStateChanged(fbAuth, (user) => {
     syncExperiencesFromFirebase();
     syncCorporateFromFirebase();
     syncLineMembersFromFirebase();
+    syncLoyaltyConfigFromFirebase();
     syncAiReviewFromFirebase();
     initEventConfigPanel();
     initExpDatesPanel();

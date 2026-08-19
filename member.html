@@ -221,7 +221,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
-    <div class="section">
+    <div class="section" id="stampSection" style="display:none;">
       <div class="section__title">スタンプカード</div>
       <div class="stamp-row" id="stampRow"></div>
       <div class="stamp-text" id="stampText"></div>
@@ -676,7 +676,10 @@ async function main() {
 
     let configSnap;
     try { configSnap = await get(ref(db, "koimariContent/loyaltyConfig")); } catch (e) { configSnap = null; }
-    const config = (configSnap && configSnap.val()) || { stampGoal: 5, rewardText: "" };
+    const config = (configSnap && configSnap.val()) || { enabled: false, stampGoal: 5, rewardText: "" };
+    // スタンプカードは施策が固まるまで非表示（2026-08-19オーナー指示）。admin.html「LINE会員管理」の
+    // トグルで管理者がON/OFFできる。設定が一度も保存されていない場合はデフォルトで非表示。
+    document.getElementById("stampSection").style.display = config.enabled === true ? "" : "none";
 
     onValue(memberRef, (s) => {
       const data = s.val() || {};
