@@ -256,6 +256,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="greeting">店舗紹介</button>
       <button class="tab" data-panel="categories">カテゴリ画像</button>
       <button class="tab" data-panel="recommended">おすすめ商品</button>
+      <button class="tab" data-panel="cutcakes">カットケーキ</button>
+      <button class="tab" data-panel="rollcakes">ロールケーキ</button>
       <button class="tab" data-panel="voicesAdmin">お客様の声</button>
 
       <span class="tab-group-label">専用ページ・機能</span>
@@ -483,6 +485,16 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="panel__head"><h2 class="panel__title">おすすめ商品</h2><button class="btn btn--small" id="addRecommended">＋ 商品を追加</button></div>
       <p class="panel__desc">おすすめ商品セクションのケーキ画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="recommendedGrid"></div>
+    </section>
+    <section class="panel" id="panel-cutcakes">
+      <div class="panel__head"><h2 class="panel__title">カットケーキ</h2><button class="btn btn--small" id="addCutcake">＋ 商品を追加</button></div>
+      <p class="panel__desc">cutcakes.htmlのカットケーキ一覧・各商品詳細ページに表示される商品です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
+      <div class="img-grid" id="cutcakesGrid"></div>
+    </section>
+    <section class="panel" id="panel-rollcakes">
+      <div class="panel__head"><h2 class="panel__title">ロールケーキ</h2><button class="btn btn--small" id="addRollcake">＋ 商品を追加</button></div>
+      <p class="panel__desc">rollcakes.htmlのロールケーキ一覧・各商品詳細ページに表示される商品です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
+      <div class="img-grid" id="rollcakesGrid"></div>
     </section>
     <section class="panel" id="panel-experiences">
       <div class="panel__head"><h2 class="panel__title">体験プログラム</h2><button class="btn btn--small" id="addExperience">＋ プログラムを追加</button></div>
@@ -883,6 +895,8 @@ const DEFAULT_IMAGES = {
     { name: "プリン",             price: "¥380",  img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80" },
     { name: "アップルパイ",       price: "¥460",  img: "https://images.unsplash.com/photo-1535920527002-b35e96722eb9?w=500&q=80" }
   ],
+  cutcakes: [],
+  rollcakes: [],
   experiences: [
     { key: "ichinichi-tencho", title: "お子様 一日店長体験", en: "One Day Manager", target: "対象 / 小学1年生〜6年生", img: "https://images.unsplash.com/photo-1607478900766-efe13248b125?w=800&q=80", desc: "ケーキの飾りつけや、お客様への接客、レジ体験まで。お菓子屋さんのお仕事をひと通り体験していただける、お子様向けのプログラムです。", duration: "約2時間", fee: "3,000円(材料費込)" },
     { key: "shokugyo-taiken", title: "中高生 職業体験", en: "Career Experience", target: "対象 / 中学生・高校生", img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80", desc: "製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。", duration: "要相談", fee: "無料（学校関係者様限定）" },
@@ -908,6 +922,8 @@ function loadData() {
         greeting: p.greeting || DEFAULT_IMAGES.greeting,
         categories: p.categories || JSON.parse(JSON.stringify(DEFAULT_IMAGES.categories)),
         recommended: p.recommended || JSON.parse(JSON.stringify(DEFAULT_IMAGES.recommended)),
+        cutcakes: p.cutcakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.cutcakes)),
+        rollcakes: p.rollcakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.rollcakes)),
         experiences: p.experiences || JSON.parse(JSON.stringify(DEFAULT_IMAGES.experiences))
       };
     }
@@ -1124,6 +1140,8 @@ function mergeSiteImages(base, fresh, working) {
     greeting: mergeScalarSection(base.greeting, fresh.greeting, working.greeting, "店舗紹介画像", conflicts),
     categories: mergeArraySection(base.categories, fresh.categories, working.categories, "商品カテゴリー", conflicts),
     recommended: mergeArraySection(base.recommended, fresh.recommended, working.recommended, "おすすめ商品", conflicts),
+    cutcakes: mergeArraySection(base.cutcakes, fresh.cutcakes, working.cutcakes, "カットケーキ", conflicts),
+    rollcakes: mergeArraySection(base.rollcakes, fresh.rollcakes, working.rollcakes, "ロールケーキ", conflicts),
     experiences: mergeArraySection(base.experiences, fresh.experiences, working.experiences, "体験プログラム", conflicts)
   };
   return { merged, conflicts };
@@ -1321,7 +1339,7 @@ async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions) 
   return openCropModal(rawDataUrl, aspectRatio, ratioOptions);
 }
 function renderAll() {
-  renderHero(); renderGreeting(); renderCategories(); renderRecommended(); renderExperiences();
+  renderHero(); renderGreeting(); renderCategories(); renderRecommended(); renderCutcakes(); renderRollcakes(); renderExperiences();
   updateSaveBar();
 }
 // ストック写真（Unsplash等）の疑いを検知し、プレビューに警告バッジを重ねる
@@ -1611,6 +1629,58 @@ function renderRecommended() {
     grid.appendChild(item);
   });
 }
+function renderCutcakes() {
+  const grid = document.getElementById("cutcakesGrid"); grid.innerHTML = "";
+  workingData.cutcakes.forEach((r, i) => {
+    if (r.visible === undefined) r.visible = true;
+    if (!Array.isArray(r.gallery)) r.gallery = [];
+    const item = makeImageItem({
+      preview: r.img,
+      maxWidth: 500,
+      aspectRatio: 1,
+      fields: [
+        { label: "商品名", key: "name", value: r.name, type: "input" },
+        { label: "英語表記", key: "nameEn", value: r.nameEn, type: "input" },
+        { label: "価格（一覧・詳細ページに表示されます）", key: "price", value: r.price, type: "input" },
+        { label: "メイン画像URL（一覧・商品詳細ページの一番上に表示されます）", key: "img", value: r.img, type: "input" },
+        { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: r.desc||"", type: "textarea" }
+      ],
+      onChange: (k, v) => { workingData.cutcakes[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: historyAwareOnFile(r, "img", () => { renderCutcakes(); updateSaveBar(); }),
+      onDelete: () => { workingData.cutcakes.splice(i,1); renderCutcakes(); updateSaveBar(); }
+    });
+    appendImageHistoryUI(item, r, "img", () => { renderCutcakes(); updateSaveBar(); });
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderCutcakes(); updateSaveBar(); } }));
+    appendVisibleToggle(item, () => workingData.cutcakes[i].visible, () => { workingData.cutcakes[i].visible = !workingData.cutcakes[i].visible; renderCutcakes(); updateSaveBar(); });
+    grid.appendChild(item);
+  });
+}
+function renderRollcakes() {
+  const grid = document.getElementById("rollcakesGrid"); grid.innerHTML = "";
+  workingData.rollcakes.forEach((r, i) => {
+    if (r.visible === undefined) r.visible = true;
+    if (!Array.isArray(r.gallery)) r.gallery = [];
+    const item = makeImageItem({
+      preview: r.img,
+      maxWidth: 500,
+      aspectRatio: 1,
+      fields: [
+        { label: "商品名", key: "name", value: r.name, type: "input" },
+        { label: "英語表記", key: "nameEn", value: r.nameEn, type: "input" },
+        { label: "価格（一覧・詳細ページに表示されます）", key: "price", value: r.price, type: "input" },
+        { label: "メイン画像URL（一覧・商品詳細ページの一番上に表示されます）", key: "img", value: r.img, type: "input" },
+        { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: r.desc||"", type: "textarea" }
+      ],
+      onChange: (k, v) => { workingData.rollcakes[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: historyAwareOnFile(r, "img", () => { renderRollcakes(); updateSaveBar(); }),
+      onDelete: () => { workingData.rollcakes.splice(i,1); renderRollcakes(); updateSaveBar(); }
+    });
+    appendImageHistoryUI(item, r, "img", () => { renderRollcakes(); updateSaveBar(); });
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderRollcakes(); updateSaveBar(); } }));
+    appendVisibleToggle(item, () => workingData.rollcakes[i].visible, () => { workingData.rollcakes[i].visible = !workingData.rollcakes[i].visible; renderRollcakes(); updateSaveBar(); });
+    grid.appendChild(item);
+  });
+}
 function renderExperiences() {
   const grid = document.getElementById("experiencesGrid"); grid.innerHTML = "";
   workingData.experiences.forEach((e, i) => {
@@ -1660,6 +1730,8 @@ function renderExperiences() {
 document.getElementById("addHero").addEventListener("click", () => { workingData.hero.push({src:"",titleEn:"New Slide",titleJp:"新しいスライド",visible:true}); renderHero(); updateSaveBar(); });
 document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:"",desc:"",gallery:[],visible:true}); renderCategories(); updateSaveBar(); });
 document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRecommended(); updateSaveBar(); });
+document.getElementById("addCutcake").addEventListener("click", () => { workingData.cutcakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderCutcakes(); updateSaveBar(); });
+document.getElementById("addRollcake").addEventListener("click", () => { workingData.rollcakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRollcakes(); updateSaveBar(); });
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
 document.getElementById("saveBtn").addEventListener("click", async () => {
   if (typeof window.fbSaveSiteImages !== "function" || typeof window.fbLoadSiteImages !== "function") {
@@ -2131,7 +2203,7 @@ ${reservationItemsSummary(r) || "（商品未選択）"}
 引き続きどうぞよろしくお願いいたします。
 
 こいまり
-TEL: 06-7221-0705
+TEL: 070-9158-0641
 受付: 火〜土 10:00〜20:00 / 日 10:00〜19:00`,
 
   complete: (r) => `${r.name} 様
@@ -2142,7 +2214,7 @@ ${r.pickupDate} のお引取りが完了しました。
 またのご来店を心よりお待ちしております。
 
 こいまり
-TEL: 06-7221-0705`,
+TEL: 070-9158-0641`,
 
   cancel: (r) => `${r.name} 様
 
@@ -2153,7 +2225,7 @@ ${r.pickupDate} ${r.pickupTime} のご予約につきまして、
 またの機会にぜひこいまりをご利用ください。
 
 こいまり
-TEL: 06-7221-0705`
+TEL: 070-9158-0641`
 };
 
 function copyTemplate(type, rJson) {
@@ -2641,6 +2713,17 @@ function updateResConfirmCall(idx, checked) {
   if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
   renderReservations();
 }
+// 「確認電話」とは別の段階：予約内容そのものが最終確定したかどうか（2026-08-19オーナー指示）。
+// スタッフ全員がリアルタイムで進捗を共有できるよう、確認電話チェックと同じ仕組みで追加。
+function updateResConfirmed(idx, checked) {
+  const list = loadList(RES_KEY);
+  if (!list[idx]) return;
+  const patch = { reservationConfirmed: checked, reservationConfirmedAt: checked ? new Date().toISOString() : null };
+  Object.assign(list[idx], patch);
+  localStorage.setItem(RES_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
+  renderReservations();
+}
 // 管理画面を開きっぱなしにしていても「未確認が3時間経過」の状態を検知できるよう、定期的にバッジを再計算する
 setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
 function renderReservations() {
@@ -2649,7 +2732,7 @@ function renderReservations() {
   updateConfirmCallWarning();
   if (!list.length) { area.innerHTML = '<div class="empty">予約データはまだありません</div>'; return; }
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>ステータス</th><th>確認電話</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
+  html += '<th>ステータス</th><th>確認電話</th><th>予約確定</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
   html += '</tr></thead><tbody>';
   list.forEach((r, idx) => {
     const status = r.status || "受付済";
@@ -2666,6 +2749,10 @@ function renderReservations() {
         <input type="checkbox" onchange="updateResConfirmCall(${idx},this.checked)" ${r.confirmCallDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
         ${overdue?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 未確認</div>':""}
         ${r.confirmCallDone && r.confirmCallAt?`<div class="small" style="margin-top:4px;white-space:nowrap;">${fmtDate(r.confirmCallAt)}</div>`:""}
+      </td>
+      <td style="text-align:center;">
+        <input type="checkbox" onchange="updateResConfirmed(${idx},this.checked)" ${r.reservationConfirmed?"checked":""} style="width:18px;height:18px;cursor:pointer;">
+        ${r.reservationConfirmed && r.reservationConfirmedAt?`<div class="small" style="margin-top:4px;white-space:nowrap;">${fmtDate(r.reservationConfirmedAt)}</div>`:""}
       </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.type)}${r.channel==="LINE"?'<br><span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;color:#06962c;border:1px solid #06962c;border-radius:3px;padding:1px 5px;">LINE</span>':""}</td>
