@@ -4,6 +4,7 @@ process.env.TZ = "Asia/Tokyo";
 
 const { onRequest } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
+const { onValueCreated } = require("firebase-functions/v2/database");
 const { defineSecret } = require("firebase-functions/params");
 const crypto = require("crypto");
 const admin = require("firebase-admin");
@@ -20,7 +21,7 @@ const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 const STORE_INFO = `
 店名: こいまり（ケーキ屋）
 住所: 大阪府大阪市城東区成育2丁目13-15 アイビーマンション1階
-電話番号: 06-7221-0705
+電話番号: 070-9158-0641
 基本営業時間: 火〜土 10:00-20:00 ／ 日 10:00-19:00
 定休日: 月曜日（祝日の場合は翌日）※臨時休業がある場合は上記と異なることがあります
 `.trim();
@@ -185,7 +186,7 @@ ${faqKnowledgeText}
 【回答ルール】
 - 標準語・関西弁どちらで聞かれても、内容を正しく理解して答えてください（無理に関西弁で返答する必要はありません）
 - 営業時間・定休日・場所・電話番号・上記のFAQで答えられる質問には、その内容に沿って正確に答えてください
-- アレルギーに関するご質問には、内容には一切触れず「恐れ入りますが、アレルギーに関するご質問はお電話（06-7221-0705）にて承っております」とご案内してください
+- アレルギーに関するご質問には、内容には一切触れず「恐れ入りますが、アレルギーに関するご質問はお電話（070-9158-0641）にて承っております」とご案内してください
 - それ以外で、上記の情報だけでは答えられない質問（価格の詳細、在庫状況、予約の可否等）には、憶測で答えず「スタッフが確認してご連絡します」という趣旨で丁寧に答えてください
 - クーポン・過去の作品（ギャラリー）・ご予約に関する話題やご質問があった場合は、その内容に答えたうえで「トーク画面下部のメニューからも『クーポン』『ギャラリー』『ご予約』にすぐアクセスいただけます」という案内を一言添えてください
 - 返信は3〜4文程度（メニュー案内を添える場合は4〜5文程度）、簡潔にまとめてください
@@ -203,6 +204,7 @@ ${faqKnowledgeText}
 exports._internal = {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
+  buildStaffNotifyText,
 };
 
 exports.lineWebhook = onRequest(
@@ -224,7 +226,20 @@ exports.lineWebhook = onRequest(
     // 全イベントの処理が終わってからレスポンスを返す（Cloud Run はレスポンス送信後に
     // CPU割り当てを止めることがあるため、途中で先にres.send()しない）。
     for (const event of events) {
+      // スタッフ用グループにBotが参加した・グループ内で発言があった場合、そのグループIDを
+      // 新規予約通知の送信先として保存する（2026-08-19オーナー指示：スタッフへのLINE通知）。
+      if (event.source && event.source.type === "group" && event.source.groupId) {
+        try {
+          await admin.database().ref("koimariOps/staffNotifyGroupId").set(event.source.groupId);
+        } catch (err) {
+          console.error("staffNotifyGroupId保存失敗:", err);
+        }
+      }
+
       if (event.type !== "message" || !event.message || event.message.type !== "text") continue;
+      // グループ・複数人トークではAIの自動応答をしない（お客様向けのFAQ回答がスタッフの
+      // 雑談に混ざってしまうのを防ぐ。1対1のトークのみ応答する）。
+      if (event.source && event.source.type !== "user") continue;
 
       try {
         const [holidaysSnap, faqSnap] = await Promise.all([
@@ -294,5 +309,46 @@ exports.sendPickupReminders = onSchedule(
         }
       }
     }
+  }
+);
+
+// 新規予約が入るたび、スタッフ用LINEグループへ通知する（2026-08-19オーナー指示）。
+// admin.htmlの予約一覧へのリンクを添えることで、通知をタップすればそのまま
+// 「確認電話」「予約確定」のチェックができる画面に移動できるようにする。
+const ADMIN_RESERVATIONS_URL = "https://koimari-official.github.io/koimari-site/admin.html";
+
+function buildStaffNotifyText(data) {
+  const product = productLabel(data);
+  const channel = data.channel === "LINE" ? "LINE公式アカウント" : "こいまりHP";
+  const lines = [
+    "📋 新しいご予約が入りました",
+    `受付経路: ${channel}`,
+    `お名前: ${data.name || ""}`,
+    `商品: ${product}`,
+    `引き取り希望: ${data.pickupDate || ""} ${data.pickupTime || ""}`,
+    `お電話番号: ${data.tel || ""}`,
+  ];
+  if (data.note) lines.push(`ご要望・備考: ${data.note}`);
+  lines.push("", "確認電話・予約確定のチェックは管理画面から↓", ADMIN_RESERVATIONS_URL);
+  return lines.join("\n");
+}
+
+exports.notifyStaffOnNewReservation = onValueCreated(
+  {
+    ref: "/reservations/{pushId}",
+    instance: "koimari-tasting-default-rtdb",
+    region: "asia-southeast1",
+    secrets: [LINE_CHANNEL_ACCESS_TOKEN],
+  },
+  async (event) => {
+    const data = event.data.val();
+    if (!data) return;
+    const groupIdSnap = await admin.database().ref("koimariOps/staffNotifyGroupId").once("value");
+    const groupId = groupIdSnap.val();
+    if (!groupId) {
+      console.warn("staffNotifyGroupId未設定のため、新規予約通知をスキップしました。");
+      return;
+    }
+    await pushLineMessage(groupId, buildStaffNotifyText(data), LINE_CHANNEL_ACCESS_TOKEN.value());
   }
 );

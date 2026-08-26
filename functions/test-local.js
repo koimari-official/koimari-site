@@ -5,6 +5,7 @@ const crypto = require("crypto");
 const {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
+  buildStaffNotifyText,
 } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
@@ -156,5 +157,15 @@ assert.ok(buildReminderMessage("threeDay", reminderData, summerNow).includes("�
 assert.ok(buildReminderMessage("oneDay", reminderData, summerNow).includes("明日"), "24時間前メッセージに「明日」を含む");
 assert.ok(buildReminderMessage("oneHour", reminderData, summerNow).includes("まもなく"), "1時間前メッセージに「まもなく」を含む");
 console.log("OK: 予約引き取りリマインダー関連の関数");
+
+// --- スタッフ通知メッセージ ---
+
+const staffNotifyData = { name: "田中", items: [{ category: "デコレーションケーキ", flavor: "チョコ" }], pickupDate: "2026-08-25", pickupTime: "14:00", tel: "090-1111-2222", channel: "LINE" };
+const staffText = buildStaffNotifyText(staffNotifyData);
+assert.ok(staffText.includes("チョコのデコレーションケーキ"), "スタッフ通知に商品名を含む");
+assert.ok(staffText.includes("田中"), "スタッフ通知にお名前を含む");
+assert.ok(staffText.includes("LINE公式アカウント"), "スタッフ通知に受付経路を含む");
+assert.ok(staffText.includes("admin.html"), "スタッフ通知に管理画面へのリンクを含む");
+console.log("OK: buildStaffNotifyText");
 
 console.log("\nすべてのローカルテストに合格しました。");
