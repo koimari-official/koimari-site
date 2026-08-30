@@ -18,6 +18,17 @@ const LINE_CHANNEL_SECRET = defineSecret("LINE_CHANNEL_SECRET");
 const LINE_CHANNEL_ACCESS_TOKEN = defineSecret("LINE_CHANNEL_ACCESS_TOKEN");
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 
+// あいさつメッセージのカード②「ご予約」の送信テキスト（LINE Official Account Manager側の設定と一致させること）。
+// これに完全一致した場合はAIを呼ばず、予約フォーム（member.html）のLIFFリンクを確実に案内する
+// （member.html:264のLIFF_IDと同じ値。#reserveでご予約セクションまで自動スクロールする）。
+const RESERVE_CARD_TRIGGER_TEXT = "予約について教えてください";
+const RESERVE_LIFF_URL = "https://liff.line.me/2011059940-hMTBZaUz#reserve";
+const RESERVE_CARD_REPLY_TEXT = `ご予約はこちらからどうぞ🎂
+
+${RESERVE_LIFF_URL}
+
+デコレーションケーキ・ロールケーキ・焼き菓子/ギフトのご予約ができます。引き取り希望日の1営業日前までにご入力ください。当日のお急ぎのご予約はお電話（070-9158-0641）にて承ります。`;
+
 const STORE_INFO = `
 店名: こいまり（ケーキ屋）
 住所: 大阪府大阪市城東区成育2丁目13-15 アイビーマンション1階
@@ -242,6 +253,12 @@ exports.lineWebhook = onRequest(
       if (event.source && event.source.type !== "user") continue;
 
       try {
+        // カード②「ご予約について教えてください」はAIの生成に任せず、確実にLIFF予約フォームへ案内する。
+        if (event.message.text.trim() === RESERVE_CARD_TRIGGER_TEXT) {
+          await replyToLine(event.replyToken, RESERVE_CARD_REPLY_TEXT, LINE_CHANNEL_ACCESS_TOKEN.value());
+          continue;
+        }
+
         const [holidaysSnap, faqSnap] = await Promise.all([
           admin.database().ref("koimariContent/holidays").once("value"),
           admin.database().ref("koimariContent/faq").once("value"),
