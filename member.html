@@ -159,7 +159,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field">
           <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
           <input type="date" id="reserveDate" class="input">
-          <div class="field__hint">1営業日前（定休日・臨時休業を除く直近の営業日）までにご予約ください。当日のご希望はお電話（06-7221-0705）にて承ります。</div>
+          <div class="field__hint">1営業日前（定休日・臨時休業を除く直近の営業日）までにご予約ください。当日のご希望はお電話（070-9158-0641）にて承ります。</div>
           <div class="error" id="reserveDateError"></div>
         </div>
         <div class="field">
@@ -217,7 +217,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div id="reserveThanksWrap" class="notice-box" style="display:none;padding:0;border:none;text-align:left;">
         <div class="notice-box__icon">🎂</div>
         <div class="notice-box__title">ご予約ありがとうございました</div>
-        <div class="notice-box__desc">担当より確認のご連絡をいたします。ご不明な点はお電話（06-7221-0705）でもお問合せいただけます。</div>
+        <div class="notice-box__desc">担当より確認のご連絡をいたします。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
         <div class="confirm-box" id="reserveThanksSummary" style="margin-top:20px;"></div>
       </div>
     </div>
@@ -628,7 +628,7 @@ function setupReserveForm(uid, displayName) {
     } catch (err) {
       console.warn("Firebase保存失敗:", err);
       finalBtn.disabled = false; backBtn.disabled = false; finalBtn.textContent = "この内容でご予約を確定する";
-      errEl.textContent = "送信に失敗しました。お手数ですがお電話（06-7221-0705）にてご連絡いただくか、時間をおいて再度お試しください。";
+      errEl.textContent = "送信に失敗しました。お手数ですがお電話（070-9158-0641）にてご連絡いただくか、時間をおいて再度お試しください。";
       return;
     }
 

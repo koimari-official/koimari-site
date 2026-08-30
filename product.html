@@ -183,6 +183,15 @@ const DEFAULT_RECOMMENDED = [
   {name:"プリン",nameEn:"Crème Caramel",price:"¥380",img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80",desc:"卵とミルクの優しい甘さに、ほろ苦いカラメルを添えました。",gallery:[]},
   {name:"アップルパイ",nameEn:"Apple Pie",price:"¥460",img:"https://images.unsplash.com/photo-1535920527002-b35e96722eb9?w=500&q=80",desc:"りんごをじっくり煮込み、サクサクのパイ生地で包みました。",gallery:[]}
 ];
+const DEFAULT_CUTCAKES = [];
+const DEFAULT_ROLLCAKES = [];
+
+const TYPE_CONFIG = {
+  category:    { key: "categories", back: "index.html#categories", enField: "en" },
+  recommended: { key: "recommended", back: "index.html#recommended", enField: "nameEn" },
+  cutcake:     { key: "cutcakes",   back: "cutcakes.html", enField: "nameEn" },
+  rollcake:    { key: "rollcakes",  back: "rollcakes.html", enField: "nameEn" }
+};
 
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
 function nl2p(s){return esc(String(s||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).split(/\n+/).filter(Boolean).map(p=>`<p>${p}</p>`).join('');}
@@ -192,14 +201,19 @@ function loadImages(){
     const s = localStorage.getItem("koimari_images");
     if(s){
       const p = JSON.parse(s);
-      return { categories: p.categories||DEFAULT_CATEGORIES, recommended: p.recommended||DEFAULT_RECOMMENDED };
+      return {
+        categories: p.categories||DEFAULT_CATEGORIES,
+        recommended: p.recommended||DEFAULT_RECOMMENDED,
+        cutcakes: p.cutcakes||DEFAULT_CUTCAKES,
+        rollcakes: p.rollcakes||DEFAULT_ROLLCAKES
+      };
     }
   }catch(e){}
-  return { categories: DEFAULT_CATEGORIES, recommended: DEFAULT_RECOMMENDED };
+  return { categories: DEFAULT_CATEGORIES, recommended: DEFAULT_RECOMMENDED, cutcakes: DEFAULT_CUTCAKES, rollcakes: DEFAULT_ROLLCAKES };
 }
 
 const params = new URLSearchParams(location.search);
-const productType = params.get('type') === 'recommended' ? 'recommended' : 'category';
+const productType = TYPE_CONFIG[params.get('type')] ? params.get('type') : 'category';
 const productIdx = parseInt(params.get('idx'), 10);
 
 function openLightbox(src, alt){
@@ -212,9 +226,10 @@ document.getElementById('lightboxClose').addEventListener('click', e => { e.stop
 
 function renderProductPage(){
   const IMAGES = loadImages();
-  const list = productType === 'recommended' ? IMAGES.recommended : IMAGES.categories;
+  const config = TYPE_CONFIG[productType];
+  const list = IMAGES[config.key];
   const item = Array.isArray(list) ? list[productIdx] : null;
-  document.getElementById('backToSection').href = productType === 'recommended' ? 'index.html#recommended' : 'index.html#categories';
+  document.getElementById('backToSection').href = config.back;
 
   if(!item){
     document.getElementById('pageEn').textContent = 'Koimari';
@@ -226,7 +241,7 @@ function renderProductPage(){
 
   const displayName = item.name || '';
   const plainName = displayName.replace(/<\s*br\s*\/?\s*>/gi, ' ').trim();
-  document.getElementById('pageEn').textContent = (productType === 'recommended' ? item.nameEn : item.en) || 'Koimari';
+  document.getElementById('pageEn').textContent = item[config.enField] || 'Koimari';
   document.getElementById('pageTitle').innerHTML = esc(displayName).replace(/&lt;\s*br\s*\/?\s*&gt;/gi, '<br>');
   document.title = plainName + '｜こいまり';
 
@@ -284,6 +299,8 @@ onValue(ref(db, "siteImages"), (snapshot) => {
     if (data.greeting) cur.greeting = data.greeting;
     if (data.categories) cur.categories = data.categories;
     if (data.recommended) cur.recommended = data.recommended;
+    if (data.cutcakes) cur.cutcakes = data.cutcakes;
+    if (data.rollcakes) cur.rollcakes = data.rollcakes;
     if (data.experiences) cur.experiences = data.experiences;
     localStorage.setItem("koimari_images", JSON.stringify(cur));
   } catch(e) {}
