@@ -250,7 +250,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div id="errorBox" class="notice-box" style="display:none;">
     <div class="notice-box__icon">🙏</div>
     <div class="notice-box__title">読み込みに失敗しました</div>
-    <div class="notice-box__desc">お手数ですが、LINEアプリ内のリッチメニューから再度お試しください。</div>
+    <div class="notice-box__desc">お手数ですが、LINEのチャット画面から再度お試しください。</div>
+    <div id="errorDetail" style="margin-top:14px;font-size:11px;color:var(--color-text-soft);opacity:.6;word-break:break-all;"></div>
   </div>
 </main>
 <footer class="footer">
@@ -282,9 +283,12 @@ function escape(str) {
   return String(str ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-function showError() {
+function showError(err) {
   document.getElementById("loadingBox").style.display = "none";
   document.getElementById("errorBox").style.display = "block";
+  // お客様には見えにくい薄い文字で原因を残す（次回不具合が起きた際にスタッフが原因を特定できるように）。
+  const detail = document.getElementById("errorDetail");
+  if (detail && err) detail.textContent = String((err && err.message) || err);
 }
 
 function renderStamps(stamps, goal) {
@@ -707,7 +711,7 @@ async function main() {
     renderGalleryTeaser();
   } catch (e) {
     console.error(e);
-    showError();
+    showError(e);
   }
 }
 main();
