@@ -7,6 +7,8 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onValueCreated } = require("firebase-functions/v2/database");
 const { defineSecret } = require("firebase-functions/params");
 const crypto = require("crypto");
+const fs = require("fs");
+const path = require("path");
 const admin = require("firebase-admin");
 const Anthropic = require("@anthropic-ai/sdk");
 
@@ -259,6 +261,14 @@ exports.lineWebhook = onRequest(
           continue;
         }
 
+        // リッチメニュー「クーポン」タップ時も、AIの生成に任せずkoimariOps/couponsの実データをそのまま案内する。
+        if (event.message.text.trim() === COUPON_TRIGGER_TEXT) {
+          const couponsSnap = await admin.database().ref("koimariOps/coupons").once("value");
+          const couponReply = buildCouponReplyText(couponsSnap.val(), todayDateKeyJST(new Date()));
+          await replyToLine(event.replyToken, couponReply, LINE_CHANNEL_ACCESS_TOKEN.value());
+          continue;
+        }
+
         const [holidaysSnap, faqSnap] = await Promise.all([
           admin.database().ref("koimariContent/holidays").once("value"),
           admin.database().ref("koimariContent/faq").once("value"),
@@ -369,3 +379,123 @@ exports.notifyStaffOnNewReservation = onValueCreated(
     await pushLineMessage(groupId, buildStaffNotifyText(data), LINE_CHANNEL_ACCESS_TOKEN.value());
   }
 );
+
+// ===== リッチメニュー（2026-08-31、6分割を常時表示する方式に変更） =====
+// クーポンの有無でメニュー全体を切り替える方式（旧仕様）は廃止。常に
+// 「ご予約/ギャラリー/クーポン/店舗情報/よくある質問/会員証」の6分割を表示する。
+// 「クーポン」タップ時はメッセージが送信され、下のlineWebhook側でkoimariOps/coupons
+// （admin.html「クーポン」タブ）を見て、有効なクーポンがあればその内容を、無ければ
+// その旨を返信する。クーポン切れでもアイコン自体は常設のままでよいというオーナー判断（2026-08-31）。
+const GALLERY_URL = "https://koimari-official.github.io/koimari-site/gallery.html";
+const FAQ_URL = "https://koimari-official.github.io/koimari-site/faq.html";
+const SHOP_INFO_URL = "https://koimari-official.github.io/koimari-site/index.html#shop";
+const MEMBER_LIFF_URL = "https://liff.line.me/2011059940-hMTBZaUz";
+const RICHMENU_MAIN_IMAGE_PATH = path.join(__dirname, "assets", "richmenu-main.jpg");
+const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
+
+async function lineApi(method, url, accessToken, body, isBinary) {
+  const headers = { Authorization: `Bearer ${accessToken}` };
+  headers["Content-Type"] = isBinary ? "image/jpeg" : "application/json";
+  const res = await fetch(url, {
+    method,
+    headers,
+    body: body ? (isBinary ? body : JSON.stringify(body)) : undefined,
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`LINE API ${method} ${url} failed: ${res.status} ${text}`);
+  try {
+    return text ? JSON.parse(text) : null;
+  } catch (e) {
+    return null; // setDefault等、成功時に空ボディを返すエンドポイントがあるため
+  }
+}
+
+// 2500x1686を2行3列に分割した6エリア（列幅833/834/833で合計2500、行高843で合計1686）。
+// 画像(assets/richmenu-main.jpg)の並び「ご予約|ギャラリー|クーポン / 店舗情報|よくある質問|会員証」と対応させること。
+const RICHMENU_AREAS = [
+  { bounds: { x: 0, y: 0, width: 833, height: 843 }, action: { type: "uri", uri: RESERVE_LIFF_URL } },
+  { bounds: { x: 833, y: 0, width: 834, height: 843 }, action: { type: "uri", uri: GALLERY_URL } },
+  { bounds: { x: 1667, y: 0, width: 833, height: 843 }, action: { type: "message", text: COUPON_TRIGGER_TEXT } },
+  { bounds: { x: 0, y: 843, width: 833, height: 843 }, action: { type: "uri", uri: SHOP_INFO_URL } },
+  { bounds: { x: 833, y: 843, width: 834, height: 843 }, action: { type: "uri", uri: FAQ_URL } },
+  { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "uri", uri: MEMBER_LIFF_URL } },
+];
+
+// リッチメニューが未設定、または旧仕様(2分割/3分割切替)のものが残っている場合のみ、6分割を新規作成して
+// デフォルトに設定する。それ以外の何か（LINE Official Account Manager側で手動設定したもの）が既に
+// デフォルトになっている場合は、それを尊重して何もしない（毎日の自動実行が手動変更と競合しないように）。
+async function ensureMainRichMenu(accessToken) {
+  const configRef = admin.database().ref("koimariOps/richMenuIds");
+  const existing = (await configRef.once("value")).val() || {};
+
+  let currentDefaultId = null;
+  try {
+    const cur = await lineApi("GET", "https://api.line.me/v2/bot/user/all/richmenu", accessToken);
+    currentDefaultId = cur && cur.richMenuId;
+  } catch (e) {
+    currentDefaultId = null; // 未設定時は404
+  }
+
+  if (existing.mainId && currentDefaultId === existing.mainId) return existing.mainId; // 既に正しい状態
+
+  const knownOldIds = [existing.defaultId, existing.campaignId].filter(Boolean);
+  if (currentDefaultId && !knownOldIds.includes(currentDefaultId)) {
+    console.log("リッチメニューは既に手動設定済みのため何もしません:", currentDefaultId);
+    return currentDefaultId;
+  }
+
+  const created = await lineApi("POST", "https://api.line.me/v2/bot/richmenu", accessToken, {
+    size: { width: 2500, height: 1686 },
+    selected: false,
+    name: "koimari-main-6panel",
+    chatBarText: "メニュー",
+    areas: RICHMENU_AREAS,
+  });
+  const richMenuId = created.richMenuId;
+  const imageBuffer = fs.readFileSync(RICHMENU_MAIN_IMAGE_PATH);
+  await lineApi("POST", `https://api-data.line.me/v2/bot/richmenu/${richMenuId}/content`, accessToken, imageBuffer, true);
+  await lineApi("POST", `https://api.line.me/v2/bot/user/all/richmenu/${richMenuId}`, accessToken);
+  await configRef.set({ mainId: richMenuId });
+
+  const staleIds = [existing.defaultId, existing.campaignId, existing.mainId].filter((id) => id && id !== richMenuId);
+  for (const staleId of staleIds) {
+    try {
+      await lineApi("DELETE", `https://api.line.me/v2/bot/richmenu/${staleId}`, accessToken);
+    } catch (e) {
+      console.warn("旧リッチメニュー削除失敗:", staleId, e.message);
+    }
+  }
+
+  console.log("6分割のリッチメニューを新規作成・デフォルト設定しました:", richMenuId);
+  return richMenuId;
+}
+
+exports.ensureRichMenu = onSchedule(
+  {
+    schedule: "0 4 * * *", // 毎日4:00(JST)に確認。既に正しい/手動設定済みなら何もしない安全設計
+    timeZone: "Asia/Tokyo",
+    region: "asia-northeast1",
+    secrets: [LINE_CHANNEL_ACCESS_TOKEN],
+  },
+  async () => {
+    await ensureMainRichMenu(LINE_CHANNEL_ACCESS_TOKEN.value());
+  }
+);
+
+function todayDateKeyJST(now) {
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+}
+
+// リッチメニュー「クーポン」タップ時の返信文をkoimariOps/couponsの実データから組み立てる
+// （AIの生成に任せず、admin.htmlで発行している実際のクーポン内容を確実に案内するため）。
+function buildCouponReplyText(coupons, todayKey) {
+  const active = (Array.isArray(coupons) ? coupons : []).filter((c) => c && c.expiry && c.expiry >= todayKey);
+  if (!active.length) {
+    return "現在開催中のクーポンはございません🙏\n新しいクーポンが出た際は、あいさつメッセージ等でご案内いたしますので、またチェックしてみてくださいね🎂";
+  }
+  const lines = ["ただいま開催中のクーポンはこちらです🎫", ""];
+  active.forEach((c) => {
+    lines.push(`${c.discount || ""}${c.memo ? "（" + c.memo + "）" : ""} ※${c.expiry}まで`);
+  });
+  return lines.join("\n");
+}
