@@ -389,9 +389,14 @@ exports.notifyStaffOnNewReservation = onValueCreated(
 const GALLERY_URL = "https://koimari-official.github.io/koimari-site/gallery.html";
 const FAQ_URL = "https://koimari-official.github.io/koimari-site/faq.html";
 const SHOP_INFO_URL = "https://koimari-official.github.io/koimari-site/index.html#shop";
-const MEMBER_LIFF_URL = "https://liff.line.me/2011059940-hMTBZaUz";
 const RICHMENU_MAIN_IMAGE_PATH = path.join(__dirname, "assets", "richmenu-main.jpg");
 const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
+
+// リッチメニューの画像・エリア配置を変更したら、このバージョン文字列を必ず更新すること。
+// koimariOps/richMenuIds/version と一致しなくなった時点でensureRichMenuが自動的に
+// 作り直す（画像だけ差し替えてこの値を更新し忘れると、古いデザインのままになる）。
+// 詳しい変更手順は assets/richmenu-src/README.md を参照。
+const RICHMENU_VERSION = "2026-09-01-tanukichi";
 
 async function lineApi(method, url, accessToken, body, isBinary) {
   const headers = { Authorization: `Bearer ${accessToken}` };
@@ -411,19 +416,21 @@ async function lineApi(method, url, accessToken, body, isBinary) {
 }
 
 // 2500x1686を2行3列に分割した6エリア（列幅833/834/833で合計2500、行高843で合計1686）。
-// 画像(assets/richmenu-main.jpg)の並び「ご予約|ギャラリー|クーポン / 店舗情報|よくある質問|会員証」と対応させること。
+// 画像(assets/richmenu-main.jpg)の並び「季節限定メニュー|ご予約|ギャラリー / クーポン|店舗情報|よくある質問」と対応させること。
+// 左上の「季節限定メニュー」は季節ごとに画像・タップ先を差し替えてよい（現在はギャラリーへのリンク）。
 const RICHMENU_AREAS = [
-  { bounds: { x: 0, y: 0, width: 833, height: 843 }, action: { type: "uri", uri: RESERVE_LIFF_URL } },
-  { bounds: { x: 833, y: 0, width: 834, height: 843 }, action: { type: "uri", uri: GALLERY_URL } },
-  { bounds: { x: 1667, y: 0, width: 833, height: 843 }, action: { type: "message", text: COUPON_TRIGGER_TEXT } },
-  { bounds: { x: 0, y: 843, width: 833, height: 843 }, action: { type: "uri", uri: SHOP_INFO_URL } },
-  { bounds: { x: 833, y: 843, width: 834, height: 843 }, action: { type: "uri", uri: FAQ_URL } },
-  { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "uri", uri: MEMBER_LIFF_URL } },
+  { bounds: { x: 0, y: 0, width: 833, height: 843 }, action: { type: "uri", uri: GALLERY_URL } },
+  { bounds: { x: 833, y: 0, width: 834, height: 843 }, action: { type: "uri", uri: RESERVE_LIFF_URL } },
+  { bounds: { x: 1667, y: 0, width: 833, height: 843 }, action: { type: "uri", uri: GALLERY_URL } },
+  { bounds: { x: 0, y: 843, width: 833, height: 843 }, action: { type: "message", text: COUPON_TRIGGER_TEXT } },
+  { bounds: { x: 833, y: 843, width: 834, height: 843 }, action: { type: "uri", uri: SHOP_INFO_URL } },
+  { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "uri", uri: FAQ_URL } },
 ];
 
-// リッチメニューが未設定、または旧仕様(2分割/3分割切替)のものが残っている場合のみ、6分割を新規作成して
-// デフォルトに設定する。それ以外の何か（LINE Official Account Manager側で手動設定したもの）が既に
-// デフォルトになっている場合は、それを尊重して何もしない（毎日の自動実行が手動変更と競合しないように）。
+// リッチメニューが未設定、デザインのバージョンが古い、または旧仕様(2分割/3分割切替)のものが
+// 残っている場合のみ、新規作成してデフォルトに設定する。それ以外の何か（LINE Official Account
+// Manager側で手動設定したもの）が既にデフォルトになっている場合は、それを尊重して何もしない
+// （毎日の自動実行が手動変更と競合しないように）。
 async function ensureMainRichMenu(accessToken) {
   const configRef = admin.database().ref("koimariOps/richMenuIds");
   const existing = (await configRef.once("value")).val() || {};
@@ -436,9 +443,12 @@ async function ensureMainRichMenu(accessToken) {
     currentDefaultId = null; // 未設定時は404
   }
 
-  if (existing.mainId && currentDefaultId === existing.mainId) return existing.mainId; // 既に正しい状態
+  // 既に正しいバージョンが設定済み → 何もしない
+  if (existing.mainId && existing.version === RICHMENU_VERSION && currentDefaultId === existing.mainId) {
+    return existing.mainId;
+  }
 
-  const knownOldIds = [existing.defaultId, existing.campaignId].filter(Boolean);
+  const knownOldIds = [existing.defaultId, existing.campaignId, existing.mainId].filter(Boolean);
   if (currentDefaultId && !knownOldIds.includes(currentDefaultId)) {
     console.log("リッチメニューは既に手動設定済みのため何もしません:", currentDefaultId);
     return currentDefaultId;
@@ -447,7 +457,7 @@ async function ensureMainRichMenu(accessToken) {
   const created = await lineApi("POST", "https://api.line.me/v2/bot/richmenu", accessToken, {
     size: { width: 2500, height: 1686 },
     selected: false,
-    name: "koimari-main-6panel",
+    name: `koimari-main-6panel-${RICHMENU_VERSION}`,
     chatBarText: "メニュー",
     areas: RICHMENU_AREAS,
   });
@@ -455,7 +465,7 @@ async function ensureMainRichMenu(accessToken) {
   const imageBuffer = fs.readFileSync(RICHMENU_MAIN_IMAGE_PATH);
   await lineApi("POST", `https://api-data.line.me/v2/bot/richmenu/${richMenuId}/content`, accessToken, imageBuffer, true);
   await lineApi("POST", `https://api.line.me/v2/bot/user/all/richmenu/${richMenuId}`, accessToken);
-  await configRef.set({ mainId: richMenuId });
+  await configRef.set({ mainId: richMenuId, version: RICHMENU_VERSION });
 
   const staleIds = [existing.defaultId, existing.campaignId, existing.mainId].filter((id) => id && id !== richMenuId);
   for (const staleId of staleIds) {
@@ -466,7 +476,7 @@ async function ensureMainRichMenu(accessToken) {
     }
   }
 
-  console.log("6分割のリッチメニューを新規作成・デフォルト設定しました:", richMenuId);
+  console.log("6分割のリッチメニューを新規作成・デフォルト設定しました:", richMenuId, RICHMENU_VERSION);
   return richMenuId;
 }
 
