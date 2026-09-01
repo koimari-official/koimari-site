@@ -396,7 +396,7 @@ const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 // koimariOps/richMenuIds/version と一致しなくなった時点でensureRichMenuが自動的に
 // 作り直す（画像だけ差し替えてこの値を更新し忘れると、古いデザインのままになる）。
 // 詳しい変更手順は assets/richmenu-src/README.md を参照。
-const RICHMENU_VERSION = "2026-09-01-tanukichi";
+const RICHMENU_VERSION = "2026-09-01-tanukichi-v2";
 
 async function lineApi(method, url, accessToken, body, isBinary) {
   const headers = { Authorization: `Bearer ${accessToken}` };
