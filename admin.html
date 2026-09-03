@@ -766,6 +766,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <h2 class="panel__title">体験プログラム候補日（お子様 一日店長体験）</h2>
       </div>
       <p class="panel__desc">「お子様 一日店長体験」（小学生対象）で受け付ける候補日をここで設定します。お客様は応募フォームで、この候補日の中からのみ選択できるようになります。中高生・社会人向けプログラムは対象外（要相談のまま）です。</p>
+      <div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;max-width:680px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:var(--font-mincho);font-weight:600;font-size:14px;margin-bottom:4px;" id="edToggleLabel">読み込み中...</div>
+          <div style="font-size:12px;color:var(--color-text-soft);">LINE予約フォーム（member.html）に「お子様の一日店長体験」の選択肢を表示するかどうかを切り替えます。</div>
+        </div>
+        <button class="btn btn--small" id="edToggleBtn">切り替え</button>
+      </div>
       <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;">
         <div style="display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;align-items:end;">
           <div>
@@ -4049,10 +4056,27 @@ async function saveExpDates(action, date) {
     showToast("候補日の保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
   }
 }
+// 「お子様の一日店長体験」をLINE予約フォーム（member.html）に表示するかのON/OFF（siteConfig/kidsManagerReserveOpen）。
+// 10月開始が未確定のため、コードは完成させつつ既定でfalse（非表示）にしておき、準備が整い次第ここでON にする運用。
+const kidsManagerOpenRef = ref(fbDb, "siteConfig/kidsManagerReserveOpen");
+let kidsManagerOpen = false;
+function renderKidsManagerToggle() {
+  const label = document.getElementById("edToggleLabel");
+  const btn = document.getElementById("edToggleBtn");
+  if (!label || !btn) return;
+  label.textContent = kidsManagerOpen ? "✓ 予約フォームで受付中" : "✕ 予約フォームでは非表示";
+  label.style.color = kidsManagerOpen ? "#5d8a4e" : "var(--color-accent)";
+  btn.textContent = kidsManagerOpen ? "非表示にする" : "受付を開始する";
+  btn.className = "btn btn--small " + (kidsManagerOpen ? "btn--ghost" : "");
+}
 function initExpDatesPanel() {
   onValue(experienceDatesRef, (snapshot) => {
     currentExpDates = snapshot.val() || [];
     renderExpDateList();
+  });
+  onValue(kidsManagerOpenRef, (snapshot) => {
+    kidsManagerOpen = !!snapshot.val();
+    renderKidsManagerToggle();
   });
   const addBtn = document.getElementById("edAddDate");
   if (addBtn && !addBtn.dataset.bound) {
@@ -4063,6 +4087,16 @@ function initExpDatesPanel() {
       if (!val) return;
       if (!currentExpDates.includes(val)) saveExpDates("add", val);
       input.value = "";
+    });
+  }
+  const toggleBtn = document.getElementById("edToggleBtn");
+  if (toggleBtn && !toggleBtn.dataset.bound) {
+    toggleBtn.dataset.bound = "1";
+    toggleBtn.addEventListener("click", () => {
+      update(ref(fbDb, "siteConfig"), { kidsManagerReserveOpen: !kidsManagerOpen }).catch((err) => {
+        console.warn("トグル保存失敗:", err);
+        showToast("切り替えに失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+      });
     });
   }
 }

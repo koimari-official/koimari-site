@@ -102,7 +102,7 @@ function getStoreComfortLine(now) {
 // フレーバーが「イチゴ」等の形容にとどまるため、カテゴリ名と組み合わせて商品名らしくする。
 function productLabel(data) {
   const item = data.items && data.items[0];
-  if (!item) return "ご予約商品";
+  if (!item) return data.type || "ご予約商品";
   const isRoll = item.category === "ロールケーキ";
   const base = !item.flavor ? item.category : (isRoll ? item.flavor : `${item.flavor}の${item.category}`);
   return base + (data.items.length > 1 ? `（${data.items.length}段）` : "");

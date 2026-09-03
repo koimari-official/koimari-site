@@ -129,6 +129,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div id="reserveFormWrap">
+        <div class="field" id="reserveCategoryField">
+          <label class="field__label">ご予約の種類<span class="req-mark">必須</span></label>
+          <div class="radio-list">
+            <label class="radio-list__opt"><input type="radio" name="reserveCategory" value="cake" checked> ケーキのご予約</label>
+            <label class="radio-list__opt" id="kidsManagerOptionWrap" style="display:none;"><input type="radio" name="reserveCategory" value="kidsManager"> お子様の一日店長体験</label>
+          </div>
+        </div>
+        <div id="cakeFieldsWrap">
         <div class="field">
           <label class="field__label">商品<span class="req-mark">必須</span></label>
           <div class="radio-list">
@@ -170,15 +178,60 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <select id="reserveTime" class="input select"></select>
           <div class="error" id="reserveTimeError"></div>
         </div>
+        </div>
+        <div id="kidsManagerFieldsWrap" style="display:none;">
+          <div class="field">
+            <label class="field__label" for="kmChildName">お子様のお名前<span class="req-mark">必須</span></label>
+            <input type="text" id="kmChildName" class="input" placeholder="例: 山田花子">
+            <div class="error" id="kmChildNameError"></div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="kmGrade">学年・年齢<span class="req-mark">必須</span></label>
+            <input type="text" id="kmGrade" class="input" placeholder="例: 小学3年生">
+            <div class="error" id="kmGradeError"></div>
+          </div>
+          <div class="field">
+            <label class="field__label">お菓子作り経験<span class="req-mark">必須</span></label>
+            <div class="radio-list">
+              <label class="radio-list__opt"><input type="radio" name="kmBakingExperience" value="日頃からお菓子・料理をしている（包丁やその他の調理器具の利用）"> 日頃からお菓子・料理をしている（包丁やその他の調理器具の利用）</label>
+              <label class="radio-list__opt"><input type="radio" name="kmBakingExperience" value="お菓子作り・料理をしたことがある"> お菓子作り・料理をしたことがある</label>
+              <label class="radio-list__opt"><input type="radio" name="kmBakingExperience" value="お菓子作り・料理をしたことがない"> お菓子作り・料理をしたことがない</label>
+            </div>
+            <div class="error" id="kmBakingExperienceError"></div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="kmDate">参加希望日<span class="req-mark">必須</span></label>
+            <select id="kmDate" class="input select"></select>
+            <div class="field__hint">候補日の中からお選びください。候補日以外をご希望の場合はお電話（070-9158-0641）にてご相談ください。</div>
+            <div class="error" id="kmDateError"></div>
+          </div>
+          <div class="field">
+            <label class="field__label" for="kmCount">参加人数<span class="req-mark">必須</span></label>
+            <input type="number" id="kmCount" class="input" min="1" max="10" placeholder="例: 2">
+            <div class="error" id="kmCountError"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="reserveFurigana">お名前（ふりがな）<span class="req-mark">必須</span></label>
+          <input type="text" id="reserveFurigana" class="input" placeholder="例: やまだ たろう">
+          <div class="error" id="reserveFuriganaError"></div>
+        </div>
         <div class="field">
           <label class="field__label" for="reserveName">お名前<span class="req-mark">必須</span></label>
-          <input type="text" id="reserveName" class="input">
+          <input type="text" id="reserveName" class="input" placeholder="例: 山田太郎">
+          <div class="field__hint">ひらがな・漢字でご入力ください</div>
           <div class="error" id="reserveNameError"></div>
         </div>
         <div class="field">
           <label class="field__label" for="reserveTel">お電話番号<span class="req-mark">必須</span></label>
           <input type="tel" id="reserveTel" class="input" placeholder="例: 090-1234-5678">
           <div class="error" id="reserveTelError"></div>
+        </div>
+        <div class="field">
+          <label class="field__label" for="reserveEmail">メールアドレス<span class="req-mark">必須</span></label>
+          <input type="email" id="reserveEmail" class="input" placeholder="例: example@example.com">
+          <div class="field__hint">ご予約内容の確認・ご連絡に使用します</div>
+          <div class="error" id="reserveEmailError"></div>
         </div>
         <div class="field" id="reserveReceiptField" style="display:none;">
           <label class="field__check">
@@ -197,10 +250,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="field__hint">追加のご要望がある場合はご記入ください。内容確認のためスタッフより別途お電話し、追加料金を含むお見積もりをご案内いたします。</div>
           <div class="error" id="reserveNoteError"></div>
         </div>
+        <p style="font-size:12.5px;color:var(--color-text-soft);line-height:1.8;margin:0 0 10px;">直前のキャンセルはキャンセルポリシーに則りご請求させていただきます。近年、心ないご対応をされるお客様も増えており、当店存続のため何卒ご理解・ご協力をお願い申し上げます。</p>
         <div class="field">
           <label class="field__check">
             <input type="checkbox" id="reserveConsent">
-            <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>に同意する</span>
+            <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>・<a href="terms.html" target="_blank" rel="noopener">利用規約</a>（キャンセルポリシー含む）に同意する</span>
           </label>
           <div class="error" id="reserveConsentError"></div>
         </div>
@@ -210,6 +264,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="reserveConfirmWrap" style="display:none;">
         <div class="confirm-box" id="reserveConfirmSummary"></div>
+        <p style="font-size:13px;color:var(--color-text-soft);line-height:1.8;margin:14px 0 10px;">皆様にご満足いただくため、仕様を含めた予約内容の確認でスタッフよりお電話を差し上げることがございます。お手数でございますが、ご対応もしくは折り返しのお電話をいただきますようご協力をお願い致します。</p>
+        <ul style="font-size:13px;color:var(--color-error);line-height:1.8;margin:0 0 20px;padding-left:1.2em;">
+          <li>ご連絡がつかない場合や折り返しをいただけない場合は、ご予約をキャンセルとさせていただくことがございます。</li>
+          <li>ご連絡なく引き取り希望日を過ぎてもお引き取りがない場合は、商品代金をご請求させていただく場合がございます。</li>
+        </ul>
         <div class="btn-row">
           <button class="btn" id="reserveFinalBtn" type="button">この内容でご予約を確定する</button>
           <button class="btn btn--ghost" id="reserveBackBtn" type="button">修正する</button>
@@ -351,9 +410,27 @@ function sizeOptionLabel(o) {
   return `${o.label}${priceText}${badge}`;
 }
 
-function populateReserveSelects() {
+// 引き取り希望時間は、日祝は19:00・火-土は20:00の閉店時刻の30分前までを選択肢にする。
+function timeOptionsForDate(dateStr) {
+  if (!dateStr) return TIME_OPTIONS;
+  const d = new Date(dateStr);
+  const closeHour = (d.getDay() === 0 || JP_HOLIDAYS.has(dateKeyLocal(d))) ? 19 : 20;
+  const lastSlotMin = closeHour * 60 - 30;
+  const opts = [];
+  for (let m = 10 * 60; m <= lastSlotMin; m += 30) {
+    opts.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
+  }
+  return opts;
+}
+function populateReserveTimeOptions(dateStr) {
   const timeEl = document.getElementById("reserveTime");
-  timeEl.innerHTML = '<option value="">選択してください</option>' + TIME_OPTIONS.map(t => `<option value="${t}">${t}</option>`).join("");
+  const prev = timeEl.value;
+  const opts = timeOptionsForDate(dateStr);
+  timeEl.innerHTML = '<option value="">選択してください</option>' + opts.map(t => `<option value="${t}">${t}</option>`).join("");
+  if (opts.includes(prev)) timeEl.value = prev;
+}
+function populateReserveSelects() {
+  populateReserveTimeOptions(document.getElementById("reserveDate").value);
 }
 
 const TIER_LABELS = ["1段目のサイズ", "2段目のサイズ", "3段目のサイズ"];
@@ -393,6 +470,32 @@ function populateFlavorSelect(list) {
 
 let reserveHolidays = { weeklyClosed: [1], extraClosed: [] };
 onValue(ref(db, "koimariContent/holidays"), (snap) => { const v = snap.val(); if (v) reserveHolidays = v; });
+
+// 「お子様の一日店長体験」の予約フォーム表示ON/OFF・候補日（admin.htmlの体験プログラム候補日パネルで管理）。
+// 10月開始が未確定なため、既定ではsiteConfig/kidsManagerReserveOpenがfalse（未設定時も含む）の間は選択肢自体を出さない。
+let kidsManagerDates = [];
+onValue(ref(db, "siteConfig/kidsManagerReserveOpen"), (snap) => {
+  const open = !!snap.val();
+  const opt = document.getElementById("kidsManagerOptionWrap");
+  if (opt) opt.style.display = open ? "" : "none";
+  if (!open) {
+    const cakeRadio = document.querySelector('input[name="reserveCategory"][value="cake"]');
+    if (cakeRadio) { cakeRadio.checked = true; updateReserveCategoryVisibility(); }
+  }
+});
+onValue(ref(db, "siteConfig/experienceDates"), (snap) => {
+  kidsManagerDates = snap.val() || [];
+  populateKidsManagerDateSelect();
+});
+function populateKidsManagerDateSelect() {
+  const el = document.getElementById("kmDate");
+  if (!el) return;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const future = [...kidsManagerDates].filter((d) => new Date(d) >= today).sort();
+  const prev = el.value;
+  el.innerHTML = '<option value="">選択してください</option>' + future.map((d) => `<option value="${d}">${d}</option>`).join("");
+  if (future.includes(prev)) el.value = prev;
+}
 // 国民の祝日（内閣府発表分、2026-2027年）。定休日(月曜)が祝日と重なる日は営業する。
 // index.html（JP_HOLIDAYS・isWeeklyClosedDay）・functions/index.jsと同じデータ・同じロジックを保つこと。
 const JP_HOLIDAYS = new Set([
@@ -436,20 +539,32 @@ async function sendReserveToFormspree(data) {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 12000);
-    const item = data.items[0];
-    const productLines = data.items.map((it, i) => {
-      const label = data.items.length > 1 ? `${TIER_LABELS[i] || (i + 1) + "段目"}: ` : "";
-      return `${label}${it.category}${it.size ? " / " + it.size : ""}`;
-    }).join("\n");
-    const body = {
-      _subject: `【こいまり】LINE新規ご予約: ${data.name} 様 (${data.type})`,
-      お名前: data.name, 電話番号: data.tel,
-      種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
-      商品: productLines,
-      ケーキの種類: item.flavor || "", チョコプレートの文字: item.message || "",
-      領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
-      備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
-    };
+    let body;
+    if (data.category === "kidsManager") {
+      body = {
+        _subject: `【こいまり】LINE新規ご予約: ${data.name} 様 (${data.type})`,
+        "お名前（ふりがな）": data.furigana, お名前: data.name, 電話番号: data.tel, メールアドレス: data.email,
+        種別: data.type,
+        お子様のお名前: data.childName, 学年・年齢: data.grade, お菓子作り経験: data.bakingExperience,
+        参加希望日: data.pickupDate, 参加人数: `${data.participantCount}名`,
+        備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
+      };
+    } else {
+      const item = data.items[0];
+      const productLines = data.items.map((it, i) => {
+        const label = data.items.length > 1 ? `${TIER_LABELS[i] || (i + 1) + "段目"}: ` : "";
+        return `${label}${it.category}${it.size ? " / " + it.size : ""}`;
+      }).join("\n");
+      body = {
+        _subject: `【こいまり】LINE新規ご予約: ${data.name} 様 (${data.type})`,
+        "お名前（ふりがな）": data.furigana, お名前: data.name, 電話番号: data.tel, メールアドレス: data.email,
+        種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
+        商品: productLines,
+        ケーキの種類: item.flavor || "", チョコプレートの文字: item.message || "",
+        領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
+        備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
+      };
+    }
     const res = await fetch(FORMSPREE_ENDPOINT, {
       method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
       signal: controller.signal, body: JSON.stringify(body)
@@ -493,54 +608,98 @@ function updateReserveFieldVisibility() {
   if (isCake) populateFlavorSelect(currentCakeFlavors);
   else if (isRoll) populateFlavorSelect(currentRollFlavors);
 }
+function currentReserveCategory() {
+  return (document.querySelector('input[name="reserveCategory"]:checked') || {}).value || "cake";
+}
+function updateReserveCategoryVisibility() {
+  const isKidsManager = currentReserveCategory() === "kidsManager";
+  document.getElementById("cakeFieldsWrap").style.display = isKidsManager ? "none" : "";
+  document.getElementById("kidsManagerFieldsWrap").style.display = isKidsManager ? "" : "none";
+  if (isKidsManager) populateKidsManagerDateSelect();
+}
 document.addEventListener("change", (e) => {
   if (e.target && e.target.name === "reserveType") updateReserveFieldVisibility();
   if (e.target && e.target.name === "reserveTiers") updateReserveFieldVisibility();
+  if (e.target && e.target.name === "reserveCategory") updateReserveCategoryVisibility();
   if (e.target && e.target.id === "reserveReceiptNeeded") {
     document.getElementById("reserveReceiptNameWrap").style.display = e.target.checked ? "block" : "none";
   }
+  if (e.target && e.target.id === "reserveDate") populateReserveTimeOptions(e.target.value);
 });
 
 function validateReserve(data) {
   let ok = true;
-  ["reserveSizeError","reserveFlavorError","reserveDateError","reserveTimeError","reserveNameError","reserveTelError","reserveConsentError","reserveNoteError","reserveReceiptNameError"].forEach(id => setReserveError(id, ""));
-  const isBaked = data.type === "焼き菓子予約";
-  const isRoll = data.items[0] && data.items[0].category === "ロールケーキ";
-  if (!isBaked && !isRoll && data.items.some(it => !it.size)) { setReserveError("reserveSizeError", "サイズをお選びください"); ok = false; }
-  if ((!isBaked) && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
-  if (isBaked && !data.note.trim()) { setReserveError("reserveNoteError", "ご希望の商品をご記入ください"); ok = false; }
-  if (!data.pickupDate) { setReserveError("reserveDateError", "引き取り希望日をご入力ください"); ok = false; }
-  else {
-    const today = new Date(); today.setHours(0,0,0,0);
-    const pick = new Date(data.pickupDate);
-    if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
-    else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は2営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
+  ["reserveSizeError","reserveFlavorError","reserveDateError","reserveTimeError","reserveFuriganaError","reserveNameError","reserveTelError","reserveEmailError","reserveConsentError","reserveNoteError","reserveReceiptNameError","kmChildNameError","kmGradeError","kmBakingExperienceError","kmDateError","kmCountError"].forEach(id => setReserveError(id, ""));
+
+  if (data.category === "kidsManager") {
+    if (!data.childName.trim()) { setReserveError("kmChildNameError", "お子様のお名前をご入力ください"); ok = false; }
+    if (!data.grade.trim()) { setReserveError("kmGradeError", "学年・年齢をご入力ください"); ok = false; }
+    if (!data.bakingExperience) { setReserveError("kmBakingExperienceError", "お菓子作り経験をお選びください"); ok = false; }
+    if (!data.pickupDate) { setReserveError("kmDateError", "参加希望日をお選びください"); ok = false; }
+    if (!data.participantCount || Number(data.participantCount) < 1) { setReserveError("kmCountError", "参加人数をご入力ください"); ok = false; }
+  } else {
+    const isBaked = data.type === "焼き菓子予約";
+    const isRoll = data.items[0] && data.items[0].category === "ロールケーキ";
+    if (!isBaked && !isRoll && data.items.some(it => !it.size)) { setReserveError("reserveSizeError", "サイズをお選びください"); ok = false; }
+    if ((!isBaked) && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
+    if (isBaked && !data.note.trim()) { setReserveError("reserveNoteError", "ご希望の商品をご記入ください"); ok = false; }
+    if (!data.pickupDate) { setReserveError("reserveDateError", "引き取り希望日をご入力ください"); ok = false; }
+    else {
+      const today = new Date(); today.setHours(0,0,0,0);
+      const pick = new Date(data.pickupDate);
+      if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
+      else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は2営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
+    }
+    if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }
   }
-  if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }
+
+  if (!data.furigana.trim()) { setReserveError("reserveFuriganaError", "お名前（ふりがな）をご入力ください"); ok = false; }
   if (!data.name.trim()) { setReserveError("reserveNameError", "お名前をご入力ください"); ok = false; }
+  else if (!/^[\p{Script=Hiragana}\p{Script=Han}\s]+$/u.test(data.name.trim())) { setReserveError("reserveNameError", "お名前はひらがな・漢字でご入力ください"); ok = false; }
   if (!data.tel.trim()) { setReserveError("reserveTelError", "電話番号をご入力ください"); ok = false; }
   else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setReserveError("reserveTelError", "正しい電話番号をご入力ください"); ok = false; }
+  if (!data.email.trim()) { setReserveError("reserveEmailError", "メールアドレスをご入力ください"); ok = false; }
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { setReserveError("reserveEmailError", "正しいメールアドレスをご入力ください"); ok = false; }
   if (data.receiptNeeded && !data.receiptName.trim()) { setReserveError("reserveReceiptNameError", "領収書の宛名をご入力ください"); ok = false; }
   if (!data.privacyConsent) { setReserveError("reserveConsentError", "プライバシーポリシーへの同意が必要です"); ok = false; }
   return ok;
 }
 
 function renderReserveConfirm(data, targetId) {
+  const el = document.getElementById(targetId || "reserveConfirmSummary");
+  if (data.category === "kidsManager") {
+    el.innerHTML = `
+      <dt>ご予約の種類</dt><dd>お子様の一日店長体験</dd>
+      <dt>お子様のお名前</dt><dd>${escape(data.childName)}</dd>
+      <dt>学年・年齢</dt><dd>${escape(data.grade)}</dd>
+      <dt>お菓子作り経験</dt><dd>${escape(data.bakingExperience)}</dd>
+      <dt>参加希望日</dt><dd>${escape(data.pickupDate)}</dd>
+      <dt>参加人数</dt><dd>${escape(String(data.participantCount))}名</dd>
+      <dt>保護者の方のお名前（ふりがな）</dt><dd>${escape(data.furigana)}</dd>
+      <dt>保護者の方のお名前</dt><dd>${escape(data.name)}</dd>
+      <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
+      <dt>メールアドレス</dt><dd>${escape(data.email)}</dd>
+      ${data.note ? `<dt>その他ご要望・仕様の相談</dt><dd>${escape(data.note)}</dd>` : ""}
+    `;
+    return;
+  }
   const item = data.items[0];
   const isCake = item.category === "デコレーションケーキ";
   const sizesLine = data.items.length > 1
     ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
     : (item.size || "");
   const subtotal = isCake ? data.items.reduce((sum, it) => sum + (currentSizePrices[sizeKeyOf(it.size)] || 0), 0) : 0;
-  document.getElementById(targetId || "reserveConfirmSummary").innerHTML = `
+  el.innerHTML = `
     <dt>商品</dt><dd>${escape(item.category)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${subtotal ? `<dt>基本料金の目安</dt><dd>¥${subtotal.toLocaleString()}${data.note ? "（その他ご要望あり・追加料金が発生する場合があります）" : ""}</dd>` : ""}
     ${item.message ? `<dt>チョコプレートの文字</dt><dd>${escape(item.message)}</dd>` : ""}
     <dt>引き取り希望日時</dt><dd>${escape(data.pickupDate)} ${escape(data.pickupTime)}</dd>
+    <dt>お名前（ふりがな）</dt><dd>${escape(data.furigana)}</dd>
     <dt>お名前</dt><dd>${escape(data.name)}</dd>
     <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
+    <dt>メールアドレス</dt><dd>${escape(data.email)}</dd>
     ${data.receiptNeeded ? `<dt>領収書</dt><dd>必要（宛名: ${escape(data.receiptName)}）</dd>` : ""}
     ${data.note ? `<dt>その他ご要望・仕様の相談</dt><dd>${escape(data.note)}</dd>` : ""}
   `;
@@ -550,6 +709,21 @@ function renderReserveConfirm(data, targetId) {
 // チャットに残ることで、お客様の履歴にも、スタッフが見るLINE Official Account Managerのチャット画面にも
 // 予約内容が記録される（2026-08-19オーナー指示：メール通知だけでなくLINE側にも通知が必要）。
 function buildReserveSummaryText(data) {
+  if (data.category === "kidsManager") {
+    const lines = ["【ご予約を送信しました】", "ご予約の種類: お子様の一日店長体験"];
+    lines.push(`お子様のお名前: ${data.childName}`);
+    lines.push(`学年・年齢: ${data.grade}`);
+    lines.push(`お菓子作り経験: ${data.bakingExperience}`);
+    lines.push(`参加希望日: ${data.pickupDate}`);
+    lines.push(`参加人数: ${data.participantCount}名`);
+    lines.push(`保護者の方のお名前（ふりがな）: ${data.furigana}`);
+    lines.push(`保護者の方のお名前: ${data.name}`);
+    lines.push(`お電話番号: ${data.tel}`);
+    lines.push(`メールアドレス: ${data.email}`);
+    if (data.note) lines.push(`その他ご要望: ${data.note}`);
+    lines.push("", "内容の確認後、スタッフよりご連絡いたします。");
+    return lines.join("\n");
+  }
   const item = data.items[0];
   const isCake = item.category === "デコレーションケーキ";
   const sizesLine = data.items.length > 1
@@ -562,8 +736,10 @@ function buildReserveSummaryText(data) {
   if (subtotal) lines.push(`基本料金の目安: ¥${subtotal.toLocaleString()}`);
   if (item.message) lines.push(`チョコプレートの文字: ${item.message}`);
   lines.push(`引き取り希望日時: ${data.pickupDate} ${data.pickupTime}`);
+  lines.push(`お名前（ふりがな）: ${data.furigana}`);
   lines.push(`お名前: ${data.name}`);
   lines.push(`お電話番号: ${data.tel}`);
+  lines.push(`メールアドレス: ${data.email}`);
   if (data.receiptNeeded) lines.push(`領収書: 必要（宛名: ${data.receiptName}）`);
   if (data.note) lines.push(`その他ご要望: ${data.note}`);
   lines.push("", "内容の確認後、スタッフよりご連絡いたします。");
@@ -573,46 +749,71 @@ function buildReserveSummaryText(data) {
 function setupReserveForm(uid, displayName) {
   populateReserveSelects();
   updateReserveFieldVisibility();
+  updateReserveCategoryVisibility();
   document.getElementById("reserveName").value = displayName || "";
 
   let pendingData = null;
 
   document.getElementById("reserveSubmitBtn").addEventListener("click", () => {
-    // reservation.htmlと同じ型に合わせる：デコレーションケーキ/ロールケーキはtype「デコレーションケーキ予約」、
-    // 焼き菓子・ギフトはtype「焼き菓子予約」。商品の違い・段数はitems[]の各要素（1段=1要素）で表現する。
-    const category = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
-    const isBaked = category === BAKED_GOODS_CATEGORY;
-    const isRoll = category === "ロールケーキ";
-    const receiptNeeded = document.getElementById("reserveReceiptNeeded").checked;
-    const flavor = (isBaked ? "" : document.getElementById("reserveFlavor").value) || "";
-    const chocoText = document.getElementById("reserveChocoText").value || "";
-
-    let items;
-    if (isBaked) {
-      items = [{ category: "焼き菓子", image: "", size: "", flavor: "", message: "" }];
-    } else if (isRoll) {
-      items = [{ category: "ロールケーキ", image: "", size: "ホール", flavor, message: "" }];
-    } else {
-      const tierSizes = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
-      items = tierSizes.map((size, i) => ({ category: "デコレーションケーキ", image: "", size, flavor, message: i === 0 ? chocoText : "" }));
-    }
-
-    const data = {
-      name: document.getElementById("reserveName").value || "",
-      furigana: "", tel: document.getElementById("reserveTel").value || "",
-      email: "", zipcode: "", address: "", birthday: "",
-      privacyConsent: document.getElementById("reserveConsent").checked,
-      type: isBaked ? "焼き菓子予約" : "デコレーションケーキ予約",
-      pickupDate: document.getElementById("reserveDate").value || "",
-      pickupTime: document.getElementById("reserveTime").value || "",
-      items,
-      note: document.getElementById("reserveNote").value || "",
+    const topCategory = currentReserveCategory(); // "cake" | "kidsManager"
+    const furigana = document.getElementById("reserveFurigana").value || "";
+    const name = document.getElementById("reserveName").value || "";
+    const tel = document.getElementById("reserveTel").value || "";
+    const email = document.getElementById("reserveEmail").value || "";
+    const privacyConsent = document.getElementById("reserveConsent").checked;
+    const note = document.getElementById("reserveNote").value || "";
+    const commonFields = {
+      name, furigana, tel, email, zipcode: "", address: "", birthday: "",
+      privacyConsent, note,
       noshi: "", noshiTitle: "", noshiName: "", messageCard: "", wrapping: "",
-      receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : "",
       status: "受付済", notes: "",
       submittedAt: new Date().toISOString(),
       channel: "LINE", lineUserId: uid
     };
+
+    let data;
+    if (topCategory === "kidsManager") {
+      data = {
+        ...commonFields,
+        category: "kidsManager",
+        type: "一日店長体験",
+        childName: document.getElementById("kmChildName").value || "",
+        grade: document.getElementById("kmGrade").value || "",
+        bakingExperience: (document.querySelector('input[name="kmBakingExperience"]:checked') || {}).value || "",
+        pickupDate: document.getElementById("kmDate").value || "",
+        participantCount: document.getElementById("kmCount").value || "",
+        items: [], receiptNeeded: false, receiptName: ""
+      };
+    } else {
+      // reservation.htmlと同じ型に合わせる：デコレーションケーキ/ロールケーキはtype「デコレーションケーキ予約」、
+      // 焼き菓子・ギフトはtype「焼き菓子予約」。商品の違い・段数はitems[]の各要素（1段=1要素）で表現する。
+      const cakeType = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
+      const isBaked = cakeType === BAKED_GOODS_CATEGORY;
+      const isRoll = cakeType === "ロールケーキ";
+      const receiptNeeded = document.getElementById("reserveReceiptNeeded").checked;
+      const flavor = (isBaked ? "" : document.getElementById("reserveFlavor").value) || "";
+      const chocoText = document.getElementById("reserveChocoText").value || "";
+
+      let items;
+      if (isBaked) {
+        items = [{ category: "焼き菓子", image: "", size: "", flavor: "", message: "" }];
+      } else if (isRoll) {
+        items = [{ category: "ロールケーキ", image: "", size: "ホール", flavor, message: "" }];
+      } else {
+        const tierSizes = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
+        items = tierSizes.map((size, i) => ({ category: "デコレーションケーキ", image: "", size, flavor, message: i === 0 ? chocoText : "" }));
+      }
+
+      data = {
+        ...commonFields,
+        category: "cake",
+        type: isBaked ? "焼き菓子予約" : "デコレーションケーキ予約",
+        pickupDate: document.getElementById("reserveDate").value || "",
+        pickupTime: document.getElementById("reserveTime").value || "",
+        items,
+        receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
+      };
+    }
     const banner = document.getElementById("reserveFormErrorBanner");
     if (!validateReserve(data)) {
       const messages = Array.from(document.querySelectorAll("#reserveFormWrap .error")).map(el => el.textContent).filter(Boolean);
