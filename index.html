@@ -499,12 +499,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <img src="koimari-temari-mark.png" alt="こいまり" class="w-[82px] h-[82px] object-contain max-[900px]:w-[52px] max-[900px]:h-[52px] flex-shrink-0">
       <span class="flex flex-col leading-none min-w-0">
         <span class="[font-family:var(--font-en)] text-[40px] tracking-[.2em] text-[var(--color-accent)] font-bold max-[900px]:text-[24px] max-[900px]:tracking-[.08em]">KOIMARI</span>
-        <span class="[font-family:var(--font-mincho)] text-[18px] tracking-[.18em] text-white mt-2 font-bold max-[900px]:text-[12px] max-[900px]:tracking-[.1em] max-[900px]:mt-1 whitespace-nowrap">ケーキ屋さんこいまり</span>
+        <span class="[font-family:var(--font-mincho)] text-[18px] tracking-[.18em] text-white mt-2 font-bold max-[900px]:text-[12px] max-[900px]:tracking-[.1em] max-[900px]:mt-1 whitespace-nowrap">ケーキ屋さん こいまり 城東店</span>
       </span>
     </a>
     <div class="flex items-center gap-6 text-[#e8dcc8] max-[900px]:hidden">
       <div id="statusPill" class="status-pill"><span class="status-pill__dot"></span><span id="statusText">確認中…</span></div>
-      <div class="text-[14px] leading-[1.7]" data-i18n="header.hours">火-土 10:00 - 20:00<br>日 10:00 - 19:00 / 月曜定休</div>
+      <div class="text-[14px] leading-[1.7]" data-i18n="header.hours">火-土 10:00 - 20:00<br>日祝 10:00-19:00  /月曜定休(月祝除く)</div>
       <a href="tel:07091580641" class="[font-family:var(--font-sans)] text-[22px] text-[var(--color-accent)] tracking-[.02em] font-bold">070-9158-0641</a>
     </div>
     <div class="flex items-center gap-2 flex-shrink-0 max-[900px]:order-2">
@@ -843,6 +843,19 @@ const DEFAULT_NEWS = [
   {date:"2026.03.18",tag:"お知らせ",tagEn:"Notice",title:"5月の営業日についてのご案内",titleEn:"May Operating Hours",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",excerptEn:"Information on Golden Week hours and Mother's Day pickup arrangements.",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
 ];
 const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };
+// 国民の祝日（内閣府発表分、2026-2027年）。定休日(月曜)が祝日と重なる日は営業する。
+// 出典: https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html
+const JP_HOLIDAYS = new Set([
+  "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20","2026-04-29",
+  "2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-07-20","2026-08-11",
+  "2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23",
+  "2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-21","2027-03-22",
+  "2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11",
+  "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23"
+]);
+function isWeeklyClosedDay(h,dow,k){
+  return (h.weeklyClosed||[]).includes(dow) && !JP_HOLIDAYS.has(k);
+}
 const DEFAULT_SPOTLIGHT = {
   badge: "今月の主役", badgeEn: "Pick of the Month",
   period: "2026.05.01 - 05.31",
@@ -1070,7 +1083,7 @@ function renderBcal(){
     const k=`${year}-${mm}-${dd}`;
     const mmdd=`${mm}-${dd}`;
     const dow=cd.getDay();
-    const closed=(h.weeklyClosed||[]).includes(dow)||(h.extraClosed||[]).includes(k);
+    const closed=isWeeklyClosedDay(h,dow,k)||(h.extraClosed||[]).includes(k);
     const eventName=events[k]||events[mmdd]||"";
     const cell=document.createElement("div");cell.className="bcal__cell";
     if(dow===0)cell.classList.add("holiday");else if(dow===6)cell.classList.add("saturday");
@@ -1094,10 +1107,10 @@ function updateStatus(){
   const now=new Date();
   const dow=now.getDay();
   const k=`${now.getFullYear()}-${(now.getMonth()+1).toString().padStart(2,"0")}-${now.getDate().toString().padStart(2,"0")}`;
-  const isClosed=(h.weeklyClosed||[]).includes(dow)||(h.extraClosed||[]).includes(k);
+  const isClosed=isWeeklyClosedDay(h,dow,k)||(h.extraClosed||[]).includes(k);
   const hour=now.getHours()+now.getMinutes()/60;
-  // 日曜は19時まで、それ以外(火-土)は20時まで
-  const closeHour = dow === 0 ? 19 : 20;
+  // 日曜・祝日は19時まで、それ以外(火-土)は20時まで
+  const closeHour = (dow === 0 || JP_HOLIDAYS.has(k)) ? 19 : 20;
   const inHours=hour>=10&&hour<closeHour;
   const pill=document.getElementById("statusPill");
   const text=document.getElementById("statusText");

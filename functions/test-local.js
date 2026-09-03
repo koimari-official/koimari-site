@@ -71,6 +71,20 @@ assertEqual(
   "holidaysがnullでもデフォルトの月曜定休が適用される"
 );
 
+// 月曜が祝日の場合は営業する（2026-01-12は成人の日、月曜）
+assertEqual(
+  computeTodayStatus({ weeklyClosed: [1], extraClosed: [] }, new Date(2026, 0, 12, 14, 0)),
+  "本日はただいま営業中です。",
+  "月曜祝日=営業（成人の日）"
+);
+
+// 月曜祝日は日曜と同じ19時閉店（20時ではない）
+assertEqual(
+  computeTodayStatus({ weeklyClosed: [1], extraClosed: [] }, new Date(2026, 0, 12, 19, 30)),
+  "本日の営業は終了しました。",
+  "月曜祝日19:30=閉店後（19時閉店）"
+);
+
 // --- verifyLineSignature ---
 
 const secret = "test-channel-secret";

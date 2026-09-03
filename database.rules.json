@@ -1,0 +1,64 @@
+{
+  "rules": {
+    "dashboardTasks": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "sessions": {
+      ".read": true,
+      ".write": true
+    },
+    "lineup": {
+      ".read": true,
+      ".write": true
+    },
+    "trash": {
+      ".read": true,
+      ".write": true
+    },
+    "staffRequests": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || (!data.exists() && newData.child('status').val() === 'pending')"
+      }
+    },
+    "reservations": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || !data.exists()"
+      }
+    },
+    "experiences": {
+      ".read": "auth != null",
+      "$id": {
+        ".write": "auth != null || !data.exists()"
+      }
+    },
+    "siteConfig": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "meishiDesigns": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "koimariContent": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "koimariOps": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "lineMembers": {
+      ".read": "auth != null",
+      "$uid": {
+        ".read": true,
+        ".write": "auth != null || !data.exists()",
+        "profile": {
+          ".write": true
+        }
+      }
+    }
+  }
+}

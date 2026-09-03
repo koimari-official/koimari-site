@@ -145,7 +145,7 @@ a { color: inherit; text-decoration: none; }
   font-style: italic;
   color: var(--color-accent);
   letter-spacing: 0.3em;
-  font-size: 17px;
+  font-size: 21px;
   display: inline-block;
   margin-bottom: 10px;
   position: relative;
@@ -743,6 +743,14 @@ main { padding: 90px 24px 110px; }
   box-shadow: 0 8px 22px rgba(138,45,56,0.28);
   letter-spacing: 0.32em;
 }
+.btn--line {
+  background: #06c755;
+  box-shadow: 0 4px 14px rgba(6,199,85,0.25);
+}
+.btn--line:hover {
+  background: #05b34c;
+  box-shadow: 0 8px 22px rgba(6,199,85,0.35);
+}
 
 .thanks { text-align: center; padding: 40px 0 14px; }
 .thanks__icon {
@@ -865,7 +873,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark">
       <span class="header__logo-text">
         <span class="header__logo-en">KOIMARI</span>
-        <span class="header__logo-jp">こ い ま り</span>
+        <span class="header__logo-jp">ケーキ屋さん こいまり 城東店</span>
       </span>
     </a>
     <a href="index.html" class="back-link">← トップへ戻る</a>
@@ -892,7 +900,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <h1 class="page-head__title">ご予約・会員登録</h1>
     <p class="page-head__lead">
       こいまり公式LINEアカウントの「友だち追加」が、そのまま会員登録になります。<br>
-      デコレーションケーキのご予約は1営業日前までにご連絡ください。当日はお電話にて承ります。
+      デコレーションケーキのご予約は2営業日前までにご連絡ください。当日はお電話にて承ります。
     </p>
   </div>
 </div>
@@ -908,29 +916,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="same-day__body">
         <span class="same-day__label">当日予約はお電話にて承ります</span>
-        <span class="same-day__sub">LINEでのご予約は1営業日前までにお願いいたします。<br>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
+        <span class="same-day__sub">ご予約は２営業日前までにお願いいたします。<br><span id="xmasCakeNote" style="display:none;">（クリスマスケーキは、お渡し日前に店頭にて代金のお支払いをお願い致します。お支払いをもってご予約完了とさせて頂きます。）<br></span>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
       </div>
       <a href="tel:07091580641" class="same-day__tel">
-        <span>070-9158-0641<small>火-土 10:00-20:00 / 日 10:00-19:00</small></span>
+        <span>070-9158-0641<small>火-土 10:00-20:00 / 日祝 10:00-19:00（月曜定休・月祝除く）</small></span>
       </a>
     </div>
 
     <div class="form-section">
       <h2 class="form-section__title">ご予約はLINE公式アカウントから <span class="form-section__num">01</span></h2>
       <p style="margin-bottom:20px;">
-        こいまりのご予約・お問合せは、LINE公式アカウントで承っております。<br>
-        友だち追加後、チャットでご希望の商品・お引き取り日時をお知らせください。担当より内容確認のご連絡をいたします。
+        こいまりのご予約は、LINE公式アカウントの専用フォームから承っております。<br>
+        友だち追加後、トーク画面下部のメニューの「ご予約」ボタンから、予約フォームにご入力ください。チャットでのご予約受付は行っておりません。<br>
+        <span style="font-size:14px;color:var(--color-text-mute);">※お引き取りは閉店時間の30分前までとさせていただいております。</span>
       </p>
       <div style="background:var(--color-bg-soft,#f3ece1);border:1px solid var(--color-line,#e3d6c2);padding:20px 24px;margin-bottom:8px;">
         <p style="font-weight:700;margin-bottom:10px;font-size:15px;">友だち追加でそのまま会員登録が完了します</p>
         <ul style="line-height:2;padding-left:1.3em;font-size:14.5px;">
-          <li>チャットでそのままご予約・ご相談ができます</li>
+          <li>メニューの「ご予約」から専用フォームですぐにご予約いただけます</li>
           <li>これまでの作品ギャラリーもご覧いただけます</li>
           <li>スタンプ特典・お誕生日特典は準備中です（近日ご案内）</li>
         </ul>
       </div>
       <div style="text-align:center;margin:32px 0;">
-        <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="btn" style="display:inline-block;padding:18px 48px;font-size:16px;">LINE公式アカウントを友だち追加する（会員登録）</a>
+        <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="btn btn--line" style="display:inline-block;padding:18px 48px;font-size:16px;">LINE公式アカウントを友だち追加する（会員登録）</a>
+        <p style="margin-top:16px;font-size:14px;color:var(--color-text-mute);">すでに友だち追加済みの方は<a href="member.html#reserve" style="color:var(--color-accent);text-decoration:underline;">予約フォームへ</a></p>
       </div>
     </div>
 
@@ -976,5 +986,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
+<script>
+  // クリスマスケーキの事前決済案内は11月・12月のみ表示
+  var m = new Date().getMonth() + 1;
+  if (m === 11 || m === 12) {
+    var xmasNote = document.getElementById("xmasCakeNote");
+    if (xmasNote) xmasNote.style.display = "inline";
+  }
+</script>
 </body>
 </html>

@@ -15,7 +15,7 @@ const KOIMARI_I18N_EN = {
   'nav.bcal':      'Business Hours',
 
   // Header
-  'header.hours': 'Tue–Sat&nbsp; 10:00–20:00<br>Sun&nbsp; 10:00–19:00&nbsp; /&nbsp; Mon closed',
+  'header.hours': 'Tue–Sat&nbsp; 10:00–20:00<br>Sun &amp; hols&nbsp; 10:00–19:00&nbsp; /&nbsp; Closed Mon (open on hols)',
 
   // Status pill (JS will use these)
   'status.checking':   'Checking…',

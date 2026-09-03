@@ -35,7 +35,7 @@ a{color:inherit;text-decoration:none}
 .page-head{position:relative;text-align:center;padding:48px 24px 42px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#efe3d2 100%);overflow:hidden}
 .page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none;opacity:.7}
 .page-head__inner{position:relative;z-index:1}
-.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:17px;display:inline-block;margin-bottom:14px;font-weight:500}
+.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:21px;display:inline-block;margin-bottom:14px;font-weight:500}
 .page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
 .page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
 main{max-width:640px;margin:0 auto;padding:50px 24px 100px}
@@ -95,7 +95,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark">
       <span class="header__logo-text">
         <span class="header__logo-en">KOIMARI</span>
-        <span class="header__logo-jp">ケーキ屋さんこいまり</span>
+        <span class="header__logo-jp">ケーキ屋さん こいまり 城東店</span>
       </span>
     </a>
   </div>
@@ -162,7 +162,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field">
           <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
           <input type="date" id="reserveDate" class="input">
-          <div class="field__hint">1営業日前（定休日・臨時休業を除く直近の営業日）までにご予約ください。当日のご希望はお電話（070-9158-0641）にて承ります。</div>
+          <div class="field__hint">2営業日前（定休日・臨時休業を除く）までにご予約ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。</div>
           <div class="error" id="reserveDateError"></div>
         </div>
         <div class="field">
@@ -393,15 +393,33 @@ function populateFlavorSelect(list) {
 
 let reserveHolidays = { weeklyClosed: [1], extraClosed: [] };
 onValue(ref(db, "koimariContent/holidays"), (snap) => { const v = snap.val(); if (v) reserveHolidays = v; });
+// 国民の祝日（内閣府発表分、2026-2027年）。定休日(月曜)が祝日と重なる日は営業する。
+// index.html（JP_HOLIDAYS・isWeeklyClosedDay）・functions/index.jsと同じデータ・同じロジックを保つこと。
+const JP_HOLIDAYS = new Set([
+  "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20","2026-04-29",
+  "2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-07-20","2026-08-11",
+  "2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23",
+  "2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-21","2027-03-22",
+  "2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11",
+  "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23",
+]);
 function dateKeyLocal(d) { return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}-${d.getDate().toString().padStart(2,"0")}`; }
 function isClosedDate(d) {
-  return (reserveHolidays.weeklyClosed || []).includes(d.getDay()) || (reserveHolidays.extraClosed || []).includes(dateKeyLocal(d));
+  const key = dateKeyLocal(d);
+  const isWeeklyClosed = (reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key);
+  return isWeeklyClosed || (reserveHolidays.extraClosed || []).includes(key);
 }
+// ご予約は引き取り希望日の2営業日前までにお願いする運用（2026-09-03オーナー指示、従来の1営業日前から変更）。
+// 定休日・臨時休業日はカウントに含めない（例: 引き取りが火曜の場合、月曜定休を挟むので土曜が締切になる）。
 function computeOrderDeadline(pickupDate) {
   const d = new Date(pickupDate);
-  d.setDate(d.getDate() - 1);
+  let businessDaysBack = 0;
   let guard = 0;
-  while (isClosedDate(d) && guard < 30) { d.setDate(d.getDate() - 1); guard++; }
+  while (businessDaysBack < 2 && guard < 30) {
+    d.setDate(d.getDate() - 1);
+    if (!isClosedDate(d)) businessDaysBack++;
+    guard++;
+  }
   return d;
 }
 
@@ -496,7 +514,7 @@ function validateReserve(data) {
     const today = new Date(); today.setHours(0,0,0,0);
     const pick = new Date(data.pickupDate);
     if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
-    else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は1営業日前までにお願いいたします（当日はお電話で承ります）"); ok = false; }
+    else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は2営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
   }
   if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }
   if (!data.name.trim()) { setReserveError("reserveNameError", "お名前をご入力ください"); ok = false; }

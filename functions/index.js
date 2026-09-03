@@ -29,26 +29,42 @@ const RESERVE_CARD_REPLY_TEXT = `ご予約はこちらからどうぞ🎂
 
 ${RESERVE_LIFF_URL}
 
-デコレーションケーキ・ロールケーキ・焼き菓子/ギフトのご予約ができます。引き取り希望日の1営業日前までにご入力ください。当日のお急ぎのご予約はお電話（070-9158-0641）にて承ります。`;
+デコレーションケーキ・ロールケーキ・焼き菓子/ギフトのご予約ができます。引き取り希望日の2営業日前までにご入力ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。`;
 
 const STORE_INFO = `
 店名: こいまり（ケーキ屋）
 住所: 大阪府大阪市城東区成育2丁目13-15 アイビーマンション1階
 電話番号: 070-9158-0641
 基本営業時間: 火〜土 10:00-20:00 ／ 日 10:00-19:00
-定休日: 月曜日（祝日の場合は翌日）※臨時休業がある場合は上記と異なることがあります
+定休日: 月曜日（月曜が祝日の場合はその月曜は営業） ※臨時休業がある場合は上記と異なることがあります
 `.trim();
 
-// index.html の updateStatus()（L1090-1109）と同じロジック。
+// 国民の祝日（内閣府発表分、2026-2027年）。定休日(月曜)が祝日と重なる日は営業する。
+// index.html（JP_HOLIDAYS・isWeeklyClosedDay）と同じデータ・同じロジックを保つこと。
+// 出典: https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html
+const JP_HOLIDAYS = new Set([
+  "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20","2026-04-29",
+  "2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-07-20","2026-08-11",
+  "2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23",
+  "2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-21","2027-03-22",
+  "2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11",
+  "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23",
+]);
+function isWeeklyClosedDay(holidays, dow, key) {
+  return (holidays.weeklyClosed || []).includes(dow) && !JP_HOLIDAYS.has(key);
+}
+
+// index.html の updateStatus()（L1090-1113）と同じロジック。
 // 表示側とAI応答側で「本日の営業状況」の判定が食い違わないよう、必ずここを唯一の実装として保つ。
 function computeTodayStatus(holidays, now) {
   const dow = now.getDay();
   const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const weeklyClosed = (holidays && holidays.weeklyClosed) || [1];
-  const extraClosed = (holidays && holidays.extraClosed) || [];
-  const isClosed = weeklyClosed.includes(dow) || extraClosed.includes(key);
+  const h = holidays || { weeklyClosed: [1], extraClosed: [] };
+  const extraClosed = h.extraClosed || [];
+  const isClosed = isWeeklyClosedDay(h, dow, key) || extraClosed.includes(key);
   const hour = now.getHours() + now.getMinutes() / 60;
-  const closeHour = dow === 0 ? 19 : 20;
+  // 日曜・祝日は19時まで、それ以外(火-土)は20時まで
+  const closeHour = dow === 0 || JP_HOLIDAYS.has(key) ? 19 : 20;
   const inHours = hour >= 10 && hour < closeHour;
 
   if (isClosed) return "本日は定休日（または臨時休業日）です。";
@@ -201,7 +217,8 @@ ${faqKnowledgeText}
 - 営業時間・定休日・場所・電話番号・上記のFAQで答えられる質問には、その内容に沿って正確に答えてください
 - アレルギーに関するご質問には、内容には一切触れず「恐れ入りますが、アレルギーに関するご質問はお電話（070-9158-0641）にて承っております」とご案内してください
 - それ以外で、上記の情報だけでは答えられない質問（価格の詳細、在庫状況、予約の可否等）には、憶測で答えず「スタッフが確認してご連絡します」という趣旨で丁寧に答えてください
-- クーポン・過去の作品（ギャラリー）・ご予約に関する話題やご質問があった場合は、その内容に答えたうえで「トーク画面下部のメニューからも『クーポン』『ギャラリー』『ご予約』にすぐアクセスいただけます」という案内を一言添えてください
+- クーポン・過去の作品（ギャラリー）に関する話題やご質問があった場合は、その内容に答えたうえで「トーク画面下部のメニューからも『クーポン』『ギャラリー』にすぐアクセスいただけます」という案内を一言添えてください
+- 【重要】ご予約に関する話題（予約したい、商品・サイズ・引き取り日時を伝えようとしている等）があった場合は、**チャット上でご希望の商品や日時をお伺いしないでください**。予約はチャットでは承っておらず、必ず専用フォームでのご入力が必要である旨を伝え、「トーク画面下部のメニューの『ご予約』ボタンからご入力ください」とご案内してください。お客様が商品名・日時等をすでにメッセージ内で伝えてきた場合も、その内容を承った体で返信せず、フォームでの入力をお願いする案内に徹してください
 - 返信は3〜4文程度（メニュー案内を添える場合は4〜5文程度）、簡潔にまとめてください
 - 【内部確認タグ・必須】上記の店舗情報・FAQだけでは十分に答えられなかった質問（憶測で答えた、「スタッフが確認します」で対応した等）には、返信の一番最後に改行してから \`[[REVIEW: 理由を15字以内で]]\` という内部タグを必ず付けてください。このタグはお客様には表示されず、後でスタッフが内容を確認して正しい情報を登録するための業務用マーカーです。FAQ等の情報で十分正確に答えられた場合や、アレルギー質問を電話案内した場合はタグを付けないでください。`,
     messages: [{ role: "user", content: userText }],
@@ -396,7 +413,7 @@ const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 // koimariOps/richMenuIds/version と一致しなくなった時点でensureRichMenuが自動的に
 // 作り直す（画像だけ差し替えてこの値を更新し忘れると、古いデザインのままになる）。
 // 詳しい変更手順は assets/richmenu-src/README.md を参照。
-const RICHMENU_VERSION = "2026-09-01-tanukichi-v2";
+const RICHMENU_VERSION = "2026-09-03-tanukichi-v3";
 
 async function lineApi(method, url, accessToken, body, isBinary) {
   const headers = { Authorization: `Bearer ${accessToken}` };

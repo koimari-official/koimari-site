@@ -12,8 +12,10 @@
 - `koimari-logo.png` — 店舗情報枠に使っているロゴ（`古伊万里`の手毬柄、サイトヘッダーと共通）
 - `itachoco_block.png` / `whitechoco_block.png` — 茶色マス／ベージュマスの背景に使っている、
   板チョコ写真から1ブロックだけ切り出した画像（ベージュ版は輝度から色を再マッピングして作成）
-- `openmoji/*.svg` — 各アイコン（ご予約=ケーキ、ギャラリー=ロリポップ、クーポン=チケット）の元SVG。
-  [OpenMoji](https://openmoji.org)（CC BY-SA 4.0）から取得し、線の色・太さを調整して使用
+- `openmoji/*.svg` — 各アイコンの元SVG。ご予約=`cake.svg`（自作、キャンドル+苺付き）、
+  ギャラリー=`cheki.svg`（自作、断面が見えるカットケーキ）、クーポン=`ticket3.svg`（自作、
+  オーナー提供の参考画像を元に作成）。`ticket.svg`/`ticket2.svg`は使用していない旧案
+  （[OpenMoji](https://openmoji.org)由来、CC BY-SA 4.0）
 
 ## 季節限定メニューの絵を差し替える場合
 
