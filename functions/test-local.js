@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
-  buildStaffNotifyText, buildChatGreetingPrefix,
+  buildStaffNotifyText, buildChatGreetingPrefix, formatPickupDateTimeJp,
 } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
@@ -196,5 +196,36 @@ console.log("OK: buildChatGreetingPrefix は感謝+季節の一言+空行で構�
 assertEqual(productLabel({ type: "一日店長体験", items: [] }), "一日店長体験", "itemsが空の予約はdata.typeを商品名として使う");
 assertEqual(productLabel({ items: [] }), "ご予約商品", "itemsが空でdata.typeも無い場合の最終フォールバック");
 console.log("OK: productLabel はitems未指定時にdata.typeへフォールバックする");
+
+// --- productLabel: ご利用シーン（バースデー／セレブレーション／その他）による呼び方の変化 ---
+// 2026-09-04オーナー指示：デコレーションケーキ・ロールケーキともバースデー等の利用シーンで呼び方を変える。
+
+assertEqual(
+  productLabel({ occasion: "バースデー", items: [{ category: "デコレーションケーキ", flavor: "イチゴ" }] }),
+  "イチゴのバースデーケーキ", "デコレーションケーキ+バースデーは「フレーバーのバースデーケーキ」"
+);
+assertEqual(
+  productLabel({ occasion: "セレブレーション", items: [{ category: "デコレーションケーキ", flavor: "チョコ" }] }),
+  "チョコのセレブレーションケーキ", "デコレーションケーキ+セレブレーションは「フレーバーのセレブレーションケーキ」"
+);
+assertEqual(
+  productLabel({ occasion: "その他", occasionOther: "退職祝い", items: [{ category: "デコレーションケーキ", flavor: "イチゴ" }] }),
+  "イチゴの退職祝いケーキ", "デコレーションケーキ+その他は記述内容を使う"
+);
+assertEqual(
+  productLabel({ occasion: "バースデー", items: [{ category: "ロールケーキ", flavor: "こいまりロール" }] }),
+  "バースデーロールケーキ", "ロールケーキ+バースデーはフレーバー名を出さず「バースデーロールケーキ」"
+);
+assertEqual(
+  productLabel({ items: [{ category: "ロールケーキ", flavor: "こいまりロール" }] }),
+  "こいまりロール", "利用シーン未指定のロールケーキは従来通りフレーバー名のまま"
+);
+console.log("OK: productLabel はご利用シーンに応じて呼び方を変える");
+
+// --- formatPickupDateTimeJp: 引き取り日時を「2026年9月7日15時」のような日本語表記に整形する ---
+
+assertEqual(formatPickupDateTimeJp("2026-09-07", "15:00"), "2026年9月7日15時", "分が0の場合は「◯分」を付けない");
+assertEqual(formatPickupDateTimeJp("2026-09-07", "15:30"), "2026年9月7日15時30分", "分が0以外の場合は「◯分」を付ける");
+console.log("OK: formatPickupDateTimeJp");
 
 console.log("\nすべてのローカルテストに合格しました。");

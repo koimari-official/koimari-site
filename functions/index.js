@@ -128,11 +128,29 @@ function buildChatGreetingPrefix(now) {
 // お客様にメッセージで案内する「商品名」を組み立てる。
 // ロールケーキはフレーバー名自体が商品名（例:「こいまりロール」）だが、デコレーションケーキは
 // フレーバーが「イチゴ」等の形容にとどまるため、カテゴリ名と組み合わせて商品名らしくする。
+// ご利用シーン（バースデー／セレブレーション／その他）に応じた商品名。指定が無ければnull（呼び出し側で通常名にフォールバック）。
+// member.htmlのoccasionCategoryName()とロジックを揃えること（member.html側は常にbaseCategoryへフォールバックする仕様のため、
+// 戻り値の扱いが異なる点に注意 — こちらはproductLabel()内でflavorへのフォールバックと組み合わせるためnullを返す）。
+function occasionCategoryName(baseCategory, occasion, occasionOther) {
+  const isRoll = baseCategory === "ロールケーキ";
+  if (occasion === "バースデー") return isRoll ? "バースデーロールケーキ" : "バースデーケーキ";
+  if (occasion === "セレブレーション") return isRoll ? "セレブレーションロールケーキ" : "セレブレーションケーキ";
+  if (occasion === "その他" && occasionOther) return isRoll ? `${occasionOther}ロールケーキ` : `${occasionOther}ケーキ`;
+  return null;
+}
+
 function productLabel(data) {
   const item = data.items && data.items[0];
   if (!item) return data.type || "ご予約商品";
   const isRoll = item.category === "ロールケーキ";
-  const base = !item.flavor ? item.category : (isRoll ? item.flavor : `${item.flavor}の${item.category}`);
+  const occasionName = occasionCategoryName(item.category, data.occasion, data.occasionOther);
+  let base;
+  if (isRoll) {
+    base = occasionName || item.flavor || item.category;
+  } else {
+    const categoryName = occasionName || item.category;
+    base = !item.flavor ? categoryName : `${item.flavor}の${categoryName}`;
+  }
   return base + (data.items.length > 1 ? `（${data.items.length}段）` : "");
 }
 
@@ -144,15 +162,23 @@ function computePickupDateTime(data) {
   return isNaN(d.getTime()) ? null : d;
 }
 
+// "2026-09-07"・"15:00" → "2026年9月7日15時"（分が0以外の場合のみ「◯分」を付ける）。
+function formatPickupDateTimeJp(pickupDate, pickupTime) {
+  const [y, mo, d] = String(pickupDate || "").split("-").map(Number);
+  const [h, mi] = String(pickupTime || "").split(":").map(Number);
+  if (!y || !mo || !d || Number.isNaN(h)) return `${pickupDate} ${pickupTime}`;
+  return `${y}年${mo}月${d}日${h}時${mi ? `${mi}分` : ""}`;
+}
+
 function buildReminderMessage(stage, data, now) {
   const name = data.name || "お客様";
   const product = productLabel(data);
   if (stage === "threeDay") {
     const careLine = getSeasonCareLine(now);
-    return `${name}様、ご予約いただいた「${product}」のお引き取りまであと3日となりました🍓\n内容の変更がございましたらLINE公式アカウント上、もしくはお気軽に店舗までご連絡くださいませ🎵\n${careLine}${name}様にお会いできる日を、こいまり一同楽しみにお待ちしております。`;
+    return `${name}様、ご予約いただいた「${product}」のお引き取りまであと3日となりました🍓\n内容の変更がございましたらLINE公式アカウント上、もしくはお気軽に店舗までご連絡くださいませ🎵\n${careLine}${name}様にお会いできる日を、スタッフ一同楽しみにお待ちしております。`;
   }
   if (stage === "oneDay") {
-    return `${name}様、明日 ${data.pickupDate} ${data.pickupTime}に「${product}」のお引き取りをご予約いただいております。お会いできるのを楽しみにしております🍓 道中お気をつけてお越しくださいね。`;
+    return `${name}様、明日 ${formatPickupDateTimeJp(data.pickupDate, data.pickupTime)}に「${product}」のお引き取りをご予約いただいております。お会いできるのを楽しみにしております🍓 道中お気をつけてお越しくださいね。`;
   }
   const comfort = getStoreComfortLine(now);
   return `${name}様、まもなくお引き取りのお時間です（${data.pickupTime}〜）。${comfort.text}ゆっくりいらしてくださいね${comfort.emoji}`;
@@ -264,7 +290,7 @@ ${faqKnowledgeText}
 exports._internal = {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
-  buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix,
+  buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
 };
 
 exports.lineWebhook = onRequest(
