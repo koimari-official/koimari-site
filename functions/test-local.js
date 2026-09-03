@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
-  buildStaffNotifyText,
+  buildStaffNotifyText, buildChatGreetingPrefix,
 } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
@@ -181,5 +181,20 @@ assert.ok(staffText.includes("田中"), "スタッフ通知にお名前を含む
 assert.ok(staffText.includes("LINE公式アカウント"), "スタッフ通知に受付経路を含む");
 assert.ok(staffText.includes("admin.html"), "スタッフ通知に管理画面へのリンクを含む");
 console.log("OK: buildStaffNotifyText");
+
+// --- AIチャット応答：会話最初の1通に添える季節のあいさつ ---
+// 2026-09-04オーナー指示：毎回だとくどいため最初の1通のみ。文面はgetSeasonCareLineと同じトーンを流用する。
+
+const greetingPrefix = buildChatGreetingPrefix(new Date(2026, 7, 15));
+assert.ok(greetingPrefix.includes("ありがとうございます"), "あいさつに感謝の一言を含む");
+assert.ok(greetingPrefix.includes(getSeasonCareLine(new Date(2026, 7, 15))), "あいさつに季節の労わりメッセージ（getSeasonCareLineと同一）を含む");
+assert.ok(greetingPrefix.endsWith("\n\n"), "本題との間に空行が入り、詰まった文章にならない");
+console.log("OK: buildChatGreetingPrefix は感謝+季節の一言+空行で構成される");
+
+// --- productLabel: items未指定（一日店長体験など）はdata.typeにフォールバックする ---
+
+assertEqual(productLabel({ type: "一日店長体験", items: [] }), "一日店長体験", "itemsが空の予約はdata.typeを商品名として使う");
+assertEqual(productLabel({ items: [] }), "ご予約商品", "itemsが空でdata.typeも無い場合の最終フォールバック");
+console.log("OK: productLabel はitems未指定時にdata.typeへフォールバックする");
 
 console.log("\nすべてのローカルテストに合格しました。");

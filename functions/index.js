@@ -97,6 +97,34 @@ function getStoreComfortLine(now) {
   return { text: "お店でお待ちしております。", emoji: "🍓" };
 }
 
+// AIチャット応答の「久しぶりの会話」判定（この間隔以上あいたら、新しい会話の最初の1通とみなす）。
+// 最初の1通にだけ季節のあいさつを添える（毎回だとくどくなるため、2026-09-04オーナー指示）。
+const AI_CHAT_SESSION_GAP_MS = 6 * 60 * 60 * 1000;
+async function isFirstMessageOfChatSession(userId, now) {
+  if (!userId) return false;
+  try {
+    const snap = await admin.database().ref(`koimariOps/lastAiReplyAt/${userId}`).once("value");
+    const last = snap.val();
+    return !last || now.getTime() - last > AI_CHAT_SESSION_GAP_MS;
+  } catch (err) {
+    console.warn("lastAiReplyAt取得失敗:", err);
+    return false;
+  }
+}
+async function markAiReplySent(userId, now) {
+  if (!userId) return;
+  try {
+    await admin.database().ref(`koimariOps/lastAiReplyAt/${userId}`).set(now.getTime());
+  } catch (err) {
+    console.warn("lastAiReplyAt更新失敗:", err);
+  }
+}
+// 会話の最初の1通にだけ添える、あいさつ+季節の一言（getSeasonCareLineと同じ、確定済みのトーンを流用）。
+// 「暑いのに/寒いのにすみません」という詫びではなく、温かみ・感謝を伝える方向（2026-08-19確定分針を踏襲）。
+function buildChatGreetingPrefix(now) {
+  return `いつもこいまりをご利用いただき、ありがとうございます😊\n\n${getSeasonCareLine(now)}\n\n`;
+}
+
 // お客様にメッセージで案内する「商品名」を組み立てる。
 // ロールケーキはフレーバー名自体が商品名（例:「こいまりロール」）だが、デコレーションケーキは
 // フレーバーが「イチゴ」等の形容にとどまるため、カテゴリ名と組み合わせて商品名らしくする。
@@ -213,6 +241,8 @@ ${todayStatus}
 ${faqKnowledgeText}
 
 【回答ルール】
+- 地元の温かいケーキ屋さんの店員として、親しみやすく自然な日本語で答えてください。機械的・事務的な言い回しや、不自然に硬い敬語の連続は避けてください
+- 内容の区切りごとに改行（空行）を入れ、詰まった長文にならないようにしてください。LINEのトーク画面では短い段落に分けたほうが読みやすいです
 - 標準語・関西弁どちらで聞かれても、内容を正しく理解して答えてください（無理に関西弁で返答する必要はありません）
 - 営業時間・定休日・場所・電話番号・上記のFAQで答えられる質問には、その内容に沿って正確に答えてください
 - アレルギーに関するご質問には、内容には一切触れず「恐れ入りますが、アレルギーに関するご質問はお電話（070-9158-0641）にて承っております」とご案内してください
@@ -234,7 +264,7 @@ ${faqKnowledgeText}
 exports._internal = {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
-  buildStaffNotifyText,
+  buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix,
 };
 
 exports.lineWebhook = onRequest(
@@ -290,16 +320,21 @@ exports.lineWebhook = onRequest(
           admin.database().ref("koimariContent/holidays").once("value"),
           admin.database().ref("koimariContent/faq").once("value"),
         ]);
-        const todayStatus = computeTodayStatus(holidaysSnap.val(), new Date());
+        const now = new Date();
+        const userId = (event.source && event.source.userId) || null;
+        const todayStatus = computeTodayStatus(holidaysSnap.val(), now);
         const faqKnowledgeText = buildFaqKnowledgeText(faqSnap.val());
-        const { text: replyText, reviewReason } = await buildReplyText(anthropic, event.message.text, todayStatus, faqKnowledgeText);
+        const { text: aiText, reviewReason } = await buildReplyText(anthropic, event.message.text, todayStatus, faqKnowledgeText);
+        const greet = await isFirstMessageOfChatSession(userId, now);
+        const replyText = greet ? buildChatGreetingPrefix(now) + aiText : aiText;
         await replyToLine(event.replyToken, replyText, LINE_CHANNEL_ACCESS_TOKEN.value());
+        await markAiReplySent(userId, now);
         if (reviewReason) {
           await admin.database().ref("aiReviewQueue").push({
             question: event.message.text,
             aiAnswer: replyText,
             reason: reviewReason,
-            userId: (event.source && event.source.userId) || null,
+            userId,
             timestamp: Date.now(),
             status: "pending",
           });
