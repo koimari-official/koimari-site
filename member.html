@@ -160,9 +160,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveCreamTypeField" style="display:none;">
           <label class="field__label">クリームの種類<span class="req-mark">必須</span></label>
-          <div class="radio-list" style="flex-direction:row;">
-            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamType" value="生クリーム" checked> 生クリーム</label>
-            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリーム</label>
+          <div class="radio-list">
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生クリーム" checked> 生クリーム</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリーム</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ミッシェルBOX"> ミッシェルBOX</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
+          </div>
+          <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
+            <label class="field__label" style="font-size:12px;">生クリームの有無（同一価格）</label>
+            <div class="radio-list" style="flex-direction:row;">
+              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamTypeSub" value="生クリームあり" checked> 生クリームあり</label>
+              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamTypeSub" value="生クリームなし"> 生クリームなし</label>
+            </div>
           </div>
           <div class="error" id="reserveCreamTypeError"></div>
         </div>
@@ -234,7 +245,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field">
           <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
           <input type="date" id="reserveDate" class="input">
-          <div class="field__hint">2営業日前（定休日・臨時休業を除く）までにご予約ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。</div>
+          <div class="field__hint">3営業日前（定休日・臨時休業を除く）までにご予約ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。</div>
           <div class="error" id="reserveDateError"></div>
         </div>
         <div class="field">
@@ -621,13 +632,13 @@ function isClosedDate(d) {
   const isWeeklyClosed = (reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key);
   return isWeeklyClosed || (reserveHolidays.extraClosed || []).includes(key);
 }
-// ご予約は引き取り希望日の2営業日前までにお願いする運用（2026-09-03オーナー指示、従来の1営業日前から変更）。
+// ご予約は引き取り希望日の3営業日前までにお願いする運用（2026-09-04オーナー指示、3営業日前に変更）。
 // 定休日・臨時休業日はカウントに含めない（例: 引き取りが火曜の場合、月曜定休を挟むので土曜が締切になる）。
 function computeOrderDeadline(pickupDate) {
   const d = new Date(pickupDate);
   let businessDaysBack = 0;
   let guard = 0;
-  while (businessDaysBack < 2 && guard < 30) {
+  while (businessDaysBack < 3 && guard < 30) {
     d.setDate(d.getDate() - 1);
     if (!isClosedDate(d)) businessDaysBack++;
     guard++;
@@ -674,7 +685,7 @@ async function sendReserveToFormspree(data) {
         種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
         商品: productLines,
         ケーキの種類: item.flavor || "", ご利用シーン: data.occasion === "その他" ? data.occasionOther : (data.occasion || ""),
-        ...(isCakeBody ? { クリームの種類: data.creamType, 飾り付け: data.decoration } : {}),
+        ...(isCakeBody ? { クリームの種類: `${data.creamType}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`, 飾り付け: data.decoration } : {}),
         生クリームたっぷり乗せ: data.creamTopping ? "あり" : "なし",
         ...((isCakeBody || isRoll) ? { ろうそく: candleLine, メッセージプレート: messageLine } : {}),
         "メッセージプレートの文字（1枚目）": item.message || "",
@@ -757,6 +768,10 @@ document.addEventListener("change", (e) => {
     if (e.target.checked) updateCandleBagsUI();
   }
   if (e.target && e.target.name === "reserveCandleType") updateCandleBagsUI();
+  if (e.target && e.target.name === "reserveCreamType") {
+    const needsSub = e.target.value === "フルーツタルトBOX" || e.target.value === "ストロベリータルトBOX";
+    document.getElementById("reserveCreamTypeSubWrap").style.display = needsSub ? "" : "none";
+  }
   if (e.target && e.target.id === "reserveMessageCount") {
     document.getElementById("reserveChocoTextWrap").style.display = Number(e.target.value) > 0 ? "" : "none";
   }
@@ -789,7 +804,7 @@ function validateReserve(data) {
       const today = new Date(); today.setHours(0,0,0,0);
       const pick = new Date(data.pickupDate);
       if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
-      else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は2営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
+      else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は3営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
     }
     if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }
   }
@@ -836,7 +851,7 @@ function renderReserveConfirm(data, targetId) {
   el.innerHTML = `
     <dt>商品</dt><dd>${escape(productName)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
-    ${isCake ? `<dt>クリームの種類</dt><dd>${escape(data.creamType)}</dd>` : ""}
+    ${isCake ? `<dt>クリームの種類</dt><dd>${escape(data.creamType)}${data.creamTypeSub ? `（${escape(data.creamTypeSub)}）` : ""}</dd>` : ""}
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(data.decoration)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
@@ -884,7 +899,7 @@ function buildReserveSummaryText(data) {
   const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降は追加料金）" : ""}` : "なし";
   const lines = ["【ご予約を送信しました】", `商品: ${productName}${data.items.length > 1 ? `（${data.items.length}段）` : ""}`];
   if (item.flavor) lines.push(`ケーキの種類: ${item.flavor}`);
-  if (isCake) lines.push(`クリームの種類: ${data.creamType}`);
+  if (isCake) lines.push(`クリームの種類: ${data.creamType}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`);
   if (isCake) lines.push(`飾り付け: ${data.decoration}`);
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
@@ -955,6 +970,8 @@ function setupReserveForm(uid, displayName) {
       const occasion = (isBaked ? "" : (document.querySelector('input[name="reserveOccasion"]:checked') || {}).value) || "";
       const occasionOther = occasion === "その他" ? (document.getElementById("reserveOccasionOther").value || "") : "";
       const creamType = isCake ? ((document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "") : "";
+      const creamTypeNeedsSub = creamType === "フルーツタルトBOX" || creamType === "ストロベリータルトBOX";
+      const creamTypeSub = creamTypeNeedsSub ? ((document.querySelector('input[name="reserveCreamTypeSub"]:checked') || {}).value || "") : "";
       const decoration = isCake ? ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "") : "";
       const creamTopping = isCake && document.getElementById("reserveCreamTopping").checked;
       const candleNeeded = (isBaked ? false : document.getElementById("reserveCandleNeeded").checked);
@@ -982,7 +999,7 @@ function setupReserveForm(uid, displayName) {
         type: isBaked ? "焼き菓子予約" : "デコレーションケーキ予約",
         pickupDate: document.getElementById("reserveDate").value || "",
         pickupTime: document.getElementById("reserveTime").value || "",
-        items, occasion, occasionOther, creamType, decoration, creamTopping,
+        items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
         candleNeeded, candleType, candleBags, messageCount,
         subtotal: cakeSubtotal + creamToppingCost + candleCost + messageCost,
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
