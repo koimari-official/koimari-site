@@ -25,14 +25,14 @@ const KOIMARI_I18N_EN = {
   'status.after':      'Closed for Today',
 
   // USP strip
-  'usp.1.title': 'Handmade with Care',
-  'usp.1.sub':   'Crafted from quality ingredients, baked one at a time',
-  'usp.2.title': 'Custom Cakes Welcome',
-  'usp.2.sub':   'For birthdays, anniversaries &amp; corporate gifts',
-  'usp.3.title': 'Local to Joto-ku &amp; Kyobashi',
-  'usp.3.sub':   'Seasonal flavors using local farm produce',
-  'usp.4.title': 'Baking Workshops',
-  'usp.4.sub':   'Hands-on programs for kids &amp; teens',
+  'usp.1.title': 'Handmade, One at a Time',
+  'usp.1.sub':   'Baked with care for quality ingredients, flavor, and presentation.',
+  'usp.2.title': 'Now Taking Reservations',
+  'usp.2.sub':   'Custom cakes &amp; baked goods for gifts and celebrations',
+  'usp.3.title': 'Serving Joto, Tsurumi, Kyobashi, Gamo &amp; Sekime',
+  'usp.3.sub':   'Bringing Japanese sweets loved around the world',
+  'usp.4.title': "Kids' One-Day Manager Experience",
+  'usp.4.sub':   'Workshops planned for young children&ndash;elementary students<br>Career experience ongoing for teens',
 
   // Greeting
   'greeting.heading': 'Four Seasons<br>on a Plate.',
