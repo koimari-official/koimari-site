@@ -817,27 +817,26 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
       <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;margin-top:20px;">
         <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:6px;">デコレーションケーキのサイズ別基本料金</h3>
-        <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:16px;">LINE予約フォームの各サイズの横に表示されます。デコレーションスタイル（Fのみ／C・F）によって料金が異なります（2026-09-04オーナー確認済みの本番データを設定済み）。</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px 14px;margin-bottom:10px;">
-          <div></div>
-          <label style="font-size:12px;color:var(--color-text-soft);text-align:center;">Fのみ</label>
-          <label style="font-size:12px;color:var(--color-text-soft);text-align:center;">C・F</label>
-          <label style="display:flex;align-items:center;font-size:13px;color:var(--color-text-soft);">4号（12cm）</label>
-          <input type="number" id="cfPrice4F" class="input" placeholder="4500">
-          <input type="number" id="cfPrice4CF" class="input" placeholder="4800">
-          <label style="display:flex;align-items:center;font-size:13px;color:var(--color-text-soft);">5号（15cm）</label>
-          <input type="number" id="cfPrice5F" class="input" placeholder="6200">
-          <input type="number" id="cfPrice5CF" class="input" placeholder="6500">
-          <label style="display:flex;align-items:center;font-size:13px;color:var(--color-text-soft);">6号（18cm）</label>
-          <input type="number" id="cfPrice6F" class="input" placeholder="9600">
-          <input type="number" id="cfPrice6CF" class="input" placeholder="9800">
-          <label style="display:flex;align-items:center;font-size:13px;color:var(--color-text-soft);">7号（21cm）</label>
-          <input type="number" id="cfPrice7F" class="input" placeholder="12800">
-          <input type="number" id="cfPrice7CF" class="input" placeholder="13000">
+        <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:16px;">LINE予約フォームの各サイズの横に表示される価格です。生クリーム／生チョコクリーム・フルーツ／いちごばっかりのいずれを選んでも同一料金（予約伝票の標準内容の範囲内のため）。この範囲を超える個別のご要望（備考欄記載）があった場合のみ、金額を確定せず「スタッフがお電話でご案内」に切り替わります（2026-09-04、同業者に価格帯を把握されないための方針）。</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">4号（12cm）</label><input type="number" id="cfPrice4" class="input" placeholder="4500"></div>
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">5号（15cm）</label><input type="number" id="cfPrice5" class="input" placeholder="6200"></div>
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">6号（18cm）</label><input type="number" id="cfPrice6" class="input" placeholder="9600"></div>
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">7号（21cm）</label><input type="number" id="cfPrice7" class="input" placeholder="12800"></div>
         </div>
         <div style="margin-bottom:18px;padding-top:14px;border-top:1px solid var(--color-line);">
           <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">生クリームたっぷり乗せ（追加オプション・税込）</label>
           <input type="number" id="cfCreamToppingPrice" class="input" style="max-width:200px;" placeholder="540">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;padding-top:14px;border-top:1px solid var(--color-line);">
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">ろうそく追加料金（2袋目以降・1袋あたり）</label>
+            <input type="number" id="cfCandleBagPrice" class="input" placeholder="未設定">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">メッセージプレート追加料金（2枚目以降・1枚あたり）</label>
+            <input type="number" id="cfMessagePlatePrice" class="input" placeholder="未設定">
+          </div>
         </div>
         <button class="btn" id="cfSavePrices">保存して反映</button>
         <span id="cfPricesSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
@@ -4177,28 +4176,32 @@ const rollFlavorsEditor = createFlavorListEditor({
 });
 const cakeSizePricesRef = ref(fbDb, "koimariContent/cakeSizePrices");
 const cakeCreamToppingPriceRef = ref(fbDb, "koimariContent/cakeCreamToppingPrice");
+const cakeCandleBagPriceRef = ref(fbDb, "koimariContent/cakeCandleBagPrice");
+const cakeMessagePlatePriceRef = ref(fbDb, "koimariContent/cakeMessagePlatePrice");
 // キーはmember.htmlのsizeKeyOf()と揃えて号数のみ（Firebaseのキーに"/"を含められないため、フルの値は使えない）。
-// サイズごとにFのみ／C・Fの2価格を持つ（2026-09-04、こいまり本来のデコレーションスタイル別料金に変更）。
-const CAKE_SIZE_PRICE_KEYS = {
-  cfPrice4F: ["4号", "F"], cfPrice4CF: ["4号", "CF"],
-  cfPrice5F: ["5号", "F"], cfPrice5CF: ["5号", "CF"],
-  cfPrice6F: ["6号", "F"], cfPrice6CF: ["6号", "CF"],
-  cfPrice7F: ["7号", "F"], cfPrice7CF: ["7号", "CF"],
-};
+// サイズごとに単一の「基準価格（標準内容）」のみ持つ（2026-09-04、実際の予約伝票の内容に合わせた仕様）。
+const CAKE_SIZE_PRICE_KEYS = { cfPrice4: "4号", cfPrice5: "5号", cfPrice6: "6号", cfPrice7: "7号" };
 function initCakeSizePricesPanel() {
   let loadedOnce = false;
   onValue(cakeSizePricesRef, (snapshot) => {
     if (loadedOnce) return;
     loadedOnce = true;
     const prices = snapshot.val() || {};
-    Object.entries(CAKE_SIZE_PRICE_KEYS).forEach(([elId, [size, style]]) => {
+    Object.entries(CAKE_SIZE_PRICE_KEYS).forEach(([elId, key]) => {
       const el = document.getElementById(elId);
-      const val = prices[size] && prices[size][style];
-      if (el && val != null) el.value = val;
+      if (el && prices[key] != null) el.value = prices[key];
     });
   });
   onValue(cakeCreamToppingPriceRef, (snapshot) => {
     const el = document.getElementById("cfCreamToppingPrice");
+    if (el && snapshot.val() != null) el.value = snapshot.val();
+  });
+  onValue(cakeCandleBagPriceRef, (snapshot) => {
+    const el = document.getElementById("cfCandleBagPrice");
+    if (el && snapshot.val() != null) el.value = snapshot.val();
+  });
+  onValue(cakeMessagePlatePriceRef, (snapshot) => {
+    const el = document.getElementById("cfMessagePlatePrice");
     if (el && snapshot.val() != null) el.value = snapshot.val();
   });
   const saveBtn = document.getElementById("cfSavePrices");
@@ -4206,15 +4209,17 @@ function initCakeSizePricesPanel() {
     saveBtn.dataset.bound = "1";
     saveBtn.addEventListener("click", () => {
       const prices = {};
-      Object.entries(CAKE_SIZE_PRICE_KEYS).forEach(([elId, [size, style]]) => {
+      Object.entries(CAKE_SIZE_PRICE_KEYS).forEach(([elId, key]) => {
         const val = Number(document.getElementById(elId).value);
-        if (val > 0) {
-          prices[size] = prices[size] || {};
-          prices[size][style] = val;
-        }
+        if (val > 0) prices[key] = val;
       });
       const creamToppingPrice = Number(document.getElementById("cfCreamToppingPrice").value) || 0;
-      update(ref(fbDb, "koimariContent"), { cakeSizePrices: prices, cakeCreamToppingPrice: creamToppingPrice }).then(() => {
+      const candleBagPrice = Number(document.getElementById("cfCandleBagPrice").value) || 0;
+      const messagePlatePrice = Number(document.getElementById("cfMessagePlatePrice").value) || 0;
+      update(ref(fbDb, "koimariContent"), {
+        cakeSizePrices: prices, cakeCreamToppingPrice: creamToppingPrice,
+        cakeCandleBagPrice: candleBagPrice, cakeMessagePlatePrice: messagePlatePrice
+      }).then(() => {
         const note = document.getElementById("cfPricesSavedNote");
         if (note) { note.textContent = "保存しました"; setTimeout(() => { note.textContent = ""; }, 3000); }
       }).catch(err => {
