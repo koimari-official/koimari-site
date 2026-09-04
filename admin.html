@@ -533,7 +533,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <!-- ===== 営業日設定 ===== -->
     <section class="panel" id="panel-holidays">
       <div class="panel__head"><h2 class="panel__title">営業日設定</h2></div>
-      <p class="panel__desc">定休日・臨時休業日を設定できます。トップページの営業日カレンダーに反映されます。</p>
+      <p class="panel__desc">定休日・臨時休業日を設定できます。トップページの営業日カレンダーに反映されます。<br>⚠️ ここで変更した内容は、<strong>Googleビジネスプロフィールの営業時間・臨時休業日にも手動で同じ内容を反映してください</strong>（自動連動はしていません。2026-09-05確認）。
       <div style="background:#fff; border:1px solid var(--color-line); padding:28px 30px; max-width:760px;">
         <h3 style="font-family:var(--font-mincho); font-size:17px; margin-bottom:16px; font-weight:600;">基本定休日（毎週）</h3>
         <div id="weeklyClosed" style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:30px;"></div>
@@ -819,6 +819,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:6px;">デコレーションケーキのサイズ別基本料金</h3>
         <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:16px;">LINE予約フォームの各サイズの横に表示される価格です。生クリーム／生チョコクリーム・フルーツ／いちごばっかりのいずれを選んでも同一料金（予約伝票の標準内容の範囲内のため）。この範囲を超える個別のご要望（備考欄記載）があった場合のみ、金額を確定せず「スタッフがお電話でご案内」に切り替わります（2026-09-04、同業者に価格帯を把握されないための方針）。</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
+          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">3号（9cm）</label><input type="number" id="cfPrice3" class="input" placeholder="3800"></div>
           <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">4号（12cm）</label><input type="number" id="cfPrice4" class="input" placeholder="4500"></div>
           <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">5号（15cm）</label><input type="number" id="cfPrice5" class="input" placeholder="6200"></div>
           <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">6号（18cm）</label><input type="number" id="cfPrice6" class="input" placeholder="9600"></div>
@@ -4185,7 +4186,7 @@ const cakeCandleBagPricePlainRef = ref(fbDb, "koimariContent/cakeCandleBagPriceP
 const cakeMessagePlatePriceRef = ref(fbDb, "koimariContent/cakeMessagePlatePrice");
 // キーはmember.htmlのsizeKeyOf()と揃えて号数のみ（Firebaseのキーに"/"を含められないため、フルの値は使えない）。
 // サイズごとに単一の「基準価格（標準内容）」のみ持つ（2026-09-04、実際の予約伝票の内容に合わせた仕様）。
-const CAKE_SIZE_PRICE_KEYS = { cfPrice4: "4号", cfPrice5: "5号", cfPrice6: "6号", cfPrice7: "7号" };
+const CAKE_SIZE_PRICE_KEYS = { cfPrice3: "3号", cfPrice4: "4号", cfPrice5: "5号", cfPrice6: "6号", cfPrice7: "7号" };
 function initCakeSizePricesPanel() {
   let loadedOnce = false;
   onValue(cakeSizePricesRef, (snapshot) => {
