@@ -509,17 +509,32 @@ async function sendCustomerConfirmationEmail(data) {
   }
 }
 
+// メール送信に失敗した場合、お客様には気づく手段がないため、スタッフLINEグループに通知して
+// 電話等での代替フォローを促す（2026-09-04オーナー指示：エラーで無言のまま止まらないようにする）。
+async function notifyStaffOfEmailFailure(data) {
+  try {
+    const groupIdSnap = await admin.database().ref("koimariOps/staffNotifyGroupId").once("value");
+    const groupId = groupIdSnap.val();
+    if (!groupId) return;
+    const text = `⚠️ 予約確認メールの送信に失敗しました\nお名前: ${data.name || "不明"} 様\nメール: ${data.email || "未入力"}\n電話番号でのご連絡・確認をお願いします。`;
+    await pushLineMessage(groupId, text, LINE_CHANNEL_ACCESS_TOKEN.value());
+  } catch (err) {
+    console.error("メール送信失敗のLINE通知にも失敗:", err);
+  }
+}
+
 exports.sendCustomerReservationEmail = onValueCreated(
   {
     ref: "/reservations/{pushId}",
     instance: "koimari-tasting-default-rtdb",
     region: "asia-southeast1",
-    secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
+    secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, LINE_CHANNEL_ACCESS_TOKEN],
   },
   async (event) => {
     const data = event.data.val();
     if (!data) return;
-    await sendCustomerConfirmationEmail(data);
+    const sent = await sendCustomerConfirmationEmail(data);
+    if (!sent && data.email) await notifyStaffOfEmailFailure(data);
   }
 );
 
