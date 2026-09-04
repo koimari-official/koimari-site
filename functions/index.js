@@ -11,6 +11,7 @@ const fs = require("fs");
 const path = require("path");
 const admin = require("firebase-admin");
 const Anthropic = require("@anthropic-ai/sdk");
+const nodemailer = require("nodemailer");
 
 admin.initializeApp({
   databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -19,6 +20,10 @@ admin.initializeApp({
 const LINE_CHANNEL_SECRET = defineSecret("LINE_CHANNEL_SECRET");
 const LINE_CHANNEL_ACCESS_TOKEN = defineSecret("LINE_CHANNEL_ACCESS_TOKEN");
 const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
+// 予約確認メールの送信元。完全無料のGmail SMTP（アプリパスワード認証）を使う（2026-09-04導入）。
+// `firebase functions:secrets:set GMAIL_USER` / `GMAIL_APP_PASSWORD` --project koimari-tasting で設定する。
+const GMAIL_USER = defineSecret("GMAIL_USER");
+const GMAIL_APP_PASSWORD = defineSecret("GMAIL_APP_PASSWORD");
 
 // あいさつメッセージのカード②「ご予約」の送信テキスト（LINE Official Account Manager側の設定と一致させること）。
 // これに完全一致した場合はAIを呼ばず、予約フォーム（member.html）のLIFFリンクを確実に案内する
@@ -128,13 +133,13 @@ function buildChatGreetingPrefix(now) {
 // お客様にメッセージで案内する「商品名」を組み立てる。
 // ロールケーキはフレーバー名自体が商品名（例:「こいまりロール」）だが、デコレーションケーキは
 // フレーバーが「イチゴ」等の形容にとどまるため、カテゴリ名と組み合わせて商品名らしくする。
-// ご利用シーン（バースデー／セレブレーション／その他）に応じた商品名。指定が無ければnull（呼び出し側で通常名にフォールバック）。
+// ご利用シーン（バースデー／クリスマス／その他）に応じた商品名。指定が無ければnull（呼び出し側で通常名にフォールバック）。
 // member.htmlのoccasionCategoryName()とロジックを揃えること（member.html側は常にbaseCategoryへフォールバックする仕様のため、
 // 戻り値の扱いが異なる点に注意 — こちらはproductLabel()内でflavorへのフォールバックと組み合わせるためnullを返す）。
 function occasionCategoryName(baseCategory, occasion, occasionOther) {
   const isRoll = baseCategory === "ロールケーキ";
   if (occasion === "バースデー") return isRoll ? "バースデーロールケーキ" : "バースデーケーキ";
-  if (occasion === "セレブレーション") return isRoll ? "セレブレーションロールケーキ" : "セレブレーションケーキ";
+  if (occasion === "クリスマス") return isRoll ? "クリスマスロールケーキ" : "クリスマスケーキ";
   if (occasion === "その他" && occasionOther) return isRoll ? `${occasionOther}ロールケーキ` : `${occasionOther}ケーキ`;
   return null;
 }
@@ -291,6 +296,7 @@ exports._internal = {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
+  buildCustomerConfirmationEmailText,
 };
 
 exports.lineWebhook = onRequest(
@@ -455,6 +461,65 @@ exports.notifyStaffOnNewReservation = onValueCreated(
       return;
     }
     await pushLineMessage(groupId, buildStaffNotifyText(data), LINE_CHANNEL_ACCESS_TOKEN.value());
+  }
+);
+
+// 予約完了メール（お客様宛）。完全無料のGmail SMTP（アプリパスワード認証）で送信する（2026-09-04導入）。
+// Formspreeは店舗宛の通知用途のみで、お客様向けの自動返信は有料プランでしか使えないため別経路にした。
+function buildCustomerConfirmationEmailText(data) {
+  const product = productLabel(data);
+  const pickupLine = data.pickupTime
+    ? `引き取り希望日時: ${formatPickupDateTimeJp(data.pickupDate, data.pickupTime)}`
+    : `参加希望日: ${data.pickupDate || ""}`;
+  return [
+    `${data.name || "お客様"} 様`,
+    "",
+    "この度はケーキ屋こいまりへご予約いただき、誠にありがとうございます。",
+    "以下の内容でご予約を承りました。",
+    "",
+    `商品: ${product}`,
+    pickupLine,
+    "",
+    "後ほど、詳細確認のためスタッフよりお電話を差し上げます。ご予約内容の変更・キャンセルも、お電話にて承っております。",
+    "",
+    "店舗名: ケーキ屋こいまり",
+    "電話番号: 070-9158-0641",
+    "",
+    "※このメールは自動送信されています。本メールへのご返信では確認できませんので、ご連絡はお電話にてお願いいたします。",
+  ].join("\n");
+}
+
+async function sendCustomerConfirmationEmail(data) {
+  if (!data.email) return false;
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() },
+    });
+    await transporter.sendMail({
+      from: `"ケーキ屋こいまり" <${GMAIL_USER.value()}>`,
+      to: data.email,
+      subject: "【こいまり】ご予約を承りました",
+      text: buildCustomerConfirmationEmailText(data),
+    });
+    return true;
+  } catch (err) {
+    console.error("予約確認メール送信失敗:", err);
+    return false;
+  }
+}
+
+exports.sendCustomerReservationEmail = onValueCreated(
+  {
+    ref: "/reservations/{pushId}",
+    instance: "koimari-tasting-default-rtdb",
+    region: "asia-southeast1",
+    secrets: [GMAIL_USER, GMAIL_APP_PASSWORD],
+  },
+  async (event) => {
+    const data = event.data.val();
+    if (!data) return;
+    await sendCustomerConfirmationEmail(data);
   }
 );
 

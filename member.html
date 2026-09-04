@@ -169,16 +169,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field" id="reserveDecorationField" style="display:none;">
           <label class="field__label">飾り付け<span class="req-mark">必須</span></label>
           <div class="radio-list" style="flex-direction:row;">
-            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveDecoration" value="フルーツ" checked> フルーツ</label>
-            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveDecoration" value="いちごばっかり"> いちごばっかり</label>
+            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveDecoration" value="いちごのみ" checked> いちごのみ</label>
+            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveDecoration" value="バラエティフルーツ"> バラエティフルーツ</label>
           </div>
           <div class="error" id="reserveDecorationError"></div>
         </div>
         <div class="field" id="reserveOccasionField" style="display:none;">
           <label class="field__label">ご利用シーン<span class="req-mark">必須</span></label>
           <div class="radio-list">
-            <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="バースデー"> バースデー</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="セレブレーション"> セレブレーション</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="バースデー"> バースデー（お誕生日）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="クリスマス"> クリスマス</label>
             <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="その他"> その他</label>
           </div>
           <input type="text" id="reserveOccasionOther" class="input" style="display:none;margin-top:10px;" maxlength="20" placeholder="例: 退職祝い">
@@ -210,11 +210,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
             <label class="field__label" for="reserveCandleBags" style="font-size:12px;">袋数（1袋5本入）</label>
             <select id="reserveCandleBags" class="input select">
-              <option value="1">1袋（無料）</option>
+              <option value="1">1袋</option>
               <option value="2">2袋</option>
               <option value="3">3袋</option>
             </select>
-            <div class="field__hint" id="reserveCandleHint">2袋目以降は追加料金がかかります（詳細はご予約後スタッフよりご案内します）。</div>
+            <div class="field__hint" id="reserveCandleHint"></div>
           </div>
           <div class="error" id="reserveCandleError"></div>
         </div>
@@ -343,7 +343,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div id="reserveThanksWrap" class="notice-box" style="display:none;padding:0;border:none;text-align:left;">
         <div class="notice-box__icon">🎂</div>
         <div class="notice-box__title">ご予約ありがとうございました</div>
-        <div class="notice-box__desc">担当より確認のご連絡をいたします。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
+        <div class="notice-box__desc">予約完了をメールでお送りしますのでご確認ください。後ほど担当より確認のお電話も差し上げます。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
         <div class="confirm-box" id="reserveThanksSummary" style="margin-top:20px;"></div>
       </div>
     </div>
@@ -479,7 +479,7 @@ function priceOf(sizeValue) { return currentSizePrices[sizeKeyOf(sizeValue)] || 
 function occasionCategoryName(baseCategory, occasion, occasionOther) {
   const isRoll = baseCategory === "ロールケーキ";
   if (occasion === "バースデー") return isRoll ? "バースデーロールケーキ" : "バースデーケーキ";
-  if (occasion === "セレブレーション") return isRoll ? "セレブレーションロールケーキ" : "セレブレーションケーキ";
+  if (occasion === "クリスマス") return isRoll ? "クリスマスロールケーキ" : "クリスマスケーキ";
   if (occasion === "その他" && occasionOther) return isRoll ? `${occasionOther}ロールケーキ` : `${occasionOther}ケーキ`;
   return baseCategory;
 }
@@ -490,10 +490,33 @@ function sizeOptionLabel(o) {
   const badge = o.value === RECOMMENDED_SIZE_VALUE ? "（定番）" : "";
   return `${o.label}${priceText}${badge}`;
 }
-// ろうそく・メッセージプレートは1つ目まで無料、2つ目以降は追加料金（金額はadmin.htmlで設定、未設定時は0円扱い）。
-let currentCandleBagPrice = 0;
+// ろうそく：ナンバーろうそくは1袋目から有料、普通のろうそくは1袋目無料・2袋目以降が有料（2026-09-04確定）。
+// メッセージプレートは1枚目まで無料、2枚目以降は追加料金。金額はadmin.htmlで設定（普通ろうそくの初期値60円は確定分）。
+const DEFAULT_CANDLE_BAG_PRICE_PLAIN = 60;
+let currentCandleBagPriceNumber = 0;
+let currentCandleBagPricePlain = DEFAULT_CANDLE_BAG_PRICE_PLAIN;
 let currentMessagePlatePrice = 0;
-onValue(ref(db, "koimariContent/cakeCandleBagPrice"), (snap) => { currentCandleBagPrice = snap.val() || 0; });
+onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() || 0; });
+onValue(ref(db, "koimariContent/cakeCandleBagPricePlain"), (snap) => { currentCandleBagPricePlain = snap.val() || DEFAULT_CANDLE_BAG_PRICE_PLAIN; });
+function candleCostFor(candleType, bags) {
+  if (!bags) return 0;
+  if (candleType === "ナンバーろうそく") return bags * currentCandleBagPriceNumber;
+  return Math.max(0, bags - 1) * currentCandleBagPricePlain;
+}
+// ろうそくの種類によって「1袋目が無料かどうか」が違うため、選択肢の表示・注意書きを都度切り替える。
+function updateCandleBagsUI() {
+  const isNumber = ((document.querySelector('input[name="reserveCandleType"]:checked') || {}).value) === "ナンバーろうそく";
+  const bagsSelect = document.getElementById("reserveCandleBags");
+  const opt1 = bagsSelect.querySelector('option[value="1"]');
+  const hint = document.getElementById("reserveCandleHint");
+  if (isNumber) {
+    opt1.textContent = "1袋";
+    hint.textContent = "ナンバーろうそくは1袋目から料金がかかります（詳細はご予約後スタッフよりご案内します）。";
+  } else {
+    opt1.textContent = "1袋（無料）";
+    hint.textContent = `普通のろうそくは1袋目無料、2袋目以降は1袋${currentCandleBagPricePlain.toLocaleString()}円+税かかります。`;
+  }
+}
 onValue(ref(db, "koimariContent/cakeMessagePlatePrice"), (snap) => { currentMessagePlatePrice = snap.val() || 0; });
 
 // 引き取り希望時間は、日祝は19:00・火-土は20:00の閉店時刻の30分前までを選択肢にする。
@@ -684,7 +707,7 @@ function updateReserveFieldVisibility() {
   const isBaked = category === BAKED_GOODS_CATEGORY;
 
   document.getElementById("reserveTiersField").style.display = isCake ? "" : "none";
-  document.getElementById("reserveFlavorField").style.display = (isCake || isRoll) ? "" : "none";
+  document.getElementById("reserveFlavorField").style.display = isRoll ? "" : "none";
   document.getElementById("reserveCreamTypeField").style.display = isCake ? "" : "none";
   document.getElementById("reserveDecorationField").style.display = isCake ? "" : "none";
   document.getElementById("reserveOccasionField").style.display = (isCake || isRoll) ? "" : "none";
@@ -731,7 +754,9 @@ document.addEventListener("change", (e) => {
   }
   if (e.target && e.target.id === "reserveCandleNeeded") {
     document.getElementById("reserveCandleDetail").style.display = e.target.checked ? "" : "none";
+    if (e.target.checked) updateCandleBagsUI();
   }
+  if (e.target && e.target.name === "reserveCandleType") updateCandleBagsUI();
   if (e.target && e.target.id === "reserveMessageCount") {
     document.getElementById("reserveChocoTextWrap").style.display = Number(e.target.value) > 0 ? "" : "none";
   }
@@ -752,7 +777,7 @@ function validateReserve(data) {
     const isBaked = data.type === "焼き菓子予約";
     const isRoll = data.items[0] && data.items[0].category === "ロールケーキ";
     if (!isBaked && !isRoll && data.items.some(it => !it.size)) { setReserveError("reserveSizeError", "サイズをお選びください"); ok = false; }
-    if ((!isBaked) && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
+    if (isRoll && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
     if (!isBaked && !data.occasion) { setReserveError("reserveOccasionError", "ご利用シーンをお選びください"); ok = false; }
     else if (data.occasion === "その他" && !data.occasionOther.trim()) { setReserveError("reserveOccasionError", "ご利用シーンをご記入ください"); ok = false; }
     if (!isBaked && !isRoll && !data.creamType) { setReserveError("reserveCreamTypeError", "クリームの種類をお選びください"); ok = false; }
@@ -924,7 +949,7 @@ function setupReserveForm(uid, displayName) {
       const isRoll = cakeType === "ロールケーキ";
       const isCake = !isBaked && !isRoll;
       const receiptNeeded = document.getElementById("reserveReceiptNeeded").checked;
-      const flavor = (isBaked ? "" : document.getElementById("reserveFlavor").value) || "";
+      const flavor = isRoll ? (document.getElementById("reserveFlavor").value || "") : "";
       const messageCount = (isBaked ? 0 : Number(document.getElementById("reserveMessageCount").value) || 0);
       const chocoText = messageCount > 0 ? (document.getElementById("reserveChocoText").value || "") : "";
       const occasion = (isBaked ? "" : (document.querySelector('input[name="reserveOccasion"]:checked') || {}).value) || "";
@@ -948,7 +973,7 @@ function setupReserveForm(uid, displayName) {
 
       const cakeSubtotal = isCake ? items.reduce((sum, it) => sum + priceOf(it.size), 0) : 0;
       const creamToppingCost = creamTopping ? currentCreamToppingPrice : 0;
-      const candleCost = candleNeeded && candleBags > 1 ? (candleBags - 1) * currentCandleBagPrice : 0;
+      const candleCost = candleNeeded ? candleCostFor(candleType, candleBags) : 0;
       const messageCost = messageCount > 1 ? (messageCount - 1) * currentMessagePlatePrice : 0;
 
       data = {

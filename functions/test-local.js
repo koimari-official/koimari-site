@@ -197,7 +197,7 @@ assertEqual(productLabel({ type: "一日店長体験", items: [] }), "一日店�
 assertEqual(productLabel({ items: [] }), "ご予約商品", "itemsが空でdata.typeも無い場合の最終フォールバック");
 console.log("OK: productLabel はitems未指定時にdata.typeへフォールバックする");
 
-// --- productLabel: ご利用シーン（バースデー／セレブレーション／その他）による呼び方の変化 ---
+// --- productLabel: ご利用シーン（バースデー／クリスマス／その他）による呼び方の変化 ---
 // 2026-09-04オーナー指示：デコレーションケーキ・ロールケーキともバースデー等の利用シーンで呼び方を変える。
 
 assertEqual(
@@ -205,8 +205,8 @@ assertEqual(
   "イチゴのバースデーケーキ", "デコレーションケーキ+バースデーは「フレーバーのバースデーケーキ」"
 );
 assertEqual(
-  productLabel({ occasion: "セレブレーション", items: [{ category: "デコレーションケーキ", flavor: "チョコ" }] }),
-  "チョコのセレブレーションケーキ", "デコレーションケーキ+セレブレーションは「フレーバーのセレブレーションケーキ」"
+  productLabel({ occasion: "クリスマス", items: [{ category: "デコレーションケーキ", flavor: "チョコ" }] }),
+  "チョコのクリスマスケーキ", "デコレーションケーキ+クリスマスは「フレーバーのクリスマスケーキ」"
 );
 assertEqual(
   productLabel({ occasion: "その他", occasionOther: "退職祝い", items: [{ category: "デコレーションケーキ", flavor: "イチゴ" }] }),

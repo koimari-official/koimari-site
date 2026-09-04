@@ -830,8 +830,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;padding-top:14px;border-top:1px solid var(--color-line);">
           <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">ろうそく追加料金（2袋目以降・1袋あたり）</label>
-            <input type="number" id="cfCandleBagPrice" class="input" placeholder="未設定">
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">ナンバーろうそく（1袋あたり・1袋目から有料）</label>
+            <input type="number" id="cfCandleBagPriceNumber" class="input" placeholder="未設定">
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">普通のろうそく（2袋目以降・1袋あたり・税別）</label>
+            <input type="number" id="cfCandleBagPricePlain" class="input" placeholder="60">
           </div>
           <div>
             <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">メッセージプレート追加料金（2枚目以降・1枚あたり）</label>
@@ -4176,7 +4180,8 @@ const rollFlavorsEditor = createFlavorListEditor({
 });
 const cakeSizePricesRef = ref(fbDb, "koimariContent/cakeSizePrices");
 const cakeCreamToppingPriceRef = ref(fbDb, "koimariContent/cakeCreamToppingPrice");
-const cakeCandleBagPriceRef = ref(fbDb, "koimariContent/cakeCandleBagPrice");
+const cakeCandleBagPriceNumberRef = ref(fbDb, "koimariContent/cakeCandleBagPriceNumber");
+const cakeCandleBagPricePlainRef = ref(fbDb, "koimariContent/cakeCandleBagPricePlain");
 const cakeMessagePlatePriceRef = ref(fbDb, "koimariContent/cakeMessagePlatePrice");
 // キーはmember.htmlのsizeKeyOf()と揃えて号数のみ（Firebaseのキーに"/"を含められないため、フルの値は使えない）。
 // サイズごとに単一の「基準価格（標準内容）」のみ持つ（2026-09-04、実際の予約伝票の内容に合わせた仕様）。
@@ -4196,8 +4201,12 @@ function initCakeSizePricesPanel() {
     const el = document.getElementById("cfCreamToppingPrice");
     if (el && snapshot.val() != null) el.value = snapshot.val();
   });
-  onValue(cakeCandleBagPriceRef, (snapshot) => {
-    const el = document.getElementById("cfCandleBagPrice");
+  onValue(cakeCandleBagPriceNumberRef, (snapshot) => {
+    const el = document.getElementById("cfCandleBagPriceNumber");
+    if (el && snapshot.val() != null) el.value = snapshot.val();
+  });
+  onValue(cakeCandleBagPricePlainRef, (snapshot) => {
+    const el = document.getElementById("cfCandleBagPricePlain");
     if (el && snapshot.val() != null) el.value = snapshot.val();
   });
   onValue(cakeMessagePlatePriceRef, (snapshot) => {
@@ -4214,11 +4223,13 @@ function initCakeSizePricesPanel() {
         if (val > 0) prices[key] = val;
       });
       const creamToppingPrice = Number(document.getElementById("cfCreamToppingPrice").value) || 0;
-      const candleBagPrice = Number(document.getElementById("cfCandleBagPrice").value) || 0;
+      const candleBagPriceNumber = Number(document.getElementById("cfCandleBagPriceNumber").value) || 0;
+      const candleBagPricePlain = Number(document.getElementById("cfCandleBagPricePlain").value) || 0;
       const messagePlatePrice = Number(document.getElementById("cfMessagePlatePrice").value) || 0;
       update(ref(fbDb, "koimariContent"), {
         cakeSizePrices: prices, cakeCreamToppingPrice: creamToppingPrice,
-        cakeCandleBagPrice: candleBagPrice, cakeMessagePlatePrice: messagePlatePrice
+        cakeCandleBagPriceNumber: candleBagPriceNumber, cakeCandleBagPricePlain: candleBagPricePlain,
+        cakeMessagePlatePrice: messagePlatePrice
       }).then(() => {
         const note = document.getElementById("cfPricesSavedNote");
         if (note) { note.textContent = "保存しました"; setTimeout(() => { note.textContent = ""; }, 3000); }
