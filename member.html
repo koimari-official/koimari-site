@@ -150,7 +150,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="radio-list" style="flex-direction:row;">
             <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="1" checked> 1段</label>
             <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="2"> 2段</label>
-            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="3"> 3段</label>
           </div>
         </div>
         <div class="field" id="reserveFlavorField" style="display:none;">
@@ -457,40 +456,29 @@ const FORMSPREE_ENDPOINT = "https://formspree.io/f/mwvddbqk";
 
 const SIZE_OPTIONS = [
   { value: "", label: "選択してください" },
-  { value: "3号(直径9cm/1-2名)", label: "3号（直径9cm／1〜2名）" },
   { value: "4号(直径12cm/2-3名)", label: "4号（直径12cm／2〜3名）" },
   { value: "5号(直径15cm/4-6名)", label: "5号（直径15cm／4〜6名）" },
   { value: "6号(直径18cm/6-8名)", label: "6号（直径18cm／6〜8名）" },
   { value: "7号(直径21cm/8-10名)", label: "7号（直径21cm／8〜10名）" }
 ];
-// 2段・3段ケーキの上段は「たぬきちケーキ／カットケーキ／セルクル」から選ぶ特別枠になる場合がある
-// （実在しない小サイズの代わりにこの3択を使う。2026-09-05オーナー指示）。価格は個別のためpriceOfは0を返す。
+// 2段ケーキの1段目が4号の場合のみ、2段目は「セルクル／カットケーキ（たぬきち含む）」から選ぶ特別枠になる
+// （3号は基本予約では受けないため、実在しない小サイズの代わりにこの2択を使う。2026-09-05オーナー指示）。
+// 価格は個別のためpriceOfは0を返し、含まれる場合は自動計算せず「料金は追ってお電話でご案内」表示にする。
 const SPECIAL_TOP_OPTIONS = [
   { value: "", label: "選択してください" },
-  { value: "たぬきちケーキ", label: "たぬきちケーキ" },
-  { value: "カットケーキ(内容はご予約後にご相談)", label: "カットケーキ（内容はご予約後にご相談）" },
-  { value: "セルクル", label: "セルクル" }
+  { value: "セルクル", label: "セルクル" },
+  { value: "カットケーキ(たぬきち含む・内容はご予約後にご相談)", label: "カットケーキ（たぬきち含む・内容はご予約後にご相談）" }
 ];
 function isSpecialTierValue(v) {
   return SPECIAL_TOP_OPTIONS.some(o => o.value && o.value === v);
 }
-// 段数ごとのサイズ連動ルール（2026-09-05オーナー指示）：上の段は下の段より必ず2号小さくする。
-// 3号未満の実在サイズが無いため、2段の上段が理論上「2号」になる場合はセルクル固定に、
-// 3段の上段が理論上「1号」になる場合はSPECIAL_TOP_OPTIONSの3択（お客様が選ぶ）にする。
+// 2段ケーキのサイズ連動ルール（2026-09-05確定。3段は自動選択の対象外とし、電話でスタッフが確認する運用に変更）。
+// 有効な組み合わせは (4号,セルクルorカットケーキ)/(6号,4号)/(7号,5号) の3通りのみ（5号を1段目にする組み合わせは廃止）。
 const TWO_TIER_PARTNER = {
-  "4号(直径12cm/2-3名)": "セルクル",
-  "5号(直径15cm/4-6名)": "3号(直径9cm/1-2名)",
   "6号(直径18cm/6-8名)": "4号(直径12cm/2-3名)",
   "7号(直径21cm/8-10名)": "5号(直径15cm/4-6名)"
 };
-const THREE_TIER_MID_PARTNER = {
-  "5号(直径15cm/4-6名)": "3号(直径9cm/1-2名)",
-  "7号(直径21cm/8-10名)": "5号(直径15cm/4-6名)"
-};
-// 1段目が7号の場合のみ3段目が「3号」に固定。1段目が5号の場合はSPECIAL_TOP_OPTIONSから選ぶ（固定値なし）。
-const THREE_TIER_TOP_FIXED = {
-  "7号(直径21cm/8-10名)": "3号(直径9cm/1-2名)"
-};
+const TWO_TIER_SPECIAL_BOTTOM = "4号(直径12cm/2-3名)";
 const TIME_OPTIONS = ["10:00","10:30","11:00","11:30","12:00","12:30","13:00","13:30","14:00","14:30","15:00","15:30","16:00","16:30","17:00","17:30","18:00","18:30","19:00","19:30","20:00"];
 
 // サイズ別の基本料金（Firebase koimariContent/cakeSizePrices、admin.htmlで編集。未設定時はたたき台の金額）。
@@ -500,7 +488,7 @@ const TIME_OPTIONS = ["10:00","10:30","11:00","11:30","12:00","12:30","13:00","1
 // キーはSIZE_OPTIONSの値そのもの（例: "4号(直径12cm/2-3名)"）ではなく、先頭の号数だけを使う。
 // Firebase Realtime Databaseのキーには"/"を含められないため（フルの値には"2-3名"の"/"が含まれる）。
 function sizeKeyOf(value) { return String(value || "").split("(")[0]; }
-const DEFAULT_SIZE_PRICES = { "3号": 3800, "4号": 4500, "5号": 6200, "6号": 9600, "7号": 12800 };
+const DEFAULT_SIZE_PRICES = { "4号": 4500, "5号": 6200, "6号": 9600, "7号": 12800 };
 const DEFAULT_CREAM_TOPPING_PRICE = 540;
 const RECOMMENDED_SIZE_VALUE = "5号(直径15cm/4-6名)";
 let currentSizePrices = DEFAULT_SIZE_PRICES;
@@ -582,7 +570,7 @@ function populateReserveSelects() {
   populateReserveTimeOptions(document.getElementById("reserveDate").value);
 }
 
-const TIER_LABELS = ["1段目のサイズ", "2段目のサイズ", "3段目のサイズ"];
+const TIER_LABELS = ["1段目のサイズ", "2段目のサイズ"];
 function tierFieldHtml(i, tierCount, labelSuffix, selectHtml) {
   return `<div style="margin-bottom:${i < tierCount - 1 ? "10px" : "0"};">
     ${tierCount > 1 ? `<label class="field__label" style="font-size:12px;">${TIER_LABELS[i]}${labelSuffix || ""}</label>` : ""}
@@ -600,38 +588,36 @@ function lockedSizeSelectHtml(tierIndex, value) {
     <option value="${escape(value)}" selected>${escape(sizeOptionLabel(opt))}</option>
   </select>`;
 }
-// 段数ごとに選択肢を制限する（2026-09-05確定：上の段は下の段より必ず2号小さい）。
-// 1段目（一番下＝一番大きい段）だけをお客様が選び、上の段は自動で決まる（3段目の特別枠のみ例外的に選択式）。
+// 段数ごとに選択肢を制限する（2026-09-05確定：上の段は下の段より必ず2号小さい。3段は自動選択の対象外）。
+// 1段目（一番下＝一番大きい段）だけをお客様が選び、2段目は自動で決まる（1段目が4号の場合のみ例外的に選択式）。
 function renderTierSizeSelects(tierCount) {
   const wrap = document.getElementById("reserveTierSizesWrap");
   const prevSizes = Array.from(wrap.querySelectorAll(".tier-size-select")).map(s => s.value);
 
   if (tierCount === 1) {
     wrap.innerHTML = editableSizeSelectHtml(0, SIZE_OPTIONS, prevSizes[0]);
-  } else if (tierCount === 2) {
-    const bottomOptions = [SIZE_OPTIONS[0], ...SIZE_OPTIONS.filter(o => TWO_TIER_PARTNER[o.value])];
-    const bottomVal = bottomOptions.some(o => o.value === prevSizes[0]) ? prevSizes[0] : "";
-    const topVal = TWO_TIER_PARTNER[bottomVal] || "";
-    wrap.innerHTML =
-      tierFieldHtml(0, 2, "", editableSizeSelectHtml(0, bottomOptions, bottomVal)) +
-      tierFieldHtml(1, 2, "（1段目に合わせて自動で決まります）", topVal ? lockedSizeSelectHtml(1, topVal) : lockedSizeSelectHtml(1, ""));
-    const bottomEl = wrap.querySelector('[data-tier="0"]');
-    if (bottomEl) bottomEl.addEventListener("change", () => renderTierSizeSelects(2));
-  } else if (tierCount === 3) {
-    const bottomOptions = [SIZE_OPTIONS[0], ...SIZE_OPTIONS.filter(o => THREE_TIER_MID_PARTNER[o.value])];
-    const bottomVal = bottomOptions.some(o => o.value === prevSizes[0]) ? prevSizes[0] : "";
-    const midVal = THREE_TIER_MID_PARTNER[bottomVal] || "";
-    const topFixed = THREE_TIER_TOP_FIXED[bottomVal];
-    const topSelectHtml = topFixed
-      ? lockedSizeSelectHtml(2, topFixed)
-      : editableSizeSelectHtml(2, SPECIAL_TOP_OPTIONS, SPECIAL_TOP_OPTIONS.some(o => o.value === prevSizes[2]) ? prevSizes[2] : "");
-    wrap.innerHTML =
-      tierFieldHtml(0, 3, "", editableSizeSelectHtml(0, bottomOptions, bottomVal)) +
-      tierFieldHtml(1, 3, "（1段目に合わせて自動で決まります）", midVal ? lockedSizeSelectHtml(1, midVal) : lockedSizeSelectHtml(1, "")) +
-      tierFieldHtml(2, 3, topFixed ? "（1段目に合わせて自動で決まります）" : "（たぬきちケーキ／カットケーキ／セルクルからお選びください）", topSelectHtml);
-    const bottomEl = wrap.querySelector('[data-tier="0"]');
-    if (bottomEl) bottomEl.addEventListener("change", () => renderTierSizeSelects(3));
+    return;
   }
+  const bottomOptions = [
+    SIZE_OPTIONS[0],
+    ...SIZE_OPTIONS.filter(o => o.value === TWO_TIER_SPECIAL_BOTTOM || TWO_TIER_PARTNER[o.value])
+  ];
+  const bottomVal = bottomOptions.some(o => o.value === prevSizes[0]) ? prevSizes[0] : "";
+  let topSelectHtml, topLabelSuffix;
+  if (bottomVal === TWO_TIER_SPECIAL_BOTTOM) {
+    const topVal = SPECIAL_TOP_OPTIONS.some(o => o.value === prevSizes[1]) ? prevSizes[1] : "";
+    topSelectHtml = editableSizeSelectHtml(1, SPECIAL_TOP_OPTIONS, topVal);
+    topLabelSuffix = "（セルクルまたはカットケーキからお選びください）";
+  } else {
+    const topVal = TWO_TIER_PARTNER[bottomVal] || "";
+    topSelectHtml = lockedSizeSelectHtml(1, topVal);
+    topLabelSuffix = "（1段目に合わせて自動で決まります）";
+  }
+  wrap.innerHTML =
+    tierFieldHtml(0, 2, "", editableSizeSelectHtml(0, bottomOptions, bottomVal)) +
+    tierFieldHtml(1, 2, topLabelSuffix, topSelectHtml);
+  const bottomEl = wrap.querySelector('[data-tier="0"]');
+  if (bottomEl) bottomEl.addEventListener("change", () => renderTierSizeSelects(2));
 }
 
 // ケーキの種類（Firebase koimariContent/cakeFlavors・rollCakeFlavors、admin.htmlで編集）
