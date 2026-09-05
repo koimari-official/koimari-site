@@ -161,7 +161,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__label">クリームの種類<span class="req-mark">必須</span></label>
           <div class="radio-list">
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生クリーム" checked> 生クリーム</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリーム</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリーム<span id="reserveChocoCreamPriceLabel"></span></label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ミッシェルBOX"> ミッシェルBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
@@ -490,9 +490,12 @@ const TIME_OPTIONS = ["10:00","10:30","11:00","11:30","12:00","12:30","13:00","1
 function sizeKeyOf(value) { return String(value || "").split("(")[0]; }
 const DEFAULT_SIZE_PRICES = { "4号": 4500, "5号": 6200, "6号": 9600, "7号": 12800 };
 const DEFAULT_CREAM_TOPPING_PRICE = 540;
+// 生チョコクリーム（CF）は生クリーム（F）より段数に関わらず一律+200円（2026-09-05オーナー指示）。
+const DEFAULT_CHOCO_CREAM_SURCHARGE = 200;
 const RECOMMENDED_SIZE_VALUE = "5号(直径15cm/4-6名)";
 let currentSizePrices = DEFAULT_SIZE_PRICES;
 let currentCreamToppingPrice = DEFAULT_CREAM_TOPPING_PRICE;
+let currentChocoCreamSurcharge = DEFAULT_CHOCO_CREAM_SURCHARGE;
 onValue(ref(db, "koimariContent/cakeSizePrices"), (snap) => {
   currentSizePrices = snap.val() || DEFAULT_SIZE_PRICES;
   const wrap = document.getElementById("reserveTierSizesWrap");
@@ -500,6 +503,11 @@ onValue(ref(db, "koimariContent/cakeSizePrices"), (snap) => {
 });
 onValue(ref(db, "koimariContent/cakeCreamToppingPrice"), (snap) => {
   currentCreamToppingPrice = snap.val() || DEFAULT_CREAM_TOPPING_PRICE;
+});
+onValue(ref(db, "koimariContent/cakeChocoCreamSurcharge"), (snap) => {
+  currentChocoCreamSurcharge = snap.val() != null ? snap.val() : DEFAULT_CHOCO_CREAM_SURCHARGE;
+  const label = document.getElementById("reserveChocoCreamPriceLabel");
+  if (label) label.textContent = `（+${currentChocoCreamSurcharge.toLocaleString()}円）`;
 });
 function priceOf(sizeValue) { return currentSizePrices[sizeKeyOf(sizeValue)] || 0; }
 // ご利用シーン（バースデー／セレブレーション／その他）に応じた商品名。
@@ -737,7 +745,7 @@ async function sendReserveToFormspree(data) {
         種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
         商品: productLines,
         ケーキの種類: item.flavor || "", ご利用シーン: data.occasion === "その他" ? data.occasionOther : (data.occasion || ""),
-        ...(isCakeBody ? { クリームの種類: `${data.creamType}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`, 飾り付け: data.decoration } : {}),
+        ...(isCakeBody ? { クリームの種類: `${data.creamType}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`, 飾り付け: data.decoration } : {}),
         生クリームたっぷり乗せ: data.creamTopping ? "あり" : "なし",
         ...((isCakeBody || isRoll) ? { ろうそく: candleLine, メッセージプレート: messageLine } : {}),
         "メッセージプレートの文字（1枚目）": item.message || "",
@@ -903,7 +911,7 @@ function renderReserveConfirm(data, targetId) {
   el.innerHTML = `
     <dt>商品</dt><dd>${escape(productName)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
-    ${isCake ? `<dt>クリームの種類</dt><dd>${escape(data.creamType)}${data.creamTypeSub ? `（${escape(data.creamTypeSub)}）` : ""}</dd>` : ""}
+    ${isCake ? `<dt>クリームの種類</dt><dd>${escape(data.creamType)}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${escape(data.creamTypeSub)}）` : ""}</dd>` : ""}
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(data.decoration)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
@@ -953,7 +961,7 @@ function buildReserveSummaryText(data) {
   const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降は追加料金）" : ""}` : "なし";
   const lines = ["【ご予約を送信しました】", `商品: ${productName}${data.items.length > 1 ? `（${data.items.length}段）` : ""}`];
   if (item.flavor) lines.push(`ケーキの種類: ${item.flavor}`);
-  if (isCake) lines.push(`クリームの種類: ${data.creamType}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`);
+  if (isCake) lines.push(`クリームの種類: ${data.creamType}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`);
   if (isCake) lines.push(`飾り付け: ${data.decoration}`);
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
@@ -1048,6 +1056,8 @@ function setupReserveForm(uid, displayName) {
       // 「料金は追ってご案内」扱いにする（2026-09-05確定。中途半端な合計を見せない）。
       const hasSpecialTier = isCake && items.some(it => isSpecialTierValue(it.size));
       const cakeSubtotal = (isCake && !hasSpecialTier) ? items.reduce((sum, it) => sum + priceOf(it.size), 0) : 0;
+      // 生チョコクリーム（CF）は段数に関わらず一律+200円（2026-09-05オーナー指示、Fとの差額）。
+      const chocoCreamCost = (isCake && !hasSpecialTier && creamType === "生チョコクリーム") ? currentChocoCreamSurcharge : 0;
       const creamToppingCost = creamTopping ? currentCreamToppingPrice : 0;
       const candleCost = candleNeeded ? candleCostFor(candleType, candleBags) : 0;
       const messageCost = messageCount > 1 ? (messageCount - 1) * currentMessagePlatePrice : 0;
@@ -1060,7 +1070,7 @@ function setupReserveForm(uid, displayName) {
         pickupTime: document.getElementById("reserveTime").value || "",
         items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
         candleNeeded, candleType, candleBags, messageCount, priceNeedsConsult: hasSpecialTier,
-        subtotal: hasSpecialTier ? 0 : (cakeSubtotal + creamToppingCost + candleCost + messageCost),
+        subtotal: hasSpecialTier ? 0 : (cakeSubtotal + chocoCreamCost + creamToppingCost + candleCost + messageCost),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
       };
     }
