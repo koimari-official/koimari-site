@@ -209,25 +209,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script>
+// カテゴリは商品種別ベース（ご予約フォームの分類と統一。2026-09-05、お祝い事の種類による
+// 分類だと今回追加した実写真の内容と噛み合わずわかりにくいとのオーナー指摘を受けて変更）。
 const CATEGORIES = [
   { key: "all", name: "すべて" },
-  { key: "birthday", name: "誕生日" },
-  { key: "anniversary", name: "記念日・お祝い" },
-  { key: "wedding", name: "結婚・出産" },
-  { key: "seasonal", name: "季節限定" },
-  { key: "other", name: "その他オーダー" }
+  { key: "cake", name: "デコレーションケーキ" },
+  { key: "roll", name: "ロールケーキ" },
+  { key: "baked", name: "焼き菓子・ギフト" }
 ];
 
 const DEFAULT_GALLERY = [
-  { img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80", category:"birthday", title:"お子様のキャラクターケーキ", desc:"お好きなキャラクターをモチーフにしたデコレーション", size:"5号", price:"¥4,800〜", lead:"前日", date:"2026.04" },
-  { img:"https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=800&q=80", category:"anniversary", title:"結婚記念日のケーキ", desc:"季節のフルーツをふんだんに使ったデコレーションケーキ", size:"6号", price:"¥5,200〜", lead:"前日", date:"2026.03" },
-  { img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80", category:"seasonal", title:"母の日のフラワーケーキ", desc:"お花のような絞りで彩った特別な一品", size:"5号", price:"¥4,200〜", lead:"前日", date:"2026.05" },
-  { img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80", category:"wedding", title:"ベビーシャワーケーキ", desc:"パステルカラーで仕上げたやさしい雰囲気", size:"6号", price:"¥5,500〜", lead:"5日前", date:"2026.02" },
-  { img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80", category:"anniversary", title:"還暦祝いのガトーショコラ", desc:"赤い花と金箔をあしらった大人のケーキ", size:"6号", price:"¥5,800〜", lead:"前日", date:"2026.01" },
-  { img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80", category:"seasonal", title:"季節限定 苺のショート", desc:"地元産の朝採れ苺を贅沢に使用しました", size:"5号", price:"¥4,000〜", lead:"前日", date:"2026.04" },
-  { img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80", category:"birthday", title:"大人のお誕生日ケーキ", desc:"シックで上品な雰囲気のデコレーションケーキ", size:"6号", price:"¥5,000〜", lead:"前日", date:"2026.03" },
-  { img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80", category:"wedding", title:"出産祝いのケーキ", desc:"赤ちゃんの誕生をお祝いする可愛らしい一品", size:"5号", price:"¥4,500〜", lead:"前日", date:"2026.02" },
-  { img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=800&q=80", category:"other", title:"オリジナルロールケーキ", desc:"お名前入りのメッセージロールケーキ", size:"1本", price:"¥3,200〜", lead:"2日前", date:"2026.04" }
+  { img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80", category:"cake", title:"お子様のキャラクターケーキ", desc:"お好きなキャラクターをモチーフにしたデコレーション", size:"5号", price:"¥4,800〜", lead:"前日", date:"2026.04" },
+  { img:"https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=800&q=80", category:"cake", title:"結婚記念日のケーキ", desc:"季節のフルーツをふんだんに使ったデコレーションケーキ", size:"6号", price:"¥5,200〜", lead:"前日", date:"2026.03" },
+  { img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80", category:"cake", title:"母の日のフラワーケーキ", desc:"お花のような絞りで彩った特別な一品", size:"5号", price:"¥4,200〜", lead:"前日", date:"2026.05" },
+  { img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80", category:"cake", title:"ベビーシャワーケーキ", desc:"パステルカラーで仕上げたやさしい雰囲気", size:"6号", price:"¥5,500〜", lead:"5日前", date:"2026.02" },
+  { img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80", category:"cake", title:"還暦祝いのガトーショコラ", desc:"赤い花と金箔をあしらった大人のケーキ", size:"6号", price:"¥5,800〜", lead:"前日", date:"2026.01" },
+  { img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80", category:"cake", title:"季節限定 苺のショート", desc:"地元産の朝採れ苺を贅沢に使用しました", size:"5号", price:"¥4,000〜", lead:"前日", date:"2026.04" },
+  { img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80", category:"cake", title:"大人のお誕生日ケーキ", desc:"シックで上品な雰囲気のデコレーションケーキ", size:"6号", price:"¥5,000〜", lead:"前日", date:"2026.03" },
+  { img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80", category:"cake", title:"出産祝いのケーキ", desc:"赤ちゃんの誕生をお祝いする可愛らしい一品", size:"5号", price:"¥4,500〜", lead:"前日", date:"2026.02" },
+  { img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=800&q=80", category:"roll", title:"オリジナルロールケーキ", desc:"お名前入りのメッセージロールケーキ", size:"1本", price:"¥3,200〜", lead:"2日前", date:"2026.04" }
 ];
 
 const DEFAULT_VOICES = [

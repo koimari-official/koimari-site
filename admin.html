@@ -3639,11 +3639,10 @@ function renderGalleryAdmin() {
     const sel = document.createElement("select");
     sel.style.cssText = "width:100%;padding:10px 12px;border:1px solid var(--color-line);background:#fdfaf6;font-family:inherit;font-size:14px;";
     [
-      ["birthday","誕生日"], ["anniversary","記念日・お祝い"],
-      ["wedding","結婚・出産"], ["seasonal","季節限定"], ["other","その他オーダー"]
+      ["cake","デコレーションケーキ"], ["roll","ロールケーキ"], ["baked","焼き菓子・ギフト"]
     ].forEach(([k,n]) => {
       const o = document.createElement("option"); o.value = k; o.textContent = n;
-      if ((g.category||"birthday") === k) o.selected = true;
+      if ((g.category||"cake") === k) o.selected = true;
       sel.appendChild(o);
     });
     sel.addEventListener("change", () => { galleryData[i].category = sel.value; });
