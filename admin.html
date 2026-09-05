@@ -3136,8 +3136,12 @@ async function saveByKey(key, data) {
     showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
     return null;
   }
+  // ローカルキャッシュへの反映に失敗しても（容量超過など）、Firebaseへの保存自体は
+  // 続行する。ここで処理を止めてしまうと、実際にはサーバーに保存できるはずのデータまで
+  // 「保存に失敗しました」と表示されてしまう（2026-09-05、写真追加でlocalStorage容量を
+  // 超えて発生した事例で判明）。
   try { localStorage.setItem(key, JSON.stringify(merged)); }
-  catch(e) { showToast("保存に失敗しました", "error"); return null; }
+  catch(e) { console.warn("ローカルキャッシュへの保存に失敗（無視して続行）:", e); }
   try {
     if (typeof window.fbSaveContentKey === "function") {
       await window.fbSaveContentKey(contentKey, merged);
@@ -3186,8 +3190,12 @@ async function saveByOpsKey(key, data) {
     showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
     return null;
   }
+  // ローカルキャッシュへの反映に失敗しても（容量超過など）、Firebaseへの保存自体は
+  // 続行する。ここで処理を止めてしまうと、実際にはサーバーに保存できるはずのデータまで
+  // 「保存に失敗しました」と表示されてしまう（2026-09-05、写真追加でlocalStorage容量を
+  // 超えて発生した事例で判明）。
   try { localStorage.setItem(key, JSON.stringify(merged)); }
-  catch(e) { showToast("保存に失敗しました", "error"); return null; }
+  catch(e) { console.warn("ローカルキャッシュへの保存に失敗（無視して続行）:", e); }
   try {
     if (typeof window.fbSaveOpsKey === "function") {
       await window.fbSaveOpsKey(opsKey, merged);
