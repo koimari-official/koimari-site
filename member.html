@@ -74,6 +74,8 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .field__check a{color:var(--color-accent);text-decoration:underline;}
 .btn--ghost{background:transparent;color:var(--color-text-soft);border:1px solid var(--color-line);}
 .btn--ghost:hover{background:var(--color-bg-soft);}
+.btn--line{background:#06c755;}
+.btn--line:hover{background:#05b34c;}
 .btn-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
 .confirm-box{background:var(--color-bg-soft);border:1px solid var(--color-line);padding:18px;font-size:14px;line-height:2;margin-bottom:16px;}
 .confirm-box dt{font-weight:700;color:var(--color-text-soft);font-size:12.5px;margin-top:10px;}
@@ -111,6 +113,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="notice-box__icon">🎀</div>
     <div class="notice-box__title">読み込み中です…</div>
     <div class="notice-box__desc">LINEアプリでこのページを開くと、自動的に会員登録されます。</div>
+  </div>
+
+  <div id="externalBrowserNotice" class="notice-box" style="display:none;">
+    <div class="notice-box__icon">📱</div>
+    <div class="notice-box__title">ご予約はLINEアプリからお願いします</div>
+    <div class="notice-box__desc" style="margin-bottom:20px;">
+      恐れ入りますが、ご予約フォームはLINE公式アカウントのトーク画面からのみご利用いただけます。<br>
+      スマートフォンのLINEアプリでこいまり公式アカウントを開き、トーク画面下部メニューの「ご予約」ボタンからお進みください。
+    </div>
+    <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="btn btn--line" style="display:inline-block;padding:16px 40px;">LINE公式アカウントを友だち追加する</a>
   </div>
 
   <div id="memberArea" style="display:none;">
@@ -1138,6 +1150,17 @@ function setupReserveForm(uid, displayName) {
 async function main() {
   try {
     await liff.init({ liffId: LIFF_ID });
+
+    // ご予約はLINE公式アカウントのトーク画面（リッチメニュー）からのみ受け付ける方針のため、
+    // LINEアプリ内ブラウザ以外（PCブラウザ・スマホの外部ブラウザ等）からのアクセスはここで止める
+    // （2026-09-06オーナー指示。liff.login()はブラウザ単体でも完了できてしまうため、
+    // isLoggedIn()ではなくisInClient()で判定する必要がある）。
+    if (!liff.isInClient()) {
+      document.getElementById("loadingBox").style.display = "none";
+      document.getElementById("externalBrowserNotice").style.display = "block";
+      return;
+    }
+
     if (!liff.isLoggedIn()) { liff.login(); return; }
 
     // LINE内ブラウザ(LIFF)ではtarget="_blank"が新しいタブを開かず、予約フォームの入力途中の画面が

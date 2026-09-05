@@ -36,6 +36,14 @@ ${RESERVE_LIFF_URL}
 
 デコレーションケーキ・ロールケーキ・焼き菓子/ギフトのご予約ができます。引き取り希望日の3営業日前までにご入力ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。`;
 
+// 「予約」「注文」という言葉が自由入力メッセージ内に含まれていた場合、AIの返信に必ずこのボタンを
+// 添付する。リッチメニューを一度折りたたんだお客様にも、毎回確実に予約フォームへの導線を出すため
+// （2026-09-06オーナー指示：リッチメニューは自動で毎回開き直せないLINE側の仕様のための代替策）。
+const RESERVE_OR_ORDER_KEYWORDS = ["予約", "注文"];
+const RESERVE_QUICK_REPLY_ITEMS = [
+  { type: "action", action: { type: "uri", label: "ご予約はこちら", uri: RESERVE_LIFF_URL } },
+];
+
 const STORE_INFO = `
 店名: こいまり（ケーキ屋）
 住所: 大阪府大阪市城東区成育2丁目13-15 アイビーマンション1階
@@ -205,7 +213,14 @@ async function pushLineMessage(userId, text, accessToken) {
   return true;
 }
 
-async function replyToLine(replyToken, text, accessToken) {
+// quickReplyItemsを渡すと、返信メッセージの下にタップ可能なボタンを添付できる。
+// リッチメニューは一度ユーザーが折りたたむと次回から自動再表示されない（LINE側の仕様でBot側から
+// 制御不可）ため、「予約」「注文」等の話題では毎回このボタンで確実に導線を出す（2026-09-06指示）。
+async function replyToLine(replyToken, text, accessToken, quickReplyItems) {
+  const message = { type: "text", text };
+  if (quickReplyItems && quickReplyItems.length) {
+    message.quickReply = { items: quickReplyItems };
+  }
   const res = await fetch("https://api.line.me/v2/bot/message/reply", {
     method: "POST",
     headers: {
@@ -214,7 +229,7 @@ async function replyToLine(replyToken, text, accessToken) {
     },
     body: JSON.stringify({
       replyToken,
-      messages: [{ type: "text", text }],
+      messages: [message],
     }),
   });
   if (!res.ok) {
@@ -336,7 +351,7 @@ exports.lineWebhook = onRequest(
       try {
         // カード②「ご予約について教えてください」はAIの生成に任せず、確実にLIFF予約フォームへ案内する。
         if (event.message.text.trim() === RESERVE_CARD_TRIGGER_TEXT) {
-          await replyToLine(event.replyToken, RESERVE_CARD_REPLY_TEXT, LINE_CHANNEL_ACCESS_TOKEN.value());
+          await replyToLine(event.replyToken, RESERVE_CARD_REPLY_TEXT, LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
           continue;
         }
 
@@ -359,7 +374,8 @@ exports.lineWebhook = onRequest(
         const { text: aiText, reviewReason } = await buildReplyText(anthropic, event.message.text, todayStatus, faqKnowledgeText);
         const greet = await isFirstMessageOfChatSession(userId, now);
         const replyText = greet ? buildChatGreetingPrefix(now) + aiText : aiText;
-        await replyToLine(event.replyToken, replyText, LINE_CHANNEL_ACCESS_TOKEN.value());
+        const mentionsReserveOrOrder = RESERVE_OR_ORDER_KEYWORDS.some((k) => event.message.text.includes(k));
+        await replyToLine(event.replyToken, replyText, LINE_CHANNEL_ACCESS_TOKEN.value(), mentionsReserveOrOrder ? RESERVE_QUICK_REPLY_ITEMS : undefined);
         await markAiReplySent(userId, now);
         if (reviewReason) {
           await admin.database().ref("aiReviewQueue").push({
