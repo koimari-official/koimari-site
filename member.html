@@ -125,7 +125,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="section" id="reserveSection">
       <div class="section__title">ご予約</div>
       <div style="text-align:center;margin-bottom:20px;">
-        <a href="gallery.html" target="_blank" rel="noopener" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">📷 過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
+        <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">📷 過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
       </div>
 
       <div id="reserveFormWrap">
@@ -1143,6 +1143,17 @@ async function main() {
   try {
     await liff.init({ liffId: LIFF_ID });
     if (!liff.isLoggedIn()) { liff.login(); return; }
+
+    // LINE内ブラウザ(LIFF)ではtarget="_blank"が新しいタブを開かず、予約フォームの入力途中の画面が
+    // そのまま消えてしまうことがあるため、liff.openWindow()で別ウィンドウとして確実に開く
+    // （2026-09-05オーナー指摘：仕様選択中にギャラリーを開くと選択内容が消える不具合）。
+    const galleryBtn = document.getElementById("galleryLinkBtn");
+    if (galleryBtn && liff.isInClient()) {
+      galleryBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        liff.openWindow({ url: new URL("gallery.html", location.href).href, external: true });
+      });
+    }
 
     const profile = await liff.getProfile();
     const uid = profile.userId;

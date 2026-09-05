@@ -243,6 +243,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <span class="tab-group-label">予約・問い合わせ管理</span>
       <button class="tab" data-panel="notify">🔔 店舗通知モード</button>
       <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
+      <button class="tab" data-panel="quoteBuilder">個別見積もり作成</button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
       <button class="tab" data-panel="corporate">法人ご相談 <span class="tab__count" id="corpCount">0</span></button>
       <button class="tab" data-panel="aiReview">🤖 AI要確認 <span class="tab__count tab__count--warn" id="aiReviewCount" style="display:none;"></span></button>
@@ -426,6 +427,58 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div id="trashAreaRes" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
       <div class="confirm-call-warning" id="confirmCallWarning">⚠️ <span id="confirmCallWarningText"></span></div>
       <div id="reservationsArea"></div>
+    </section>
+
+    <!-- ===== 個別見積もり作成（スタッフ専用） ===== -->
+    <section class="panel" id="panel-quoteBuilder">
+      <div class="panel__head"><h2 class="panel__title">個別見積もり作成</h2></div>
+      <p class="panel__desc">お電話等でお客様から伺った内容を入力すると、その場で見積り合計を計算できます。標準内容にない追加工賃も入力可能です。このツールはスタッフのみが使用し、公開ページ（予約フォーム）には一切表示されません（2026-09-05、同業者に価格を把握されないための方針）。</p>
+      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:560px;">
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">商品種別</label>
+          <select id="qbCategory" class="input select">
+            <option value="デコレーションケーキ">デコレーションケーキ</option>
+            <option value="ロールケーキ">ロールケーキ</option>
+          </select>
+        </div>
+        <div id="qbTiersWrap" style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">段数</label>
+          <select id="qbTiers" class="input select">
+            <option value="1">1段</option><option value="2">2段</option><option value="3">3段</option>
+          </select>
+        </div>
+        <div id="qbSizesWrap" style="margin-bottom:16px;"></div>
+        <div style="margin-bottom:16px;">
+          <label class="field__check"><input type="checkbox" id="qbCreamTopping"> 生クリームたっぷり乗せ（+<span id="qbCreamToppingPriceLabel">0</span>円）</label>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label class="field__check"><input type="checkbox" id="qbCandleNeeded"> ろうそく</label>
+          <div id="qbCandleDetail" style="display:none;margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;">
+            <select id="qbCandleType" class="input select" style="max-width:180px;">
+              <option value="ナンバーろうそく">ナンバーろうそく</option>
+              <option value="普通のろうそく">普通のろうそく</option>
+            </select>
+            <select id="qbCandleBags" class="input select" style="max-width:120px;">
+              <option value="1">1袋</option><option value="2">2袋</option><option value="3">3袋</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">メッセージプレート</label>
+          <select id="qbMessageCount" class="input select" style="max-width:160px;">
+            <option value="0">なし</option><option value="1">1枚</option><option value="2">2枚</option><option value="3">3枚</option>
+          </select>
+        </div>
+        <div style="margin-bottom:16px;padding-top:14px;border-top:1px solid var(--color-line);">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">追加工賃・特殊デザイン料（自由入力・円）</label>
+          <input type="number" id="qbExtraLabor" class="input" placeholder="0" style="max-width:200px;">
+        </div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--color-line);font-size:20px;font-weight:700;">
+          合計目安: ¥<span id="qbTotal">0</span>
+        </div>
+        <button class="btn btn--small" id="qbCopyBtn" style="margin-top:14px;">見積り内容をコピー</button>
+        <span id="qbCopyNote" style="margin-left:10px;font-size:13px;color:var(--color-text-soft);"></span>
+      </div>
     </section>
 
     <!-- ===== 応募一覧 ===== -->
@@ -4308,6 +4361,98 @@ function initUspPanel() {
   });
 }
 
+/* ===== 個別見積もり作成（スタッフ専用ツール、member.htmlと同じ料金体系を再現） ===== */
+const QB_SIZE_OPTIONS = [
+  { value: "4号", label: "4号（直径12cm）" },
+  { value: "5号", label: "5号（直径15cm）" },
+  { value: "6号", label: "6号（直径18cm）" },
+  { value: "7号", label: "7号（直径21cm）" },
+];
+let qbSizePrices = {};
+let qbCreamToppingPrice = 0;
+let qbCandleBagPriceNumber = 0;
+let qbCandleBagPricePlain = 0;
+let qbMessagePlatePrice = 0;
+function initQuoteBuilder() {
+  onValue(cakeSizePricesRef, (snap) => { qbSizePrices = snap.val() || {}; recomputeQuote(); });
+  onValue(cakeCreamToppingPriceRef, (snap) => {
+    qbCreamToppingPrice = snap.val() || 0;
+    document.getElementById("qbCreamToppingPriceLabel").textContent = qbCreamToppingPrice.toLocaleString();
+    recomputeQuote();
+  });
+  onValue(cakeCandleBagPriceNumberRef, (snap) => { qbCandleBagPriceNumber = snap.val() || 0; recomputeQuote(); });
+  onValue(cakeCandleBagPricePlainRef, (snap) => { qbCandleBagPricePlain = snap.val() || 0; recomputeQuote(); });
+  onValue(cakeMessagePlatePriceRef, (snap) => { qbMessagePlatePrice = snap.val() || 0; recomputeQuote(); });
+
+  function renderQbSizes() {
+    const category = document.getElementById("qbCategory").value;
+    const isCake = category === "デコレーションケーキ";
+    document.getElementById("qbTiersWrap").style.display = isCake ? "" : "none";
+    const tierCount = isCake ? Number(document.getElementById("qbTiers").value) : 1;
+    const wrap = document.getElementById("qbSizesWrap");
+    const prev = Array.from(wrap.querySelectorAll("select")).map(s => s.value);
+    wrap.innerHTML = Array.from({ length: tierCount }).map((_, i) => `
+      <div style="margin-bottom:${i < tierCount - 1 ? "8px" : "0"};">
+        <label style="display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:4px;">${tierCount > 1 ? (i + 1) + "段目のサイズ" : "サイズ"}</label>
+        <select class="input select qb-size-select">
+          ${QB_SIZE_OPTIONS.map(o => `<option value="${o.value}">${o.label}${qbSizePrices[o.value] ? ` - ¥${qbSizePrices[o.value].toLocaleString()}` : ""}</option>`).join("")}
+        </select>
+      </div>
+    `).join("");
+    wrap.querySelectorAll(".qb-size-select").forEach((s, i) => { if (prev[i]) s.value = prev[i]; });
+  }
+
+  function recomputeQuote() {
+    const category = document.getElementById("qbCategory").value;
+    const isCake = category === "デコレーションケーキ";
+    const sizeValues = Array.from(document.querySelectorAll(".qb-size-select")).map(s => s.value);
+    const sizeSubtotal = isCake ? sizeValues.reduce((sum, v) => sum + (qbSizePrices[v] || 0), 0) : 0;
+    const creamToppingCost = document.getElementById("qbCreamTopping").checked ? qbCreamToppingPrice : 0;
+    const candleNeeded = document.getElementById("qbCandleNeeded").checked;
+    const candleType = document.getElementById("qbCandleType").value;
+    const candleBags = Number(document.getElementById("qbCandleBags").value);
+    const candleCost = candleNeeded ? (candleType === "ナンバーろうそく" ? candleBags * qbCandleBagPriceNumber : Math.max(0, candleBags - 1) * qbCandleBagPricePlain) : 0;
+    const messageCount = Number(document.getElementById("qbMessageCount").value);
+    const messageCost = messageCount > 1 ? (messageCount - 1) * qbMessagePlatePrice : 0;
+    const extraLabor = Number(document.getElementById("qbExtraLabor").value) || 0;
+    const total = sizeSubtotal + creamToppingCost + candleCost + messageCost + extraLabor;
+    document.getElementById("qbTotal").textContent = total.toLocaleString();
+    return { category, sizeValues, sizeSubtotal, creamToppingCost, candleNeeded, candleType, candleBags, candleCost, messageCount, messageCost, extraLabor, total };
+  }
+  window._qbRecompute = recomputeQuote;
+
+  document.getElementById("qbCategory").addEventListener("change", () => { renderQbSizes(); recomputeQuote(); });
+  document.getElementById("qbTiers").addEventListener("change", () => { renderQbSizes(); recomputeQuote(); });
+  document.getElementById("qbSizesWrap").addEventListener("change", recomputeQuote);
+  document.getElementById("qbCreamTopping").addEventListener("change", recomputeQuote);
+  document.getElementById("qbCandleNeeded").addEventListener("change", (e) => {
+    document.getElementById("qbCandleDetail").style.display = e.target.checked ? "flex" : "none";
+    recomputeQuote();
+  });
+  document.getElementById("qbCandleType").addEventListener("change", recomputeQuote);
+  document.getElementById("qbCandleBags").addEventListener("change", recomputeQuote);
+  document.getElementById("qbMessageCount").addEventListener("change", recomputeQuote);
+  document.getElementById("qbExtraLabor").addEventListener("input", recomputeQuote);
+  document.getElementById("qbCopyBtn").addEventListener("click", () => {
+    const q = recomputeQuote();
+    const lines = [`商品: ${q.category}${q.sizeValues.length > 1 ? `（${q.sizeValues.length}段）` : ""}`];
+    if (q.sizeValues.length) lines.push(`サイズ: ${q.sizeValues.join("、")}（¥${q.sizeSubtotal.toLocaleString()}）`);
+    if (q.creamToppingCost) lines.push(`生クリームたっぷり乗せ: +¥${q.creamToppingCost.toLocaleString()}`);
+    if (q.candleNeeded) lines.push(`ろうそく: ${q.candleType} ${q.candleBags}袋${q.candleCost ? `（+¥${q.candleCost.toLocaleString()}）` : ""}`);
+    if (q.messageCount > 0) lines.push(`メッセージプレート: ${q.messageCount}枚${q.messageCost ? `（+¥${q.messageCost.toLocaleString()}）` : ""}`);
+    if (q.extraLabor) lines.push(`追加工賃・特殊デザイン料: +¥${q.extraLabor.toLocaleString()}`);
+    lines.push(`合計目安: ¥${q.total.toLocaleString()}`);
+    const text = lines.join("\n");
+    navigator.clipboard.writeText(text).then(() => {
+      const note = document.getElementById("qbCopyNote");
+      note.textContent = "コピーしました"; setTimeout(() => { note.textContent = ""; }, 3000);
+    }).catch(() => { showToast("コピーに失敗しました。手動で選択してコピーしてください", "error"); });
+  });
+
+  renderQbSizes();
+  recomputeQuote();
+}
+
 onAuthStateChanged(fbAuth, (user) => {
   if (user) {
     syncReservationsFromFirebase();
@@ -4320,6 +4465,7 @@ onAuthStateChanged(fbAuth, (user) => {
     initExpDatesPanel();
     initCakeFlavorsPanel();
     initUspPanel();
+    initQuoteBuilder();
     if (typeof window.showAdmin === "function") window.showAdmin();
   } else {
     if (typeof window.showLogin === "function") window.showLogin();
