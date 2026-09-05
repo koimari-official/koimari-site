@@ -1475,8 +1475,27 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
   const previewEl = document.createElement("div");
   previewEl.className = "img-item__preview";
   if (aspectRatio) previewEl.style.aspectRatio = String(aspectRatio); // 実際にサイト上で使われる比率とプレビューを一致させる
-  previewEl.innerHTML = preview ? `<img src="${preview}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(preview)}` : "画像なし";
+  previewEl.innerHTML = preview ? `<img src="${preview}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(preview)}` : "画像なし（ここに写真をドラッグ＆ドロップも可）";
   item.appendChild(previewEl);
+  // プレビュー枠へのドラッグ&ドロップでも画像を選択できるようにする（2026-09-05、従来はファイル選択ボタンのみだった）。
+  async function handleDroppedOrPickedFile(file) {
+    if (!file || !file.type.startsWith("image/")) { showToast("画像ファイルを選択してください", "error"); return; }
+    try {
+      if (aspectRatio) {
+        const result = await cropAndResizeImage(file, aspectRatio, maxWidth, ratioOptions);
+        if (result !== null) onFile(result); // nullはキャンセルを意味するため何もしない
+      } else {
+        onFile(await fileToDataUrl(file, maxWidth));
+      }
+    } catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
+  }
+  previewEl.addEventListener("dragover", e => { e.preventDefault(); previewEl.style.outline = `2px dashed var(--color-accent)`; });
+  previewEl.addEventListener("dragleave", () => { previewEl.style.outline = ""; });
+  previewEl.addEventListener("drop", e => {
+    e.preventDefault();
+    previewEl.style.outline = "";
+    handleDroppedOrPickedFile(e.dataTransfer.files && e.dataTransfer.files[0]);
+  });
   fields.forEach(f => {
     const wrap = document.createElement("div");
     wrap.className = "img-item__field";
@@ -1494,17 +1513,8 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
   const fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.accept = "image/*";
   fileInput.addEventListener("change", async e => {
     if (!e.target.files[0]) return;
-    const file = e.target.files[0];
-    try {
-      if (aspectRatio) {
-        const result = await cropAndResizeImage(file, aspectRatio, maxWidth, ratioOptions);
-        if (result !== null) onFile(result); // nullはキャンセルを意味するため何もしない
-      } else {
-        onFile(await fileToDataUrl(file, maxWidth));
-      }
-    }
-    catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
-    finally { fileInput.value = ""; }
+    await handleDroppedOrPickedFile(e.target.files[0]);
+    fileInput.value = "";
   });
   fileBtn.appendChild(fileInput); actions.appendChild(fileBtn);
   if (onDelete) {
