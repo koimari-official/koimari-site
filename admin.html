@@ -3637,6 +3637,7 @@ function renderGalleryAdmin() {
   if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
   const grid = document.getElementById("galleryAdminGrid"); grid.innerHTML = "";
   galleryData.forEach((g, i) => {
+    if (!Array.isArray(g.gallery)) g.gallery = [];
     const item = makeImageItem({
       preview: g.img,
       maxWidth: 1000,
@@ -3672,6 +3673,7 @@ function renderGalleryAdmin() {
     // 最初のフィールド(タイトル)の前に挿入
     const firstField = item.querySelector(".img-item__field");
     item.insertBefore(catBox, firstField);
+    item.appendChild(makeGalleryEditor(g, "img", { maxWidth: 1000, max: 6, onChange: () => renderGalleryAdmin() }));
     grid.appendChild(item);
   });
   const sb = document.createElement("div"); sb.style.cssText = "grid-column:1/-1; margin-top:10px;";
@@ -3683,7 +3685,7 @@ function renderGalleryAdmin() {
 }
 document.getElementById("addGallery").addEventListener("click", () => {
   if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
-  galleryData.unshift({ title: "新規作品", category: "birthday", desc: "", size: "", price: "", lead: "", date: "", img: "" });
+  galleryData.unshift({ title: "新規作品", category: "birthday", desc: "", size: "", price: "", lead: "", date: "", img: "", gallery: [] });
   renderGalleryAdmin();
 });
 

@@ -117,6 +117,14 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;z-index:1000;padding:30px;cursor:pointer}
 .lightbox.show{display:flex}
 .lightbox img{max-width:100%;max-height:85vh;object-fit:contain}
+.lightbox__nav{position:absolute;top:50%;transform:translateY(-50%);width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:26px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.lightbox__nav:hover{background:rgba(255,255,255,.25)}
+.lightbox__nav--prev{left:20px}
+.lightbox__nav--next{right:20px}
+.lightbox__counter{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);color:#fff;font-size:14px;letter-spacing:.08em;background:rgba(0,0,0,.4);padding:6px 16px;border-radius:20px}
+.gal-card__thumbs{display:flex;gap:6px;padding:8px 8px 0}
+.gal-card__thumb{width:44px;height:44px;object-fit:cover;cursor:pointer;border:2px solid transparent;opacity:.8;transition:all .15s}
+.gal-card__thumb:hover{border-color:var(--color-accent, #c9a96e);opacity:1}
 .lightbox__close{position:absolute;top:20px;right:24px;font-size:38px;color:#fff;cursor:pointer;background:none;border:none;line-height:1}
 
 .footer{background:#2b1f1a;color:#e3d5c2;padding:44px 24px;text-align:center;font-family:var(--font-en);font-size:14px;letter-spacing:.18em}
@@ -197,7 +205,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <div class="lightbox" id="lightbox">
   <button class="lightbox__close" id="lightboxClose">×</button>
+  <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" style="display:none;">‹</button>
   <img id="lightboxImg" src="" alt="">
+  <button class="lightbox__nav lightbox__nav--next" id="lightboxNext" style="display:none;">›</button>
+  <div class="lightbox__counter" id="lightboxCounter" style="display:none;"></div>
 </div>
 
 <footer class="footer">
@@ -272,11 +283,14 @@ function renderGrid(){
     const card = document.createElement("article");
     card.className = "gal-card";
     const catName = (CATEGORIES.find(c => c.key === g.category) || {}).name || "";
+    const photos = [g.img, ...(Array.isArray(g.gallery) ? g.gallery : [])].filter(Boolean);
+    const subPhotos = photos.slice(1);
     card.innerHTML = `
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
         <img src="${escape(g.img)}" alt="${escape(g.title)}">
       </div>
+      ${subPhotos.length ? `<div class="gal-card__thumbs">${subPhotos.map((p,i) => `<img class="gal-card__thumb" src="${escape(p)}" data-idx="${i+1}" alt="">`).join("")}</div>` : ""}
       <div class="gal-card__body">
         <div class="gal-card__no">作品 No.${String(g.__no).padStart(2,"0")}</div>
         <h3 class="gal-card__title">${escape(g.title)}</h3>
@@ -288,10 +302,13 @@ function renderGrid(){
         </div>
         <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + String(g.__no).padStart(2,"0") + "『" + g.title + "』と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>
       </div>`;
-    card.querySelector(".gal-card__img").addEventListener("click", () => {
-      document.getElementById("lightboxImg").src = g.img;
-      document.getElementById("lightboxImg").alt = g.title || "こいまり 作品";
-      document.getElementById("lightbox").classList.add("show");
+    const mainImgEl = card.querySelector(".gal-card__img img");
+    card.querySelector(".gal-card__img").addEventListener("click", () => openLightbox(photos, g.title));
+    // サムネイルにカーソルを合わせている間だけメイン画像をそのサムネイルに差し替えて見せる
+    card.querySelectorAll(".gal-card__thumb").forEach(thumb => {
+      thumb.addEventListener("mouseenter", () => { mainImgEl.src = thumb.src; });
+      thumb.addEventListener("mouseleave", () => { mainImgEl.src = g.img; });
+      thumb.addEventListener("click", e => { e.stopPropagation(); openLightbox(photos, g.title); lightboxIndex = +thumb.dataset.idx; renderLightboxPhoto(); });
     });
     grid.appendChild(card);
   });
@@ -325,8 +342,39 @@ function applyFetchedGalleryContent(data){
 }
 window.applyFetchedGalleryContent = applyFetchedGalleryContent;
 
+// 2枚目以降の写真にも対応したライトボックス（左右の矢印・枚数表示つき）
+let lightboxPhotos = [];
+let lightboxIndex = 0;
+function renderLightboxPhoto() {
+  document.getElementById("lightboxImg").src = lightboxPhotos[lightboxIndex];
+  const multi = lightboxPhotos.length > 1;
+  document.getElementById("lightboxPrev").style.display = multi ? "flex" : "none";
+  document.getElementById("lightboxNext").style.display = multi ? "flex" : "none";
+  const counter = document.getElementById("lightboxCounter");
+  counter.style.display = multi ? "block" : "none";
+  if (multi) counter.textContent = `${lightboxIndex + 1} / ${lightboxPhotos.length}`;
+}
+function openLightbox(photos, title) {
+  lightboxPhotos = photos && photos.length ? photos : [""];
+  lightboxIndex = 0;
+  document.getElementById("lightboxImg").alt = title || "こいまり 作品";
+  renderLightboxPhoto();
+  document.getElementById("lightbox").classList.add("show");
+}
+function stepLightbox(delta) {
+  lightboxIndex = (lightboxIndex + delta + lightboxPhotos.length) % lightboxPhotos.length;
+  renderLightboxPhoto();
+}
 document.getElementById("lightbox").addEventListener("click", () => document.getElementById("lightbox").classList.remove("show"));
 document.getElementById("lightboxClose").addEventListener("click", e => { e.stopPropagation(); document.getElementById("lightbox").classList.remove("show"); });
+document.getElementById("lightboxPrev").addEventListener("click", e => { e.stopPropagation(); stepLightbox(-1); });
+document.getElementById("lightboxNext").addEventListener("click", e => { e.stopPropagation(); stepLightbox(1); });
+document.addEventListener("keydown", e => {
+  if (!document.getElementById("lightbox").classList.contains("show")) return;
+  if (e.key === "ArrowLeft") stepLightbox(-1);
+  if (e.key === "ArrowRight") stepLightbox(1);
+  if (e.key === "Escape") document.getElementById("lightbox").classList.remove("show");
+});
 </script>
 
 <script type="module">
