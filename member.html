@@ -120,7 +120,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="notice-box__title">ご予約はLINEアプリからお願いします</div>
     <div class="notice-box__desc" style="margin-bottom:20px;">
       恐れ入りますが、ご予約フォームはLINE公式アカウントのトーク画面からのみご利用いただけます。<br>
-      スマートフォンのLINEアプリでこいまり公式アカウントを開き、トーク画面下部メニューの「ご予約」ボタンからお進みください。
+      スマートフォンのLINEアプリでこいまり公式アカウントを開き、トーク画面下部メニューの「ご予約」ボタンからお進みください。<br>
+      LINEをお持ちでない場合は、お電話（070-9158-0641）にてご予約を承ります。
     </div>
     <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="btn btn--line" style="display:inline-block;padding:16px 40px;">LINE公式アカウントを友だち追加する</a>
   </div>
@@ -141,6 +142,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div id="reserveFormWrap">
+        <div class="field">
+          <label class="field__check">
+            <input type="checkbox" id="reserveStoreConfirm">
+            <span>「ケーキ屋さんこいまり <strong>城東店</strong>」のご予約で間違いないことを確認しました</span>
+          </label>
+          <div class="error" id="reserveStoreConfirmError"></div>
+        </div>
         <div class="field" id="reserveCategoryField">
           <label class="field__label">ご予約の種類<span class="req-mark">必須</span></label>
           <div class="radio-list">
@@ -852,7 +860,9 @@ document.addEventListener("change", (e) => {
 
 function validateReserve(data) {
   let ok = true;
-  ["reserveSizeError","reserveFlavorError","reserveOccasionError","reserveCreamTypeError","reserveDecorationError","reserveCandleError","reserveDateError","reserveTimeError","reserveFuriganaError","reserveNameError","reserveTelError","reserveEmailError","reserveConsentError","reserveNoteError","reserveReceiptNameError","kmChildNameError","kmGradeError","kmBakingExperienceError","kmDateError","kmCountError"].forEach(id => setReserveError(id, ""));
+  ["reserveStoreConfirmError","reserveSizeError","reserveFlavorError","reserveOccasionError","reserveCreamTypeError","reserveDecorationError","reserveCandleError","reserveDateError","reserveTimeError","reserveFuriganaError","reserveNameError","reserveTelError","reserveEmailError","reserveConsentError","reserveNoteError","reserveReceiptNameError","kmChildNameError","kmGradeError","kmBakingExperienceError","kmDateError","kmCountError"].forEach(id => setReserveError(id, ""));
+
+  if (!data.storeConfirmed) { setReserveError("reserveStoreConfirmError", "「ケーキ屋さんこいまり 城東店」のご予約で間違いないかご確認ください"); ok = false; }
 
   if (data.category === "kidsManager") {
     if (!data.childName.trim()) { setReserveError("kmChildNameError", "お子様のお名前をご入力ください"); ok = false; }
@@ -1009,10 +1019,11 @@ function setupReserveForm(uid, displayName) {
     const tel = document.getElementById("reserveTel").value || "";
     const email = document.getElementById("reserveEmail").value || "";
     const privacyConsent = document.getElementById("reserveConsent").checked;
+    const storeConfirmed = document.getElementById("reserveStoreConfirm").checked;
     const note = document.getElementById("reserveNote").value || "";
     const commonFields = {
       name, furigana, tel, email, zipcode: "", address: "", birthday: "",
-      privacyConsent, note,
+      privacyConsent, storeConfirmed, note,
       noshi: "", noshiTitle: "", noshiName: "", messageCard: "", wrapping: "",
       status: "受付済", notes: "",
       submittedAt: new Date().toISOString(),
