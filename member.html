@@ -755,7 +755,7 @@ async function sendReserveToFormspree(data) {
         生クリームたっぷり乗せ: data.creamTopping ? "あり" : "なし",
         ...((isCakeBody || isRoll) ? { ろうそく: candleLine, メッセージプレート: messageLine } : {}),
         "メッセージプレートの文字（1枚目）": item.message || "",
-        基本料金の目安: data.priceNeedsConsult ? "たぬきちケーキ／カットケーキ／セルクルを含むため要電話案内" : (data.subtotal ? `¥${data.subtotal.toLocaleString()}` : ""),
+        基本料金の目安: data.priceNeedsConsult ? "たぬきちケーキ／カットケーキ／セルクルを含むため要電話案内" : (data.subtotal ? `¥${data.subtotal.toLocaleString()}${data.note ? "〜（概算・確定価格は要電話案内）" : ""}` : ""),
         領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
         備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
       };
@@ -923,7 +923,8 @@ function renderReserveConfirm(data, targetId) {
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${candleLine}</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>メッセージプレート</dt><dd>${messageLine}</dd>` : ""}
-    ${data.subtotal ? `<dt>基本料金の目安</dt><dd>¥${data.subtotal.toLocaleString()}${data.note ? "（その他ご要望あり・追加料金が発生する場合があります）" : ""}</dd>` : ""}
+    ${data.subtotal && !data.note ? `<dt>基本料金の目安</dt><dd>¥${data.subtotal.toLocaleString()}</dd>` : ""}
+    ${data.subtotal && data.note ? `<dt>概算価格</dt><dd>¥${data.subtotal.toLocaleString()}〜（ご希望内容により金額が変わります。内容確定後、スタッフより確定価格・お渡し日時をお電話にてご案内いたします）</dd>` : ""}
     ${data.priceNeedsConsult ? `<dt>基本料金の目安</dt><dd>たぬきちケーキ／カットケーキ／セルクルを含むため、料金は追ってお電話でご案内します</dd>` : ""}
     ${item.message ? `<dt>メッセージプレートの文字（1枚目）</dt><dd>${escape(item.message)}</dd>` : ""}
     <dt>引き取り希望日時</dt><dd>${escape(data.pickupDate)} ${escape(data.pickupTime)}</dd>
@@ -972,7 +973,8 @@ function buildReserveSummaryText(data) {
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
   if (isCake || isRoll) lines.push(`ろうそく: ${candleLine}`);
   if (isCake || isRoll) lines.push(`メッセージプレート: ${messageLine}`);
-  if (data.subtotal) lines.push(`基本料金の目安: ¥${data.subtotal.toLocaleString()}`);
+  if (data.subtotal && !data.note) lines.push(`基本料金の目安: ¥${data.subtotal.toLocaleString()}`);
+  if (data.subtotal && data.note) lines.push(`概算価格: ¥${data.subtotal.toLocaleString()}〜（ご希望内容により金額が変わります。内容確定後、確定価格・お渡し日時をお電話にてご案内いたします）`);
   if (data.priceNeedsConsult) lines.push("基本料金の目安: たぬきちケーキ／カットケーキ／セルクルを含むため、料金は追ってお電話でご案内します");
   if (item.message) lines.push(`メッセージプレートの文字（1枚目）: ${item.message}`);
   lines.push(`引き取り希望日時: ${data.pickupDate} ${data.pickupTime}`);
