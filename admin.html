@@ -1318,12 +1318,18 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 /* ============================================================
    タブ
    ============================================================ */
+// #saveBar（変更を保存/破棄）はサイト画像編集用の共有バーで、isDirty()だけで
+// 表示・非表示が決まっていたため、ここを編集したまま他のタブ（ギャラリー等）に
+// 移動しても画面下部に表示され続け、別パネルの保存ボタンと誤認される事故があった。
+// サイト画像系のタブにいる時だけ表示するようにする。
+const SITEIMAGES_PANELS = new Set(["hero", "greeting", "categories", "recommended", "cutcakes", "rollcakes", "experiences"]);
 document.querySelectorAll(".tab").forEach(t => {
   t.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
     document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
     t.classList.add("active");
     document.getElementById("panel-" + t.dataset.panel).classList.add("active");
+    document.getElementById("saveBar").style.display = (SITEIMAGES_PANELS.has(t.dataset.panel) && isDirty()) ? "flex" : "none";
     if (t.dataset.panel === "dashboard") renderDashboard();
     if (t.dataset.panel === "notify") renderNotifyPanel();
     if (t.dataset.panel === "reservations") renderReservations();

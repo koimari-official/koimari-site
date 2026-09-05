@@ -46,6 +46,10 @@
       ".read": true,
       ".write": "auth != null"
     },
+    "siteImages": {
+      ".read": true,
+      ".write": "auth != null"
+    },
     "koimariOps": {
       ".read": "auth != null",
       ".write": "auth != null"
