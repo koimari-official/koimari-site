@@ -393,13 +393,16 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 /* ===== USPバー (Hero直下) ===== */
 .usp-strip{background:var(--color-paper);border-bottom:1px solid var(--color-line)}
 .usp-strip__inner{max-width:var(--max-w);margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
-.usp-item{display:flex;align-items:center;gap:16px;padding:26px 28px;border-right:1px solid var(--color-line)}
+.usp-item{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:34px 26px;border-right:1px solid var(--color-line)}
 .usp-item:last-child{border-right:none}
-.usp-item__icon{width:38px;height:38px;flex-shrink:0;font-size:22px;color:var(--color-accent);display:flex;align-items:center;justify-content:center}
-.usp-item__title{font-family:var(--font-mincho);font-size:14px;font-weight:600;letter-spacing:.07em;margin-bottom:4px;color:var(--color-text)}
-.usp-item__sub{font-size:12px;color:var(--color-text-soft);letter-spacing:.03em;line-height:1.6}
-@media(max-width:900px){.usp-strip__inner{grid-template-columns:repeat(2,1fr)}.usp-item:nth-child(2){border-right:none}.usp-item:nth-child(3){border-top:1px solid var(--color-line)}.usp-item{padding:20px 20px;gap:12px}}
-@media(max-width:480px){.usp-strip__inner{grid-template-columns:repeat(2,1fr)}.usp-item{padding:16px 14px;gap:10px}.usp-item__icon{width:30px;font-size:18px}.usp-item__title{font-size:13px}}
+.usp-item__num{font-family:var(--font-en);font-size:13px;letter-spacing:.25em;color:var(--color-accent);font-style:italic}
+.usp-item__photo{width:100%;aspect-ratio:4/3;border-radius:4px;overflow:hidden;background:var(--color-bg-soft)}
+.usp-item__photo img{width:100%;height:100%;object-fit:cover;display:block}
+.usp-item__icon{width:38px;height:38px;flex-shrink:0;font-size:20px;color:var(--color-accent);display:flex;align-items:center;justify-content:center;border:1px solid var(--color-line);border-radius:50%}
+.usp-item__title{font-family:var(--font-mincho);font-size:15px;font-weight:700;letter-spacing:.06em;color:var(--color-text)}
+.usp-item__sub{font-size:13px;color:var(--color-text-soft);letter-spacing:.02em;line-height:1.75}
+@media(max-width:900px){.usp-strip__inner{grid-template-columns:repeat(2,1fr)}.usp-item:nth-child(2){border-right:none}.usp-item:nth-child(3){border-top:1px solid var(--color-line)}.usp-item{padding:22px 20px;gap:10px}}
+@media(max-width:480px){.usp-strip__inner{grid-template-columns:repeat(2,1fr)}.usp-item{padding:16px 14px;gap:8px}.usp-item__icon{width:30px;font-size:16px}.usp-item__title{font-size:13px}.usp-item__sub{font-size:12px}}
 
 /* ===== RETROゴールド：アクセント背景上のテキストを濃茶に ===== */
 .news__tag,.news-row__tag,.spotlight__badge,.spotlight__cta,
@@ -533,32 +536,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="usp-strip">
   <div class="usp-strip__inner">
     <div class="usp-item">
-      <div class="usp-item__icon">✦</div>
-      <div>
-        <div class="usp-item__title" data-i18n="usp.1.title">全て手作り・一品仕上げ</div>
-        <div class="usp-item__sub" data-i18n="usp.1.sub">素材、味、見栄えにこだわって焼き上げております。</div>
-      </div>
+      <span class="usp-item__num">01</span>
+      <div class="usp-item__photo" id="uspPhoto1" style="display:none;"><img alt=""></div>
+      <div class="usp-item__icon" id="uspIcon1">✦</div>
+      <div class="usp-item__title" data-i18n="usp.1.title">全て手作り・一品仕上げ</div>
+      <div class="usp-item__sub" data-i18n="usp.1.sub">素材、味、見栄えにこだわって焼き上げております。</div>
     </div>
     <div class="usp-item">
-      <div class="usp-item__icon">♡</div>
-      <div>
-        <div class="usp-item__title" data-i18n="usp.2.title">ご予約受付中</div>
-        <div class="usp-item__sub" data-i18n="usp.2.sub">オーダーケーキ・焼き菓子をギフトやお祝いに</div>
-      </div>
+      <span class="usp-item__num">02</span>
+      <div class="usp-item__photo" id="uspPhoto2" style="display:none;"><img alt=""></div>
+      <div class="usp-item__icon" id="uspIcon2">♡</div>
+      <div class="usp-item__title" data-i18n="usp.2.title">ご予約受付中</div>
+      <div class="usp-item__sub" data-i18n="usp.2.sub">オーダーケーキ・焼き菓子をギフトやお祝いに</div>
     </div>
     <div class="usp-item">
-      <div class="usp-item__icon">★</div>
-      <div>
-        <div class="usp-item__title" data-i18n="usp.3.title">城東区・鶴見区・京橋・蒲生・関目密着</div>
-        <div class="usp-item__sub" data-i18n="usp.3.sub">世界に愛される日本のお菓子を届けたい</div>
-      </div>
+      <span class="usp-item__num">03</span>
+      <div class="usp-item__photo" id="uspPhoto3" style="display:none;"><img alt=""></div>
+      <div class="usp-item__icon" id="uspIcon3">★</div>
+      <div class="usp-item__title" data-i18n="usp.3.title">城東区・鶴見区・京橋・蒲生・関目密着</div>
+      <div class="usp-item__sub" data-i18n="usp.3.sub">世界に愛される日本のお菓子を届けたい</div>
     </div>
     <div class="usp-item">
-      <div class="usp-item__icon">✿</div>
-      <div>
-        <div class="usp-item__title" data-i18n="usp.4.title">お子様の一日店長体験</div>
-        <div class="usp-item__sub" data-i18n="usp.4.sub">幼児～小学生向け体験会を開催予定<br>中高生の職業体験実施中</div>
-      </div>
+      <span class="usp-item__num">04</span>
+      <div class="usp-item__photo" id="uspPhoto4" style="display:none;"><img alt=""></div>
+      <div class="usp-item__icon" id="uspIcon4">✿</div>
+      <div class="usp-item__title" data-i18n="usp.4.title">お子様の一日店長体験</div>
+      <div class="usp-item__sub" data-i18n="usp.4.sub">幼児～小学生向け体験会を開催予定<br>中高生の職業体験実施中</div>
     </div>
   </div>
 </div>
@@ -1221,6 +1224,26 @@ onValue(ref(db, "siteImages"), (snapshot) => {
   if (typeof window.renderHeroSlides === "function") window.renderHeroSlides();
   if (typeof window.renderGreetingImage === "function") window.renderGreetingImage();
   if (typeof window.renderDynamic === "function") window.renderDynamic();
+});
+
+// 強みストリップ（usp-strip）の写真。項目ごとに「写真あり/なし」を選べ、無い項目はアイコン表示のまま
+// フォールバックする（2026-09-05、断面写真が揃っている項目から順に追加していく運用のため）。
+onValue(ref(db, "siteImages/usp"), (snapshot) => {
+  const arr = snapshot.val() || [];
+  arr.forEach((url, i) => {
+    const n = i + 1;
+    const photoBox = document.getElementById(`uspPhoto${n}`);
+    const icon = document.getElementById(`uspIcon${n}`);
+    if (!photoBox || !icon) return;
+    if (url) {
+      photoBox.querySelector("img").src = url;
+      photoBox.style.display = "";
+      icon.style.display = "none";
+    } else {
+      photoBox.style.display = "none";
+      icon.style.display = "";
+    }
+  });
 });
 
 // お知らせ・営業日設定・今月の主役・数字で見る・お客様の声・Instagram投稿風カードも同様に反映する。

@@ -253,6 +253,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="instagram">Instagram投稿</button>
       <button class="tab" data-panel="statsTop">数字で見る</button>
       <button class="tab" data-panel="hero">ヒーロー画像</button>
+      <button class="tab" data-panel="usp">強みストリップ写真</button>
       <button class="tab" data-panel="greeting">店舗紹介</button>
       <button class="tab" data-panel="categories">カテゴリ画像</button>
       <button class="tab" data-panel="recommended">おすすめ商品</button>
@@ -470,6 +471,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="panel__head"><h2 class="panel__title">ヒーロースライダー</h2><button class="btn btn--small" id="addHero">＋ スライドを追加</button></div>
       <p class="panel__desc">トップページの大きなスライダー画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅1600px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="heroGrid"></div>
+    </section>
+    <section class="panel" id="panel-usp">
+      <div class="panel__head"><h2 class="panel__title">強みストリップ写真（トップページ4項目）</h2></div>
+      <p class="panel__desc">トップページ上部「全て手作り・一品仕上げ」等4項目の写真です。写真が無い項目はアイコン表示のままになるので、断面写真が揃った項目から順に追加してください。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨比率：横4:縦3。アップロードすると自動的に縮小・圧縮されます（元ファイルは15MB以下にしてください）。設定後すぐにサイトへ反映されます。</span></p>
+      <div id="uspGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:20px;"></div>
     </section>
     <section class="panel" id="panel-greeting">
       <div class="panel__head"><h2 class="panel__title">店舗紹介画像</h2></div>
@@ -4247,6 +4253,61 @@ function initCakeFlavorsPanel() {
   initCakeSizePricesPanel();
 }
 
+/* ===== 強みストリップ写真（siteImages/usp、断面写真が揃った項目から個別に追加できる） ===== */
+const USP_LABELS = ["① 全て手作り・一品仕上げ", "② ご予約受付中", "③ 城東区・鶴見区・京橋・蒲生・関目密着", "④ お子様の一日店長体験"];
+const uspImagesRef = ref(fbDb, "siteImages/usp");
+let currentUspImages = ["", "", "", ""];
+function renderUspGrid() {
+  const grid = document.getElementById("uspGrid");
+  if (!grid) return;
+  grid.innerHTML = USP_LABELS.map((label, i) => `
+    <div style="background:#fff;border:1px solid var(--color-line);padding:16px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:10px;">${escapeHtml(label)}</div>
+      <div style="aspect-ratio:4/3;background:var(--color-bg-soft,#ede3d4);margin-bottom:10px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        ${currentUspImages[i] ? `<img src="${currentUspImages[i]}" alt="" style="width:100%;height:100%;object-fit:cover;">` : `<span style="font-size:12px;color:var(--color-text-mute,#856e58);">写真なし（アイコン表示）</span>`}
+      </div>
+      <input type="file" accept="image/*" data-usp-file="${i}" style="font-size:12px;margin-bottom:8px;display:block;">
+      ${currentUspImages[i] ? `<button class="btn btn--small btn--ghost" data-usp-clear="${i}">写真を削除してアイコン表示に戻す</button>` : ""}
+    </div>
+  `).join("");
+  grid.querySelectorAll("input[data-usp-file]").forEach(input => {
+    input.addEventListener("change", async (e) => {
+      const i = Number(input.dataset.uspFile);
+      const file = e.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await fileToDataUrl(file, 800);
+        currentUspImages[i] = dataUrl;
+        await set(uspImagesRef, currentUspImages);
+        showToast("保存しました", "success");
+      } catch (err) {
+        console.warn("強みストリップ写真の保存失敗:", err);
+        showToast(err.message || "保存に失敗しました", "error");
+      }
+    });
+  });
+  grid.querySelectorAll("button[data-usp-clear]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const i = Number(btn.dataset.uspClear);
+      currentUspImages[i] = "";
+      try {
+        await set(uspImagesRef, currentUspImages);
+        showToast("削除しました", "success");
+      } catch (err) {
+        console.warn("強みストリップ写真の削除失敗:", err);
+        showToast("削除に失敗しました", "error");
+      }
+    });
+  });
+}
+function initUspPanel() {
+  onValue(uspImagesRef, (snapshot) => {
+    const arr = snapshot.val() || [];
+    currentUspImages = [0, 1, 2, 3].map(i => arr[i] || "");
+    renderUspGrid();
+  });
+}
+
 onAuthStateChanged(fbAuth, (user) => {
   if (user) {
     syncReservationsFromFirebase();
@@ -4258,6 +4319,7 @@ onAuthStateChanged(fbAuth, (user) => {
     initEventConfigPanel();
     initExpDatesPanel();
     initCakeFlavorsPanel();
+    initUspPanel();
     if (typeof window.showAdmin === "function") window.showAdmin();
   } else {
     if (typeof window.showLogin === "function") window.showLogin();
