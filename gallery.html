@@ -157,15 +157,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <span class="page-head__en">Gallery &amp; Voices</span>
     <h1 class="page-head__title">作品ギャラリー</h1>
     <p class="page-head__lead">
-      これまでお作りしてきたオーダーケーキを、シーン別にご紹介します。<br>
+      これまでお作りしてきた作品の一部をご紹介します。<br>
       お客様のご希望に合わせて、世界にひとつのケーキをお作りいたします。
     </p>
   </div>
 </div>
 <main>
-
-  <!-- カテゴリタブ -->
-  <div class="cat-tabs" id="catTabs"></div>
 
   <!-- ギャラリーグリッド -->
   <div class="gallery-grid" id="galleryGrid"></div>
@@ -300,7 +297,9 @@ function renderGrid(){
   });
 }
 
-function renderGalleryPage(){ renderTabs(); renderGrid(); }
+// カテゴリタブは掲載作品数がまだ少なく絞り込みの効果が薄いため非表示にした
+// （2026-09-05オーナー指摘）。各作品カードには引き続きカテゴリ名を小さく表示する。
+function renderGalleryPage(){ renderGrid(); }
 window.renderGalleryPage = renderGalleryPage;
 renderGalleryPage();
 
