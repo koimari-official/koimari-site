@@ -152,12 +152,16 @@ function loadRollcakes(){
   }catch(e){}
   return DEFAULT_ROLLCAKES;
 }
+// Firebaseとの同期には数秒〜十数秒かかることがあり、その間items.length===0になるため
+// 「未同期でまだ空なだけ」と「同期済みで本当に登録が無い」を区別する（2026-09-07判明：
+// 実際には写真は登録済みなのに、同期完了前の一瞬「準備中」と誤表示され紛らわしかった）。
+window.firebaseSynced = false;
 function renderGrid(){
   const grid = document.getElementById("productGrid");
   grid.innerHTML = "";
   const items = loadRollcakes().filter(it => it.visible !== false);
   if(!items.length){
-    grid.innerHTML = '<div class="empty">ただいま準備中です。</div>';
+    grid.innerHTML = window.firebaseSynced ? '<div class="empty">ただいま準備中です。</div>' : '<div class="empty">読み込み中です…</div>';
     return;
   }
   items.forEach((it, i) => {
@@ -195,8 +199,9 @@ const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
 onValue(ref(db, "siteImages"), (snapshot) => {
+  window.firebaseSynced = true;
   const data = snapshot.val();
-  if (!data) return;
+  if (!data) { if (typeof window.renderRollcakeGrid === "function") window.renderRollcakeGrid(); return; }
   try {
     const cur = JSON.parse(localStorage.getItem("koimari_images") || "{}");
     if (data.rollcakes) cur.rollcakes = data.rollcakes;
