@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
-  buildStaffNotifyText, buildChatGreetingPrefix, formatPickupDateTimeJp,
+  buildStaffNotifyText, buildChatGreetingPrefix, formatPickupDateTimeJp, buildCouponReplyText,
 } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
@@ -227,5 +227,29 @@ console.log("OK: productLabel はご利用シーンに応じて呼び方を変�
 assertEqual(formatPickupDateTimeJp("2026-09-07", "15:00"), "2026年9月7日15時", "分が0の場合は「◯分」を付けない");
 assertEqual(formatPickupDateTimeJp("2026-09-07", "15:30"), "2026年9月7日15時30分", "分が0以外の場合は「◯分」を付ける");
 console.log("OK: formatPickupDateTimeJp");
+
+// --- buildCouponReplyText: expiry未設定＝友だち限定の常設特典として常に有効扱いする ---
+
+assertEqual(
+  buildCouponReplyText([{ discount: "3%OFF", memo: "店頭購入限定", expiry: "" }], "2026-09-06"),
+  "ただいま開催中のクーポンはこちらです🎫\n\n3%OFF（店頭購入限定）",
+  "expiry未設定のクーポンは期限表記なしで常に有効"
+);
+assertEqual(
+  buildCouponReplyText([{ discount: "10%OFF", expiry: "2026-09-01" }], "2026-09-06"),
+  "現在開催中のクーポンはございません🙏\n新しいクーポンが出た際は、あいさつメッセージ等でご案内いたしますので、またチェックしてみてくださいね🎂",
+  "期限切れのクーポンは表示しない"
+);
+assertEqual(
+  buildCouponReplyText([{ discount: "10%OFF", expiry: "2026-09-30" }], "2026-09-06"),
+  "ただいま開催中のクーポンはこちらです🎫\n\n10%OFF ※2026-09-30まで",
+  "期限内のクーポンは期限表記つきで表示する"
+);
+assertEqual(
+  buildCouponReplyText([{ discount: "5%OFF", expiry: "" }], "2026-09-06", "山田太郎"),
+  "山田太郎様への友だち限定クーポンのご案内です🎫\n恐れ入りますが、画面のスクリーンショットのSNS等への投稿・転載はご遠慮ください。\n\n5%OFF",
+  "displayName指定時は宛名とSNS転載注意書きを添える"
+);
+console.log("OK: buildCouponReplyText");
 
 console.log("\nすべてのローカルテストに合格しました。");

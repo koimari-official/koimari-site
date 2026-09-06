@@ -311,7 +311,7 @@ exports._internal = {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
-  buildCustomerConfirmationEmailText,
+  buildCustomerConfirmationEmailText, buildCouponReplyText,
 };
 
 exports.lineWebhook = onRequest(
@@ -356,9 +356,21 @@ exports.lineWebhook = onRequest(
         }
 
         // リッチメニュー「クーポン」タップ時も、AIの生成に任せずkoimariOps/couponsの実データをそのまま案内する。
+        // SNS転載対策として、お客様の表示名を案内文に入れる（admin.htmlでクーポン利用を停止された
+        // 会員には、クーポン内容自体を見せない＝実質のブラックリスト対応。2026-09-06オーナー指示）。
         if (event.message.text.trim() === COUPON_TRIGGER_TEXT) {
-          const couponsSnap = await admin.database().ref("koimariOps/coupons").once("value");
-          const couponReply = buildCouponReplyText(couponsSnap.val(), todayDateKeyJST(new Date()));
+          const couponUserId = (event.source && event.source.userId) || null;
+          const [couponsSnap, memberSnap, profile] = await Promise.all([
+            admin.database().ref("koimariOps/coupons").once("value"),
+            couponUserId ? admin.database().ref("lineMembers/" + couponUserId).once("value") : Promise.resolve(null),
+            couponUserId
+              ? lineApi("GET", `https://api.line.me/v2/bot/profile/${couponUserId}`, LINE_CHANNEL_ACCESS_TOKEN.value()).catch(() => null)
+              : Promise.resolve(null),
+          ]);
+          const isCouponBlocked = !!(memberSnap && memberSnap.val() && memberSnap.val().couponBlacklisted);
+          const couponReply = isCouponBlocked
+            ? buildCouponReplyText([], todayDateKeyJST(new Date()))
+            : buildCouponReplyText(couponsSnap.val(), todayDateKeyJST(new Date()), profile && profile.displayName);
           await replyToLine(event.replyToken, couponReply, LINE_CHANNEL_ACCESS_TOKEN.value());
           continue;
         }
@@ -672,14 +684,21 @@ function todayDateKeyJST(now) {
 
 // リッチメニュー「クーポン」タップ時の返信文をkoimariOps/couponsの実データから組み立てる
 // （AIの生成に任せず、admin.htmlで発行している実際のクーポン内容を確実に案内するため）。
-function buildCouponReplyText(coupons, todayKey) {
-  const active = (Array.isArray(coupons) ? coupons : []).filter((c) => c && c.expiry && c.expiry >= todayKey);
+// expiryが未設定のクーポンは「友だち限定の常設特典」として期限なし・常に有効に扱う
+// （店頭購入時の3%OFF等、キャンペーンではなく恒久的な会員特典に対応するため。2026-09-06）。
+// displayNameを渡すと、案内文に宛名を入れてSNS等への転載を控えるよう一言添える
+// （スクリーンショットが無断で拡散された場合に誰から漏れたか分かるようにする抑止策。2026-09-06）。
+function buildCouponReplyText(coupons, todayKey, displayName) {
+  const active = (Array.isArray(coupons) ? coupons : []).filter((c) => c && (!c.expiry || c.expiry >= todayKey));
   if (!active.length) {
     return "現在開催中のクーポンはございません🙏\n新しいクーポンが出た際は、あいさつメッセージ等でご案内いたしますので、またチェックしてみてくださいね🎂";
   }
-  const lines = ["ただいま開催中のクーポンはこちらです🎫", ""];
+  const lines = displayName
+    ? [`${displayName}様への友だち限定クーポンのご案内です🎫`, "恐れ入りますが、画面のスクリーンショットのSNS等への投稿・転載はご遠慮ください。", ""]
+    : ["ただいま開催中のクーポンはこちらです🎫", ""];
   active.forEach((c) => {
-    lines.push(`${c.discount || ""}${c.memo ? "（" + c.memo + "）" : ""} ※${c.expiry}まで`);
+    const expiryText = c.expiry ? ` ※${c.expiry}まで` : "";
+    lines.push(`${c.discount || ""}${c.memo ? "（" + c.memo + "）" : ""}${expiryText}`);
   });
   return lines.join("\n");
 }

@@ -2444,9 +2444,10 @@ function renderLineMembers() {
   }
   if (!list.length) { el.innerHTML = '<div class="empty">LINE会員はまだいません</div>'; return; }
   list.sort((a, b) => new Date(b.registeredAt || 0) - new Date(a.registeredAt || 0));
-  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>写真</th><th>表示名</th><th>登録日</th><th>最終来訪</th><th>誕生日</th><th>スタンプ</th></tr></thead><tbody>';
+  let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr><th>写真</th><th>表示名</th><th>登録日</th><th>最終来訪</th><th>誕生日</th><th>スタンプ</th><th>クーポン</th></tr></thead><tbody>';
   list.forEach(m => {
     const p = m.profile || {};
+    const blocked = !!m.couponBlacklisted;
     html += `<tr>
       <td>${p.pictureUrl ? `<img src="${escapeHtml(p.pictureUrl)}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">` : "—"}</td>
       <td>${escapeHtml(p.displayName || "—")}</td>
@@ -2457,6 +2458,9 @@ function renderLineMembers() {
         <button class="btn btn--small btn--ghost" data-uid="${escapeHtml(m.uid)}" data-delta="-1">−</button>
         <span style="display:inline-block;min-width:24px;text-align:center;">${m.stamps || 0}</span>
         <button class="btn btn--small btn--ghost" data-uid="${escapeHtml(m.uid)}" data-delta="1">＋</button>
+      </td>
+      <td>
+        <button class="btn btn--small ${blocked ? "btn--danger" : "btn--ghost"}" data-coupon-uid="${escapeHtml(m.uid)}" data-blocked="${blocked ? "1" : "0"}" style="font-size:11.5px;white-space:nowrap;">${blocked ? "利用停止中" : "利用可"}</button>
       </td>
     </tr>`;
   });
@@ -2472,6 +2476,22 @@ function renderLineMembers() {
         await update(ref(fbDb, "lineMembers/" + uid), { stamps: next });
       } catch (e) {
         showToast("スタンプの更新に失敗しました（Firebaseルール未公開の可能性があります）", "error");
+      }
+    });
+  });
+  // クーポンのスクリーンショットをSNS等へ拡散した会員がいた場合、この会員だけクーポン案内を止められる
+  // （LINE側にユーザーをブロックするAPIは無いため、Bot側の返信だけを個別に止める運用。2026-09-06）。
+  el.querySelectorAll("button[data-coupon-uid]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const uid = btn.dataset.couponUid;
+      const nowBlocked = btn.dataset.blocked === "1";
+      const label = nowBlocked ? "クーポン利用を再開しますか？" : "この会員のクーポン利用を停止しますか？（SNS転載等の対応）";
+      if (!confirm(label)) return;
+      try {
+        await update(ref(fbDb, "lineMembers/" + uid), { couponBlacklisted: !nowBlocked });
+        renderLineMembers();
+      } catch (e) {
+        showToast("更新に失敗しました（Firebaseルール未公開の可能性があります）", "error");
       }
     });
   });
