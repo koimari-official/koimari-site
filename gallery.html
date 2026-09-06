@@ -12,12 +12,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
-<title>作品ギャラリー・お客様の声｜こいまり</title>
-<meta name="description" content="こいまりでお作りしたオーダーケーキの作品集と、ご利用いただいたお客様の声をシーン別にご紹介します。誕生日・記念日・季節限定など。">
+<title>作品ギャラリー｜こいまり</title>
+<meta name="description" content="こいまりでお作りしたオーダーケーキの作品集をご紹介します。誕生日・記念日・季節限定など。">
 <link rel="canonical" href="https://koimari-official.github.io/koimari-site/gallery.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="作品ギャラリー・お客様の声｜こいまり">
-<meta property="og:description" content="こいまりでお作りしたオーダーケーキの作品集と、ご利用いただいたお客様の声をシーン別にご紹介します。">
+<meta property="og:title" content="作品ギャラリー｜こいまり">
+<meta property="og:description" content="こいまりでお作りしたオーダーケーキの作品集をご紹介します。">
 <meta property="og:url" content="https://koimari-official.github.io/koimari-site/gallery.html">
 <meta property="og:site_name" content="こいまり">
 <meta property="og:image" content="https://koimari-official.github.io/koimari-site/ogp.jpg">
@@ -175,14 +175,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- ギャラリーグリッド -->
   <div class="gallery-grid" id="galleryGrid"></div>
 
-  <!-- お客様の声 -->
-  <section class="voices-section">
-    <div class="voices-section__head">
-      <span class="voices-section__en">Customer Voices</span>
-      <h2 class="voices-section__title">お客様の声</h2>
-    </div>
-    <div class="voices-grid" id="voicesGrid"></div>
-  </section>
 
   <!-- 大きなCTA -->
   <section class="cta-banner">
@@ -322,6 +314,7 @@ renderGalleryPage();
 
 const voicesGrid = document.getElementById("voicesGrid");
 function renderVoicesGrid(){
+  if(!voicesGrid)return; // お客様の声セクションを一旦非表示にしたため（2026-09-07オーナー指示）
   voicesGrid.innerHTML = "";
   if (!voices.length) { voicesGrid.innerHTML = '<div class="empty" style="grid-column:1/-1;">お客様の声は現在準備中です。</div>'; return; }
   voices.forEach(v => {

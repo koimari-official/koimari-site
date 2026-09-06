@@ -643,12 +643,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </section>
 
-<!-- ===== お客様の声（抜粋） ===== -->
-<section class="voices" id="voicesTeaser">
-  <div class="section__head" style="max-width:1180px;margin:0 auto 50px;text-align:center;"><span class="section__en">Customer Voices</span><h2 class="section__title">お客様の声</h2></div>
-  <div class="voices__grid" id="voicesGrid"></div>
-  <div class="voices__more"><a href="gallery.html">もっと見る</a></div>
-</section>
 
 <!-- ===== 法人向け案内バナー ===== -->
 <section class="corporate-banner">
@@ -1055,6 +1049,7 @@ function renderStats(){
 }
 
 function renderVoices(){
+  if(!vGrid)return; // お客様の声セクションを一旦非表示にしたため（2026-09-07オーナー指示）
   vGrid.innerHTML='';
   const en=I18nCtrl.isEn();
   loadVoices().slice(0,3).forEach(v=>{
