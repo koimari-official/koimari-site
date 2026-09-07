@@ -320,63 +320,46 @@ renderProductPage();
 </script>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+// 2026-09-08判明：Firebase JS SDKのリアルタイム購読(onValue)や、"siteImages"全体を
+// 一括取得するREST呼び出しは、実写真base64を多数含む大容量ノード（カットケーキ等）
+// を読む際に一部の子ノードが欠落して届くことがあり、商品詳細ページが誤って
+// 「見つかりませんでした」と表示される不具合があった。このページで実際に必要なのは
+// 該当カテゴリ1つ分のデータだけのため、"siteImages"全体ではなく該当パス
+// （例：siteImages/cutcakes.json）だけをfetch()で取得することで、ペイロードを
+// 小さく保ちつつ確実に取得できるようにした。
+const DATABASE_URL = "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
-  authDomain: "koimari-tasting.firebaseapp.com",
-  databaseURL: "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "koimari-tasting",
-  storageBucket: "koimari-tasting.firebasestorage.app",
-  messagingSenderId: "852851855633",
-  appId: "1:852851855633:web:1bb5765680a137f20abcb0"
-};
-const fbApp = initializeApp(firebaseConfig);
-const db = getDatabase(fbApp);
-const siteImagesRef = ref(db, "siteImages");
-
-function applySiteImagesData(data){
-  if (!data) return;
+function applySiteImagesData(key, list){
+  if (!Array.isArray(list)) return;
   try {
     const cur = JSON.parse(localStorage.getItem("koimari_images") || "{}");
-    if (data.hero) cur.hero = data.hero;
-    if (data.greeting) cur.greeting = data.greeting;
-    if (data.categories) cur.categories = data.categories;
-    if (data.recommended) cur.recommended = data.recommended;
-    if (data.decorationCakes) cur.decorationCakes = data.decorationCakes;
-    if (data.cutcakes) cur.cutcakes = data.cutcakes;
-    if (data.rollcakes) cur.rollcakes = data.rollcakes;
-    if (data.experiences) cur.experiences = data.experiences;
+    cur[key] = list;
     localStorage.setItem("koimari_images", JSON.stringify(cur));
   } catch(e) {}
 }
-// 該当商品が見つかったかどうかを確認する（IMAGES[config.key][idx]が存在するか）
-function productFound(data){
-  const config = TYPE_CONFIG[productType];
-  const list = data && data[config.key];
-  return Array.isArray(list) && !!list[productIdx];
+
+async function fetchList(key){
+  const res = await fetch(DATABASE_URL + "/siteImages/" + key + ".json");
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
 }
 
-let retried = false;
-// 管理画面で保存されたカテゴリ/おすすめ商品データ（写真・説明文）を反映する
-onValue(siteImagesRef, (snapshot) => {
-  window.firebaseSynced = true;
-  const data = snapshot.val();
-  applySiteImagesData(data);
-  if (typeof window.renderProductPage === "function") window.renderProductPage();
-  // 稀にリアルタイム購読（onValue）でカットケーキ等サイズの大きいデータが欠けて
-  // 届くことがあるため、該当商品が見つからない場合は一度だけ明示的にget()で
-  // 再取得を試みる（2026-09-08判明の不具合対策）。
-  if (!retried && !productFound(data)) {
-    retried = true;
-    get(siteImagesRef).then((snap) => {
-      const freshData = snap.val();
-      applySiteImagesData(freshData);
+(async () => {
+  const config = TYPE_CONFIG[productType];
+  for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt > 0) await new Promise(r => setTimeout(r, 400));
+    try {
+      const list = await fetchList(config.key);
+      window.firebaseSynced = true;
+      applySiteImagesData(config.key, list);
       if (typeof window.renderProductPage === "function") window.renderProductPage();
-    }).catch(() => {});
+      if (Array.isArray(list) && list[productIdx]) break; // 見つかったので終了
+    } catch (e) {
+      window.firebaseSynced = true;
+      if (typeof window.renderProductPage === "function") window.renderProductPage();
+    }
   }
-});
+})();
 </script>
 </body>
 </html>
