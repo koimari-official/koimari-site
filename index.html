@@ -68,7 +68,8 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .section__inner{max-width:var(--max-w);margin:0 auto}
 .section__head{text-align:center;margin-bottom:70px}
 .section__en{font-family:var(--font-display);font-style:italic;color:var(--color-accent-dark);letter-spacing:.22em;font-size:17px;display:block;margin-bottom:16px;font-weight:600}
-.section__title{font-family:var(--font-mincho);font-size:clamp(28px,3.4vw,36px);letter-spacing:.16em;font-weight:600;position:relative;display:inline-block;padding-bottom:22px;color:var(--color-text)}
+/* 2026-09-08、表題をゴールドのグラデーション+陰影で浮き上がらせるスタイルに変更（オーナー指示） */
+.section__title{font-family:var(--font-mincho);font-size:clamp(28px,3.4vw,36px);letter-spacing:.16em;font-weight:600;position:relative;display:inline-block;padding-bottom:22px;background:linear-gradient(180deg,#ecd4a3 0%,var(--color-accent-dark) 55%,#7a5c37 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 1px 0 rgba(255,255,255,.6)) drop-shadow(0 3px 4px rgba(201,169,110,.35)) drop-shadow(0 8px 14px rgba(58,42,35,.22))}
 .section__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:110px;height:3px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 .section__lead{margin-top:28px;color:var(--color-text-soft);font-family:var(--font-mincho);letter-spacing:.05em;font-size:17px;line-height:2}
 .greeting{background:var(--color-bg)}
@@ -227,7 +228,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 /* ===== 法人向けバナー ===== */
 .corporate-banner{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;position:relative;overflow:hidden}
 .corporate-banner .section__en{color:#f0c896}
-.corporate-banner .section__title{color:#fff}
+.corporate-banner .section__title{background:none;-webkit-text-fill-color:#fff;color:#fff;filter:none}
 .corporate-banner::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 60px,rgba(245,214,168,.05) 60px 61px),repeating-linear-gradient(-60deg,transparent 0 60px,rgba(245,214,168,.05) 60px 61px);opacity:.7}
 .corporate-banner__inner{max-width:var(--max-w);margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:50px;align-items:center;position:relative;z-index:1}
 .corporate-banner__text{}
