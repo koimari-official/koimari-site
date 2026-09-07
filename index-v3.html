@@ -43,7 +43,15 @@ a:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
 /* ヒーローを「写真主体・中央に控えめなロゴだけ」のミルフィーユ風に再構成した第3案試作
    （2026-09-07。派手な見出しコピー・暗いグラデーションパネルをやめ、写真そのものを
    主役にする。スライドごとの見出し文言は使わず、ブランドロゴを固定で中央に重ねる） */
-.hero{position:relative;height:clamp(480px,86vh,800px);overflow:hidden;background:var(--color-bg-soft)}
+/* 初期表示ではバナー・ヘッダー・ナビを隠しヒーローを全画面表示、少しスクロールしたら現す
+   （2026-09-07オーナー指示）。ヘッダーをラッパーdivで囲むと、その中でしかposition:sticky
+   が効かなくなり（囲みの高さを超えて上端に固定され続けられない）スクロール追従が壊れるため、
+   ラッパーは使わず、各要素に直接 :not(body.chrome-visible) で非表示をかける方式にしている。
+   これなら現れた後のヘッダーのsticky・ナビの通常スクロール挙動は元のCSSのまま変わらない。 */
+body:not(.chrome-visible) #eventBanner,
+body:not(.chrome-visible) .site-header,
+body:not(.chrome-visible) #globalNav{display:none!important}
+.hero{position:relative;height:100vh;overflow:hidden;background:var(--color-bg-soft)}
 .hero__slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease}
 .hero__slide.active{opacity:1}
 .hero__slide img{width:100%;height:100%;object-fit:cover}
@@ -536,6 +544,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
   <div class="hero__dots" id="heroDots"></div>
 </div>
+<script>
+(function(){
+  var revealed = false;
+  function update(){
+    var shouldShow = window.scrollY > 20;
+    if (shouldShow !== revealed) {
+      revealed = shouldShow;
+      document.body.classList.toggle('chrome-visible', revealed);
+    }
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
 
 <!-- ===== USP バー ===== -->
 <div class="usp-strip">
