@@ -46,6 +46,10 @@
       ".read": true,
       ".write": "auth != null"
     },
+    "noritate": {
+      ".read": true,
+      ".write": "auth != null"
+    },
     "siteImages": {
       ".read": true,
       ".write": "auth != null"
