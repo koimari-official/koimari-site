@@ -321,7 +321,7 @@ renderProductPage();
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
@@ -334,12 +334,10 @@ const firebaseConfig = {
 };
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
+const siteImagesRef = ref(db, "siteImages");
 
-// 管理画面で保存されたカテゴリ/おすすめ商品データ（写真・説明文）を反映する
-onValue(ref(db, "siteImages"), (snapshot) => {
-  window.firebaseSynced = true;
-  const data = snapshot.val();
-  if (!data) { if (typeof window.renderProductPage === "function") window.renderProductPage(); return; }
+function applySiteImagesData(data){
+  if (!data) return;
   try {
     const cur = JSON.parse(localStorage.getItem("koimari_images") || "{}");
     if (data.hero) cur.hero = data.hero;
@@ -352,7 +350,32 @@ onValue(ref(db, "siteImages"), (snapshot) => {
     if (data.experiences) cur.experiences = data.experiences;
     localStorage.setItem("koimari_images", JSON.stringify(cur));
   } catch(e) {}
+}
+// 該当商品が見つかったかどうかを確認する（IMAGES[config.key][idx]が存在するか）
+function productFound(data){
+  const config = TYPE_CONFIG[productType];
+  const list = data && data[config.key];
+  return Array.isArray(list) && !!list[productIdx];
+}
+
+let retried = false;
+// 管理画面で保存されたカテゴリ/おすすめ商品データ（写真・説明文）を反映する
+onValue(siteImagesRef, (snapshot) => {
+  window.firebaseSynced = true;
+  const data = snapshot.val();
+  applySiteImagesData(data);
   if (typeof window.renderProductPage === "function") window.renderProductPage();
+  // 稀にリアルタイム購読（onValue）でカットケーキ等サイズの大きいデータが欠けて
+  // 届くことがあるため、該当商品が見つからない場合は一度だけ明示的にget()で
+  // 再取得を試みる（2026-09-08判明の不具合対策）。
+  if (!retried && !productFound(data)) {
+    retried = true;
+    get(siteImagesRef).then((snap) => {
+      const freshData = snap.val();
+      applySiteImagesData(freshData);
+      if (typeof window.renderProductPage === "function") window.renderProductPage();
+    }).catch(() => {});
+  }
 });
 </script>
 </body>
