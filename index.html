@@ -492,6 +492,10 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 /* ===== FAB: 常時表示を優先するオーバーライド（位置・表示の安定化） ===== */
 .fab{position:fixed !important;z-index:1200 !important;display:flex !important;opacity:1 !important;transform:none !important;animation:none !important;pointer-events:auto}
 .fab--pc{bottom:30px;right:30px;width:130px;height:130px;border-radius:50%}
+/* 初期表示の全画面ヒーローでは予約ボタンも隠し、ヘッダーが現れるタイミング（scrollY>20）で
+   一緒に表示する（2026-09-07オーナー指示）。ヘッダー自体はposition:stickyで自然に現れるが、
+   position:fixedのFABは連動しないためJSでbody.chrome-visibleを付け外しして合わせている。 */
+body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
 </style>
 <script src="i18n.js"></script>
@@ -514,6 +518,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
   <div class="hero__dots" id="heroDots"></div>
 </div>
+<script>
+// ヘッダーが現れるタイミング（scrollY>20）に合わせて予約FABも表示する
+(function(){
+  var revealed = false;
+  function update(){
+    var shouldShow = window.scrollY > 20;
+    if (shouldShow !== revealed) {
+      revealed = shouldShow;
+      document.body.classList.toggle('chrome-visible', revealed);
+    }
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+</script>
 
 <!-- ===== 季節イベントバナー (管理画面から設定可能な汎用テンプレ) ===== -->
 <div class="event-banner" id="eventBanner">

@@ -543,7 +543,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <!-- ===== 画像管理 (既存5タブ) ===== -->
     <section class="panel" id="panel-hero">
       <div class="panel__head"><h2 class="panel__title">ヒーロースライダー</h2><button class="btn btn--small" id="addHero">＋ スライドを追加</button></div>
-      <p class="panel__desc">トップページの大きなスライダー画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅1600px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
+      <p class="panel__desc">トップページの全画面ヒーロー画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">
+        <strong>推奨寸法：横2400px × 縦1350px程度（比率16:9）</strong>。アップロード時に16:9の枠で切り抜きができます。画面いっぱいに表示され、パソコンでは横長に、スマホでは縦長にトリミングされて表示されるため、<strong>写真の中央付近に主役の被写体を置き、上下左右の端は切れても問題ない構図</strong>にしてください。<br>
+        中央には白抜きの丸紋ロゴ+「Koimari」の文字を重ねて表示するため、<strong>写真の中央部分は多少暗め・単色に近い部分があると、ロゴの視認性が上がります</strong>（例：Mille-feuille社のような、中央がクリームや器の余白になっている構図が理想）。<br>
+        「ファイルから選択」でアップロードすると自動的に縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。
+      </span></p>
       <div class="img-grid" id="heroGrid"></div>
     </section>
     <section class="panel" id="panel-usp">
@@ -1677,7 +1681,7 @@ function renderHero() {
     if (s.visible === undefined) s.visible = true;
     const item = makeImageItem({
       preview: s.src,
-      maxWidth: 1600,
+      maxWidth: 2400,
       aspectRatio: 16 / 9,
       fields: [
         { label: "画像URL", key: "src", value: s.src, type: "input" },
