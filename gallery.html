@@ -67,9 +67,10 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 
 /* ===== ギャラリーグリッド ===== */
 .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-bottom:60px}
-.gal-card{background:var(--color-paper);overflow:hidden;border:1px solid var(--color-line);transition:transform .3s,box-shadow .3s,border-color .3s;display:flex;flex-direction:column}
+.gal-card{background:var(--color-paper);overflow:hidden;border:1px solid var(--color-line);transition:transform .3s,box-shadow .3s,border-color .3s;display:flex;flex-direction:column;text-decoration:none;color:inherit}
 .gal-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(58,42,35,.12);border-color:var(--color-accent-dark)}
 .gal-card__img{aspect-ratio:1/1;overflow:hidden;background:var(--color-bg-soft);cursor:zoom-in;position:relative}
+a.gal-card .gal-card__img{cursor:pointer}
 .gal-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .gal-card:hover .gal-card__img img{transform:scale(1.06)}
 .gal-card__cat{position:absolute;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
@@ -165,12 +166,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <span class="page-head__en">Gallery &amp; Voices</span>
     <h1 class="page-head__title">作品ギャラリー</h1>
     <p class="page-head__lead">
-      これまでお作りしてきた作品の一部をご紹介します。<br>
-      お客様のご希望に合わせて、世界にひとつのケーキをお作りいたします。
+      デコレーションケーキの作品例から、カットケーキ・ロールケーキなど店頭の商品まで。<br>
+      カテゴリーを選んで、こいまりのお菓子をご覧ください。
     </p>
   </div>
 </div>
 <main>
+
+  <!-- カテゴリタブ -->
+  <div class="cat-tabs" id="catTabs"></div>
 
   <!-- ギャラリーグリッド -->
   <div class="gallery-grid" id="galleryGrid"></div>
@@ -211,11 +215,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script>
 // カテゴリは商品種別ベース（ご予約フォームの分類と統一。2026-09-05、お祝い事の種類による
 // 分類だと今回追加した実写真の内容と噛み合わずわかりにくいとのオーナー指摘を受けて変更）。
+// 2026-09-08、デコレーションケーキ専用ページだったのを全カテゴリ横断のページに拡張
+// （cutcakes.html/rollcakes.htmlの実商品データもここに統合し、両ページは廃止予定）。
 const CATEGORIES = [
   { key: "all", name: "すべて" },
   { key: "cake", name: "デコレーションケーキ" },
+  { key: "cutcake", name: "カットケーキ" },
   { key: "roll", name: "ロールケーキ" },
-  { key: "baked", name: "焼き菓子・ギフト" }
+  { key: "baked", name: "焼き菓子" },
+  { key: "gift", name: "ギフト" },
+  { key: "birthday", name: "誕生日ケーキ" }
 ];
 
 const DEFAULT_GALLERY = [
@@ -243,10 +252,36 @@ function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":
 // 金額はギャラリー上に出さず、この番号でお問合せいただいてから個別に見積もる運用にするため。
 function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = i+1; }); return arr; }
 
-let gallery = assignGalleryNumbers(loadList("koimari_gallery", DEFAULT_GALLERY));
+// デコレーションケーキ等の「作品ポートフォリオ」（見積り制・カテゴリcake/roll）と、
+// カットケーキ・ロールケーキの「実商品メニュー」（siteImages.cutcakes/rollcakes、固定価格）
+// を1つの一覧にマージして表示する（2026-09-08。cutcakes.html/rollcakes.html統合）。
+let galleryPortfolio = loadList("koimari_gallery", DEFAULT_GALLERY);
+let menuCutcakes = [];
+let menuRollcakes = [];
+let menuSynced = false; // Firebase同期前は「準備中」ではなく「読み込み中」を出す
+let gallery = [];
 let voices = loadList("koimari_voices", DEFAULT_VOICES);
 
-let currentCat = "all";
+// トップページのカテゴリーカードから ?cat=cutcake のように遷移してきた場合、
+// 該当カテゴリを最初から選択した状態で表示する（2026-09-08）
+const urlCat = new URLSearchParams(location.search).get("cat");
+let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
+
+function menuItemToCard(item, catKey, idx, productType){
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType };
+}
+function buildGallery(){
+  const cutcakeCards = menuCutcakes
+    .map((c, idx) => ({ c, idx }))
+    .filter(({c}) => c && c.visible !== false)
+    .map(({c, idx}) => menuItemToCard(c, "cutcake", idx, "cutcake"));
+  const rollCards = menuRollcakes
+    .map((c, idx) => ({ c, idx }))
+    .filter(({c}) => c && c.visible !== false)
+    .map(({c, idx}) => menuItemToCard(c, "roll", idx, "rollcake"));
+  gallery = assignGalleryNumbers([...galleryPortfolio, ...cutcakeCards, ...rollCards]);
+}
+buildGallery();
 
 function getCount(catKey){ return catKey === "all" ? gallery.length : gallery.filter(g => g.category === catKey).length; }
 
@@ -268,23 +303,29 @@ function renderGrid(){
   grid.innerHTML = "";
   const filtered = currentCat === "all" ? gallery : gallery.filter(g => g.category === currentCat);
   if (!filtered.length) {
-    grid.innerHTML = '<div class="empty">このカテゴリの作品は現在準備中です。</div>';
+    grid.innerHTML = menuSynced
+      ? '<div class="empty">このカテゴリの作品は現在準備中です。</div>'
+      : '<div class="empty">読み込み中です…</div>';
     return;
   }
   filtered.forEach(g => {
-    const card = document.createElement("article");
+    // 実商品メニュー（カットケーキ・ロールケーキ）のカードは、カード全体を商品詳細ページ
+    // （product.html）へのリンクにする（旧cutcakes.html/rollcakes.htmlと同じ導線）。
+    // 作品ポートフォリオ（デコレーションケーキ等）は従来通りライトボックス表示＋LINE相談。
+    const card = document.createElement(g.isMenuItem ? "a" : "article");
     card.className = "gal-card";
+    if (g.isMenuItem) card.href = "product.html?type=" + g.productType + "&idx=" + g.idx;
     const catName = (CATEGORIES.find(c => c.key === g.category) || {}).name || "";
     const photos = [g.img, ...(Array.isArray(g.gallery) ? g.gallery : [])].filter(Boolean);
-    const subPhotos = photos.slice(1);
-    card.innerHTML = `
-      <div class="gal-card__img">
-        ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
-        <img src="${escape(g.img)}" alt="${escape(g.title)}">
-      </div>
-      ${subPhotos.length ? `<div class="gal-card__thumbs">${subPhotos.map((p,i) => `<img class="gal-card__thumb" src="${escape(p)}" data-idx="${i+1}" alt="">`).join("")}</div>` : ""}
-      <div class="gal-card__body">
-        <div class="gal-card__no">作品 No.${String(g.__no).padStart(2,"0")}</div>
+    const subPhotos = g.isMenuItem ? [] : photos.slice(1);
+    const bodyHtml = g.isMenuItem
+      ? `<h3 class="gal-card__title">${escape(g.title)}</h3>
+        <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
+        <div class="gal-card__meta">
+          ${g.price ? `<span class="gal-card__meta-item" style="font-size:15px;"><strong>${escape(g.price)}</strong>（税込）</span>` : ""}
+        </div>
+        <span class="gal-card__cta">くわしく見る →</span>`
+      : `<div class="gal-card__no">作品 No.${String(g.__no).padStart(2,"0")}</div>
         <h3 class="gal-card__title">${escape(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
@@ -292,8 +333,15 @@ function renderGrid(){
           ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
-        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + String(g.__no).padStart(2,"0") + "『" + g.title + "』と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>
-      </div>`;
+        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + String(g.__no).padStart(2,"0") + "『" + g.title + "』と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>`;
+    card.innerHTML = `
+      <div class="gal-card__img">
+        ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
+        <img src="${escape(g.img)}" alt="${escape(g.title)}">
+      </div>
+      ${subPhotos.length ? `<div class="gal-card__thumbs">${subPhotos.map((p,i) => `<img class="gal-card__thumb" src="${escape(p)}" data-idx="${i+1}" alt="">`).join("")}</div>` : ""}
+      <div class="gal-card__body">${bodyHtml}</div>`;
+    if (g.isMenuItem) { grid.appendChild(card); return; }
     const mainImgEl = card.querySelector(".gal-card__img img");
     card.querySelector(".gal-card__img").addEventListener("click", () => openLightbox(photos, g.title));
     // サムネイルにカーソルを合わせている間だけメイン画像をそのサムネイルに差し替えて見せる
@@ -306,9 +354,9 @@ function renderGrid(){
   });
 }
 
-// カテゴリタブは掲載作品数がまだ少なく絞り込みの効果が薄いため非表示にした
-// （2026-09-05オーナー指摘）。各作品カードには引き続きカテゴリ名を小さく表示する。
-function renderGalleryPage(){ renderGrid(); }
+// カテゴリタブを再度表示する（2026-09-08。全カテゴリの実商品を横断的に見られる
+// ページに拡張したため、タブでの絞り込みが必要になった）。
+function renderGalleryPage(){ renderTabs(); renderGrid(); }
 window.renderGalleryPage = renderGalleryPage;
 renderGalleryPage();
 
@@ -330,10 +378,21 @@ renderVoicesGrid();
 // Firebase側の最新データを取り込み直す（以前はlocalStorageのみで、管理者本人の端末にしか反映されなかったための対応）
 function applyFetchedGalleryContent(data){
   if (!data) return;
-  if (data.gallery !== undefined) { try { localStorage.setItem("koimari_gallery", JSON.stringify(data.gallery)); } catch(e){} gallery = assignGalleryNumbers(data.gallery); renderGalleryPage(); }
+  if (data.gallery !== undefined) { try { localStorage.setItem("koimari_gallery", JSON.stringify(data.gallery)); } catch(e){} galleryPortfolio = data.gallery; buildGallery(); renderGalleryPage(); }
   if (data.voices !== undefined) { try { localStorage.setItem("koimari_voices", JSON.stringify(data.voices)); } catch(e){} voices = data.voices; renderVoicesGrid(); }
 }
 window.applyFetchedGalleryContent = applyFetchedGalleryContent;
+
+// カットケーキ・ロールケーキの実商品メニュー（siteImages）を取り込む（2026-09-08）
+function applyFetchedMenuItems(data){
+  if (!data) return;
+  if (Array.isArray(data.cutcakes)) menuCutcakes = data.cutcakes;
+  if (Array.isArray(data.rollcakes)) menuRollcakes = data.rollcakes;
+  menuSynced = true;
+  buildGallery();
+  renderGalleryPage();
+}
+window.applyFetchedMenuItems = applyFetchedMenuItems;
 
 // 2枚目以降の写真にも対応したライトボックス（左右の矢印・枚数表示つき）
 let lightboxPhotos = [];
@@ -391,6 +450,12 @@ const db = getDatabase(fbApp);
 onValue(ref(db, "koimariContent"), (snapshot) => {
   const data = snapshot.val();
   if (data && typeof window.applyFetchedGalleryContent === "function") window.applyFetchedGalleryContent(data);
+});
+
+// カットケーキ・ロールケーキの実商品メニュー（cutcakes.html/rollcakes.htmlと同じデータ源）
+onValue(ref(db, "siteImages"), (snapshot) => {
+  const data = snapshot.val();
+  if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems(data || {});
 });
 </script>
 </body>

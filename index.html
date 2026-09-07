@@ -966,11 +966,13 @@ const newsList=document.getElementById("newsList");
 const statsGrid=document.getElementById("statsGrid");
 const vGrid=document.getElementById("voicesGrid");
 
-const CATEGORY_LIST_PAGE={"カットケーキ":"cutcakes.html","ロールケーキ":"rollcakes.html"};
+// 2026-09-08、全カテゴリーをgallery.htmlの該当タブへ遷移させる（商品カード一覧に統一。
+// cutcakes.html/rollcakes.htmlは廃止しgallery.htmlへ統合したため）。
+const CATEGORY_GALLERY_KEY={"デコレーションケーキ":"cake","カットケーキ":"cutcake","ロールケーキ":"roll","焼き菓子":"baked","ギフト":"gift","誕生日ケーキ":"birthday"};
 function renderCategories(){
   catGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");a.href=CATEGORY_LIST_PAGE[c.name]||("product.html?type=category&idx="+i);a.className="cat-card";const rawName=en?(c.en||c.name):c.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();const enCaption=(!en&&c.en)?`<div class="cat-card__en">${escape(c.en)}</div>`:"";a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${escape(plainName)}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${safeName}</div>${enCaption}</div>`;catGrid.appendChild(a)});
+  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");const galKey=CATEGORY_GALLERY_KEY[c.name];a.href=galKey?("gallery.html?cat="+galKey):("product.html?type=category&idx="+i);a.className="cat-card";const rawName=en?(c.en||c.name):c.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();const enCaption=(!en&&c.en)?`<div class="cat-card__en">${escape(c.en)}</div>`:"";a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${escape(plainName)}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${safeName}</div>${enCaption}</div>`;catGrid.appendChild(a)});
 }
 
 function renderRecommended(){

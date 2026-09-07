@@ -197,8 +197,8 @@ const DEFAULT_ROLLCAKES = [];
 const TYPE_CONFIG = {
   category:    { key: "categories", back: "index.html#categories", enField: "en" },
   recommended: { key: "recommended", back: "index.html#recommended", enField: "nameEn" },
-  cutcake:     { key: "cutcakes",   back: "cutcakes.html", enField: "nameEn" },
-  rollcake:    { key: "rollcakes",  back: "rollcakes.html", enField: "nameEn" }
+  cutcake:     { key: "cutcakes",   back: "gallery.html?cat=cutcake", enField: "nameEn" },
+  rollcake:    { key: "rollcakes",  back: "gallery.html?cat=roll", enField: "nameEn" }
 };
 
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
