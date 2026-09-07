@@ -33,11 +33,11 @@ a { color: inherit; text-decoration: none; }
 /* ===== Login ===== */
 .login { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .login__box { background: #fff; padding: 60px 44px; width: 100%; max-width: 420px; text-align: center; box-shadow: 0 8px 28px rgba(58,42,35,0.08); }
-.login__logo-en { font-family: var(--font-en); font-size: 36px; font-style: italic; color: var(--color-accent); letter-spacing: 0.18em; font-weight: 500; }
+.login__logo-en { font-family: var(--font-en); font-size: 36px; font-style: italic; color:var(--color-accent-dark); letter-spacing: 0.18em; font-weight: 500; }
 .login__logo-jp { font-family: var(--font-mincho); font-size: 14px; letter-spacing: 0.4em; color: var(--color-text-soft); margin: 8px 0 32px; }
 .login__title { font-family: var(--font-mincho); font-size: 18px; letter-spacing: 0.12em; margin-bottom: 28px; color: var(--color-text-soft); font-weight: 600; }
 .input { width: 100%; padding: 14px 16px; border: 1px solid var(--color-line); background: #fdfaf6; font-family: inherit; font-size: 16px; color: var(--color-text); margin-bottom: 18px; }
-.input:focus { outline: none; border-color: var(--color-accent); background: #fff; }
+.input:focus { outline: none; border-color:var(--color-accent-dark); background: #fff; }
 .btn { display: inline-block; padding: 14px 38px; font-family: var(--font-mincho); font-size: 15px; letter-spacing: 0.18em; color: #fff; background: var(--color-accent); border: none; cursor: pointer; transition: background 0.2s; font-weight: 500; }
 .btn:hover { background: var(--color-accent-dark); }
 .btn--small { padding: 9px 22px; font-size: 13px; letter-spacing: 0.12em; }
@@ -45,7 +45,7 @@ a { color: inherit; text-decoration: none; }
 .btn--ghost:hover { background: var(--color-bg-soft); color: var(--color-text); }
 .btn--danger { background: #b94a3a; }
 .btn--danger:hover { background: #973a2d; }
-.login__error { color: var(--color-accent); font-size: 14px; margin-top: 12px; min-height: 22px; font-weight: 500; }
+.login__error { color:var(--color-accent-dark); font-size: 14px; margin-top: 12px; min-height: 22px; font-weight: 500; }
 .login__hint { font-size: 13px; color: var(--color-text-soft); margin-top: 22px; line-height: 1.7; }
 
 /* ===== Admin shell ===== */
@@ -60,8 +60,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
 .tabs { display: flex; flex-wrap: wrap; align-items: center; gap: 0; border-bottom: 1px solid var(--color-line); margin-bottom: 32px; }
 .tab { padding: 16px 22px; font-family: var(--font-mincho); font-size: 15px; letter-spacing: 0.08em; background: none; border: none; color: var(--color-text-soft); cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap; transition: color 0.2s, border-color 0.2s; font-weight: 500; }
-.tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
-.tab:hover { color: var(--color-accent); }
+.tab.active { color:var(--color-accent-dark); border-bottom-color:var(--color-accent-dark); }
+.tab:hover { color:var(--color-accent-dark); }
 .tab-group-label { flex-basis: 100%; font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.1em; color: var(--color-text-soft); opacity: .6; padding: 14px 22px 3px 4px; }
 .tab-group-label:first-of-type { padding-top: 4px; }
 .tab__count { display: inline-block; margin-left: 8px; font-family: var(--font-en); background: var(--color-accent); color: #fff; padding: 2px 9px; border-radius: 10px; font-size: 12px; letter-spacing: 0; font-weight: 500; }
@@ -113,7 +113,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .img-item__field { margin-bottom: 12px; }
 .img-item__field label { display: block; font-size: 12px; color: var(--color-text-soft); margin-bottom: 5px; letter-spacing: 0.08em; font-weight: 500; }
 .img-item__field input, .img-item__field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--color-line); background: #fdfaf6; font-family: inherit; font-size: 14px; resize: vertical; }
-.img-item__field input:focus, .img-item__field textarea:focus { outline: none; border-color: var(--color-accent); }
+.img-item__field input:focus, .img-item__field textarea:focus { outline: none; border-color:var(--color-accent-dark); }
 .img-item__actions { display: flex; gap: 10px; margin-top: 12px; }
 .img-item__actions button { flex: 1; padding: 10px; font-size: 12px; letter-spacing: 0.08em; font-family: var(--font-mincho); cursor: pointer; border: 1px solid var(--color-line); background: var(--color-bg-soft); transition: background 0.2s; font-weight: 500; }
 .img-item__actions button:hover { background: #ebe0cf; }
@@ -136,7 +136,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
 .cal-nav { display: flex; align-items: center; gap: 16px; }
 .cal-nav button { width: 38px; height: 38px; background: var(--color-bg-soft); border: 1px solid var(--color-line); cursor: pointer; font-size: 16px; transition: all 0.2s; }
-.cal-nav button:hover { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.cal-nav button:hover { background: var(--color-accent); color: #fff; border-color:var(--color-accent-dark); }
 .cal-title { font-family: var(--font-mincho); font-size: 22px; letter-spacing: 0.08em; min-width: 200px; text-align: center; font-weight: 600; }
 .cal-legend { display: flex; gap: 18px; font-size: 13px; color: var(--color-text-soft); flex-wrap: wrap; }
 .cal-legend span { display: inline-flex; align-items: center; gap: 6px; }
@@ -145,12 +145,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal-dow { text-align: center; padding: 10px 0; font-family: var(--font-mincho); font-size: 13px; font-weight: 600; background: var(--color-bg-soft); letter-spacing: 0.05em; }
 .cal-dow.sat { color: var(--color-info); }
-.cal-dow.sun { color: var(--color-accent); }
+.cal-dow.sun { color:var(--color-accent-dark); }
 .cal-cell { aspect-ratio: 1/0.85; padding: 8px; background: #fdfaf6; border: 1px solid var(--color-line); display: flex; flex-direction: column; cursor: pointer; transition: all 0.2s; min-height: 90px; }
-.cal-cell:hover { background: #fff; border-color: var(--color-gold); }
+.cal-cell:hover { background: #fff; border-color:var(--color-accent-dark); }
 .cal-cell.empty { background: transparent; border-color: transparent; cursor: default; }
-.cal-cell.today { background: rgba(176,59,72,0.06); border-color: var(--color-accent); }
-.cal-cell.holiday .cal-day { color: var(--color-accent); }
+.cal-cell.today { background: rgba(176,59,72,0.06); border-color:var(--color-accent-dark); }
+.cal-cell.holiday .cal-day { color:var(--color-accent-dark); }
 .cal-cell.saturday .cal-day { color: var(--color-info); }
 .cal-day { font-family: var(--font-en); font-size: 18px; font-weight: 500; margin-bottom: 4px; }
 .cal-badges { display: flex; flex-direction: column; gap: 3px; flex: 1; overflow: hidden; }
@@ -173,7 +173,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .stats-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 18px; margin-bottom: 36px; }
 .stat-card { background: #fff; padding: 24px 26px; border: 1px solid var(--color-line); }
 .stat-card__label { font-family: var(--font-mincho); font-size: 13px; color: var(--color-text-soft); letter-spacing: 0.08em; margin-bottom: 8px; }
-.stat-card__value { font-family: var(--font-en); font-size: 36px; color: var(--color-accent); font-weight: 500; line-height: 1.1; }
+.stat-card__value { font-family: var(--font-en); font-size: 36px; color:var(--color-accent-dark); font-weight: 500; line-height: 1.1; }
 .stat-card__unit { font-family: var(--font-mincho); font-size: 14px; color: var(--color-text-soft); margin-left: 4px; }
 .stat-card__sub { font-size: 12px; color: var(--color-text-soft); margin-top: 6px; }
 
@@ -792,14 +792,14 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <p class="panel__desc">LINE公式アカウントの友だち追加＝会員登録となった方の一覧です。スタンプ数はここから増減できます。</p>
       <div class="field" style="max-width:420px;margin-bottom:16px;padding:14px 16px;background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:6px;">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-mincho);font-size:15px;">
-          <input type="checkbox" id="stampCardEnabled" style="width:18px;height:18px;accent-color:var(--color-accent);">
+          <input type="checkbox" id="stampCardEnabled" style="width:18px;height:18px;accent-color:var(--color-accent-dark);">
           会員ページにスタンプカードを表示する
         </label>
         <div style="font-size:12.5px;color:var(--color-text-soft);margin-top:6px;">オフにすると、LINE会員ページ（member.html）からスタンプカードのセクションが非表示になります（現在オフ＝施策検討中のため非表示）。</div>
       </div>
       <div class="field" style="max-width:320px;margin-bottom:16px;">
         <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-mincho);font-size:15px;">
-          <input type="checkbox" id="lineMembersBirthdayFilter" style="width:18px;height:18px;accent-color:var(--color-accent);">
+          <input type="checkbox" id="lineMembersBirthdayFilter" style="width:18px;height:18px;accent-color:var(--color-accent-dark);">
           今月誕生日の会員のみ表示
         </label>
       </div>
@@ -815,7 +815,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;">
         <div class="field" style="margin-bottom:16px;">
           <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-family:var(--font-mincho);font-size:15px;">
-            <input type="checkbox" id="ecShow" style="width:18px;height:18px;accent-color:var(--color-accent);">
+            <input type="checkbox" id="ecShow" style="width:18px;height:18px;accent-color:var(--color-accent-dark);">
             トップページにバナーを表示する
           </label>
         </div>
@@ -2260,7 +2260,7 @@ function renderDashboard() {
     <div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;">
       <div style="font-family:var(--font-mincho);font-size:14px;color:var(--color-text-soft);margin-bottom:8px;">当月売上目標進捗</div>
       ${goal > 0 ? `
-        <div style="font-size:24px;font-weight:600;color:var(--color-accent);">¥${Number(manualRevenue).toLocaleString()}<span style="font-size:14px;color:var(--color-text-soft);margin-left:8px;">/ ¥${Number(goal).toLocaleString()}</span></div>
+        <div style="font-size:24px;font-weight:600;color:var(--color-accent-dark);">¥${Number(manualRevenue).toLocaleString()}<span style="font-size:14px;color:var(--color-text-soft);margin-left:8px;">/ ¥${Number(goal).toLocaleString()}</span></div>
         <div style="background:var(--color-bg-soft);border-radius:4px;height:10px;overflow:hidden;margin-top:10px;">
           <div style="height:100%;background:linear-gradient(90deg,var(--color-accent),var(--color-gold));border-radius:4px;width:${pct}%;transition:width .5s;"></div>
         </div>
@@ -2269,7 +2269,7 @@ function renderDashboard() {
     </div>
     <div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;">
       <div style="font-family:var(--font-mincho);font-size:14px;color:var(--color-text-soft);margin-bottom:8px;">今月の予約件数</div>
-      <div style="font-size:28px;font-weight:600;color:var(--color-accent);">${reservations.filter(r=>(r.submittedAt||"").startsWith(thisMonth)&&r.status!=="キャンセル").length}<span style="font-size:14px;color:var(--color-text-soft);margin-left:4px;">件</span></div>
+      <div style="font-size:28px;font-weight:600;color:var(--color-accent-dark);">${reservations.filter(r=>(r.submittedAt||"").startsWith(thisMonth)&&r.status!=="キャンセル").length}<span style="font-size:14px;color:var(--color-text-soft);margin-left:4px;">件</span></div>
     </div>
   </div>`;
 
@@ -3411,7 +3411,7 @@ function renderSpotlightAdmin() {
     html += `<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
       <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
       <button class="btn" id="saveSpotlight">変更を保存</button>
-      <button class="btn btn--ghost" id="stockAndNew" style="border-color:var(--color-gold);color:var(--color-gold);">ストックして新規作成</button>
+      <button class="btn btn--ghost" id="stockAndNew" style="border-color:var(--color-accent-dark);color:var(--color-accent-dark);">ストックして新規作成</button>
     </div>`;
   } else {
     html += `<p style="color:var(--color-text-soft);margin-bottom:20px;">現在公開中の特集はありません。</p>`;
@@ -3577,7 +3577,7 @@ function renderStatsAdmin() {
     const item = document.createElement("div");
     item.style.cssText = "background:#fff;border:1px solid var(--color-line);padding:18px 22px;margin-bottom:12px;display:grid;grid-template-columns:1fr 1fr 2fr auto;gap:12px;align-items:end;max-width:760px;";
     item.innerHTML = `
-      <div><label style="display:block;font-size:11px;color:var(--color-text-soft);margin-bottom:4px;">数字（例: 12, 3,000）</label><input type="text" data-k="num" value="${escapeHtml(s.num||"")}" style="width:100%;padding:8px 10px;border:1px solid var(--color-line);font-family:var(--font-en);font-size:18px;color:var(--color-accent);"></div>
+      <div><label style="display:block;font-size:11px;color:var(--color-text-soft);margin-bottom:4px;">数字（例: 12, 3,000）</label><input type="text" data-k="num" value="${escapeHtml(s.num||"")}" style="width:100%;padding:8px 10px;border:1px solid var(--color-line);font-family:var(--font-en);font-size:18px;color:var(--color-accent-dark);"></div>
       <div><label style="display:block;font-size:11px;color:var(--color-text-soft);margin-bottom:4px;">単位（例: 年, 件＋, %）</label><input type="text" data-k="unit" value="${escapeHtml(s.unit||"")}" style="width:100%;padding:8px 10px;border:1px solid var(--color-line);"></div>
       <div><label style="display:block;font-size:11px;color:var(--color-text-soft);margin-bottom:4px;">ラベル</label><input type="text" data-k="label" value="${escapeHtml(s.label||"")}" style="width:100%;padding:8px 10px;border:1px solid var(--color-line);"></div>
       <button class="btn btn--small btn--ghost" style="font-size:12px;padding:8px 14px;">削除</button>`;
@@ -3610,7 +3610,7 @@ function renderHolidaysAdmin() {
     label.style.cssText = "display:inline-flex; align-items:center; padding:10px 16px; border:1px solid var(--color-line); background:#fdfaf6; cursor:pointer; user-select:none; font-family:var(--font-mincho);";
     const checked = (holidaysData.weeklyClosed||[]).includes(d);
     if (checked) { label.style.borderColor = "var(--color-accent)"; label.style.background = "rgba(176,59,72,0.06)"; label.style.color = "var(--color-accent)"; }
-    label.innerHTML = `<input type="checkbox" ${checked?"checked":""} style="margin-right:8px; accent-color:var(--color-accent);">${DOW_NAMES[d]}曜日`;
+    label.innerHTML = `<input type="checkbox" ${checked?"checked":""} style="margin-right:8px; accent-color:var(--color-accent-dark);">${DOW_NAMES[d]}曜日`;
     label.querySelector("input").addEventListener("change", e => {
       if (e.target.checked) { if (!holidaysData.weeklyClosed.includes(d)) holidaysData.weeklyClosed.push(d); }
       else { holidaysData.weeklyClosed = holidaysData.weeklyClosed.filter(x => x !== d); }
@@ -3627,7 +3627,7 @@ function renderHolidaysAdmin() {
     holidaysData.extraClosed.forEach(date => {
       const tag = document.createElement("span");
       tag.style.cssText = "display:inline-flex; align-items:center; gap:8px; padding:8px 14px; background:rgba(176,59,72,0.08); color:var(--color-accent-dark); font-family:var(--font-mincho); font-size:14px;";
-      tag.innerHTML = `${escapeHtml(date)} <button style="background:none; border:none; color:var(--color-accent); cursor:pointer; font-size:16px; line-height:1;">×</button>`;
+      tag.innerHTML = `${escapeHtml(date)} <button style="background:none; border:none; color:var(--color-accent-dark); cursor:pointer; font-size:16px; line-height:1;">×</button>`;
       tag.querySelector("button").addEventListener("click", () => {
         holidaysData.extraClosed = holidaysData.extraClosed.filter(d => d !== date);
         renderHolidaysAdmin();

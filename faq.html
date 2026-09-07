@@ -38,20 +38,20 @@ a{color:inherit;text-decoration:none}
 .header__logo{display:flex;align-items:center;gap:10px;line-height:1}
 .header__logo-mark{width:82px;height:82px;object-fit:contain}
 .header__logo-text{display:flex;flex-direction:column;line-height:1}
-.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
+.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent-dark);font-weight:700}
 .header__logo-jp{font-family:var(--font-mincho);font-size:18px;letter-spacing:.08em;color:#fff;font-weight:600;margin-top:8px;white-space:nowrap}
 .back-link{font-family:var(--font-mincho);font-size:18px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
-.back-link:hover{color:var(--color-accent)}
+.back-link:hover{color:var(--color-accent-dark)}
 .nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
 .nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
-.nav-link:hover{color:var(--color-accent)}
+.nav-link:hover{color:var(--color-accent-dark)}
 .nav-link:hover::after{transform:scaleX(1)}
 .sub-nav{background:var(--color-bg-soft);border-bottom:1px solid var(--color-line)}
 .sub-nav ul{max-width:1180px;margin:0 auto;display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;padding:10px 8px}
 .page-head{position:relative;text-align:center;padding:48px 24px 42px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#efe3d2 100%);overflow:hidden}
 .page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none;opacity:.7}
 .page-head__inner{position:relative;z-index:1}
-.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:21px;display:inline-block;margin-bottom:14px;font-weight:500}
+.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.3em;font-size:21px;display:inline-block;margin-bottom:14px;font-weight:500}
 .page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
 .page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
 .page-head__lead{color:var(--color-text);font-size:16px;font-family:var(--font-mincho);letter-spacing:.04em;line-height:2}
@@ -60,15 +60,15 @@ main{max-width:880px;margin:0 auto;padding:80px 24px 100px}
 .faq-cat__title{font-family:var(--font-mincho);font-size:22px;letter-spacing:.12em;margin-bottom:24px;color:var(--color-text);font-weight:600;display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--color-line)}
 .faq-cat__title::before{content:"";display:inline-block;width:6px;height:22px;background:linear-gradient(180deg,var(--color-accent) 0%,var(--color-gold) 100%)}
 .faq-item{background:var(--color-paper);margin-bottom:14px;border:1px solid var(--color-line);transition:border-color .25s}
-.faq-item:hover{border-color:var(--color-gold)}
+.faq-item:hover{border-color:var(--color-accent-dark)}
 .faq-item__q{padding:24px 28px;display:flex;align-items:flex-start;gap:18px;cursor:pointer;font-family:var(--font-mincho);font-size:17px;letter-spacing:.05em;font-weight:600;line-height:1.7;user-select:none;transition:background .2s}
 .faq-item__q:hover{background:var(--color-bg-soft)}
-.faq-item__q::before{content:"Q";font-family:var(--font-en);font-style:italic;color:var(--color-accent);font-size:24px;line-height:1;flex-shrink:0;margin-top:-2px;font-weight:500}
-.faq-item__q::after{content:"+";margin-left:auto;color:var(--color-gold);font-size:24px;font-weight:300;line-height:1;flex-shrink:0;transition:transform .25s}
+.faq-item__q::before{content:"Q";font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);font-size:24px;line-height:1;flex-shrink:0;margin-top:-2px;font-weight:500}
+.faq-item__q::after{content:"+";margin-left:auto;color:var(--color-accent-dark);font-size:24px;font-weight:300;line-height:1;flex-shrink:0;transition:transform .25s}
 .faq-item.open .faq-item__q::after{transform:rotate(45deg)}
 .faq-item__a{display:none;padding:0 28px 28px 70px;font-size:19px;font-weight:600;line-height:2;color:var(--color-text)}
 .faq-item.open .faq-item__a{display:block}
-.faq-item__a::before{content:"A";font-family:var(--font-en);font-style:italic;color:var(--color-gold);font-size:22px;display:block;margin-left:-32px;float:left;font-weight:500}
+.faq-item__a::before{content:"A";font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);font-size:22px;display:block;margin-left:-32px;float:left;font-weight:500}
 .empty{background:var(--color-paper);padding:60px 20px;text-align:center;color:var(--color-text-soft);border:1px dashed var(--color-line)}
 .cta{margin-top:80px;text-align:center;background:var(--color-paper);padding:50px 30px;border:1px solid var(--color-line)}
 .cta h3{font-family:var(--font-mincho);font-size:21px;letter-spacing:.12em;margin-bottom:12px;font-weight:600}

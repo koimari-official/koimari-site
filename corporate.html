@@ -42,13 +42,13 @@ a{color:inherit;text-decoration:none}
 .header__logo{display:flex;align-items:center;gap:10px;line-height:1}
 .header__logo-mark{width:82px;height:82px;object-fit:contain}
 .header__logo-text{display:flex;flex-direction:column;line-height:1}
-.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
+.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent-dark);font-weight:700}
 .header__logo-jp{font-family:var(--font-mincho);font-size:18px;letter-spacing:.08em;color:#fff;font-weight:600;margin-top:8px;white-space:nowrap}
 .back-link{font-family:var(--font-mincho);font-size:18px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
-.back-link:hover{color:var(--color-accent)}
+.back-link:hover{color:var(--color-accent-dark)}
 .nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
 .nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
-.nav-link:hover{color:var(--color-accent)}
+.nav-link:hover{color:var(--color-accent-dark)}
 .nav-link:hover::after{transform:scaleX(1)}
 .sub-nav{background:var(--color-bg-soft);border-bottom:1px solid var(--color-line)}
 .sub-nav ul{max-width:1180px;margin:0 auto;display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;padding:10px 8px}
@@ -71,7 +71,7 @@ a{color:inherit;text-decoration:none}
 section{padding:100px 24px}
 .section__inner{max-width:var(--max-w);margin:0 auto}
 .section__head{text-align:center;margin-bottom:60px}
-.section__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:17px;display:block;margin-bottom:14px;font-weight:500}
+.section__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.3em;font-size:17px;display:block;margin-bottom:14px;font-weight:500}
 .section__title{font-family:var(--font-mincho);font-size:clamp(26px,3.4vw,34px);letter-spacing:.16em;font-weight:600;position:relative;display:inline-block;padding-bottom:22px}
 .section__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:46px;height:1px;background:var(--color-gold)}
 .section__lead{margin-top:24px;color:var(--color-text-soft);font-family:var(--font-mincho);letter-spacing:.04em;font-size:16px;line-height:2}
@@ -80,8 +80,8 @@ section{padding:100px 24px}
 .usecases{background:var(--color-bg)}
 .usecases__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
 .uc-card{background:var(--color-paper);padding:38px 32px;border:1px solid var(--color-line);transition:transform .3s,box-shadow .3s,border-color .3s;display:flex;flex-direction:column;align-items:flex-start}
-.uc-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(58,42,35,.1);border-color:var(--color-gold)}
-.uc-card__icon{width:54px;height:54px;border-radius:50%;background:var(--color-bg-soft);display:flex;align-items:center;justify-content:center;margin-bottom:22px;font-family:var(--font-en);font-style:italic;color:var(--color-accent);font-size:18px;font-weight:500;letter-spacing:.05em}
+.uc-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(58,42,35,.1);border-color:var(--color-accent-dark)}
+.uc-card__icon{width:54px;height:54px;border-radius:50%;background:var(--color-bg-soft);display:flex;align-items:center;justify-content:center;margin-bottom:22px;font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);font-size:18px;font-weight:500;letter-spacing:.05em}
 .uc-card__title{font-family:var(--font-mincho);font-size:18px;letter-spacing:.08em;font-weight:600;margin-bottom:12px;line-height:1.5}
 .uc-card__desc{font-size:14px;color:var(--color-text-soft);line-height:1.95}
 
@@ -91,7 +91,7 @@ section{padding:100px 24px}
 .tiers .section__inner{position:relative;z-index:1}
 .tiers__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
 .tier{background:#fff;border:1px solid var(--color-line);display:flex;flex-direction:column;position:relative;transition:transform .3s,box-shadow .3s,border-color .3s;overflow:hidden}
-.tier:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(58,42,35,.14);border-color:var(--color-gold)}
+.tier:hover{transform:translateY(-5px);box-shadow:0 20px 50px rgba(58,42,35,.14);border-color:var(--color-accent-dark)}
 .tier--premium{background:linear-gradient(180deg,#1f1612 0%,#2b1f1a 100%);color:#f5d6a8;border-color:#a98554}
 .tier__img{aspect-ratio:5/4;overflow:hidden;background:var(--color-bg-soft);position:relative}
 .tier__img img{width:100%;height:100%;object-fit:cover;transition:transform .8s}
@@ -101,26 +101,26 @@ section{padding:100px 24px}
 .tier__body{padding:32px 30px 36px;flex:1;display:flex;flex-direction:column}
 .tier__name{font-family:var(--font-mincho);font-size:22px;letter-spacing:.12em;font-weight:600;margin-bottom:8px}
 .tier--premium .tier__name{color:#fff}
-.tier__sub{font-family:var(--font-en);font-style:italic;color:var(--color-gold);font-size:14px;letter-spacing:.18em;margin-bottom:20px;font-weight:500}
+.tier__sub{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);font-size:14px;letter-spacing:.18em;margin-bottom:20px;font-weight:500}
 .tier--premium .tier__sub{color:#c9a872}
 .tier__desc{font-size:14px;line-height:2;margin-bottom:22px;color:var(--color-text);flex:1}
 .tier--premium .tier__desc{color:#e3d5c2}
 .tier__features{list-style:none;font-size:13px;line-height:2.05;margin-bottom:22px;color:var(--color-text-soft);font-family:var(--font-mincho)}
 .tier--premium .tier__features{color:#c5b29e}
 .tier__features li{padding-left:18px;position:relative}
-.tier__features li::before{content:"・";position:absolute;left:0;color:var(--color-gold);font-weight:700}
+.tier__features li::before{content:"・";position:absolute;left:0;color:var(--color-accent-dark);font-weight:700}
 .tier__price-hint{padding-top:18px;border-top:1px dashed var(--color-line);font-family:var(--font-mincho);font-size:13px;color:var(--color-text-mute);letter-spacing:.04em;margin-top:auto}
 .tier--premium .tier__price-hint{border-top-color:rgba(245,214,168,.2);color:#a89279}
-.tier__price-hint strong{display:block;color:var(--color-accent);font-family:var(--font-sans);font-size:16px;letter-spacing:.02em;margin-top:4px;font-weight:700}
+.tier__price-hint strong{display:block;color:var(--color-accent-dark);font-family:var(--font-sans);font-size:16px;letter-spacing:.02em;margin-top:4px;font-weight:700}
 .tier--premium .tier__price-hint strong{color:#f5d6a8}
 .tiers__note{text-align:center;margin-top:50px;padding:26px 32px;background:#fff;border:1px solid var(--color-line);border-left:4px solid var(--color-gold);font-family:var(--font-mincho);letter-spacing:.04em;color:var(--color-text);max-width:760px;margin-left:auto;margin-right:auto;font-size:15px;line-height:2}
-.tiers__note strong{display:block;color:var(--color-accent);margin-bottom:8px;font-size:16px;letter-spacing:.1em}
+.tiers__note strong{display:block;color:var(--color-accent-dark);margin-bottom:8px;font-size:16px;letter-spacing:.1em}
 
 /* ===== Services / Customization ===== */
 .services{background:var(--color-bg)}
 .services__grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--color-line);border:1px solid var(--color-line)}
 .svc{background:#fff;padding:38px 32px;display:flex;gap:22px;align-items:flex-start}
-.svc__icon{width:48px;height:48px;border:1.5px solid var(--color-gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--color-accent);font-weight:600;font-family:var(--font-en);font-size:20px;font-style:italic}
+.svc__icon{width:48px;height:48px;border:1.5px solid var(--color-gold);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--color-accent-dark);font-weight:600;font-family:var(--font-en);font-size:20px;font-style:italic}
 .svc__body h3{font-family:var(--font-mincho);font-size:17px;letter-spacing:.08em;font-weight:600;margin-bottom:8px;line-height:1.5}
 .svc__body p{font-size:13px;color:var(--color-text-soft);line-height:1.85}
 
@@ -129,11 +129,11 @@ section{padding:100px 24px}
 .process__steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;position:relative}
 .process__steps::before{content:"";position:absolute;top:42px;left:8%;right:8%;height:1px;background:var(--color-gold);opacity:.4;z-index:0}
 .step{background:#fff;padding:36px 24px 30px;text-align:center;position:relative;z-index:1;border:1px solid var(--color-line);transition:border-color .3s,transform .3s}
-.step:hover{border-color:var(--color-gold);transform:translateY(-3px)}
-.step__num{width:54px;height:54px;border-radius:50%;background:var(--color-paper);border:1.5px solid var(--color-gold);color:var(--color-accent);font-family:var(--font-en);font-size:22px;font-style:italic;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.step:hover{border-color:var(--color-accent-dark);transform:translateY(-3px)}
+.step__num{width:54px;height:54px;border-radius:50%;background:var(--color-paper);border:1.5px solid var(--color-gold);color:var(--color-accent-dark);font-family:var(--font-en);font-size:22px;font-style:italic;font-weight:500;display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
 .step__title{font-family:var(--font-mincho);font-size:16px;letter-spacing:.1em;font-weight:600;margin-bottom:10px;line-height:1.5}
 .step__desc{font-size:13px;color:var(--color-text-soft);line-height:1.85}
-.step__time{display:block;margin-top:10px;font-family:var(--font-en);font-size:12px;color:var(--color-gold);letter-spacing:.1em;font-weight:500}
+.step__time{display:block;margin-top:10px;font-family:var(--font-en);font-size:12px;color:var(--color-accent-dark);letter-spacing:.1em;font-weight:500}
 
 /* ===== Examples (anonymized portfolio) ===== */
 .examples{background:var(--color-bg)}
@@ -144,7 +144,7 @@ section{padding:100px 24px}
 .ex-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .ex-card:hover .ex-card__img img{transform:scale(1.04)}
 .ex-card__body{padding:22px 24px 26px}
-.ex-card__client{font-family:var(--font-mincho);font-size:13px;color:var(--color-gold);letter-spacing:.1em;margin-bottom:8px;font-weight:600}
+.ex-card__client{font-family:var(--font-mincho);font-size:13px;color:var(--color-accent-dark);letter-spacing:.1em;margin-bottom:8px;font-weight:600}
 .ex-card__title{font-family:var(--font-mincho);font-size:16px;letter-spacing:.06em;font-weight:600;margin-bottom:10px;line-height:1.6}
 .ex-card__detail{font-size:13px;color:var(--color-text-soft);line-height:1.85}
 .examples__note{text-align:center;margin-top:36px;font-size:13px;color:var(--color-text-mute);font-family:var(--font-mincho);letter-spacing:.04em}
@@ -153,15 +153,15 @@ section{padding:100px 24px}
 .faq{background:var(--color-bg-soft)}
 .faq__list{max-width:860px;margin:0 auto}
 .faq-item{background:#fff;margin-bottom:14px;border:1px solid var(--color-line);transition:border-color .25s}
-.faq-item:hover{border-color:var(--color-gold)}
+.faq-item:hover{border-color:var(--color-accent-dark)}
 .faq-item__q{padding:22px 28px;display:flex;align-items:flex-start;gap:18px;cursor:pointer;font-family:var(--font-mincho);font-size:16px;letter-spacing:.05em;font-weight:600;line-height:1.7;user-select:none;transition:background .2s}
 .faq-item__q:hover{background:var(--color-bg-soft)}
-.faq-item__q::before{content:"Q";font-family:var(--font-en);font-style:italic;color:var(--color-accent);font-size:22px;line-height:1;flex-shrink:0;margin-top:-2px;font-weight:500}
-.faq-item__q::after{content:"+";margin-left:auto;color:var(--color-gold);font-size:22px;font-weight:300;line-height:1;flex-shrink:0;transition:transform .25s}
+.faq-item__q::before{content:"Q";font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);font-size:22px;line-height:1;flex-shrink:0;margin-top:-2px;font-weight:500}
+.faq-item__q::after{content:"+";margin-left:auto;color:var(--color-accent-dark);font-size:22px;font-weight:300;line-height:1;flex-shrink:0;transition:transform .25s}
 .faq-item.open .faq-item__q::after{transform:rotate(45deg)}
 .faq-item__a{display:none;padding:0 28px 26px 68px;font-size:15px;line-height:2;color:var(--color-text)}
 .faq-item.open .faq-item__a{display:block}
-.faq-item__a::before{content:"A";font-family:var(--font-en);font-style:italic;color:var(--color-gold);font-size:20px;display:block;margin-left:-32px;float:left;font-weight:500}
+.faq-item__a::before{content:"A";font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);font-size:20px;display:block;margin-left:-32px;float:left;font-weight:500}
 
 /* ===== Contact form ===== */
 .contact{background:var(--color-paper)}
@@ -176,7 +176,7 @@ section{padding:100px 24px}
 .form-section__title{font-family:var(--font-mincho);font-size:20px;letter-spacing:.14em;margin-bottom:28px;padding-bottom:14px;color:var(--color-text);position:relative;display:flex;align-items:center;gap:14px;font-weight:600}
 .form-section__title::before{content:"";display:inline-block;width:6px;height:20px;background:linear-gradient(180deg,var(--color-accent) 0%,var(--color-gold) 100%);flex-shrink:0}
 .form-section__title::after{content:"";position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,var(--color-line) 0%,var(--color-line) 60%,transparent 100%)}
-.form-section__num{font-family:var(--font-en);font-style:italic;color:var(--color-gold);font-size:24px;margin-left:auto;letter-spacing:.1em;font-weight:500}
+.form-section__num{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);font-size:24px;margin-left:auto;letter-spacing:.1em;font-weight:500}
 .field{margin-bottom:26px}
 .field__label{display:block;font-family:var(--font-mincho);font-size:18px;letter-spacing:.08em;margin-bottom:11px;color:var(--color-text);font-weight:600}
 .field__label .req,.field__label .opt{display:inline-block;font-size:12px;padding:3px 9px;letter-spacing:.12em;margin-left:10px;vertical-align:3px;font-family:var(--font-sans);font-weight:500}
@@ -184,7 +184,7 @@ section{padding:100px 24px}
 .field__label .opt{background:transparent;color:var(--color-text-mute);border:1px solid var(--color-line)}
 .field__hint{font-size:15px;color:var(--color-text-mute);margin-top:8px;font-family:var(--font-mincho);letter-spacing:.04em;line-height:1.7}
 .input,.select,.textarea{width:100%;padding:14px 16px;border:1px solid var(--color-line);background:#fdfaf6;font-family:var(--font-sans);font-size:18px;color:var(--color-text);transition:border-color .25s,background .25s,box-shadow .25s;border-radius:0}
-.input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--color-accent);background:#fff;box-shadow:0 0 0 3px rgba(201,169,110,.035)}
+.input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--color-accent-dark);background:#fff;box-shadow:0 0 0 3px rgba(201,169,110,.035)}
 .textarea{resize:vertical;min-height:130px;line-height:1.8}
 .select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='10' viewBox='0 0 14 10'><path d='M1 1l6 6 6-6' stroke='%23a98554' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>");background-repeat:no-repeat;background-position:right 16px center;padding-right:42px}
 .row{display:grid;grid-template-columns:1fr 1fr;gap:22px}
@@ -208,7 +208,7 @@ section{padding:100px 24px}
 .thanks__icon{width:80px;height:80px;margin:0 auto 28px;border-radius:50%;background:linear-gradient(135deg,var(--color-bg-soft) 0%,var(--color-bg-deep) 100%);display:flex;align-items:center;justify-content:center;border:1px solid var(--color-gold)}
 .thanks__icon svg{width:34px;height:34px;stroke:var(--color-accent);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .thanks__title{font-family:var(--font-mincho);font-size:24px;letter-spacing:.16em;margin-bottom:10px;font-weight:600}
-.thanks__title-en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.22em;font-size:16px;margin-bottom:28px;display:block;font-weight:500}
+.thanks__title-en{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.22em;font-size:16px;margin-bottom:28px;display:block;font-weight:500}
 .thanks p{margin-bottom:14px;font-family:var(--font-mincho);letter-spacing:.04em;font-size:15px;line-height:2}
 .hidden{display:none!important}
 
@@ -218,7 +218,7 @@ section{padding:100px 24px}
 .phone-callout__body{flex:1;min-width:200px}
 .phone-callout__label{font-family:var(--font-mincho);font-size:17px;letter-spacing:.08em;font-weight:600;display:block;margin-bottom:6px}
 .phone-callout__sub{font-size:13px;color:var(--color-text-soft);line-height:1.75}
-.phone-callout__tel{display:inline-flex;flex-direction:column;align-items:center;font-family:var(--font-sans);font-size:22px;letter-spacing:.02em;color:var(--color-accent);font-weight:700;text-decoration:none;padding:14px 28px;border:1.5px solid var(--color-accent);background:#fff;transition:all .2s}
+.phone-callout__tel{display:inline-flex;flex-direction:column;align-items:center;font-family:var(--font-sans);font-size:22px;letter-spacing:.02em;color:var(--color-accent-dark);font-weight:700;text-decoration:none;padding:14px 28px;border:1.5px solid var(--color-accent);background:#fff;transition:all .2s}
 .phone-callout__tel small{font-family:var(--font-mincho);font-size:11px;letter-spacing:.12em;display:block;margin-top:4px;font-weight:500}
 .phone-callout__tel:hover{background:var(--color-accent);color:#fff;transform:translateY(-2px)}
 
@@ -655,12 +655,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="field">
             <label class="field__label">追加でご希望の対応 <span class="opt">複数選択可</span></label>
             <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px;">
-              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="ロゴ入り" style="margin-right:8px;accent-color:var(--color-accent);width:16px;height:16px;"> ロゴ・社名入り</label>
-              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="メッセージカード" style="margin-right:8px;accent-color:var(--color-accent);width:16px;height:16px;"> メッセージカード</label>
-              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="熨斗・包装" style="margin-right:8px;accent-color:var(--color-accent);width:16px;height:16px;"> 熨斗・包装</label>
-              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="配送" style="margin-right:8px;accent-color:var(--color-accent);width:16px;height:16px;"> 配送・分割納品</label>
-              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="請求書" style="margin-right:8px;accent-color:var(--color-accent);width:16px;height:16px;"> 請求書発行</label>
-              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="NDA" style="margin-right:8px;accent-color:var(--color-accent);width:16px;height:16px;"> NDA締結希望</label>
+              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="ロゴ入り" style="margin-right:8px;accent-color:var(--color-accent-dark);width:16px;height:16px;"> ロゴ・社名入り</label>
+              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="メッセージカード" style="margin-right:8px;accent-color:var(--color-accent-dark);width:16px;height:16px;"> メッセージカード</label>
+              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="熨斗・包装" style="margin-right:8px;accent-color:var(--color-accent-dark);width:16px;height:16px;"> 熨斗・包装</label>
+              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="配送" style="margin-right:8px;accent-color:var(--color-accent-dark);width:16px;height:16px;"> 配送・分割納品</label>
+              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="請求書" style="margin-right:8px;accent-color:var(--color-accent-dark);width:16px;height:16px;"> 請求書発行</label>
+              <label style="display:inline-flex;align-items:center;padding:11px 18px;border:1px solid var(--color-line);background:#fdfaf6;cursor:pointer;font-family:var(--font-mincho);font-size:14px;letter-spacing:.04em;font-weight:500;"><input type="checkbox" name="addons" value="NDA" style="margin-right:8px;accent-color:var(--color-accent-dark);width:16px;height:16px;"> NDA締結希望</label>
             </div>
           </div>
 
@@ -676,8 +676,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
         <div class="field" style="margin-top:4px;">
           <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:14px;line-height:1.7;">
-            <input type="checkbox" id="privacyConsent" name="privacyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent);flex-shrink:0;">
-            <span><a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent);text-decoration:underline;text-underline-offset:2px;">プライバシーポリシー</a>に同意する<span class="req">必須</span></span>
+            <input type="checkbox" id="privacyConsent" name="privacyConsent" value="1" style="width:18px;height:18px;margin-top:2px;accent-color:var(--color-accent-dark);flex-shrink:0;">
+            <span><a href="privacy.html" target="_blank" rel="noopener" style="color:var(--color-accent-dark);text-decoration:underline;text-underline-offset:2px;">プライバシーポリシー</a>に同意する<span class="req">必須</span></span>
           </label>
           <div class="policy-embed" id="policyEmbed">読み込み中... (Loading...)</div>
           <span class="error" data-for="privacyConsent"></span>

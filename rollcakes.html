@@ -38,20 +38,20 @@ a{color:inherit;text-decoration:none}
 .header__logo{display:flex;align-items:center;gap:10px;line-height:1}
 .header__logo-mark{width:82px;height:82px;object-fit:contain}
 .header__logo-text{display:flex;flex-direction:column;line-height:1}
-.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent);font-weight:700}
+.header__logo-en{font-family:var(--font-en);font-size:40px;font-style:normal;letter-spacing:.2em;color:var(--color-accent-dark);font-weight:700}
 .header__logo-jp{font-family:var(--font-mincho);font-size:18px;letter-spacing:.08em;color:#fff;font-weight:600;margin-top:8px;white-space:nowrap}
 .back-link{font-family:var(--font-mincho);font-size:18px;color:#e8dcc8;letter-spacing:.08em;font-weight:500}
-.back-link:hover{color:var(--color-accent)}
+.back-link:hover{color:var(--color-accent-dark)}
 .nav-link{display:inline-flex;align-items:center;gap:10px;padding:10px 16px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.06em;color:var(--color-text-soft);font-weight:600;position:relative;transition:color .22s;white-space:nowrap}
 .nav-link::after{content:'';position:absolute;left:16px;right:16px;bottom:2px;height:1px;background:var(--color-gold);transform:scaleX(0);transform-origin:center;transition:transform .25s ease}
-.nav-link:hover{color:var(--color-accent)}
+.nav-link:hover{color:var(--color-accent-dark)}
 .nav-link:hover::after{transform:scaleX(1)}
 .sub-nav{background:var(--color-bg-soft);border-bottom:1px solid var(--color-line)}
 .sub-nav ul{max-width:1180px;margin:0 auto;display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:2px;list-style:none;padding:10px 8px}
 .page-head{position:relative;text-align:center;padding:48px 24px 42px;background:linear-gradient(180deg,var(--color-bg-soft) 0%,#efe3d2 100%);overflow:hidden}
 .page-head::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px),repeating-linear-gradient(-60deg,transparent 0 38px,rgba(184,153,104,.05) 38px 39px);pointer-events:none;opacity:.7}
 .page-head__inner{position:relative;z-index:1}
-.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent);letter-spacing:.3em;font-size:21px;display:inline-block;margin-bottom:14px;font-weight:500}
+.page-head__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.3em;font-size:21px;display:inline-block;margin-bottom:14px;font-weight:500}
 .page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
 .page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
 .page-head__lead{color:var(--color-text);font-size:16px;font-family:var(--font-mincho);letter-spacing:.04em;line-height:2}
@@ -59,13 +59,13 @@ main{max-width:1180px;margin:0 auto;padding:60px 24px 60px}
 
 .product-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-bottom:60px}
 .prod-card{background:var(--color-paper);overflow:hidden;border:1px solid var(--color-line);transition:transform .3s,box-shadow .3s,border-color .3s;display:flex;flex-direction:column}
-.prod-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(58,42,35,.12);border-color:var(--color-gold)}
+.prod-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(58,42,35,.12);border-color:var(--color-accent-dark)}
 .prod-card__img{aspect-ratio:1/1;overflow:hidden;background:var(--color-bg-soft)}
 .prod-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .prod-card:hover .prod-card__img img{transform:scale(1.06)}
 .prod-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
 .prod-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:6px;font-weight:600;line-height:1.5}
-.prod-card__price{font-family:var(--font-en);font-size:17px;color:var(--color-accent);font-weight:700;letter-spacing:.04em;margin-bottom:12px}
+.prod-card__price{font-family:var(--font-en);font-size:17px;color:var(--color-accent-dark);font-weight:700;letter-spacing:.04em;margin-bottom:12px}
 .prod-card__desc{font-size:15px;font-weight:600;color:var(--color-text-soft);line-height:1.85;flex:1}
 
 .empty{background:var(--color-paper);padding:60px 20px;text-align:center;color:var(--color-text-soft);border:1px dashed var(--color-line);grid-column:1/-1}
