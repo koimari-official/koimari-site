@@ -440,7 +440,7 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 /* ===== ヘッダーはヒーロー画像の直下に通常フローで配置し、スクロールして上端に
    達したところでposition:stickyにより固定される（2026-09-07オーナー指示）。
    JSでの表示切り替えは不要（ヒーローの下にあるので初期表示では自然に画面外）。 */
-.site-header{position:sticky;top:0;overflow:hidden;background:linear-gradient(135deg,rgba(92,74,56,.5) 0%,rgba(74,58,42,.5) 100%);z-index:1000}
+.site-header{position:sticky;top:0;overflow:hidden;background:rgba(74,58,42,.85);z-index:1000}
 .site-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 /* ===== スマホ縦向き（≤480px）：フル幅・2列表示 =====
    1列だと縦スクロールが増えて離脱・PV低下につながるため、商品カテゴリー・おすすめ商品は
