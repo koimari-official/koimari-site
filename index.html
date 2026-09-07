@@ -437,10 +437,12 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 .lang-btn:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
 .lang-btn--header{color:#e8dcc8;border-color:rgba(232,220,200,.35)}
 .lang-btn--header:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
-/* ===== ヘッダーはヒーロー画像の直下に通常フローで配置し、スクロールして上端に
-   達したところでposition:stickyにより固定される（2026-09-07オーナー指示）。
-   JSでの表示切り替えは不要（ヒーローの下にあるので初期表示では自然に画面外）。 */
-.site-header{position:sticky;top:0;overflow:hidden;background:rgba(74,58,42,.85);z-index:1000}
+/* ===== ヘッダーはヒーロー画像の下端に半透明で重なるよう、自身の高さぶん
+   負のmargin-topで引き上げて配置する（mille-feuille.com実測に合わせる。
+   2026-09-07オーナー指示）。この重なり方でも次の要素（ナビ）の位置は
+   ずれない（負のmarginは後続要素の開始位置に影響しないため）。
+   スクロールして上端に達するとposition:stickyでそのまま固定される。 */
+.site-header{position:sticky;top:0;margin-top:calc(-1 * var(--header-h, 90px));overflow:hidden;background:rgba(74,58,42,.85);z-index:1000}
 .site-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 /* ===== スマホ縦向き（≤480px）：フル幅・2列表示 =====
    1列だと縦スクロールが増えて離脱・PV低下につながるため、商品カテゴリー・おすすめ商品は
@@ -552,10 +554,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </header>
 <script>
-// ヘッダーがposition:stickyで上端に固定されるタイミングに合わせて予約FABも表示する
+// ヘッダーの高さを測ってmargin-top(--header-h)に反映しつつ、position:stickyで
+// 上端に固定されるタイミングに合わせて予約FABも表示する
 (function(){
   var header = document.getElementById('siteHeader');
   var revealed = false;
+  function setHeaderHeightVar(){
+    document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+  }
   function update(){
     var threshold = Math.max(window.innerHeight - header.offsetHeight - 40, 40);
     var shouldShow = window.scrollY > threshold;
@@ -564,6 +570,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       document.body.classList.toggle('chrome-visible', revealed);
     }
   }
+  setHeaderHeightVar();
+  window.addEventListener('resize', setHeaderHeightVar);
   window.addEventListener('scroll', update, { passive: true });
   update();
 })();
