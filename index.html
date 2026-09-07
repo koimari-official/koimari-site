@@ -81,14 +81,18 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
    すっきり見せる） */
 .categories .section__inner{max-width:1560px}
 .categories__grid{display:flex;flex-wrap:wrap;justify-content:center;gap:36px 30px}
-.cat-card{background:transparent;text-align:center;border:none;box-shadow:none;transition:transform .3s ease;flex:0 1 260px;max-width:260px}
+.cat-card{background:transparent;text-align:center;border:none;box-shadow:none;transition:transform .3s ease;flex:0 1 220px;max-width:220px}
 .cat-card:hover{transform:translateY(-6px)}
 .cat-card__img{aspect-ratio:1/1;border-radius:50%;overflow:hidden;box-shadow:0 8px 20px rgba(58,42,35,.14);position:relative}
 .cat-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.25,.46,.45,.94)}
 .cat-card:hover .cat-card__img img{transform:scale(1.08)}
 .cat-card__body{padding:18px 0 0}
-.cat-card__title{font-family:var(--font-mincho);font-size:22px;letter-spacing:.08em;font-weight:600;white-space:nowrap}
+.cat-card__title{font-family:var(--font-mincho);font-size:22px;letter-spacing:.08em;font-weight:600}
 .cat-card__en{font-family:var(--font-en);font-style:italic;font-size:17px;color:var(--color-accent-dark);letter-spacing:.15em;font-weight:500}
+/* PC幅では折り返さず必ず1行に収める（項目数が増えても、幅に応じてカードが縮んで並ぶ。
+   min-width:0でテキストの最小幅制約を外し、収まらない場合はタイトルの折り返しを許可する）
+   （2026-09-07オーナー指示） */
+@media(min-width:901px){.categories__grid{flex-wrap:nowrap}.cat-card{min-width:0}.cat-card__title{white-space:normal}}
 .recommended__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,274px));gap:28px;justify-content:center}
 .rec-card{text-align:center;transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
 .rec-card:hover{transform:translateY(-6px)}
