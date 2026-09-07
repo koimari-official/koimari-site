@@ -258,6 +258,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="greeting">店舗紹介</button>
       <button class="tab" data-panel="categories">カテゴリ画像</button>
       <button class="tab" data-panel="recommended">おすすめ商品</button>
+      <button class="tab" data-panel="decorationCakes">デコレーションケーキ</button>
       <button class="tab" data-panel="cutcakes">カットケーキ</button>
       <button class="tab" data-panel="rollcakes">ロールケーキ</button>
       <button class="tab" data-panel="voicesAdmin">お客様の声</button>
@@ -564,6 +565,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <p class="panel__desc">おすすめ商品セクションのケーキ画像です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="recommendedGrid"></div>
     </section>
+    <section class="panel" id="panel-decorationCakes">
+      <div class="panel__head"><h2 class="panel__title">デコレーションケーキ</h2><button class="btn btn--small" id="addDecorationCake">＋ 商品を追加</button></div>
+      <p class="panel__desc">gallery.html（作品ギャラリー）の「デコレーションケーキ」タブ・各商品詳細ページに表示される商品です（2026-09-08、旧作品ポートフォリオ形式からカットケーキ・ロールケーキと同じ実商品メニュー形式に統合）。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
+      <div class="img-grid" id="decorationCakesGrid"></div>
+    </section>
     <section class="panel" id="panel-cutcakes">
       <div class="panel__head"><h2 class="panel__title">カットケーキ</h2><button class="btn btn--small" id="addCutcake">＋ 商品を追加</button></div>
       <p class="panel__desc">gallery.html（作品ギャラリー）の「カットケーキ」タブ・各商品詳細ページに表示される商品です（2026-09-08、cutcakes.htmlは廃止しギャラリーへ統合）。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅500px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
@@ -635,7 +641,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <!-- ===== ギャラリー管理 ===== -->
     <section class="panel" id="panel-galleryAdmin">
       <div class="panel__head"><h2 class="panel__title">ギャラリー作品の管理</h2><button class="btn btn--small" id="addGallery">＋ 作品を追加</button></div>
-      <p class="panel__desc">gallery.htmlの作品ギャラリーに表示される項目を編集できます。</p>
+      <p class="panel__desc">お名前入りなど、真にオーダーメイドの1点物（作品No.・見積り相談形式）のみをここに登録します（2026-09-08、既定のデコレーションケーキ・ロールケーキ等の通常ラインナップは「デコレーションケーキ」「ロールケーキ」パネルへ移行済み）。</p>
       <div class="img-grid" id="galleryAdminGrid"></div>
     </section>
 
@@ -1004,6 +1010,7 @@ const DEFAULT_IMAGES = {
     { name: "プリン",             price: "¥380",  img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80" },
     { name: "アップルパイ",       price: "¥460",  img: "https://images.unsplash.com/photo-1535920527002-b35e96722eb9?w=500&q=80" }
   ],
+  decorationCakes: [],
   cutcakes: [],
   rollcakes: [],
   experiences: [
@@ -1031,6 +1038,7 @@ function loadData() {
         greeting: p.greeting || DEFAULT_IMAGES.greeting,
         categories: p.categories || JSON.parse(JSON.stringify(DEFAULT_IMAGES.categories)),
         recommended: p.recommended || JSON.parse(JSON.stringify(DEFAULT_IMAGES.recommended)),
+        decorationCakes: p.decorationCakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.decorationCakes)),
         cutcakes: p.cutcakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.cutcakes)),
         rollcakes: p.rollcakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.rollcakes)),
         experiences: p.experiences || JSON.parse(JSON.stringify(DEFAULT_IMAGES.experiences))
@@ -1249,6 +1257,7 @@ function mergeSiteImages(base, fresh, working) {
     greeting: mergeScalarSection(base.greeting, fresh.greeting, working.greeting, "店舗紹介画像", conflicts),
     categories: mergeArraySection(base.categories, fresh.categories, working.categories, "商品カテゴリー", conflicts),
     recommended: mergeArraySection(base.recommended, fresh.recommended, working.recommended, "おすすめ商品", conflicts),
+    decorationCakes: mergeArraySection(base.decorationCakes, fresh.decorationCakes, working.decorationCakes, "デコレーションケーキ", conflicts),
     cutcakes: mergeArraySection(base.cutcakes, fresh.cutcakes, working.cutcakes, "カットケーキ", conflicts),
     rollcakes: mergeArraySection(base.rollcakes, fresh.rollcakes, working.rollcakes, "ロールケーキ", conflicts),
     experiences: mergeArraySection(base.experiences, fresh.experiences, working.experiences, "体験プログラム", conflicts)
@@ -1326,7 +1335,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 // 表示・非表示が決まっていたため、ここを編集したまま他のタブ（ギャラリー等）に
 // 移動しても画面下部に表示され続け、別パネルの保存ボタンと誤認される事故があった。
 // サイト画像系のタブにいる時だけ表示するようにする。
-const SITEIMAGES_PANELS = new Set(["hero", "greeting", "categories", "recommended", "cutcakes", "rollcakes", "experiences"]);
+const SITEIMAGES_PANELS = new Set(["hero", "greeting", "categories", "recommended", "decorationCakes", "cutcakes", "rollcakes", "experiences"]);
 document.querySelectorAll(".tab").forEach(t => {
   t.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
@@ -1454,7 +1463,7 @@ async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions) 
   return openCropModal(rawDataUrl, aspectRatio, ratioOptions);
 }
 function renderAll() {
-  renderHero(); renderGreeting(); renderCategories(); renderRecommended(); renderCutcakes(); renderRollcakes(); renderExperiences();
+  renderHero(); renderGreeting(); renderCategories(); renderRecommended(); renderDecorationCakes(); renderCutcakes(); renderRollcakes(); renderExperiences();
   updateSaveBar();
 }
 // ストック写真（Unsplash等）の疑いを検知し、プレビューに警告バッジを重ねる
@@ -1799,6 +1808,32 @@ function renderRecommended() {
     grid.appendChild(item);
   });
 }
+function renderDecorationCakes() {
+  const grid = document.getElementById("decorationCakesGrid"); grid.innerHTML = "";
+  workingData.decorationCakes.forEach((r, i) => {
+    if (r.visible === undefined) r.visible = true;
+    if (!Array.isArray(r.gallery)) r.gallery = [];
+    const item = makeImageItem({
+      preview: r.img,
+      maxWidth: 500,
+      aspectRatio: 1,
+      fields: [
+        { label: "商品名", key: "name", value: r.name, type: "input" },
+        { label: "英語表記", key: "nameEn", value: r.nameEn, type: "input" },
+        { label: "価格（一覧・詳細ページに表示されます）", key: "price", value: r.price, type: "input" },
+        { label: "メイン画像URL（一覧・商品詳細ページの一番上に表示されます）", key: "img", value: r.img, type: "input" },
+        { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: r.desc||"", type: "textarea" }
+      ],
+      onChange: (k, v) => { workingData.decorationCakes[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: historyAwareOnFile(r, "img", () => { renderDecorationCakes(); updateSaveBar(); }),
+      onDelete: () => { workingData.decorationCakes.splice(i,1); renderDecorationCakes(); updateSaveBar(); }
+    });
+    appendImageHistoryUI(item, r, "img", () => { renderDecorationCakes(); updateSaveBar(); });
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderDecorationCakes(); updateSaveBar(); } }));
+    appendVisibleToggle(item, () => workingData.decorationCakes[i].visible, () => { workingData.decorationCakes[i].visible = !workingData.decorationCakes[i].visible; renderDecorationCakes(); updateSaveBar(); });
+    grid.appendChild(item);
+  });
+}
 function renderCutcakes() {
   const grid = document.getElementById("cutcakesGrid"); grid.innerHTML = "";
   workingData.cutcakes.forEach((r, i) => {
@@ -1900,6 +1935,7 @@ function renderExperiences() {
 document.getElementById("addHero").addEventListener("click", () => { workingData.hero.push({src:"",titleEn:"New Slide",titleJp:"新しいスライド",visible:true}); renderHero(); updateSaveBar(); });
 document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:"",desc:"",gallery:[],visible:true}); renderCategories(); updateSaveBar(); });
 document.getElementById("addRecommended").addEventListener("click", () => { workingData.recommended.push({name:"新商品",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRecommended(); updateSaveBar(); });
+document.getElementById("addDecorationCake").addEventListener("click", () => { workingData.decorationCakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderDecorationCakes(); updateSaveBar(); });
 document.getElementById("addCutcake").addEventListener("click", () => { workingData.cutcakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderCutcakes(); updateSaveBar(); });
 document.getElementById("addRollcake").addEventListener("click", () => { workingData.rollcakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRollcakes(); updateSaveBar(); });
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });

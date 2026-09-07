@@ -227,17 +227,10 @@ const CATEGORIES = [
   { key: "gift", name: "ギフト" }
 ];
 
-const DEFAULT_GALLERY = [
-  { img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80", category:"cake", title:"お子様のキャラクターケーキ", desc:"お好きなキャラクターをモチーフにしたデコレーション", size:"5号", price:"¥4,800〜", lead:"前日", date:"2026.04" },
-  { img:"https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=800&q=80", category:"cake", title:"結婚記念日のケーキ", desc:"季節のフルーツをふんだんに使ったデコレーションケーキ", size:"6号", price:"¥5,200〜", lead:"前日", date:"2026.03" },
-  { img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800&q=80", category:"cake", title:"母の日のフラワーケーキ", desc:"お花のような絞りで彩った特別な一品", size:"5号", price:"¥4,200〜", lead:"前日", date:"2026.05" },
-  { img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=800&q=80", category:"cake", title:"ベビーシャワーケーキ", desc:"パステルカラーで仕上げたやさしい雰囲気", size:"6号", price:"¥5,500〜", lead:"5日前", date:"2026.02" },
-  { img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=800&q=80", category:"cake", title:"還暦祝いのガトーショコラ", desc:"赤い花と金箔をあしらった大人のケーキ", size:"6号", price:"¥5,800〜", lead:"前日", date:"2026.01" },
-  { img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80", category:"cake", title:"季節限定 苺のショート", desc:"地元産の朝採れ苺を贅沢に使用しました", size:"5号", price:"¥4,000〜", lead:"前日", date:"2026.04" },
-  { img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80", category:"cake", title:"大人のお誕生日ケーキ", desc:"シックで上品な雰囲気のデコレーションケーキ", size:"6号", price:"¥5,000〜", lead:"前日", date:"2026.03" },
-  { img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80", category:"cake", title:"出産祝いのケーキ", desc:"赤ちゃんの誕生をお祝いする可愛らしい一品", size:"5号", price:"¥4,500〜", lead:"前日", date:"2026.02" },
-  { img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=800&q=80", category:"roll", title:"オリジナルロールケーキ", desc:"お名前入りのメッセージロールケーキ", size:"1本", price:"¥3,200〜", lead:"2日前", date:"2026.04" }
-];
+// 2026-09-08、デコレーションケーキ等のカテゴリはsiteImages側の実商品メニューに統合済み
+// のため、フォールバック用のストック写真データは廃止（空配列）。真にオーダーメイドの
+// 1点物が発生した場合のみ、管理画面「ギャラリー」タブから同じ形式で追加する運用とする。
+const DEFAULT_GALLERY = [];
 
 const DEFAULT_VOICES = [
   { stars:5, text:"娘の誕生日にオーダーしました。本人がとても気に入っていたキャラクターを丁寧に再現していただき、家族みんなで感動しました。お味も上品で大満足です。", name:"M.S.様", attr:"お子様のお誕生日 / 30代女性" },
@@ -255,7 +248,12 @@ function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = i+1; }); retur
 // デコレーションケーキ等の「作品ポートフォリオ」（見積り制・カテゴリcake/roll）と、
 // カットケーキ・ロールケーキの「実商品メニュー」（siteImages.cutcakes/rollcakes、固定価格）
 // を1つの一覧にマージして表示する（2026-09-08。cutcakes.html/rollcakes.html統合）。
+// 2026-09-08、デコレーションケーキも見積りポートフォリオ形式をやめ、カットケーキ・
+// ロールケーキと同じ「実商品メニュー」形式（siteImages.decorationCakes、固定価格）に統合。
+// koimariContent.galleryの旧作品ポートフォリオは空になったため、galleryPortfolio/
+// DEFAULT_GALLERYは真にオーダーメイドの1点物が発生した場合のみ使う予備の仕組みとして残す。
 let galleryPortfolio = loadList("koimari_gallery", DEFAULT_GALLERY);
+let menuDecorationCakes = [];
 let menuCutcakes = [];
 let menuRollcakes = [];
 let menuSynced = false; // Firebase同期前は「準備中」ではなく「読み込み中」を出す
@@ -271,6 +269,10 @@ function menuItemToCard(item, catKey, idx, productType){
   return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType };
 }
 function buildGallery(){
+  const decorationCards = menuDecorationCakes
+    .map((c, idx) => ({ c, idx }))
+    .filter(({c}) => c && c.visible !== false)
+    .map(({c, idx}) => menuItemToCard(c, "cake", idx, "decorationCake"));
   const cutcakeCards = menuCutcakes
     .map((c, idx) => ({ c, idx }))
     .filter(({c}) => c && c.visible !== false)
@@ -279,7 +281,7 @@ function buildGallery(){
     .map((c, idx) => ({ c, idx }))
     .filter(({c}) => c && c.visible !== false)
     .map(({c, idx}) => menuItemToCard(c, "roll", idx, "rollcake"));
-  gallery = assignGalleryNumbers([...galleryPortfolio, ...cutcakeCards, ...rollCards]);
+  gallery = assignGalleryNumbers([...galleryPortfolio, ...decorationCards, ...cutcakeCards, ...rollCards]);
 }
 buildGallery();
 
@@ -309,9 +311,11 @@ function renderGrid(){
     return;
   }
   filtered.forEach(g => {
-    // 実商品メニュー（カットケーキ・ロールケーキ）のカードは、カード全体を商品詳細ページ
-    // （product.html）へのリンクにする（旧cutcakes.html/rollcakes.htmlと同じ導線）。
-    // 作品ポートフォリオ（デコレーションケーキ等）は従来通りライトボックス表示＋LINE相談。
+    // 実商品メニュー（デコレーションケーキ・カットケーキ・ロールケーキ）のカードは、カード
+    // 全体を商品詳細ページ（product.html）へのリンクにする。galleryPortfolio（旧作品ポート
+    // フォリオ）に入る項目は、真にオーダーメイドの1点物のみを想定し、作品No.・サイズ・
+    // 納期・LINE相談の従来形式を維持する（2026-09-08、デコレーションケーキの既定ライン
+    // ナップは実商品メニューへ統合したため、通常はここに"cake"カテゴリは入らない）。
     const card = document.createElement(g.isMenuItem ? "a" : "article");
     card.className = "gal-card";
     if (g.isMenuItem) card.href = "product.html?type=" + g.productType + "&idx=" + g.idx;
@@ -383,9 +387,10 @@ function applyFetchedGalleryContent(data){
 }
 window.applyFetchedGalleryContent = applyFetchedGalleryContent;
 
-// カットケーキ・ロールケーキの実商品メニュー（siteImages）を取り込む（2026-09-08）
+// デコレーションケーキ・カットケーキ・ロールケーキの実商品メニュー（siteImages）を取り込む（2026-09-08）
 function applyFetchedMenuItems(data){
   if (!data) return;
+  if (Array.isArray(data.decorationCakes)) menuDecorationCakes = data.decorationCakes;
   if (Array.isArray(data.cutcakes)) menuCutcakes = data.cutcakes;
   if (Array.isArray(data.rollcakes)) menuRollcakes = data.rollcakes;
   menuSynced = true;
