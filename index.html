@@ -849,8 +849,7 @@ const DEFAULT_IMAGES = {
     {name:"カットケーキ",en:"Cut Cake",img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
     {name:"ロールケーキ",en:"Roll Cake",img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
     {name:"焼き菓子",en:"Baked Sweets",img:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
-    {name:"ギフト",en:"Gift",img:"https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&q=80",desc:"大切な方への贈り物に。ラッピングや熨斗のご相談も承っております。",gallery:[]},
-    {name:"誕生日ケーキ",en:"Birthday",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=600&q=80",desc:"お子様から大人の方まで、誕生日を彩る特別なケーキ。デザインのご相談も歓迎です。",gallery:[]}
+    {name:"ギフト",en:"Gift",img:"https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&q=80",desc:"大切な方への贈り物に。ラッピングや熨斗のご相談も承っております。",gallery:[]}
   ],
   recommended:[
     {name:"苺のショートケーキ",nameEn:"Strawberry Shortcake",price:"¥520",img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&q=80",desc:"地元農家から届く朝採れ苺をふんだんに使用した、当店の看板商品です。",gallery:[]},
@@ -968,7 +967,7 @@ const vGrid=document.getElementById("voicesGrid");
 
 // 2026-09-08、全カテゴリーをgallery.htmlの該当タブへ遷移させる（商品カード一覧に統一。
 // cutcakes.html/rollcakes.htmlは廃止しgallery.htmlへ統合したため）。
-const CATEGORY_GALLERY_KEY={"デコレーションケーキ":"cake","カットケーキ":"cutcake","ロールケーキ":"roll","焼き菓子":"baked","ギフト":"gift","誕生日ケーキ":"birthday"};
+const CATEGORY_GALLERY_KEY={"デコレーションケーキ":"cake","カットケーキ":"cutcake","ロールケーキ":"roll","焼き菓子":"baked","ギフト":"gift"};
 function renderCategories(){
   catGrid.innerHTML='';
   const en=I18nCtrl.isEn();
