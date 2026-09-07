@@ -232,6 +232,10 @@ function openLightbox(src, alt){
 document.getElementById('lightbox').addEventListener('click', () => document.getElementById('lightbox').classList.remove('show'));
 document.getElementById('lightboxClose').addEventListener('click', e => { e.stopPropagation(); document.getElementById('lightbox').classList.remove('show'); });
 
+// Firebaseとの同期完了前はlist（IMAGES[config.key]）が空配列のことがあり、直リンク等で
+// 開いた場合に一瞬「見つかりませんでした」という誤った案内が出てしまう（2026-09-07判明、
+// cutcakes.html/rollcakes.htmlと同種の不具合）。未同期時は読み込み中の案内に留める。
+window.firebaseSynced = false;
 function renderProductPage(){
   const IMAGES = loadImages();
   const config = TYPE_CONFIG[productType];
@@ -241,8 +245,13 @@ function renderProductPage(){
 
   if(!item){
     document.getElementById('pageEn').textContent = 'Koimari';
-    document.getElementById('pageTitle').textContent = '見つかりませんでした';
     document.getElementById('productPhotos').innerHTML = '';
+    if (!window.firebaseSynced) {
+      document.getElementById('pageTitle').textContent = '読み込み中…';
+      document.getElementById('productDesc').innerHTML = '<p>読み込み中です。しばらくお待ちください。</p>';
+      return;
+    }
+    document.getElementById('pageTitle').textContent = '見つかりませんでした';
     document.getElementById('productDesc').innerHTML = '<p>お探しの商品ページが見つかりませんでした。恐れ入りますが、トップページからご覧ください。</p>';
     return;
   }
@@ -325,8 +334,9 @@ const db = getDatabase(fbApp);
 
 // 管理画面で保存されたカテゴリ/おすすめ商品データ（写真・説明文）を反映する
 onValue(ref(db, "siteImages"), (snapshot) => {
+  window.firebaseSynced = true;
   const data = snapshot.val();
-  if (!data) return;
+  if (!data) { if (typeof window.renderProductPage === "function") window.renderProductPage(); return; }
   try {
     const cur = JSON.parse(localStorage.getItem("koimari_images") || "{}");
     if (data.hero) cur.hero = data.hero;
