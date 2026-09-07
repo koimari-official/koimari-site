@@ -29,12 +29,15 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
 <style>
 :root{--color-bg:#f7f3ee;--color-bg-soft:#ede3d4;--color-text:#2e2118;--color-text-soft:#4a3a2a;--color-accent:#c9a96e;--color-accent-dark:#a88a52;--color-gold:#c9a96e;--color-line:#d8baa4;--color-info:#4a6f9c;--color-line-soft:#e8d4bc;--color-on-accent:#2e1a00;--font-mincho:"Shippori Mincho","游明朝","Yu Mincho",serif;--font-sans:"Noto Sans JP","ヒラギノ角ゴ ProN",sans-serif;--font-en:"Cormorant Garamond",serif;--font-display:"Playfair Display",serif;--max-w:1180px}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:var(--font-sans);color:var(--color-text);background:var(--color-bg);line-height:1.9;font-size:21px;font-weight:600;-webkit-font-smoothing:antialiased}
+/* 本文の太字(600)との差が薄いため、strongは明示的に800を指定して強調が伝わるようにする
+   （2026-09-07オーナー指示：大事なところは太字でより本能に訴えかけたい） */
+strong{font-weight:800}
 img{max-width:100%;height:auto;display:block}
 a{color:inherit;text-decoration:none;position:relative}
 a:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
@@ -561,28 +564,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="usp-item__photo" id="uspPhoto1" style="display:none;"><img alt=""></div>
       <div class="usp-item__icon" id="uspIcon1">✦</div>
       <div class="usp-item__title" data-i18n="usp.1.title">全て手作り・一品仕上げ</div>
-      <div class="usp-item__sub" data-i18n="usp.1.sub">素材、味、見栄えにこだわって焼き上げております。</div>
+      <div class="usp-item__sub" data-i18n="usp.1.sub">素材、味、見栄えに<strong>こだわって</strong>焼き上げております。</div>
     </div>
     <div class="usp-item">
       <span class="usp-item__num">02</span>
       <div class="usp-item__photo" id="uspPhoto2" style="display:none;"><img alt=""></div>
       <div class="usp-item__icon" id="uspIcon2">♡</div>
       <div class="usp-item__title" data-i18n="usp.2.title">ご予約受付中</div>
-      <div class="usp-item__sub" data-i18n="usp.2.sub">オーダーケーキ・焼き菓子をギフトやお祝いに</div>
+      <div class="usp-item__sub" data-i18n="usp.2.sub"><strong>オーダーケーキ・焼き菓子</strong>をギフトやお祝いに</div>
     </div>
     <div class="usp-item">
       <span class="usp-item__num">03</span>
       <div class="usp-item__photo" id="uspPhoto3" style="display:none;"><img alt=""></div>
       <div class="usp-item__icon" id="uspIcon3">★</div>
       <div class="usp-item__title" data-i18n="usp.3.title">城東区・鶴見区・京橋・蒲生・関目密着</div>
-      <div class="usp-item__sub" data-i18n="usp.3.sub">世界に愛される日本のお菓子を届けたい</div>
+      <div class="usp-item__sub" data-i18n="usp.3.sub"><strong>世界に愛される</strong>日本のお菓子を届けたい</div>
     </div>
     <div class="usp-item">
       <span class="usp-item__num">04</span>
       <div class="usp-item__photo" id="uspPhoto4" style="display:none;"><img alt=""></div>
       <div class="usp-item__icon" id="uspIcon4">✿</div>
       <div class="usp-item__title" data-i18n="usp.4.title">お子様の一日店長体験</div>
-      <div class="usp-item__sub" data-i18n="usp.4.sub">幼児～小学生向け体験会を開催予定<br>中高生の職業体験実施中</div>
+      <div class="usp-item__sub" data-i18n="usp.4.sub">幼児～小学生向け<strong>体験会</strong>を開催予定<br>中高生の<strong>職業体験</strong>実施中</div>
     </div>
   </div>
 </div>
@@ -594,7 +597,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="greeting__img"><img id="img-greeting" src="" alt="こいまり 店主" loading="lazy"></div>
       <div class="greeting__text">
         <h2 data-i18n="greeting.heading">四季の彩りを<br>ひと皿のお菓子に。</h2>
-        <p data-i18n="greeting.body1">こいまりは、季節の素材を大切にした手作りのケーキと焼き菓子のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
+        <p data-i18n="greeting.body1">こいまりは、<strong>季節の素材を大切にした手作りのケーキと焼き菓子</strong>のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
         <p data-i18n="greeting.body2">誕生日や記念日のデコレーションケーキ、贈り物の焼き菓子など、お客様の大切なひとときに寄り添えるお菓子作りを心がけています。お気軽にご相談ください。</p>
         <p data-i18n="greeting.body3">近年、原材料費や人件費の高騰により、業界全体で手間や材料費を抑える傾向が進んでいます。それでも私たちは、素材と製法にこだわり、昔ながらの手間を惜しまないものづくりをこれからも大切にしてまいります。</p>
       </div>
@@ -635,7 +638,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="section__head"><span class="section__en">Recommended</span><h2 class="section__title">おすすめ商品</h2></div>
     <div class="recommended__grid" id="recommendedGrid"></div>
     <div style="text-align:center;margin-top:60px;"><a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="inline-flex items-center gap-3 px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-bold text-[var(--color-on-accent)] bg-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:-translate-y-0.5">ご予約はこちら <span class="[font-family:var(--font-en)] text-[19px]">→</span></a></div>
-    <p style="text-align:center;margin-top:18px;font-size:14px;color:var(--color-text-soft);">LINE公式アカウントを友だち追加のうえ、チャットでご予約・お問合せください</p>
+    <p style="text-align:center;margin-top:18px;font-size:14px;color:var(--color-text-soft);">LINE公式アカウントを<strong>友だち追加</strong>のうえ、チャットでご予約・お問合せください</p>
   </div>
 </section>
 
