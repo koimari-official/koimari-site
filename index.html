@@ -46,14 +46,12 @@ a:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
 /* ヒーローを「写真主体・中央に控えめなロゴだけ」のミルフィーユ風に再構成
    （2026-09-07。派手な見出しコピー・暗いグラデーションパネルをやめ、写真そのものを
    主役にする。スライドごとの見出し文言は使わず、ブランドロゴを固定で中央に重ねる）。
-   ヘッダーは写真の上に透過オーバーレイとして常時重ねて表示し（ミルフィーユ参考）、
-   スクロールしてヒーローを通過したところで不透明な背景に切り替わる（下のJS参照）。 */
+   ヘッダーは初期表示では完全に隠し、スクロールすると下からふわっと現れる半透明の
+   バー（背景アルファ約50%＋ぼかし）として常時表示する（下のJS参照）。 */
 .hero{position:relative;height:100vh;overflow:hidden;background:var(--color-bg-soft)}
 .hero__slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease}
 .hero__slide.active{opacity:1}
 .hero__slide img{width:100%;height:100%;object-fit:cover}
-/* ヘッダーが透過状態でも文字が読めるよう、写真上部だけ薄暗くするスクリム */
-.hero::before{content:"";position:absolute;top:0;left:0;right:0;height:200px;background:linear-gradient(to bottom,rgba(0,0,0,.38),rgba(0,0,0,0));z-index:1;pointer-events:none}
 .hero__brand-mark{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,.22) 0%,rgba(0,0,0,.04) 45%,rgba(0,0,0,0) 65%)}
 .hero__brand-mark-lockup{width:clamp(440px,52vw,640px);height:auto;filter:drop-shadow(0 4px 18px rgba(0,0,0,.35))}
 .hero__dots{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:3}
@@ -439,13 +437,12 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 .lang-btn:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
 .lang-btn--header{color:#e8dcc8;border-color:rgba(232,220,200,.35)}
 .lang-btn--header:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
-/* ===== ヘッダーをヒーロー写真の上に透過オーバーレイし、写真の一部として見せる
-   （ミルフィーユ参考。2026-09-07オーナー指示）。position:fixedで常時最前面に置き、
-   ヒーロー通過後はJSで.header-solidを付与して不透明な背景に切り替える。 */
-.site-header{position:fixed;top:0;left:0;right:0;overflow:hidden;background:transparent;transition:background .45s ease;z-index:1000}
-.site-header.header-solid{background:linear-gradient(135deg,#5c4a38 0%,#4a3a2a 100%)}
-.site-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent);opacity:0;transition:opacity .45s ease}
-.site-header.header-solid::after{opacity:1}
+/* ===== ヘッダーは初期表示では完全に隠し、スクロールすると下からふわっと現れる
+   半透明バーとして表示する（2026-09-07オーナー指示）。position:fixedで常時最前面に
+   置き、JSでスクロール量に応じて.header-visibleを付け外しする。 */
+.site-header{position:fixed;top:0;left:0;right:0;overflow:hidden;background:linear-gradient(135deg,rgba(92,74,56,.5) 0%,rgba(74,58,42,.5) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;transform:translateY(16px);pointer-events:none;transition:opacity .5s ease,transform .5s ease;z-index:1000}
+.site-header.header-visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.site-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 /* ヘッダーがfixedで通常フローから外れる分、ナビ／内容が隠れないよう高さぶんの余白を
    ヘッダー直後の要素の背景で吸収する（空白の帯を作らないよう、それぞれの背景色ごと押し下げる） */
 #globalNav{padding-top:var(--header-h,90px)}
@@ -501,9 +498,9 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 /* ===== FAB: 常時表示を優先するオーバーライド（位置・表示の安定化） ===== */
 .fab{position:fixed !important;z-index:1200 !important;display:flex !important;opacity:1 !important;transform:none !important;animation:none !important;pointer-events:auto}
 .fab--pc{bottom:30px;right:30px;width:130px;height:130px;border-radius:50%}
-/* ヒーロー通過中（ヘッダーが透過オーバーレイの間）は予約ボタンも隠し、ヘッダーが
-   不透明になるタイミングと同期して表示する（2026-09-07オーナー指示）。JSでbody.chrome-visible
-   を付け外しし、ヘッダーの.header-solidと同じ判定を共有している。 */
+/* ヒーロー表示中は予約ボタンも隠し、ヘッダーが下から現れるタイミングと同期して
+   表示する（2026-09-07オーナー指示）。JSでbody.chrome-visibleを付け外しし、
+   ヘッダーの.header-visibleと同じ判定を共有している。 */
 body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
 </style>
@@ -559,7 +556,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </header>
 <script>
 // ヘッダーの高さぶんの余白をナビ側に反映しつつ、ヒーローを通過したタイミングで
-// ヘッダーを不透明化・予約FABを表示する（両者は同じ判定を共有）
+// 半透明ヘッダーを下からふわっと表示・予約FABを表示する（両者は同じ判定を共有）
 (function(){
   var header = document.getElementById('siteHeader');
   var revealed = false;
@@ -572,7 +569,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (shouldShow !== revealed) {
       revealed = shouldShow;
       document.body.classList.toggle('chrome-visible', revealed);
-      header.classList.toggle('header-solid', revealed);
+      header.classList.toggle('header-visible', revealed);
     }
   }
   setHeaderHeightVar();
