@@ -437,16 +437,11 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 .lang-btn:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
 .lang-btn--header{color:#e8dcc8;border-color:rgba(232,220,200,.35)}
 .lang-btn--header:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
-/* ===== ヘッダーは初期表示では完全に隠し、スクロールすると下からふわっと現れる
-   半透明バーとして表示する（2026-09-07オーナー指示）。position:fixedで常時最前面に
-   置き、JSでスクロール量に応じて.header-visibleを付け外しする。 */
-.site-header{position:fixed;top:0;left:0;right:0;overflow:hidden;background:linear-gradient(135deg,rgba(92,74,56,.5) 0%,rgba(74,58,42,.5) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);opacity:0;transform:translateY(16px);pointer-events:none;transition:opacity .5s ease,transform .5s ease;z-index:1000}
-.site-header.header-visible{opacity:1;transform:translateY(0);pointer-events:auto}
+/* ===== ヘッダーはヒーロー画像の直下に通常フローで配置し、スクロールして上端に
+   達したところでposition:stickyにより固定される（2026-09-07オーナー指示）。
+   JSでの表示切り替えは不要（ヒーローの下にあるので初期表示では自然に画面外）。 */
+.site-header{position:sticky;top:0;overflow:hidden;background:linear-gradient(135deg,rgba(92,74,56,.5) 0%,rgba(74,58,42,.5) 100%);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:1000}
 .site-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
-/* ヘッダーがfixedで通常フローから外れる分、ナビ／内容が隠れないよう高さぶんの余白を
-   ヘッダー直後の要素の背景で吸収する（空白の帯を作らないよう、それぞれの背景色ごと押し下げる） */
-#globalNav{padding-top:var(--header-h,90px)}
-@media(max-width:900px){.usp-strip{padding-top:var(--header-h,70px)}}
 /* ===== スマホ縦向き（≤480px）：フル幅・2列表示 =====
    1列だと縦スクロールが増えて離脱・PV低下につながるため、商品カテゴリー・おすすめ商品は
    スマホでも横2列を維持する（web-design-knowhow.md「モバイルグリッドは2列を基本とする」を参照） */
@@ -498,9 +493,10 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 /* ===== FAB: 常時表示を優先するオーバーライド（位置・表示の安定化） ===== */
 .fab{position:fixed !important;z-index:1200 !important;display:flex !important;opacity:1 !important;transform:none !important;animation:none !important;pointer-events:auto}
 .fab--pc{bottom:30px;right:30px;width:130px;height:130px;border-radius:50%}
-/* ヒーロー表示中は予約ボタンも隠し、ヘッダーが下から現れるタイミングと同期して
-   表示する（2026-09-07オーナー指示）。JSでbody.chrome-visibleを付け外しし、
-   ヘッダーの.header-visibleと同じ判定を共有している。 */
+/* ヒーロー表示中は予約ボタンも隠し、スティッキーヘッダーが上端に固定される
+   タイミングと同期して表示する（2026-09-07オーナー指示）。position:fixedのFABは
+   ヘッダーのようにposition:stickyで自然に現れないため、JSでbody.chrome-visibleを
+   付け外しして合わせている。 */
 body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
 </style>
@@ -513,9 +509,10 @@ body:not(.chrome-visible) .fab{display:none!important}
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MB2XHF6J"
 height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
-<!-- ===== ヒーローをDOM上で先頭に配置。ヘッダーは写真の上に透過オーバーレイとして
-     常時重ねて表示し（ミルフィーユ参考・2026-09-07オーナー指示）、ヒーローを
-     スクロールで通過したところで不透明な背景に切り替わる（下のJS参照）。 -->
+<!-- ===== ヒーローをDOM上で先頭に配置し、初期表示では画面いっぱいに写真だけが見える
+     ようにする。ヘッダーはこの直後に通常フローで配置しているため、初期表示では
+     画面外にあり、スクロールして上端に達するとposition:stickyで固定される
+     （2026-09-07オーナー指示）。 -->
 <div class="hero" id="hero">
   <div class="hero__brand-mark">
     <img src="koimari-hero-mark.png" alt="こいまり" class="hero__brand-mark-lockup">
@@ -555,25 +552,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </header>
 <script>
-// ヘッダーの高さぶんの余白をナビ側に反映しつつ、ヒーローを通過したタイミングで
-// 半透明ヘッダーを下からふわっと表示・予約FABを表示する（両者は同じ判定を共有）
+// ヘッダーがposition:stickyで上端に固定されるタイミングに合わせて予約FABも表示する
 (function(){
   var header = document.getElementById('siteHeader');
   var revealed = false;
-  function setHeaderHeightVar(){
-    document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
-  }
   function update(){
     var threshold = Math.max(window.innerHeight - header.offsetHeight - 40, 40);
     var shouldShow = window.scrollY > threshold;
     if (shouldShow !== revealed) {
       revealed = shouldShow;
       document.body.classList.toggle('chrome-visible', revealed);
-      header.classList.toggle('header-visible', revealed);
     }
   }
-  setHeaderHeightVar();
-  window.addEventListener('resize', setHeaderHeightVar);
   window.addEventListener('scroll', update, { passive: true });
   update();
 })();
