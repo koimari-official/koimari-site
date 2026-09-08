@@ -63,9 +63,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .tab.active { color:var(--color-accent-dark); border-bottom-color:var(--color-accent-dark); }
 .gallery-cat-nav { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; margin: 16px 0 6px; }
 .gallery-cat-btn { padding: 16px 14px; font-family: var(--font-mincho); font-size: 14px; letter-spacing: 0.06em; font-weight: 600; background: #fdfaf6; border: 1px solid var(--color-line); color: var(--color-text); cursor: pointer; transition: all 0.2s; text-align: center; }
-.gallery-cat-btn:hover { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.gallery-cat-btn:hover, .gallery-cat-btn.active { background: var(--color-accent); color: #fff; border-color: var(--color-accent); }
+.gallery-cat-btn.active { cursor: default; }
 .gallery-cat-btn__count { display: block; margin-top: 4px; font-size: 12px; color: var(--color-text-soft); font-weight: 400; }
-.gallery-cat-btn:hover .gallery-cat-btn__count { color: rgba(255,255,255,0.85); }
+.gallery-cat-btn:hover .gallery-cat-btn__count, .gallery-cat-btn.active .gallery-cat-btn__count { color: rgba(255,255,255,0.85); }
 .tab:hover { color:var(--color-accent-dark); }
 .tab-group-label { flex-basis: 100%; font-family: var(--font-sans); font-size: 11px; letter-spacing: 0.1em; color: var(--color-text-soft); opacity: .6; padding: 14px 22px 3px 4px; }
 .tab-group-label:first-of-type { padding-top: 4px; }
@@ -655,14 +656,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <!-- ===== ギャラリー管理 ===== -->
     <section class="panel" id="panel-galleryAdmin">
       <div class="panel__head"><h2 class="panel__title">ギャラリー管理</h2></div>
-      <p class="panel__desc">作品ギャラリー（gallery.html）に表示される商品を、カテゴリー別に編集できます。ボタンを押すとそれぞれの商品一覧に切り替わります（2026-09-09、散らばっていたタブをここに集約）。</p>
-      <div class="gallery-cat-nav" id="galleryCatNav">
-        <button type="button" class="gallery-cat-btn" data-goto="decorationCakes">デコレーションケーキ<span class="gallery-cat-btn__count" id="catCount-decorationCakes"></span></button>
-        <button type="button" class="gallery-cat-btn" data-goto="cutcakes">カットケーキ<span class="gallery-cat-btn__count" id="catCount-cutcakes"></span></button>
-        <button type="button" class="gallery-cat-btn" data-goto="rollcakes">ロールケーキ<span class="gallery-cat-btn__count" id="catCount-rollcakes"></span></button>
-        <button type="button" class="gallery-cat-btn" data-goto="baked">焼き菓子<span class="gallery-cat-btn__count" id="catCount-baked"></span></button>
-        <button type="button" class="gallery-cat-btn" data-goto="gift">ギフト<span class="gallery-cat-btn__count" id="catCount-gift"></span></button>
-      </div>
+      <p class="panel__desc">作品ギャラリー（gallery.html）に表示される商品を、カテゴリー別に編集できます。ボタンを押すとそれぞれの商品一覧に切り替わります（2026-09-09、散らばっていたタブをここに集約。カテゴリーを開いた後も上部のボタンで他カテゴリーへすぐ移動できます）。</p>
       <hr style="margin:26px 0;border:none;border-top:1px solid var(--color-line);">
       <div class="panel__head"><h2 class="panel__title" style="font-size:16px;">オーダーメイドの1点物</h2><button class="btn btn--small" id="addGallery">＋ 作品を追加</button></div>
       <p class="panel__desc">お名前入りなど、真にオーダーメイドの1点物（作品No.・見積り相談形式）のみをここに登録します（上記カテゴリー別の通常ラインナップとは別枠です）。</p>
@@ -1354,6 +1348,7 @@ document.querySelectorAll(".tab").forEach(t => {
     t.classList.add("active");
     document.getElementById("panel-" + t.dataset.panel).classList.add("active");
     document.getElementById("saveBar").style.display = (SITEIMAGES_PANELS.has(t.dataset.panel) && isDirty()) ? "flex" : "none";
+    mountGalleryCatNav(t.dataset.panel);
     if (t.dataset.panel === "dashboard") renderDashboard();
     if (t.dataset.panel === "notify") renderNotifyPanel();
     if (t.dataset.panel === "reservations") renderReservations();
@@ -1475,7 +1470,6 @@ async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions) 
 }
 function renderAll() {
   renderHero(); renderGreeting(); renderCategories(); renderDecorationCakes(); renderCutcakes(); renderRollcakes(); renderBaked(); renderGift(); renderExperiences();
-  renderGalleryCatNav();
   updateSaveBar();
 }
 // ストック写真（Unsplash等）の疑いを検知し、プレビューに警告バッジを重ねる
@@ -2005,21 +1999,53 @@ document.getElementById("addCutcake").addEventListener("click", () => { workingD
 document.getElementById("addRollcake").addEventListener("click", () => { workingData.rollcakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRollcakes(); updateSaveBar(); });
 document.getElementById("addBaked").addEventListener("click", () => { workingData.baked.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderBaked(); updateSaveBar(); });
 document.getElementById("addGift").addEventListener("click", () => { workingData.gift.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderGift(); updateSaveBar(); });
-// 「ギャラリー」パネル内のカテゴリーボタン。押すと対応する（サイドバーからは隠した）タブを
-// プログラム的にクリックし、既存のタブ切り替え・保存バーの仕組みをそのまま再利用する（2026-09-09）。
-function renderGalleryCatNav() {
-  if (!workingData) return;
-  ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift"].forEach(key => {
-    const el = document.getElementById("catCount-" + key);
-    if (el && Array.isArray(workingData[key])) el.textContent = workingData[key].length + "件";
+// ギャラリー関連6パネル（ギャラリー管理＋カテゴリー別5パネル）の先頭にカテゴリー切り替え
+// ボタンを表示する。カテゴリーを開いた後もボタンが消えず、他カテゴリーへすぐ移動できる
+// ようにするため（2026-09-09、「カテゴリーを選ぶとボタンが消えて不便」という指摘を受けて、
+// ギャラリー管理パネルだけでなく全カテゴリーパネルに同じボタン列を表示する形に変更）。
+// 押すと対応する（サイドバーからは隠した）タブをプログラム的にクリックし、既存のタブ切り替え・
+// 保存バーの仕組みをそのまま再利用する。
+const GALLERY_NAV_ITEMS = [
+  { key: "decorationCakes", label: "デコレーションケーキ" },
+  { key: "cutcakes", label: "カットケーキ" },
+  { key: "rollcakes", label: "ロールケーキ" },
+  { key: "baked", label: "焼き菓子" },
+  { key: "gift", label: "ギフト" },
+  { key: "galleryAdmin", label: "オーダーメイド" }
+];
+function mountGalleryCatNav(currentPanel) {
+  if (!workingData || !GALLERY_NAV_ITEMS.some(it => it.key === currentPanel)) return;
+  const panelEl = document.getElementById("panel-" + currentPanel);
+  if (!panelEl) return;
+  let nav = panelEl.querySelector(".gallery-cat-nav");
+  if (!nav) {
+    nav = document.createElement("div");
+    nav.className = "gallery-cat-nav";
+    const head = panelEl.querySelector(".panel__head");
+    if (head) head.insertAdjacentElement("afterend", nav);
+    else panelEl.insertBefore(nav, panelEl.firstChild);
+  }
+  nav.innerHTML = "";
+  GALLERY_NAV_ITEMS.forEach(it => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "gallery-cat-btn" + (it.key === currentPanel ? " active" : "");
+    btn.appendChild(document.createTextNode(it.label));
+    if (it.key !== "galleryAdmin" && Array.isArray(workingData[it.key])) {
+      const count = document.createElement("span");
+      count.className = "gallery-cat-btn__count";
+      count.textContent = workingData[it.key].length + "件";
+      btn.appendChild(count);
+    }
+    if (it.key !== currentPanel) {
+      btn.addEventListener("click", () => {
+        const target = document.querySelector('.tab[data-panel="' + it.key + '"]');
+        if (target) target.click();
+      });
+    }
+    nav.appendChild(btn);
   });
 }
-document.querySelectorAll(".gallery-cat-btn").forEach(b => {
-  b.addEventListener("click", () => {
-    const target = document.querySelector('.tab[data-panel="' + b.dataset.goto + '"]');
-    if (target) target.click();
-  });
-});
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
 document.getElementById("saveBtn").addEventListener("click", async () => {
   if (typeof window.fbSaveSiteImages !== "function" || typeof window.fbLoadSiteImages !== "function") {
@@ -3794,7 +3820,6 @@ document.getElementById("addFaqCat").addEventListener("click", () => {
 /* ============ ギャラリー管理 ============ */
 let galleryData = null;
 function renderGalleryAdmin() {
-  renderGalleryCatNav();
   if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
   const grid = document.getElementById("galleryAdminGrid"); grid.innerHTML = "";
   galleryData.forEach((g, i) => {
