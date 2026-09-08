@@ -3890,29 +3890,48 @@ const trashReservationsRef = ref(fbDb, "trash/reservations");
 const trashExperiencesRef = ref(fbDb, "trash/experiences");
 const trashCorporateRef = ref(fbDb, "trash/corporate");
 const siteImagesRef = ref(fbDb, "siteImages");
+// 2026-09-09判明：siteImages配下は実写真base64を大量に含み全体で5MB超に達しており、
+// get(siteImagesRef)/set(siteImagesRef, ...)のように"siteImages"全体を1回の通信で
+// 読み書きすると、一部カテゴリ（カットケーキ等）が欠落して届いたり、保存自体が失敗する
+// ことがあった（product.html等で見つかった大容量ノードの不具合と同根）。管理画面の保存は
+// データ消失リスクに直結するため、カテゴリごとに個別のパスで読み書きするよう修正。
+const SITE_IMAGES_KEYS = ["hero", "greeting", "categories", "decorationCakes", "cutcakes", "rollcakes", "experiences"];
 const lineMembersRef = ref(fbDb, "lineMembers");
 const aiReviewQueueRef = ref(fbDb, "aiReviewQueue");
 
 window.fbLoadSiteImages = async function () {
   try {
-    const snap = await get(siteImagesRef);
-    return snap.val();
+    const data = {};
+    await Promise.all(SITE_IMAGES_KEYS.map(async k => {
+      const snap = await get(ref(fbDb, "siteImages/" + k));
+      data[k] = snap.val();
+    }));
+    return data;
   } catch (err) {
     console.warn("サイト画像の読み込み失敗:", err);
     return null;
   }
 };
 window.fbSaveSiteImages = async function (data) {
-  await set(siteImagesRef, data);
+  for (const k of SITE_IMAGES_KEYS) {
+    await set(ref(fbDb, "siteImages/" + k), data[k] === undefined ? null : data[k]);
+  }
 };
 let unsubSiteImages = null;
+let liveSiteImagesCache = {};
+let liveSiteImagesLoadedKeys = new Set();
 window.fbSubscribeSiteImages = function () {
   if (unsubSiteImages) return; // 既に購読中なら何もしない（再ログイン時の二重購読防止）
-  unsubSiteImages = onValue(siteImagesRef, (snapshot) => {
+  unsubSiteImages = SITE_IMAGES_KEYS.map(k => onValue(ref(fbDb, "siteImages/" + k), (snapshot) => {
+    liveSiteImagesCache[k] = snapshot.val();
+    liveSiteImagesLoadedKeys.add(k);
+    // 全カテゴリが最低1回揃うまではマージしない。一部だけの状態でapplySiteImagesSnapshotに
+    // 渡すと、まだ届いていないカテゴリを「削除された」と誤認してworkingDataから消してしまう。
+    if (liveSiteImagesLoadedKeys.size < SITE_IMAGES_KEYS.length) return;
     if (typeof window.applySiteImagesSnapshot === "function") {
-      window.applySiteImagesSnapshot(snapshot.val());
+      window.applySiteImagesSnapshot({ ...liveSiteImagesCache });
     }
-  });
+  }));
 };
 
 // お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役
