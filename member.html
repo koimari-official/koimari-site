@@ -13,7 +13,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>会員ページ｜こいまり</title>
-<meta name="description" content="こいまりのLINE会員ページです。スタンプ・お誕生日特典をご確認いただけます。">
+<meta name="description" content="こいまりのLINE会員ページです。お誕生日特典をご確認いただけます。">
 <meta name="robots" content="noindex">
 <link rel="canonical" href="https://koimari-official.github.io/koimari-site/member.html">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,10 +49,6 @@ main{max-width:640px;margin:0 auto;padding:50px 24px 100px}
 .profile-card__sub{font-size:13px;color:var(--color-text-soft);margin-top:4px;}
 .section{background:var(--color-paper);border:1px solid var(--color-line);padding:28px 30px;margin-bottom:24px;}
 .section__title{font-family:var(--font-mincho);font-size:15px;font-weight:700;color:var(--color-accent-dark);letter-spacing:.06em;margin-bottom:16px;padding-bottom:10px;border-bottom:1px dashed var(--color-line);}
-.stamp-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:14px;}
-.stamp{width:38px;height:38px;border-radius:50%;border:2px solid var(--color-accent);display:flex;align-items:center;justify-content:center;font-size:18px;}
-.stamp--filled{background:var(--color-accent);color:#fff;}
-.stamp-text{font-size:14px;color:var(--color-text-soft);}
 .field{margin-bottom:14px;}
 .field__label{display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;}
 .input{width:100%;padding:12px 14px;border:1px solid var(--color-line);background:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;}
@@ -378,12 +374,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
     </div>
 
-    <div class="section" id="stampSection" style="display:none;">
-      <div class="section__title">スタンプカード</div>
-      <div class="stamp-row" id="stampRow"></div>
-      <div class="stamp-text" id="stampText"></div>
-    </div>
-
     <div class="section">
       <div class="section__title">お誕生日特典</div>
       <div class="field">
@@ -442,20 +432,6 @@ function showError(err) {
   // お客様には見えにくい薄い文字で原因を残す（次回不具合が起きた際にスタッフが原因を特定できるように）。
   const detail = document.getElementById("errorDetail");
   if (detail && err) detail.textContent = String((err && err.message) || err);
-}
-
-function renderStamps(stamps, goal) {
-  const row = document.getElementById("stampRow");
-  row.innerHTML = "";
-  for (let i = 0; i < goal; i++) {
-    const el = document.createElement("div");
-    el.className = "stamp" + (i < stamps ? " stamp--filled" : "");
-    el.textContent = i < stamps ? "✓" : "";
-    row.appendChild(el);
-  }
-  document.getElementById("stampText").textContent = stamps >= goal
-    ? "スタンプがたまりました！ご来店時にスタッフへお申し出ください。"
-    : `あと${goal - stamps}個でスタンプ達成です。`;
 }
 
 async function renderGalleryTeaser() {
@@ -1193,7 +1169,6 @@ async function main() {
     if (!snap.exists()) {
       await set(memberRef, {
         registeredAt: new Date().toISOString(),
-        stamps: 0,
         profile: { displayName: profile.displayName || "", pictureUrl: profile.pictureUrl || "", lastSeenAt: new Date().toISOString() }
       });
     } else {
@@ -1207,17 +1182,9 @@ async function main() {
     document.getElementById("profileImg").src = profile.pictureUrl || "";
     document.getElementById("profileName").textContent = profile.displayName || "会員さま";
 
-    let configSnap;
-    try { configSnap = await get(ref(db, "koimariContent/loyaltyConfig")); } catch (e) { configSnap = null; }
-    const config = (configSnap && configSnap.val()) || { enabled: false, stampGoal: 5, rewardText: "" };
-    // スタンプカードは施策が固まるまで非表示（2026-08-19オーナー指示）。admin.html「LINE会員管理」の
-    // トグルで管理者がON/OFFできる。設定が一度も保存されていない場合はデフォルトで非表示。
-    document.getElementById("stampSection").style.display = config.enabled === true ? "" : "none";
-
     onValue(memberRef, (s) => {
       const data = s.val() || {};
       document.getElementById("profileSince").textContent = "登録日: " + (data.registeredAt ? data.registeredAt.slice(0, 10) : "—");
-      renderStamps(data.stamps || 0, config.stampGoal || 5);
       if (data.profile && data.profile.birthday) document.getElementById("birthdayInput").value = data.profile.birthday;
     });
 
