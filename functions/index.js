@@ -36,6 +36,12 @@ ${RESERVE_LIFF_URL}
 
 デコレーションケーキ・ロールケーキ・焼き菓子/ギフトのご予約ができます。引き取り希望日の3営業日前までにご入力ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。`;
 
+// リッチメニュー「スタンプカード」タップ時の送信テキスト・返信（2026-09-08、旧「よくある質問」タイルを差し替え）。
+// LINE公式アカウント自体のショップカード機能への一本化を予定しているが、公開URLが未確定のため、
+// 準備中の案内を返すのみにしている。URLが決まり次第、RICHMENU_AREASのactionをuri型に切り替える。
+const STAMP_CARD_TRIGGER_TEXT = "スタンプカードについて教えてください";
+const STAMP_CARD_REPLY_TEXT = "スタンプカードは近日公開予定です🎁\nもうしばらくお待ちくださいませ。ご予約・クーポン・ギャラリーは引き続きこちらのメニューからご利用いただけます。";
+
 // 「予約」「注文」という言葉が自由入力メッセージ内に含まれていた場合、AIの返信に必ずこのボタンを
 // 添付する。リッチメニューを一度折りたたんだお客様にも、毎回確実に予約フォームへの導線を出すため
 // （2026-09-06オーナー指示：リッチメニューは自動で毎回開き直せないLINE側の仕様のための代替策）。
@@ -355,6 +361,12 @@ exports.lineWebhook = onRequest(
           continue;
         }
 
+        // リッチメニュー「スタンプカード」タップ時も、AIの生成に任せず準備中の案内を確実に返す。
+        if (event.message.text.trim() === STAMP_CARD_TRIGGER_TEXT) {
+          await replyToLine(event.replyToken, STAMP_CARD_REPLY_TEXT, LINE_CHANNEL_ACCESS_TOKEN.value());
+          continue;
+        }
+
         // リッチメニュー「クーポン」タップ時も、AIの生成に任せずkoimariOps/couponsの実データをそのまま案内する。
         // SNS転載対策として、お客様の表示名を案内文に入れる（admin.htmlでクーポン利用を停止された
         // 会員には、クーポン内容自体を見せない＝実質のブラックリスト対応。2026-09-06オーナー指示）。
@@ -568,12 +580,11 @@ exports.sendCustomerReservationEmail = onValueCreated(
 
 // ===== リッチメニュー（2026-08-31、6分割を常時表示する方式に変更） =====
 // クーポンの有無でメニュー全体を切り替える方式（旧仕様）は廃止。常に
-// 「ご予約/ギャラリー/クーポン/店舗情報/よくある質問/会員証」の6分割を表示する。
+// 「季節限定メニュー/ご予約/ギャラリー/クーポン/店舗情報/スタンプカード」の6分割を表示する。
 // 「クーポン」タップ時はメッセージが送信され、下のlineWebhook側でkoimariOps/coupons
 // （admin.html「クーポン」タブ）を見て、有効なクーポンがあればその内容を、無ければ
 // その旨を返信する。クーポン切れでもアイコン自体は常設のままでよいというオーナー判断（2026-08-31）。
 const GALLERY_URL = "https://koimari-official.github.io/koimari-site/gallery.html";
-const FAQ_URL = "https://koimari-official.github.io/koimari-site/faq.html";
 const SHOP_INFO_URL = "https://koimari-official.github.io/koimari-site/index.html#shop";
 const RICHMENU_MAIN_IMAGE_PATH = path.join(__dirname, "assets", "richmenu-main.jpg");
 const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
@@ -582,7 +593,7 @@ const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 // koimariOps/richMenuIds/version と一致しなくなった時点でensureRichMenuが自動的に
 // 作り直す（画像だけ差し替えてこの値を更新し忘れると、古いデザインのままになる）。
 // 詳しい変更手順は assets/richmenu-src/README.md を参照。
-const RICHMENU_VERSION = "2026-09-03-tanukichi-v3";
+const RICHMENU_VERSION = "2026-09-08-stampcard-v1";
 
 async function lineApi(method, url, accessToken, body, isBinary) {
   const headers = { Authorization: `Bearer ${accessToken}` };
@@ -602,7 +613,7 @@ async function lineApi(method, url, accessToken, body, isBinary) {
 }
 
 // 2500x1686を2行3列に分割した6エリア（列幅833/834/833で合計2500、行高843で合計1686）。
-// 画像(assets/richmenu-main.jpg)の並び「季節限定メニュー|ご予約|ギャラリー / クーポン|店舗情報|よくある質問」と対応させること。
+// 画像(assets/richmenu-main.jpg)の並び「季節限定メニュー|ご予約|ギャラリー / クーポン|店舗情報|スタンプカード」と対応させること。
 // 左上の「季節限定メニュー」は季節ごとに画像・タップ先を差し替えてよい（現在はギャラリーへのリンク）。
 const RICHMENU_AREAS = [
   { bounds: { x: 0, y: 0, width: 833, height: 843 }, action: { type: "uri", uri: GALLERY_URL } },
@@ -610,7 +621,7 @@ const RICHMENU_AREAS = [
   { bounds: { x: 1667, y: 0, width: 833, height: 843 }, action: { type: "uri", uri: GALLERY_URL } },
   { bounds: { x: 0, y: 843, width: 833, height: 843 }, action: { type: "message", text: COUPON_TRIGGER_TEXT } },
   { bounds: { x: 833, y: 843, width: 834, height: 843 }, action: { type: "uri", uri: SHOP_INFO_URL } },
-  { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "uri", uri: FAQ_URL } },
+  { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "message", text: STAMP_CARD_TRIGGER_TEXT } },
 ];
 
 // リッチメニューが未設定、デザインのバージョンが古い、または旧仕様(2分割/3分割切替)のものが
