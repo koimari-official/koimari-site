@@ -298,6 +298,8 @@ let galleryPortfolio = loadList("koimari_gallery", DEFAULT_GALLERY);
 let menuDecorationCakes = [];
 let menuCutcakes = [];
 let menuRollcakes = [];
+let menuBaked = [];
+let menuGift = [];
 let menuSynced = false; // Firebase同期前は「準備中」ではなく「読み込み中」を出す
 let gallery = [];
 let voices = loadList("koimari_voices", DEFAULT_VOICES);
@@ -323,7 +325,15 @@ function buildGallery(){
     .map((c, idx) => ({ c, idx }))
     .filter(({c}) => c && c.visible !== false)
     .map(({c, idx}) => menuItemToCard(c, "roll", idx, "rollcake"));
-  gallery = assignGalleryNumbers([...galleryPortfolio, ...decorationCards, ...cutcakeCards, ...rollCards]);
+  const bakedCards = menuBaked
+    .map((c, idx) => ({ c, idx }))
+    .filter(({c}) => c && c.visible !== false)
+    .map(({c, idx}) => menuItemToCard(c, "baked", idx, "baked"));
+  const giftCards = menuGift
+    .map((c, idx) => ({ c, idx }))
+    .filter(({c}) => c && c.visible !== false)
+    .map(({c, idx}) => menuItemToCard(c, "gift", idx, "gift"));
+  gallery = assignGalleryNumbers([...galleryPortfolio, ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
 }
 buildGallery();
 
@@ -454,6 +464,8 @@ function applyFetchedMenuItems(data){
   if (Array.isArray(data.decorationCakes)) menuDecorationCakes = data.decorationCakes;
   if (Array.isArray(data.cutcakes)) menuCutcakes = data.cutcakes;
   if (Array.isArray(data.rollcakes)) menuRollcakes = data.rollcakes;
+  if (Array.isArray(data.baked)) menuBaked = data.baked;
+  if (Array.isArray(data.gift)) menuGift = data.gift;
   menuSynced = true;
   buildGallery();
   renderGalleryPage();
@@ -530,7 +542,7 @@ async function fetchSiteImagesKey(key){
   return res.json();
 }
 (async () => {
-  const keys = ["decorationCakes", "cutcakes", "rollcakes"];
+  const keys = ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift"];
   const data = {};
   for (const key of keys) {
     for (let attempt = 0; attempt < 2; attempt++) {

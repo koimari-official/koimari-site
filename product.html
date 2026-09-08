@@ -194,13 +194,17 @@ const DEFAULT_RECOMMENDED = [
 const DEFAULT_DECORATION_CAKES = [];
 const DEFAULT_CUTCAKES = [];
 const DEFAULT_ROLLCAKES = [];
+const DEFAULT_BAKED = [];
+const DEFAULT_GIFT = [];
 
 const TYPE_CONFIG = {
   category:       { key: "categories", back: "index.html#categories", enField: "en" },
   recommended:    { key: "recommended", back: "index.html#recommended", enField: "nameEn" },
   decorationCake: { key: "decorationCakes", back: "gallery.html?cat=cake", enField: "nameEn" },
   cutcake:        { key: "cutcakes",   back: "gallery.html?cat=cutcake", enField: "nameEn" },
-  rollcake:       { key: "rollcakes",  back: "gallery.html?cat=roll", enField: "nameEn" }
+  rollcake:       { key: "rollcakes",  back: "gallery.html?cat=roll", enField: "nameEn" },
+  baked:          { key: "baked",      back: "gallery.html?cat=baked", enField: "nameEn" },
+  gift:           { key: "gift",       back: "gallery.html?cat=gift", enField: "nameEn" }
 };
 
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
@@ -216,11 +220,13 @@ function loadImages(){
         recommended: p.recommended||DEFAULT_RECOMMENDED,
         decorationCakes: p.decorationCakes||DEFAULT_DECORATION_CAKES,
         cutcakes: p.cutcakes||DEFAULT_CUTCAKES,
-        rollcakes: p.rollcakes||DEFAULT_ROLLCAKES
+        rollcakes: p.rollcakes||DEFAULT_ROLLCAKES,
+        baked: p.baked||DEFAULT_BAKED,
+        gift: p.gift||DEFAULT_GIFT
       };
     }
   }catch(e){}
-  return { categories: DEFAULT_CATEGORIES, recommended: DEFAULT_RECOMMENDED, decorationCakes: DEFAULT_DECORATION_CAKES, cutcakes: DEFAULT_CUTCAKES, rollcakes: DEFAULT_ROLLCAKES };
+  return { categories: DEFAULT_CATEGORIES, recommended: DEFAULT_RECOMMENDED, decorationCakes: DEFAULT_DECORATION_CAKES, cutcakes: DEFAULT_CUTCAKES, rollcakes: DEFAULT_ROLLCAKES, baked: DEFAULT_BAKED, gift: DEFAULT_GIFT };
 }
 
 const params = new URLSearchParams(location.search);
