@@ -100,6 +100,17 @@ a.gal-card .gal-card__img{cursor:pointer}
 .voice-card__author{display:flex;align-items:center;justify-content:space-between;font-size:15px;color:var(--color-text-soft);padding-top:16px;border-top:1px dashed var(--color-line);font-family:var(--font-mincho);letter-spacing:.06em}
 .voice-card__name{font-weight:600;color:var(--color-text);font-size:16px}
 
+/* ===== サイズの目安（予約フォームと同じ比較表を、参考情報として作品ギャラリーにも掲載）===== */
+.size-guide{margin-top:70px;padding-top:50px;border-top:1px solid var(--color-line);text-align:center}
+.size-guide__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.3em;font-size:16px;margin-bottom:12px;display:block;font-weight:500}
+.size-guide__title{font-family:var(--font-mincho);font-size:clamp(22px,2.8vw,26px);letter-spacing:.14em;font-weight:600;margin-bottom:16px}
+.size-guide__lead{font-size:14px;color:var(--color-text-soft);font-family:var(--font-mincho);letter-spacing:.02em;line-height:1.9;max-width:560px;margin:0 auto 26px}
+.size-compare{display:flex;align-items:flex-end;gap:22px;padding:20px 24px 12px;background:#fdfaf6;border:1px solid var(--color-line);flex-wrap:wrap;width:fit-content;max-width:100%;margin:0 auto;justify-content:center}
+.size-compare__item{display:flex;flex-direction:column;align-items:center;gap:8px}
+.size-compare__circle{border-radius:50%;background:linear-gradient(135deg,var(--color-gold) 0%,var(--color-accent) 100%);opacity:.75;flex-shrink:0}
+.size-compare__label{font-size:12px;text-align:center;line-height:1.6;color:var(--color-text);font-weight:600}
+.size-compare__label span{display:block;font-size:11px;font-weight:400;color:var(--color-text-soft)}
+
 /* ===== 大きなCTAバナー ===== */
 .cta-banner{margin-top:90px;background:linear-gradient(135deg,#2b1f1a 0%,#3d2c25 100%);color:#fff;padding:70px 50px;text-align:center;position:relative;overflow:hidden}
 .cta-banner::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 60px,rgba(245,214,168,.06) 60px 61px),repeating-linear-gradient(-60deg,transparent 0 60px,rgba(245,214,168,.06) 60px 61px);opacity:.6}
@@ -179,6 +190,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- ギャラリーグリッド -->
   <div class="gallery-grid" id="galleryGrid"></div>
 
+  <!-- サイズの目安（ご予約ページと同じ比較表。写真のサイズはあくまで参考であることを明示） -->
+  <section class="size-guide">
+    <span class="size-guide__en">Size Guide</span>
+    <h2 class="size-guide__title">サイズの目安</h2>
+    <p class="size-guide__lead">掲載写真・号数の表記はあくまで参考です。実際の見た目は仕込み状況により多少異なる場合がございます。号数ごとの大きさ・人数の目安は下記をご参照ください。</p>
+    <div class="size-compare">
+      <div class="size-compare__item">
+        <div class="size-compare__circle" style="width:48px;height:48px;"></div>
+        <div class="size-compare__label">4号 (12cm・2〜3名)<br><span>グレープフルーツくらい</span></div>
+      </div>
+      <div class="size-compare__item">
+        <div class="size-compare__circle" style="width:60px;height:60px;"></div>
+        <div class="size-compare__label">5号 (15cm・4〜6名)<br><span>小玉メロンくらい</span></div>
+      </div>
+      <div class="size-compare__item">
+        <div class="size-compare__circle" style="width:72px;height:72px;"></div>
+        <div class="size-compare__label">6号 (18cm・6〜8名)<br><span>ドッジボールくらい</span></div>
+      </div>
+      <div class="size-compare__item">
+        <div class="size-compare__circle" style="width:84px;height:84px;"></div>
+        <div class="size-compare__label">7号 (21cm・8〜10名)<br><span>サッカーボールくらい</span></div>
+      </div>
+    </div>
+  </section>
 
   <!-- 大きなCTA -->
   <section class="cta-banner">
@@ -322,10 +357,16 @@ function renderGrid(){
     const catName = (CATEGORIES.find(c => c.key === g.category) || {}).name || "";
     const photos = [g.img, ...(Array.isArray(g.gallery) ? g.gallery : [])].filter(Boolean);
     const subPhotos = g.isMenuItem ? [] : photos.slice(1);
+    // デコレーションケーキ等のdescは「【4号】説明文」の形式で号数を先頭に含むため、
+    // ここで号数を抜き出して「参考」付きの独立したメタ表示にする（2026-09-08、写真の
+    // サイズはあくまで目安であることをオーナー指示で明示）。
+    const sizeMatch = g.isMenuItem ? String(g.desc || "").match(/^【([^】]+)】/) : null;
+    const descBody = sizeMatch ? String(g.desc || "").slice(sizeMatch[0].length) : g.desc;
     const bodyHtml = g.isMenuItem
       ? `<h3 class="gal-card__title">${escape(g.title)}</h3>
-        <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
+        <p class="gal-card__desc">${escape(String(descBody||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
+          ${sizeMatch ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(sizeMatch[1])}</strong>（参考）</span>` : ""}
           ${g.price ? `<span class="gal-card__meta-item" style="font-size:15px;"><strong>${escape(g.price)}</strong>（税込）</span>` : ""}
         </div>
         <span class="gal-card__cta">くわしく見る →</span>`
@@ -333,7 +374,7 @@ function renderGrid(){
         <h3 class="gal-card__title">${escape(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
-          ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong></span>` : ""}
+          ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong>（参考）</span>` : ""}
           ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
@@ -380,9 +421,15 @@ window.renderVoicesGrid = renderVoicesGrid;
 renderVoicesGrid();
 
 // Firebase側の最新データを取り込み直す（以前はlocalStorageのみで、管理者本人の端末にしか反映されなかったための対応）
+// 2026-09-08判明：Firebase RTDBは空配列を保存すると自動的にキー自体を削除するため、
+// koimariContent.galleryを完全に空にすると`data.gallery`は`undefined`になり、以前の
+// 端末にキャッシュされたgalleryPortfolio（旧作品No.付きの作品）が消えずに残ってしまう
+// 不具合があった。undefinedの場合も空配列として同期することで解消する。
 function applyFetchedGalleryContent(data){
   if (!data) return;
-  if (data.gallery !== undefined) { try { localStorage.setItem("koimari_gallery", JSON.stringify(data.gallery)); } catch(e){} galleryPortfolio = data.gallery; buildGallery(); renderGalleryPage(); }
+  const gal = Array.isArray(data.gallery) ? data.gallery : [];
+  try { localStorage.setItem("koimari_gallery", JSON.stringify(gal)); } catch(e){}
+  galleryPortfolio = gal; buildGallery(); renderGalleryPage();
   if (data.voices !== undefined) { try { localStorage.setItem("koimari_voices", JSON.stringify(data.voices)); } catch(e){} voices = data.voices; renderVoicesGrid(); }
 }
 window.applyFetchedGalleryContent = applyFetchedGalleryContent;

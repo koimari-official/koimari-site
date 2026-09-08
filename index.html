@@ -119,18 +119,23 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .pickup{background:var(--color-bg-soft);position:relative;overflow:hidden}
 .pickup::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(60deg,transparent 0 60px,rgba(184,153,104,.04) 60px 61px),repeating-linear-gradient(-60deg,transparent 0 60px,rgba(184,153,104,.04) 60px 61px);pointer-events:none}
 .pickup .section__inner{position:relative;z-index:1}
-.pickup__list{max-width:860px;margin:0 auto;background:#fff;border:1px solid var(--color-line)}
-.news-row{display:grid;grid-template-columns:130px 110px 1fr auto;gap:22px;padding:22px 28px;border-bottom:1px solid var(--color-line);align-items:center;text-decoration:none;color:inherit;transition:all .3s cubic-bezier(.25,.46,.45,.94);cursor:pointer;position:relative;background:linear-gradient(90deg,transparent,transparent 0%,transparent 100%);background-size:100% 100%;background-position:0 0;background-repeat:no-repeat}
-.news-row::before{content:"";position:absolute;inset:0;background:var(--color-bg-soft);transform:scaleX(0);transform-origin:left;transition:transform .3s cubic-bezier(.25,.46,.45,.94);z-index:-1}
-.news-row:hover::before{transform:scaleX(1)}
-.news-row:hover{padding-left:34px}
+/* 2026-09-08、フラットな左スライド演出が「安っぽい」との指摘を受けて再設計。
+   カード自体が浮き上がる陰影リフト＋左端の金の縁取り＋矢印の丸バッジ化で、
+   FAB・タイトルグローと同じ「ゴールドで上品に光る」デザイン言語に統一しつつ、
+   mille-feuille.comのフラットなリスト演出とは異なる質感にした（安易な模倣を避ける）。 */
+.pickup__list{max-width:860px;margin:0 auto;background:#fff;border:1px solid var(--color-line);box-shadow:0 24px 50px rgba(58,42,35,.1);position:relative}
+.news-row{display:grid;grid-template-columns:130px 110px 1fr auto;gap:22px;padding:24px 30px;border-bottom:1px solid var(--color-line);align-items:center;text-decoration:none;color:inherit;cursor:pointer;position:relative;background:#fff;transition:transform .35s cubic-bezier(.22,.61,.36,1),box-shadow .35s cubic-bezier(.22,.61,.36,1)}
+.news-row::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:0;background:linear-gradient(180deg,var(--color-gold),var(--color-accent-dark));transition:width .3s cubic-bezier(.22,.61,.36,1)}
+.news-row:hover{transform:translateY(-4px);box-shadow:0 20px 38px rgba(58,42,35,.16),0 6px 14px rgba(58,42,35,.08);z-index:1}
+.news-row:hover::before{width:4px}
 .news-row:focus-visible{outline:2px solid var(--color-accent);outline-offset:0}
 .news-row__date{font-family:var(--font-sans);color:var(--color-text-soft);font-size:15px;font-weight:600;letter-spacing:.02em}
-.news-row__tag{display:inline-block;font-size:13px;text-align:center;padding:5px 12px;background:var(--color-accent);color:#fff;letter-spacing:.08em;width:fit-content;font-weight:500;font-family:var(--font-mincho)}
-.news-row__title{font-family:var(--font-mincho);font-size:16px;font-weight:500;line-height:1.7;color:var(--color-text)}
+.news-row__tag{display:inline-block;font-size:13px;text-align:center;padding:5px 12px;background:var(--color-accent);color:#fff;letter-spacing:.08em;width:fit-content;font-weight:500;font-family:var(--font-mincho);transition:transform .3s cubic-bezier(.22,.61,.36,1),box-shadow .3s ease}
+.news-row:hover .news-row__tag{transform:translateY(-1px);box-shadow:0 8px 16px rgba(201,169,110,.4)}
+.news-row__title{font-family:var(--font-mincho);font-size:16px;font-weight:500;line-height:1.7;color:var(--color-text);transition:color .3s ease}
 .news-row:hover .news-row__title{color:var(--color-accent-dark)}
-.news-row__arrow{font-family:var(--font-en);font-size:18px;color:var(--color-accent-dark);font-weight:500;transition:transform .25s}
-.news-row:hover .news-row__arrow{transform:translateX(4px);color:var(--color-accent-dark)}
+.news-row__arrow{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;font-family:var(--font-sans);font-size:16px;color:var(--color-accent-dark);font-weight:600;border:1px solid var(--color-line);transition:all .3s cubic-bezier(.22,.61,.36,1)}
+.news-row:hover .news-row__arrow{background:radial-gradient(circle at 32% 26%,#f8e9c3 0%,var(--color-accent) 55%,var(--color-accent-dark) 100%);border-color:transparent;color:#fff;transform:translateX(4px);box-shadow:0 8px 18px rgba(168,138,82,.4)}
 .pickup__empty{padding:60px 20px;text-align:center;color:var(--color-text-soft);font-family:var(--font-mincho)}
 .pickup__more-link{display:block;text-align:center;margin-top:30px;font-family:var(--font-mincho);color:var(--color-accent-dark);font-size:15px;letter-spacing:.1em;font-weight:500}
 .pickup__more-link:hover{text-decoration:underline}
@@ -409,8 +414,18 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 @media(max-width:900px){.event-banner{padding:14px 48px 14px 20px;text-align:left}.event-banner__inner{gap:12px}.event-banner__close{right:12px}}
 
 /* ===== ブランドストーリー（mille-feuille.comの「パティシエの想い」参考の
-   左右セパレートレイアウト。画面幅いっぱいに写真とテキストパネルを並べる） ===== */
-.story-split{display:grid;grid-template-columns:1fr 1fr;min-height:460px;padding:0!important;animation:fadeInUp .8s ease-out forwards;opacity:0}
+   左右セパレートレイアウト）。2026-09-08、ページに直接貼り付いたような
+   「べったり」感を無くすため、余白を取って浮かせ、深い陰影と金の縁取りで
+   1枚のカードとして見せるビジュアルに変更（動きのあるギミックは付けない）。 ===== */
+.story-split{
+  position:relative;
+  display:grid;grid-template-columns:1fr 1fr;min-height:460px;
+  width:calc(100% - 48px);max-width:1180px;margin:0 auto 44px;
+  padding:0!important;
+  box-shadow:0 30px 64px rgba(58,42,35,.2),0 10px 24px rgba(58,42,35,.1);
+  animation:fadeInUp .8s ease-out forwards;opacity:0;
+}
+.story-split::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent);z-index:2}
 .story-split__img{overflow:hidden}
 .story-split__img img{width:100%;height:100%;object-fit:cover;display:block;min-height:340px}
 .story-split__panel{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:60px 64px}
@@ -420,7 +435,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .story-split--reverse .story-split__img{order:2}
 .story-split--reverse .story-split__panel{order:1}
 @media(max-width:900px){
-  .story-split{grid-template-columns:1fr;min-height:0}
+  .story-split{grid-template-columns:1fr;min-height:0;width:calc(100% - 32px);margin:0 auto 28px;box-shadow:0 18px 36px rgba(58,42,35,.18),0 6px 14px rgba(58,42,35,.1)}
   .story-split__img{order:1!important}
   .story-split__panel{order:2!important;padding:40px 24px}
   .story-split__img img{min-height:260px}
