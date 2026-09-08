@@ -611,7 +611,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <!-- ===== 今月の主役 ===== -->
     <section class="panel" id="panel-spotlight">
       <div class="panel__head"><h2 class="panel__title">今月の主役（特集）の管理</h2></div>
-      <p class="panel__desc">トップページに大きく掲載される特集枠です。季節限定商品やキャンペーンなどを設定すると、お客様の目に留まりやすくなります。</p>
+      <p class="panel__desc">トップページに大きく掲載される特集枠です。季節限定商品やキャンペーンなどを設定すると、お客様の目に留まりやすくなります。<br><strong style="color:var(--color-accent-dark);">新しい月の主役を投稿するときは、必ず「ストックして新規作成」を押してください。</strong>今の内容が自動的にストックへ保存されるので、翌年以降も過去の投稿を参考にできます（2026-09-09追記）。「変更を保存」は今表示中の内容を直すだけで、ストックには残りません。</p>
       <div id="spotlightForm" style="background:#fff; border:1px solid var(--color-line); padding:30px; max-width:760px;"></div>
     </section>
 
@@ -3523,8 +3523,8 @@ function renderSpotlightAdmin() {
     });
     html += `<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
       <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
-      <button class="btn" id="saveSpotlight">変更を保存</button>
-      <button class="btn btn--ghost" id="stockAndNew" style="border-color:var(--color-accent-dark);color:var(--color-accent-dark);">ストックして新規作成</button>
+      <button class="btn" id="stockAndNew">★ ストックして新規作成（新しい月の主役を投稿）</button>
+      <button class="btn btn--ghost" id="saveSpotlight">変更を保存（今の内容を直すだけ）</button>
     </div>`;
   } else {
     html += `<p style="color:var(--color-text-soft);margin-bottom:20px;">現在公開中の特集はありません。</p>`;
