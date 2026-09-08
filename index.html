@@ -419,26 +419,25 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
    1枚のカードとして見せるビジュアルに変更（動きのあるギミックは付けない）。 ===== */
 .story-split{
   position:relative;
-  display:grid;grid-template-columns:1fr 1fr;min-height:460px;
+  display:grid;grid-template-columns:1fr 1fr;height:440px;
   width:calc(100% - 48px);max-width:1180px;margin:0 auto 44px;
   padding:0!important;
   box-shadow:0 30px 64px rgba(58,42,35,.2),0 10px 24px rgba(58,42,35,.1);
   animation:fadeInUp .8s ease-out forwards;opacity:0;
 }
 .story-split::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent);z-index:2}
-.story-split__img{overflow:hidden}
-.story-split__img img{width:100%;height:100%;object-fit:cover;display:block;min-height:340px}
-.story-split__panel{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:60px 64px}
+.story-split__img{overflow:hidden;height:100%}
+.story-split__img img{width:100%;height:100%;object-fit:cover;display:block}
+.story-split__panel{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:48px 56px}
 .story-split__tag{font-family:var(--font-en);font-style:italic;color:#f5d6a8;letter-spacing:.2em;font-size:14px;margin-bottom:16px;font-weight:500}
 .story-split__title{font-family:var(--font-mincho);font-size:clamp(22px,2.4vw,27px);letter-spacing:.08em;font-weight:600;margin-bottom:22px;line-height:1.6}
 .story-split__body{font-size:16px;line-height:2;color:#e3d5c2;font-family:var(--font-mincho);letter-spacing:.02em}
 .story-split--reverse .story-split__img{order:2}
 .story-split--reverse .story-split__panel{order:1}
 @media(max-width:900px){
-  .story-split{grid-template-columns:1fr;min-height:0;width:calc(100% - 32px);margin:0 auto 28px;box-shadow:0 18px 36px rgba(58,42,35,.18),0 6px 14px rgba(58,42,35,.1)}
-  .story-split__img{order:1!important}
+  .story-split{grid-template-columns:1fr;height:auto;width:calc(100% - 32px);margin:0 auto 28px;box-shadow:0 18px 36px rgba(58,42,35,.18),0 6px 14px rgba(58,42,35,.1)}
+  .story-split__img{order:1!important;height:220px}
   .story-split__panel{order:2!important;padding:40px 24px}
-  .story-split__img img{min-height:260px}
   .story-split__title{font-size:20px;margin-bottom:16px}
   .story-split__body{font-size:14px;line-height:1.85}
 }
