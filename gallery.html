@@ -74,6 +74,7 @@ a.gal-card .gal-card__img{cursor:pointer}
 .gal-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .gal-card:hover .gal-card__img img{transform:scale(1.06)}
 .gal-card__cat{position:absolute;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
+.gal-card__seasonal{position:absolute;top:12px;right:12px;background:rgba(74,58,42,.88);color:#f5d6a8;font-family:var(--font-mincho);font-size:11.5px;letter-spacing:.06em;padding:5px 11px;font-weight:600;backdrop-filter:blur(4px)}
 .gal-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
 .gal-card__no{font-family:var(--font-sans);font-size:12px;letter-spacing:.02em;color:var(--color-accent-dark);font-weight:700;margin-bottom:4px}
 .gal-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:8px;font-weight:600;line-height:1.5}
@@ -259,8 +260,14 @@ const CATEGORIES = [
   { key: "cutcake", name: "カットケーキ" },
   { key: "roll", name: "ロールケーキ" },
   { key: "baked", name: "焼き菓子" },
-  { key: "gift", name: "ギフト" }
+  { key: "gift", name: "ギフト" },
+  { key: "seasonal", name: "季節限定" }
 ];
+// 「季節限定」は他カテゴリーと並列の商品分類ではなく、各カテゴリーを横断するタグとして
+// 扱う（2026-09-08オーナー指示）。商品には元のカテゴリー（cake/cutcake/roll等）を維持した
+// まま「季節限定」フラグを付け、このタブでは元カテゴリーを問わずフラグが立った商品だけを
+// 横断的に絞り込んで表示する。
+const CROSS_TAG_CATEGORIES = new Set(["seasonal"]);
 
 // 2026-09-08、デコレーションケーキ等のカテゴリはsiteImages側の実商品メニューに統合済み
 // のため、フォールバック用のストック写真データは廃止（空配列）。真にオーダーメイドの
@@ -301,7 +308,7 @@ const urlCat = new URLSearchParams(location.search).get("cat");
 let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
 
 function menuItemToCard(item, catKey, idx, productType){
-  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType };
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal };
 }
 function buildGallery(){
   const decorationCards = menuDecorationCakes
@@ -320,7 +327,11 @@ function buildGallery(){
 }
 buildGallery();
 
-function getCount(catKey){ return catKey === "all" ? gallery.length : gallery.filter(g => g.category === catKey).length; }
+function getCount(catKey){
+  if (catKey === "all") return gallery.length;
+  if (CROSS_TAG_CATEGORIES.has(catKey)) return gallery.filter(g => g[catKey]).length;
+  return gallery.filter(g => g.category === catKey).length;
+}
 
 function renderTabs(){
   const wrap = document.getElementById("catTabs");
@@ -338,7 +349,9 @@ function renderTabs(){
 function renderGrid(){
   const grid = document.getElementById("galleryGrid");
   grid.innerHTML = "";
-  const filtered = currentCat === "all" ? gallery : gallery.filter(g => g.category === currentCat);
+  const filtered = currentCat === "all" ? gallery
+    : CROSS_TAG_CATEGORIES.has(currentCat) ? gallery.filter(g => g[currentCat])
+    : gallery.filter(g => g.category === currentCat);
   if (!filtered.length) {
     grid.innerHTML = menuSynced
       ? '<div class="empty">このカテゴリの作品は現在準備中です。</div>'
@@ -382,6 +395,7 @@ function renderGrid(){
     card.innerHTML = `
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
+        ${g.seasonal ? `<span class="gal-card__seasonal">季節限定</span>` : ""}
         <img src="${escape(g.img)}" alt="${escape(g.title)}">
       </div>
       ${subPhotos.length ? `<div class="gal-card__thumbs">${subPhotos.map((p,i) => `<img class="gal-card__thumb" src="${escape(p)}" data-idx="${i+1}" alt="">`).join("")}</div>` : ""}
@@ -504,11 +518,28 @@ onValue(ref(db, "koimariContent"), (snapshot) => {
   if (data && typeof window.applyFetchedGalleryContent === "function") window.applyFetchedGalleryContent(data);
 });
 
-// カットケーキ・ロールケーキの実商品メニュー（cutcakes.html/rollcakes.htmlと同じデータ源）
-onValue(ref(db, "siteImages"), (snapshot) => {
-  const data = snapshot.val();
-  if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems(data || {});
-});
+// デコレーションケーキ・カットケーキ・ロールケーキの実商品メニュー。
+// 2026-09-08判明：Firebase JS SDKのonValueで"siteImages"全体を一括購読すると、実写真
+// base64を多数含む大容量ノード（カットケーキ等）の一部が欠落して届くことがある不具合が
+// product.htmlで見つかった（詳細はそちらのコメント参照）。ギャラリーページも同じ3カテゴリを
+// 必要とするため、同様に全体ではなく必要なパスだけをfetch()で個別取得するよう修正。
+const DATABASE_URL = "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app";
+async function fetchSiteImagesKey(key){
+  const res = await fetch(DATABASE_URL + "/siteImages/" + key + ".json");
+  if (!res.ok) throw new Error("HTTP " + res.status);
+  return res.json();
+}
+(async () => {
+  const keys = ["decorationCakes", "cutcakes", "rollcakes"];
+  const data = {};
+  for (const key of keys) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (attempt > 0) await new Promise(r => setTimeout(r, 400));
+      try { data[key] = await fetchSiteImagesKey(key); break; } catch (e) { /* リトライ */ }
+    }
+  }
+  if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems(data);
+})();
 </script>
 </body>
 </html>
