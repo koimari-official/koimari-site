@@ -558,6 +558,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         中央には白抜きの丸紋ロゴ+「Koimari」の文字を重ねて表示するため、<strong>写真の中央部分は多少暗め・単色に近い部分があると、ロゴの視認性が上がります</strong>（例：Mille-feuille社のような、中央がクリームや器の余白になっている構図が理想）。<br>
         「ファイルから選択」でアップロードすると自動的に縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。
       </span></p>
+      <p id="heroDebugInfo" style="font-size:12.5px;color:var(--color-accent-dark);margin-bottom:14px;"></p>
       <div class="img-grid" id="heroGrid"></div>
     </section>
     <section class="panel" id="panel-greeting">
@@ -1708,6 +1709,10 @@ function appendReorderControls(item, arr, i, onChange) {
 }
 
 function renderHero() {
+  // 2026-09-10、ヒーロースライドが管理画面上で消えて見える不具合の切り分け用に一時的に追加。
+  // workingData/savedDataの件数を画面に直接出す（原因判明後は削除予定）。
+  const dbg = document.getElementById("heroDebugInfo");
+  if (dbg) dbg.textContent = `[診断情報] workingData.hero: ${workingData.hero.length}件 / savedData.hero: ${(savedData && savedData.hero || []).length}件`;
   const grid = document.getElementById("heroGrid"); grid.innerHTML = "";
   workingData.hero.forEach((s, i) => {
     if (s.visible === undefined) s.visible = true;
