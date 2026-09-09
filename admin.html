@@ -997,19 +997,21 @@ const LINE_MEMBERS_KEY = "koimari_lineMembers";
 const PAGE_ERRORS_KEY = "koimari_page_errors";
 
 const DEFAULT_IMAGES = {
+  // 2026-09-09判明：ここは「Firebaseに何もデータが無い/読み込めない場合」の最終フォール
+  // バックだが、実際に運用中の内容（ヒーロー1枚・カテゴリー5個）と長らく一致しておらず、
+  // savedDataが未初期化のまま保存が走った際にこの古いストック写真データが実データを
+  // 上書きしてしまう事故が起きた。今後もこのズレが同種の事故を招くため、常に本番の
+  // 実際の内容と一致させておくこと（index.htmlのDEFAULT_IMAGESとも揃える）。
   hero: [
-    { src: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=1600&q=80", titleEn: "Seasonal Sweets", titleJp: "季節の素材で<br>つくる、やさしい味わい" },
-    { src: "https://images.unsplash.com/photo-1535141192574-5d4897c12636?w=1600&q=80", titleEn: "Birthday Cake", titleJp: "大切な日に<br>寄り添うケーキを" },
-    { src: "https://images.unsplash.com/photo-1550617931-e17a7b70dce2?w=1600&q=80", titleEn: "Baked Sweets", titleJp: "贈り物にも、<br>自分へのご褒美にも" }
+    { src: "https://images.unsplash.com/photo-1596567836640-3c13eb102106?w=2400&h=1350&fit=crop&q=80", titleEn: "Seasonal Sweets", titleJp: "季節の素材で<br>つくる、やさしい味わい" }
   ],
   greeting: "https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=900&q=80",
   categories: [
-    { name: "デコレーションケーキ", en: "Decoration Cake", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80" },
-    { name: "カットケーキ", en: "Cut Cake",   img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80" },
-    { name: "ロールケーキ", en: "Roll Cake",  img: "https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80" },
-    { name: "焼き菓子",     en: "Baked Sweets", img: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80" },
-    { name: "ギフト",       en: "Gift",       img: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&q=80" },
-    { name: "誕生日ケーキ", en: "Birthday",   img: "https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=600&q=80" }
+    { name: "デコレーションケーキ", en: "Decoration Cake", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80", desc: "特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。", gallery: [] },
+    { name: "カットケーキ", en: "Cut Cake",   img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80", desc: "毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。", gallery: [] },
+    { name: "ロールケーキ", en: "Roll Cake",  img: "https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80", desc: "ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。", gallery: [] },
+    { name: "焼き菓子",     en: "Baked Sweets", img: "https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80", desc: "マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。", gallery: [] },
+    { name: "ギフト",       en: "Gift",       img: "https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&q=80", desc: "大切な方への贈り物に。ラッピングや熨斗のご相談も承っております。", gallery: [] }
   ],
   decorationCakes: [],
   cutcakes: [],
@@ -2055,8 +2057,18 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
   try {
     // 保存直前にFirebase側の最新状態を取得し、自分の未保存編集とマージしてから書き込む
     // （他の人が別の項目、あるいは自分がまだ触っていない項目を先に保存していても、それを消さないため）
+    // 2026-09-09判明：fbLoadSiteImages()が失敗してnullを返した際、以前は`fresh || savedData`
+    // でsavedDataを代用していたが、これだとmergeSiteImagesにfresh===baseを渡すことになり
+    // 「競合なし」と誤認して常にworkingData（自分の手元の内容。ログイン直後でまだ実データが
+    // 届いていない場合はDEFAULT_IMAGESの古いストック写真のままの場合がある）で本番データを
+    // 丸ごと上書きしてしまう事故があった（ヒーロー画像・カテゴリーが古いストック写真に戻った
+    // 実害が発生）。取得に失敗した場合は安全側に倒し、保存自体を中断する。
     const fresh = await window.fbLoadSiteImages();
-    const { merged, conflicts } = mergeSiteImages(savedData, fresh || savedData, workingData);
+    if (fresh === null) {
+      showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+      return;
+    }
+    const { merged, conflicts } = mergeSiteImages(savedData, fresh, workingData);
     await window.fbSaveSiteImages(merged);
     workingData = merged;
     savedData = JSON.parse(JSON.stringify(merged));
