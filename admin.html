@@ -1686,6 +1686,27 @@ function appendVisibleToggle(item, getVisible, onToggle) {
   }
 }
 
+// 配列内の項目の並び順を「↑ 上へ」「↓ 下へ」で入れ替えるUIを追加する（2026-09-10、
+// ヒーロースライドの表示順を管理画面から変更したいという要望を受けて追加）。
+function appendReorderControls(item, arr, i, onChange) {
+  if (arr.length < 2) return;
+  const box = document.createElement("div");
+  box.style.cssText = "display:flex;gap:8px;margin-top:10px;";
+  if (i > 0) {
+    const up = document.createElement("button");
+    up.type = "button"; up.textContent = "↑ 上へ"; up.className = "btn btn--small btn--ghost"; up.style.fontSize = "12px";
+    up.addEventListener("click", () => { const t = arr[i - 1]; arr[i - 1] = arr[i]; arr[i] = t; onChange(); });
+    box.appendChild(up);
+  }
+  if (i < arr.length - 1) {
+    const down = document.createElement("button");
+    down.type = "button"; down.textContent = "↓ 下へ"; down.className = "btn btn--small btn--ghost"; down.style.fontSize = "12px";
+    down.addEventListener("click", () => { const t = arr[i + 1]; arr[i + 1] = arr[i]; arr[i] = t; onChange(); });
+    box.appendChild(down);
+  }
+  item.appendChild(box);
+}
+
 function renderHero() {
   const grid = document.getElementById("heroGrid"); grid.innerHTML = "";
   workingData.hero.forEach((s, i) => {
@@ -1705,6 +1726,7 @@ function renderHero() {
     });
     appendImageHistoryUI(item, s, "src", () => { renderHero(); updateSaveBar(); });
     appendVisibleToggle(item, () => workingData.hero[i].visible, () => { workingData.hero[i].visible = !workingData.hero[i].visible; renderHero(); updateSaveBar(); });
+    appendReorderControls(item, workingData.hero, i, () => { renderHero(); updateSaveBar(); });
     grid.appendChild(item);
   });
 }
