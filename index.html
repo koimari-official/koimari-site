@@ -464,12 +464,13 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 .lang-btn:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
 .lang-btn--header{color:#e8dcc8;border-color:rgba(232,220,200,.35)}
 .lang-btn--header:hover{border-color:var(--color-accent-dark);color:var(--color-accent-dark)}
-/* ===== ヘッダーはヒーロー画像の下端に半透明で重なるよう、自身の高さぶん
-   負のmargin-topで引き上げて配置する（mille-feuille.com実測に合わせる。
-   2026-09-07オーナー指示）。この重なり方でも次の要素（ナビ）の位置は
-   ずれない（負のmarginは後続要素の開始位置に影響しないため）。
-   スクロールして上端に達するとposition:stickyでそのまま固定される。 */
-.site-header{position:sticky;top:0;margin-top:calc(-1 * var(--header-h, 90px));overflow:hidden;background:rgba(74,58,42,.85);z-index:1000}
+/* ===== ページを開いた瞬間はヒーロー画像を全表示して世界観を伝え、ヘッダーは
+   非表示にしておく。スクロールを始めるとFABと同じタイミング（chrome-visible）
+   でフェードインして現れる（2026-09-10オーナー指示）。位置自体はヒーローの
+   下端に重なるsticky配置のままなので、表示状態が変わっても後続要素の位置は
+   ずれない（負のmarginは後続要素の開始位置に影響しないため）。 */
+.site-header{position:sticky;top:0;margin-top:calc(-1 * var(--header-h, 90px));overflow:hidden;background:rgba(74,58,42,.85);z-index:1000;opacity:0;pointer-events:none;transition:opacity .35s ease}
+body.chrome-visible .site-header{opacity:1;pointer-events:auto}
 .site-header::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 /* ===== スマホ縦向き（≤480px）：フル幅・2列表示 =====
    1列だと縦スクロールが増えて離脱・PV低下につながるため、商品カテゴリー・おすすめ商品は
@@ -522,10 +523,10 @@ nav ul li{list-style:none;flex:0 0 auto;min-width:0}
 /* ===== FAB: 常時表示を優先するオーバーライド（位置・表示の安定化） ===== */
 .fab{position:fixed !important;z-index:1200 !important;display:flex !important;opacity:1 !important;transform:none !important;animation:none !important;pointer-events:auto}
 .fab--pc{bottom:30px;right:30px;width:130px;height:130px;border-radius:50%}
-/* ヒーロー表示中は予約ボタンも隠し、スティッキーヘッダーが上端に固定される
-   タイミングと同期して表示する（2026-09-07オーナー指示）。position:fixedのFABは
-   ヘッダーのようにposition:stickyで自然に現れないため、JSでbody.chrome-visibleを
-   付け外しして合わせている。 */
+/* ヒーロー表示中は予約ボタンも隠し、ヘッダーが現れるタイミング（body.chrome-visible）
+   と同期して表示する（2026-09-07オーナー指示、2026-09-10ヘッダー側もopacityで
+   同じchrome-visibleに揃えた）。position:fixedのFABはヘッダーのようにposition:sticky
+   だけでは自然に現れないため、JSでbody.chrome-visibleを付け外しして合わせている。 */
 body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
 </style>
