@@ -4084,14 +4084,15 @@ window.fbSubscribeSiteImages = function () {
 // これらは以前ブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されず、
 // 複数端末・複数従業員での運用にも耐えない構造だったため、共通のFirebaseパスに集約する。
 const contentRef = ref(fbDb, "koimariContent");
+// 2026-09-10判明：以前はここで通信エラーを握りつぶしてnullを返していたため、
+// saveByKey側から見ると「そのパスに元々データが無い」場合と「取得自体に失敗した」場合の
+// 区別がつかず、後者でも安全に保存をスキップしてしまい、結果的に自分の手元のデータを
+// マージなしでそのまま上書き保存してしまう事故が起きうる状態だった（siteImages側で実際に
+// 発生した事故と同根）。エラーはそのまま投げ、呼び出し元(saveByKey)のtry/catchで
+// 保存自体を中断させる。
 window.fbLoadContentKey = async function (contentKey) {
-  try {
-    const snap = await get(ref(fbDb, "koimariContent/" + contentKey));
-    return snap.exists() ? snap.val() : null;
-  } catch (err) {
-    console.warn("コンテンツの読み込み失敗:", err);
-    return null;
-  }
+  const snap = await get(ref(fbDb, "koimariContent/" + contentKey));
+  return snap.exists() ? snap.val() : null;
 };
 window.fbSaveContentKey = async function (contentKey, data) {
   await set(ref(fbDb, "koimariContent/" + contentKey), data);
@@ -4110,14 +4111,10 @@ window.fbSubscribeContent = function () {
 // 一切反映されなかった機微データ）。一般公開ページからは読まれないため、koimariContentとは
 // 別の非公開パス（要ログイン）にする。
 const opsRef = ref(fbDb, "koimariOps");
+// fbLoadContentKeyと同じ理由でエラーを握りつぶさずそのまま投げる（2026-09-10）。
 window.fbLoadOpsKey = async function (opsKey) {
-  try {
-    const snap = await get(ref(fbDb, "koimariOps/" + opsKey));
-    return snap.exists() ? snap.val() : null;
-  } catch (err) {
-    console.warn("運営データの読み込み失敗:", err);
-    return null;
-  }
+  const snap = await get(ref(fbDb, "koimariOps/" + opsKey));
+  return snap.exists() ? snap.val() : null;
 };
 window.fbSaveOpsKey = async function (opsKey, data) {
   await set(ref(fbDb, "koimariOps/" + opsKey), data);
