@@ -1275,6 +1275,10 @@ function mergeSiteImages(base, fresh, working) {
 
 function applySiteImagesSnapshot(fbData) {
   if (!fbData || !workingData) return; // Firebase側に何も無い、またはまだログイン処理中
+  // 2026-09-10、切り分け用の一時計測（原因判明後に削除予定）
+  window.__heroDebugSnapshotCalls = (window.__heroDebugSnapshotCalls || 0) + 1;
+  window.__heroDebugLog = window.__heroDebugLog || [];
+  window.__heroDebugLog.push({ call: window.__heroDebugSnapshotCalls, freshHeroLen: (fbData.hero||[]).length, baseHeroLen: (savedData&&savedData.hero||[]).length, workingHeroLen: (workingData&&workingData.hero||[]).length });
   const { merged, conflicts } = mergeSiteImages(savedData, fbData, workingData);
   workingData = merged;
   savedData = JSON.parse(JSON.stringify(fbData));
@@ -1712,7 +1716,12 @@ function renderHero() {
   // 2026-09-10、ヒーロースライドが管理画面上で消えて見える不具合の切り分け用に一時的に追加。
   // workingData/savedDataの件数を画面に直接出す（原因判明後は削除予定）。
   const dbg = document.getElementById("heroDebugInfo");
-  if (dbg) dbg.textContent = `[診断情報] workingData.hero: ${workingData.hero.length}件 / savedData.hero: ${(savedData && savedData.hero || []).length}件`;
+  if (dbg) {
+    const wTitles = workingData.hero.map(s => (s.titleEn||"?")).join(" / ");
+    const sTitles = ((savedData && savedData.hero) || []).map(s => (s.titleEn||"?")).join(" / ");
+    const logHtml = (window.__heroDebugLog || []).map(l => `#${l.call}: fresh=${l.freshHeroLen} base=${l.baseHeroLen} working(前)=${l.workingHeroLen}`).join("<br>");
+    dbg.innerHTML = `[診断情報] workingData.hero: ${workingData.hero.length}件 (${wTitles})<br>savedData.hero: ${((savedData && savedData.hero) || []).length}件 (${sTitles})<br>--- 履歴 ---<br>${logHtml}`;
+  }
   const grid = document.getElementById("heroGrid"); grid.innerHTML = "";
   workingData.hero.forEach((s, i) => {
     if (s.visible === undefined) s.visible = true;
