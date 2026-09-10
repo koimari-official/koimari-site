@@ -586,7 +586,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="text-[14px] leading-[1.7] whitespace-nowrap" data-i18n="header.hours">火-土 10:00 - 20:00<br>日祝 10:00-19:00  /月曜定休(月祝除く)</div>
       <a href="tel:07091580641" class="[font-family:var(--font-sans)] text-[22px] text-[var(--color-accent)] tracking-[.02em] font-bold whitespace-nowrap">070-9158-0641</a>
     </div>
-    <div class="flex items-center gap-2 flex-shrink-0 max-[900px]:order-2">
+    <div class="flex items-center gap-2 flex-shrink-0 max-[900px]:hidden">
       <button data-lang-btn="ja" onclick="I18nCtrl.setLang('ja')" class="lang-btn lang-btn--header">JP</button>
       <button data-lang-btn="en" onclick="I18nCtrl.setLang('en')" class="lang-btn lang-btn--header">EN</button>
     </div>
@@ -617,6 +617,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 })();
 </script>
 <nav id="globalNav" class="bg-[var(--color-bg-soft)] border-b border-[var(--color-line)] max-[900px]:hidden">
+  <div class="hidden max-[900px]:flex justify-center gap-2 pt-3 pb-1">
+    <button data-lang-btn="ja" onclick="I18nCtrl.setLang('ja')" class="lang-btn">JP</button>
+    <button data-lang-btn="en" onclick="I18nCtrl.setLang('en')" class="lang-btn">EN</button>
+  </div>
   <ul class="max-w-[var(--max-w)] mx-auto flex justify-center flex-wrap items-center gap-1 list-none py-1 px-2">
     <li><a href="#about" data-i18n="nav.about" class="nav-link">こいまりについて</a></li>
     <li><a href="#categories" data-i18n="nav.menu" class="nav-link">商品カテゴリー</a></li>
