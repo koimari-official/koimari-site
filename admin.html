@@ -1272,6 +1272,15 @@ function mergeSiteImages(base, fresh, working) {
   };
   return { merged, conflicts };
 }
+// Firebase RTDBは空配列を保存すると自動的にキー自体を削除する（読み出すとnullになる）ため、
+// 件数0の焼き菓子・ギフト等をそのまま画面に反映しようとすると`null.forEach`で描画が落ちる。
+// 配列であるべき項目はnull/undefinedを空配列に正規化しておく。
+const SITE_IMAGES_ARRAY_KEYS = ["hero", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "experiences"];
+function normalizeSiteImages(data) {
+  data = data || {};
+  SITE_IMAGES_ARRAY_KEYS.forEach(k => { if (!Array.isArray(data[k])) data[k] = []; });
+  return data;
+}
 
 function applySiteImagesSnapshot(fbData) {
   if (!fbData || !workingData) return; // Firebase側に何も無い、またはまだログイン処理中
@@ -1282,8 +1291,8 @@ function applySiteImagesSnapshot(fbData) {
   // Firebase側の最新内容をそのまま採用する。これにより「何も編集していないのに内容が化ける」
   // 事態を構造的に防ぐ（未保存の編集が実際にある場合のみ、従来通り項目単位でマージする）。
   if (!isDirty()) {
-    workingData = JSON.parse(JSON.stringify(fbData));
-    savedData = JSON.parse(JSON.stringify(fbData));
+    workingData = normalizeSiteImages(JSON.parse(JSON.stringify(fbData)));
+    savedData = normalizeSiteImages(JSON.parse(JSON.stringify(fbData)));
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) {}
     renderAll();
     return;
