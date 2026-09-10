@@ -1350,18 +1350,19 @@ async function fetchSiteImagesKey(key){
 })();
 
 // お知らせ・営業日設定・今月の主役・数字で見る・お客様の声・Instagram投稿風カードも同様に反映する。
-// (以前はブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されていなかった)
-onValue(ref(db, "koimariContent"), (snapshot) => {
-  const data = snapshot.val();
-  if (!data) return;
-  const KEYMAP = { news: "koimari_news", holidays: "koimari_holidays", spotlight: "koimari_spotlight", stats: "koimari_stats", voices: "koimari_voices", insta: "koimari_insta" };
-  Object.entries(KEYMAP).forEach(([contentKey, lsKey]) => {
-    if (data[contentKey] === undefined) return;
-    try { localStorage.setItem(lsKey, JSON.stringify(data[contentKey])); } catch(e) {}
+// 2026-09-10、"koimariContent"全体を一括onValue購読する方式を全面廃止し、
+// 各キーを個別のパスで購読する方式に変更した（大容量ノードの一部が欠落して届く
+// 不具合の温床だったため）。
+const CONTENT_KEY_TO_LS = { news: "koimari_news", holidays: "koimari_holidays", spotlight: "koimari_spotlight", stats: "koimari_stats", voices: "koimari_voices", insta: "koimari_insta" };
+Object.entries(CONTENT_KEY_TO_LS).forEach(([contentKey, lsKey]) => {
+  onValue(ref(db, "koimariContent/" + contentKey), (snapshot) => {
+    const val = snapshot.val();
+    if (val === null || val === undefined) return;
+    try { localStorage.setItem(lsKey, JSON.stringify(val)); } catch(e) {}
+    if (typeof window.renderDynamic === "function") window.renderDynamic();
+    if (typeof window.renderBcal === "function") window.renderBcal();
+    if (typeof window.renderInstaCard === "function") window.renderInstaCard();
   });
-  if (typeof window.renderDynamic === "function") window.renderDynamic();
-  if (typeof window.renderBcal === "function") window.renderBcal();
-  if (typeof window.renderInstaCard === "function") window.renderInstaCard();
 });
 </script>
 </body>

@@ -446,17 +446,23 @@ renderVoicesGrid();
 
 // Firebase側の最新データを取り込み直す（以前はlocalStorageのみで、管理者本人の端末にしか反映されなかったための対応）
 // 2026-09-08判明：Firebase RTDBは空配列を保存すると自動的にキー自体を削除するため、
-// koimariContent.galleryを完全に空にすると`data.gallery`は`undefined`になり、以前の
-// 端末にキャッシュされたgalleryPortfolio（旧作品No.付きの作品）が消えずに残ってしまう
-// 不具合があった。undefinedの場合も空配列として同期することで解消する。
-function applyFetchedGalleryContent(data){
-  if (!data) return;
-  const gal = Array.isArray(data.gallery) ? data.gallery : [];
+// koimariContent.galleryを完全に空にすると値がnullになり、以前の端末にキャッシュされた
+// galleryPortfolio（旧作品No.付きの作品）が消えずに残ってしまう不具合があった。nullの
+// 場合も空配列として同期することで解消する。
+// 2026-09-10、"koimariContent"全体を一括onValue購読する方式を全面廃止し、gallery/voices
+// それぞれ個別のパスを購読する方式に変更したため、2つの別関数に分割した。
+function applyFetchedGalleryData(val){
+  const gal = Array.isArray(val) ? val : [];
   try { localStorage.setItem("koimari_gallery", JSON.stringify(gal)); } catch(e){}
   galleryPortfolio = gal; buildGallery(); renderGalleryPage();
-  if (data.voices !== undefined) { try { localStorage.setItem("koimari_voices", JSON.stringify(data.voices)); } catch(e){} voices = data.voices; renderVoicesGrid(); }
 }
-window.applyFetchedGalleryContent = applyFetchedGalleryContent;
+window.applyFetchedGalleryData = applyFetchedGalleryData;
+function applyFetchedVoicesData(val){
+  if (val === null || val === undefined) return;
+  try { localStorage.setItem("koimari_voices", JSON.stringify(val)); } catch(e){}
+  voices = val; renderVoicesGrid();
+}
+window.applyFetchedVoicesData = applyFetchedVoicesData;
 
 // デコレーションケーキ・カットケーキ・ロールケーキの実商品メニュー（siteImages）を取り込む（2026-09-08）
 function applyFetchedMenuItems(data){
@@ -524,10 +530,13 @@ const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
 // 管理画面で保存されたギャラリー・お客様の声を反映する。
-// 以前はブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されていなかったための対応。
-onValue(ref(db, "koimariContent"), (snapshot) => {
-  const data = snapshot.val();
-  if (data && typeof window.applyFetchedGalleryContent === "function") window.applyFetchedGalleryContent(data);
+// 2026-09-10、"koimariContent"全体を一括onValue購読する方式を全面廃止し、
+// 必要な2つのパスだけを個別に購読する。
+onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
+  if (typeof window.applyFetchedGalleryData === "function") window.applyFetchedGalleryData(snapshot.val());
+});
+onValue(ref(db, "koimariContent/voices"), (snapshot) => {
+  if (typeof window.applyFetchedVoicesData === "function") window.applyFetchedVoicesData(snapshot.val());
 });
 
 // デコレーションケーキ・カットケーキ・ロールケーキの実商品メニュー。

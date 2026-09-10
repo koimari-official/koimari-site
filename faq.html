@@ -223,9 +223,12 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
-onValue(ref(db, "koimariContent"), (snapshot) => {
-  const data = snapshot.val();
-  if (data && typeof window.applyFetchedFaqContent === "function") window.applyFetchedFaqContent(data);
+// 2026-09-10、"koimariContent"全体を一括onValue購読する方式は、大容量ノードの一部が
+// 欠落して届くことがある不具合の温床だったため全面廃止。このページが必要なのはfaqキー
+// だけなので、そのパスだけを購読する。
+onValue(ref(db, "koimariContent/faq"), (snapshot) => {
+  const val = snapshot.val();
+  if (val !== null && val !== undefined && typeof window.applyFetchedFaqContent === "function") window.applyFetchedFaqContent({ faq: val });
 });
 </script>
 </body>

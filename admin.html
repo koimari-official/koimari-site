@@ -4135,7 +4135,6 @@ window.fbSubscribeSiteImages = function () {
 // お知らせ・ギャラリー・Instagram投稿・数字で見る・営業日設定・FAQ・お客様の声・ブログ・今月の主役
 // これらは以前ブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されず、
 // 複数端末・複数従業員での運用にも耐えない構造だったため、共通のFirebaseパスに集約する。
-const contentRef = ref(fbDb, "koimariContent");
 // 2026-09-10判明：以前はここで通信エラーを握りつぶしてnullを返していたため、
 // saveByKey側から見ると「そのパスに元々データが無い」場合と「取得自体に失敗した」場合の
 // 区別がつかず、後者でも安全に保存をスキップしてしまい、結果的に自分の手元のデータを
@@ -4149,20 +4148,29 @@ window.fbLoadContentKey = async function (contentKey) {
 window.fbSaveContentKey = async function (contentKey, data) {
   await set(ref(fbDb, "koimariContent/" + contentKey), data);
 };
+// 2026-09-10、"koimariContent"全体を一括onValue購読する方式を全面廃止（大容量ノードの
+// 一部が欠落して届く不具合の温床だったため、siteImages側と同じ理由）。9キーそれぞれを
+// 個別のパスで購読し、全キーが最低1回揃うまではapplyFetchedContentへ渡さない
+// （揃う前に渡すと、まだ届いていないキーを「削除された」と誤認してしまうため）。
+const CONTENT_KEYS = ["news", "holidays", "faq", "gallery", "voices", "blog", "insta", "stats", "spotlight"];
 let unsubContent = null;
+let liveContentCache = {};
+let liveContentLoadedKeys = new Set();
 window.fbSubscribeContent = function () {
   if (unsubContent) return; // 既に購読中なら何もしない（再ログイン時の二重購読防止）
-  unsubContent = onValue(contentRef, (snapshot) => {
+  unsubContent = CONTENT_KEYS.map(k => onValue(ref(fbDb, "koimariContent/" + k), (snapshot) => {
+    liveContentCache[k] = snapshot.exists() ? snapshot.val() : undefined;
+    liveContentLoadedKeys.add(k);
+    if (liveContentLoadedKeys.size < CONTENT_KEYS.length) return;
     if (typeof window.applyFetchedContent === "function") {
-      window.applyFetchedContent(snapshot.exists() ? snapshot.val() : null);
+      window.applyFetchedContent({ ...liveContentCache });
     }
-  });
+  }));
 };
 
 // 売上目標・手動売上記録・クーポン（旧: ブラウザのlocalStorageのみで、他端末・他の従業員には
 // 一切反映されなかった機微データ）。一般公開ページからは読まれないため、koimariContentとは
 // 別の非公開パス（要ログイン）にする。
-const opsRef = ref(fbDb, "koimariOps");
 // fbLoadContentKeyと同じ理由でエラーを握りつぶさずそのまま投げる（2026-09-10）。
 window.fbLoadOpsKey = async function (opsKey) {
   const snap = await get(ref(fbDb, "koimariOps/" + opsKey));
@@ -4171,14 +4179,21 @@ window.fbLoadOpsKey = async function (opsKey) {
 window.fbSaveOpsKey = async function (opsKey, data) {
   await set(ref(fbDb, "koimariOps/" + opsKey), data);
 };
+// koimariContentと同じ理由で、"koimariOps"全体の一括購読も個別パス購読に変更（2026-09-10）。
+const OPS_KEYS = ["manualSales", "salesGoal", "coupons"];
 let unsubOps = null;
+let liveOpsCache = {};
+let liveOpsLoadedKeys = new Set();
 window.fbSubscribeOps = function () {
   if (unsubOps) return;
-  unsubOps = onValue(opsRef, (snapshot) => {
+  unsubOps = OPS_KEYS.map(k => onValue(ref(fbDb, "koimariOps/" + k), (snapshot) => {
+    liveOpsCache[k] = snapshot.exists() ? snapshot.val() : undefined;
+    liveOpsLoadedKeys.add(k);
+    if (liveOpsLoadedKeys.size < OPS_KEYS.length) return;
     if (typeof window.applyFetchedOpsContent === "function") {
-      window.applyFetchedOpsContent(snapshot.exists() ? snapshot.val() : null);
+      window.applyFetchedOpsContent({ ...liveOpsCache });
     }
-  });
+  }));
 };
 
 let reservationKeys = []; // 配列インデックス → Firebaseのキー（koimari_reservationsと同じ並び順を保つ）
@@ -4500,7 +4515,7 @@ function createFlavorListEditor({ fbPath, defaultList, listElId, inputElId, addB
       let fresh = snap.val() || [...defaultList];
       if (action === "add" && !fresh.includes(name)) fresh = [...fresh, name];
       if (action === "remove") fresh = fresh.filter(f => f !== name);
-      await update(ref(fbDb, "koimariContent"), { [fbPath.split("/")[1]]: fresh });
+      await set(fbRef, fresh);
       current = fresh;
       render();
     } catch (err) {
