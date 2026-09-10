@@ -81,7 +81,9 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .section__title:hover{transform:scale(1.045);filter:drop-shadow(0 1px 0 rgba(255,255,255,.7)) drop-shadow(0 4px 6px rgba(201,169,110,.45)) drop-shadow(0 10px 18px rgba(58,42,35,.28))}
 .section__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:110px;height:3px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
 .section__lead{margin-top:28px;color:var(--color-text-soft);font-family:var(--font-mincho);letter-spacing:.05em;font-size:17px;line-height:2}
-.greeting{background:var(--color-bg);padding-top:32px;padding-bottom:32px}
+/* 2026-09-10、余白を詰めすぎてスクロール固定時のヘッダーと表題が重なっていたため、
+   ヘッダーの実測高さ（--header-h）ぶんだけ上余白を確保する（他は詰めたまま）。 */
+.greeting{background:var(--color-bg);padding-top:calc(var(--header-h, 90px) + 20px);padding-bottom:32px}
 .greeting .section__head{margin-bottom:26px}
 .greeting__inner{display:grid;grid-template-columns:1fr 1.3fr;gap:50px;align-items:center}
 .greeting__img{border-radius:4px;overflow:hidden;box-shadow:0 14px 40px rgba(58,42,35,.14);aspect-ratio:4/3.3}
