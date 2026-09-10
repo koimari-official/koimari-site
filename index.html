@@ -52,6 +52,9 @@ a:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
 .hero__slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease}
 .hero__slide.active{opacity:1}
 .hero__slide img{width:100%;height:100%;object-fit:cover}
+/* 2026-09-10、2枚目のヒーロー写真は左側の薔薇の花束が大きく占めすぎて、主役であるべき
+   ケーキの存在感が薄くなっていたため、表示位置をケーキ側（右寄り）にずらした。 */
+.hero__slide:nth-of-type(2) img{object-position:68% 48%}
 .hero__brand-mark{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,.22) 0%,rgba(0,0,0,.04) 45%,rgba(0,0,0,0) 65%)}
 .hero__brand-mark-lockup{width:clamp(440px,52vw,640px);height:auto;filter:drop-shadow(0 4px 18px rgba(0,0,0,.35))}
 /* 2026-09-10判明：管理画面でヒーロースライドごとに入力できる見出し文言(titleJp)が、
