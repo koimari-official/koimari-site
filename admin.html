@@ -1308,9 +1308,17 @@ function showLogin() {
 function showAdmin() {
   document.getElementById("loginScreen").style.display = "none";
   document.getElementById("adminScreen").style.display = "block";
+  // 2026-09-10判明：renderAll()（renderHero/renderExperiences等）はworkingDataの各項目に
+  // 「visible:undefinedならtrueを補う」という後方互換の書き換えをその場で行っており、この
+  // 呼び出しがsavedDataのクローン取得より後だと、savedDataには無くworkingDataにだけ
+  // visibleフィールドが付いた状態になってしまい、実際には何も編集していないのに
+  // isDirty()が最初からtrueになる不具合があった。これがFirebaseの初回ライブ同期時に
+  // 「競合」と誤検知され、ヒーロー画像などが古い1件だけの状態のまま残ってしまう
+  // 原因だった。renderAll()の後でsavedDataを取得するよう順序を入れ替えて解消する。
   workingData = loadData();
-  savedData = JSON.parse(JSON.stringify(workingData));
   renderAll();
+  savedData = JSON.parse(JSON.stringify(workingData));
+  updateSaveBar(); // renderAll()の時点ではsavedDataが未設定でisDirty()が誤ってtrueになるため、ここで正しい状態に戻す
   renderCalendar();
   renderDashboard();
   renderSalesGoal();
