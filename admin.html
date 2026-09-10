@@ -1275,10 +1275,19 @@ function mergeSiteImages(base, fresh, working) {
 
 function applySiteImagesSnapshot(fbData) {
   if (!fbData || !workingData) return; // Firebase側に何も無い、またはまだログイン処理中
-  // 2026-09-10、切り分け用の一時計測（原因判明後に削除予定）
-  window.__heroDebugSnapshotCalls = (window.__heroDebugSnapshotCalls || 0) + 1;
-  window.__heroDebugLog = window.__heroDebugLog || [];
-  window.__heroDebugLog.push({ call: window.__heroDebugSnapshotCalls, freshHeroLen: (fbData.hero||[]).length, baseHeroLen: (savedData&&savedData.hero||[]).length, workingHeroLen: (workingData&&workingData.hero||[]).length });
+  // 2026-09-10判明：未保存の編集が無い状態でもmergeSiteImagesの項目単位比較を毎回通していたため、
+  // 実際には何も編集していないのに「競合」と誤検知し、ヒーロー画像・カテゴリー・体験プログラム
+  // などの項目が1件だけになって表示される不具合があった（正確な原因はマージ関数の項目比較の
+  // エッジケースだが、根治のため設計自体を見直す）。未保存の編集が無ければマージ処理を通さず、
+  // Firebase側の最新内容をそのまま採用する。これにより「何も編集していないのに内容が化ける」
+  // 事態を構造的に防ぐ（未保存の編集が実際にある場合のみ、従来通り項目単位でマージする）。
+  if (!isDirty()) {
+    workingData = JSON.parse(JSON.stringify(fbData));
+    savedData = JSON.parse(JSON.stringify(fbData));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) {}
+    renderAll();
+    return;
+  }
   const { merged, conflicts } = mergeSiteImages(savedData, fbData, workingData);
   workingData = merged;
   savedData = JSON.parse(JSON.stringify(fbData));
