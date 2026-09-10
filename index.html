@@ -1312,18 +1312,21 @@ onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
 
 // 管理画面で保存された画像データ(ヒーロー・カテゴリ・おすすめ・体験プログラム等)を反映する。
 // 従来はブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されていなかったための対応。
-onValue(ref(db, "siteImages"), (snapshot) => {
-  const data = snapshot.val();
-  if (!data || !window.IMAGES) return;
-  const IMAGES = window.IMAGES;
-  if (data.hero) IMAGES.hero = data.hero;
-  if (data.greeting) IMAGES.greeting = data.greeting;
-  if (data.categories) IMAGES.categories = data.categories;
-  if (data.experiences) IMAGES.experiences = data.experiences;
-  if (typeof window.renderHeroSlides === "function") window.renderHeroSlides();
-  if (typeof window.renderGreetingImage === "function") window.renderGreetingImage();
-  if (typeof window.renderDynamic === "function") window.renderDynamic();
-});
+// 2026-09-10判明：ヒーロー写真に実写真base64が入り、他の大容量カテゴリ（カットケーキ等）と
+// 同じ"siteImages"を一括onValue購読していたため、非表示設定などの更新が一部の端末で
+// 反映されないことがあった（product.html等で見つかった不具合と同じ）。カテゴリごとに
+// 個別のパスを購読するよう分離する。
+function subscribeSiteImagesKey(key, apply){
+  onValue(ref(db, "siteImages/" + key), (snapshot) => {
+    const val = snapshot.val();
+    if (val === null || val === undefined || !window.IMAGES) return;
+    apply(window.IMAGES, val);
+  });
+}
+subscribeSiteImagesKey("hero", (IMAGES, val) => { IMAGES.hero = val; if (typeof window.renderHeroSlides === "function") window.renderHeroSlides(); });
+subscribeSiteImagesKey("greeting", (IMAGES, val) => { IMAGES.greeting = val; if (typeof window.renderGreetingImage === "function") window.renderGreetingImage(); });
+subscribeSiteImagesKey("categories", (IMAGES, val) => { IMAGES.categories = val; if (typeof window.renderDynamic === "function") window.renderDynamic(); });
+subscribeSiteImagesKey("experiences", (IMAGES, val) => { IMAGES.experiences = val; if (typeof window.renderDynamic === "function") window.renderDynamic(); });
 
 // おすすめ商品（デコレーションケーキ・カットケーキ・ロールケーキの実商品メニューから
 // 「★おすすめ商品に表示」を選んだものだけを表示）。2026-09-08判明：これら実写真base64を
