@@ -974,7 +974,14 @@ const DEFAULT_INSTA = {
   url: "https://www.instagram.com/_koimari_"
 };
 
-function loadImages(){try{const s=localStorage.getItem("koimari_images");if(s){const p=JSON.parse(s);return{hero:p.hero||DEFAULT_IMAGES.hero,greeting:p.greeting||DEFAULT_IMAGES.greeting,categories:p.categories||DEFAULT_IMAGES.categories,experiences:p.experiences||DEFAULT_IMAGES.experiences}}}catch(e){}return DEFAULT_IMAGES}
+// 2026-09-11判明：初回表示時（またはlocalStorageに何もキャッシュが無い時）、コード内に
+// 埋め込まれたDEFAULT_IMAGES（開発時点の仮の写真）がFirebaseからの実データ到着前に一瞬
+// 表示されてしまい、「古い写真が一瞬映ってから正しい写真に切り替わる」チラつきの原因に
+// なっていた。管理画面で内容を更新するたびにDEFAULT_IMAGESも手で追従させる運用は
+// このセッションで何度も同期漏れ事故を起こしてきたため、根本的に「実データが届くまでは
+// 何も表示しない」方針に変更する。ヒーローはこのチラつきの影響が最も目立つため、
+// キャッシュが無ければ空配列（Firebase到着まで何も描画しない）にする。
+function loadImages(){try{const s=localStorage.getItem("koimari_images");if(s){const p=JSON.parse(s);return{hero:p.hero||[],greeting:p.greeting||DEFAULT_IMAGES.greeting,categories:p.categories||DEFAULT_IMAGES.categories,experiences:p.experiences||DEFAULT_IMAGES.experiences}}}catch(e){}return {hero:[],greeting:DEFAULT_IMAGES.greeting,categories:DEFAULT_IMAGES.categories,experiences:DEFAULT_IMAGES.experiences}}
 function loadNews(){try{const r=localStorage.getItem("koimari_news");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_NEWS}
 function loadHolidays(){try{const r=localStorage.getItem("koimari_holidays");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_HOLIDAYS}
 function loadSpotlight(){try{const r=localStorage.getItem("koimari_spotlight");if(r){const d=JSON.parse(r);if(Array.isArray(d)){const v=d.find(s=>s.visible!==false);return v||DEFAULT_SPOTLIGHT}return d}}catch(e){}return DEFAULT_SPOTLIGHT}
@@ -1329,6 +1336,13 @@ function subscribeSiteImagesKey(key, apply){
     const val = snapshot.val();
     if (val === null || val === undefined || !window.IMAGES) return;
     apply(window.IMAGES, val);
+    // 2026-09-11、取得した実データをlocalStorageにも書き戻す。次回以降の訪問時は
+    // このキャッシュから即座に正しい内容を表示でき、Firebase到着待ちのチラつきが起きない。
+    try {
+      const cache = JSON.parse(localStorage.getItem("koimari_images") || "{}");
+      cache[key] = val;
+      localStorage.setItem("koimari_images", JSON.stringify(cache));
+    } catch(e) {}
   });
 }
 subscribeSiteImagesKey("hero", (IMAGES, val) => { IMAGES.hero = val; if (typeof window.renderHeroSlides === "function") window.renderHeroSlides(); });
