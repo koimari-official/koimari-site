@@ -1670,7 +1670,12 @@ function pushImageHistory(item, key, oldUrl) {
   if (!Array.isArray(item.imgHistory)) item.imgHistory = [];
   item.imgHistory = item.imgHistory.filter(u => u !== oldUrl);
   item.imgHistory.unshift(oldUrl);
-  if (item.imgHistory.length > IMAGE_HISTORY_LIMIT) item.imgHistory.length = IMAGE_HISTORY_LIMIT;
+  // 上限を超えて完全に押し出された古い履歴は、記録を消すだけでなくStorage上の
+  // 実ファイルも削除し、無駄なデータが残らないようにする（2026-09-11オーナー指示）。
+  if (item.imgHistory.length > IMAGE_HISTORY_LIMIT) {
+    const dropped = item.imgHistory.splice(IMAGE_HISTORY_LIMIT);
+    dropped.forEach(u => { if (typeof window.fbDeleteImage === "function") window.fbDeleteImage(u); });
+  }
 }
 // アップロードで画像を差し替える際、置き換え前の画像を履歴に積んでからitem[key]を更新するonFileラッパー
 function historyAwareOnFile(item, key, afterSet) {
@@ -1711,6 +1716,7 @@ function appendImageHistoryUI(container, item, key, onChange) {
     delBtn.addEventListener("click", () => {
       if (!confirm("この過去の画像を完全に削除しますか？この操作は取り消せません。")) return;
       item.imgHistory.splice(hi, 1);
+      if (typeof window.fbDeleteImage === "function") window.fbDeleteImage(src);
       onChange();
     });
     btnRow.appendChild(restoreBtn); btnRow.appendChild(delBtn);
@@ -4100,7 +4106,7 @@ function applyFetchedOpsContent(all) {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, update, remove, get, push, set, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
@@ -4126,6 +4132,14 @@ window.fbUploadImage = async function (blob) {
   const snapRef = storageRef(fbStorage, path);
   await uploadBytes(snapRef, blob, { contentType: "image/jpeg" });
   return await getDownloadURL(snapRef);
+};
+// 2026-09-11オーナー指示：使われなくなった古い画像履歴を削除する際、データベース上の
+// 記録だけでなくStorage上の実ファイルも消し、不要なデータが並行して残らないようにする。
+// data URLやUnsplash等の外部URLはStorageの管理外なので何もしない（エラーにもしない）。
+window.fbDeleteImage = async function (url) {
+  if (!url || !url.startsWith("https://firebasestorage.googleapis.com/")) return;
+  try { await deleteObject(storageRef(fbStorage, url)); }
+  catch (err) { console.warn("Storage上の古い画像の削除に失敗（無視して続行）:", err); }
 };
 const reservationsRef = ref(fbDb, "reservations");
 const experiencesRef = ref(fbDb, "experiences");
