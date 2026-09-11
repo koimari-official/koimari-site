@@ -1634,9 +1634,12 @@ function makeGalleryEditor(item, key, { maxWidth, max, onChange }) {
   return wrap;
 }
 
-// 画像アップロード時の履歴管理（直近5件まで）。新しい画像に差し替えても、古い画像は
+// 画像アップロード時の履歴管理（直近2件まで）。新しい画像に差し替えても、古い画像は
 // 「過去の画像」として削除するまで管理画面上に残り、後から選び直したり完全に削除したりできる。
-const IMAGE_HISTORY_LIMIT = 5;
+// 2026-09-11判明：各写真を丸ごとbase64で履歴に保持する仕様のため、上限が5件だと
+// 1レコードが1MBを超えることがあり、保存失敗（通信エラー）の一因になっていた。
+// 上限を2件に引き下げてレコードサイズを抑える。
+const IMAGE_HISTORY_LIMIT = 2;
 function pushImageHistory(item, key, oldUrl) {
   if (!oldUrl) return;
   if (!Array.isArray(item.imgHistory)) item.imgHistory = [];
@@ -1743,7 +1746,7 @@ function renderHero() {
     if (s.visible === undefined) s.visible = true;
     const item = makeImageItem({
       preview: s.src,
-      maxWidth: 2400,
+      maxWidth: 1920,
       aspectRatio: 16 / 9,
       fields: [
         { label: "画像URL", key: "src", value: s.src, type: "input" },
