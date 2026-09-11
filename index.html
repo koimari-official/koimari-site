@@ -90,6 +90,9 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 /* 2026-09-11、文末に角印を押す（オーナー指示）。実際の落款・角印のように、文の終わりの
    右下にやや傾けて添える控えめな装飾とし、本文はそのまま実テキストとして残す。 */
 .greeting__kakuin{width:56px;height:56px;display:block;margin:6px 0 0 auto;transform:rotate(-4deg);opacity:.92}
+/* 2026-09-11、右下固定の予約FAB(130px, right:30px, bottom:30px)と文末の角印が
+   スクロール中に重なって隠れる不具合を発見。角印を少し内側に寄せてFABの領域を避ける。 */
+@media(min-width:901px){.greeting__kakuin{margin-right:170px}}
 .categories{background:var(--color-bg)}
 /* 商品カテゴリーを円形サムネイル＋ラベルの横並びに変更（2026-09-07、Sadaharu Aoki Parisの
    「Lineup」セクションを参考にTTP。カード枠・影・角丸長方形をやめ、写真そのものを主役にして
