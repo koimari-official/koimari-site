@@ -87,6 +87,9 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .greeting__img img{width:100%;height:100%;object-fit:cover}
 .greeting__text h2{font-family:var(--font-mincho);font-size:26px;margin-bottom:18px;letter-spacing:.1em;font-weight:600;line-height:1.5}
 .greeting__text p{margin-bottom:14px;color:var(--color-text);line-height:1.8}
+/* 2026-09-11、文末に角印を押す（オーナー指示）。実際の落款・角印のように、文の終わりの
+   右下にやや傾けて添える控えめな装飾とし、本文はそのまま実テキストとして残す。 */
+.greeting__kakuin{width:56px;height:56px;display:block;margin:6px 0 0 auto;transform:rotate(-4deg);opacity:.92}
 .categories{background:var(--color-bg)}
 /* 商品カテゴリーを円形サムネイル＋ラベルの横並びに変更（2026-09-07、Sadaharu Aoki Parisの
    「Lineup」セクションを参考にTTP。カード枠・影・角丸長方形をやめ、写真そのものを主役にして
@@ -643,6 +646,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <p data-i18n="greeting.body1">こいまりは、<strong>季節の素材を大切にした手作りのケーキと焼き菓子</strong>のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
         <p data-i18n="greeting.body2">誕生日や記念日のデコレーションケーキ、贈り物の焼き菓子など、お客様の大切なひとときに寄り添えるお菓子作りを心がけています。お気軽にご相談ください。</p>
         <p data-i18n="greeting.body3">近年、原材料費や人件費の高騰により、業界全体で手間や材料費を抑える傾向が進んでいます。それでも私たちは、素材と製法にこだわり、昔ながらの手間を惜しまないものづくりをこれからも大切にしてまいります。</p>
+        <img src="koimari-kakuin.svg" alt="こいまり 角印" class="greeting__kakuin">
       </div>
     </div>
   </div>
