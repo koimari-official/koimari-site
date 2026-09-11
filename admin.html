@@ -2138,17 +2138,14 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
   try {
     // 保存直前にFirebase側の最新状態を取得し、自分の未保存編集とマージしてから書き込む
     // （他の人が別の項目、あるいは自分がまだ触っていない項目を先に保存していても、それを消さないため）
-    // 2026-09-09判明：fbLoadSiteImages()が失敗してnullを返した際、以前は`fresh || savedData`
-    // でsavedDataを代用していたが、これだとmergeSiteImagesにfresh===baseを渡すことになり
-    // 「競合なし」と誤認して常にworkingData（自分の手元の内容。ログイン直後でまだ実データが
-    // 届いていない場合はDEFAULT_IMAGESの古いストック写真のままの場合がある）で本番データを
-    // 丸ごと上書きしてしまう事故があった（ヒーロー画像・カテゴリーが古いストック写真に戻った
-    // 実害が発生）。取得に失敗した場合は安全側に倒し、保存自体を中断する。
+    // 2026-09-09判明：fbLoadSiteImages()が失敗した際、以前は`fresh || savedData`でsavedDataを
+    // 代用していたが、これだとmergeSiteImagesにfresh===baseを渡すことになり「競合なし」と
+    // 誤認して常にworkingData（自分の手元の内容。ログイン直後でまだ実データが届いていない
+    // 場合はDEFAULT_IMAGESの古いストック写真のままの場合がある）で本番データを丸ごと
+    // 上書きしてしまう事故があった（ヒーロー画像・カテゴリーが古いストック写真に戻った実害が
+    // 発生）。2026-09-11、fbLoadSiteImages()はエラーをそのまま投げるようにしたため、
+    // 取得に失敗した場合はこのtry/catch全体のcatchで実際のエラー内容とともに保存を中断する。
     const fresh = await window.fbLoadSiteImages();
-    if (fresh === null) {
-      showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
-      return;
-    }
     const { merged, conflicts } = mergeSiteImages(savedData, fresh, workingData);
     // 2026-09-11オーナー指示：変更の無いキーまで毎回書き込む「一括更新」方式をやめ、
     // fresh（保存直前のサーバー側の値）と実際に異なるキーだけを書き込む。
@@ -2168,7 +2165,7 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     }
   } catch (e) {
     console.warn("Firebase保存失敗:", e);
-    showToast("保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    showToast("保存に失敗しました: " + (e && e.message ? e.message : String(e)), "error");
   }
 });
 document.getElementById("resetBtn").addEventListener("click", () => {
@@ -3410,7 +3407,7 @@ async function saveByKey(key, data) {
       }
     }
   } catch (e) {
-    showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    showToast("最新データの取得に失敗しました: " + (e && e.message ? e.message : String(e)), "error");
     return null;
   }
   // ローカルキャッシュへの反映に失敗しても（容量超過など）、Firebaseへの保存自体は
@@ -3424,7 +3421,7 @@ async function saveByKey(key, data) {
       await window.fbSaveContentKey(contentKey, merged);
     }
   } catch(e) {
-    showToast("サーバーへの保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    showToast("サーバーへの保存に失敗しました: " + (e && e.message ? e.message : String(e)), "error");
     return null;
   }
   savedContentByKey[contentKey] = JSON.parse(JSON.stringify(merged));
@@ -3464,7 +3461,7 @@ async function saveByOpsKey(key, data) {
       }
     }
   } catch (e) {
-    showToast("最新データの取得に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    showToast("最新データの取得に失敗しました: " + (e && e.message ? e.message : String(e)), "error");
     return null;
   }
   // ローカルキャッシュへの反映に失敗しても（容量超過など）、Firebaseへの保存自体は
@@ -3478,7 +3475,7 @@ async function saveByOpsKey(key, data) {
       await window.fbSaveOpsKey(opsKey, merged);
     }
   } catch(e) {
-    showToast("サーバーへの保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    showToast("サーバーへの保存に失敗しました: " + (e && e.message ? e.message : String(e)), "error");
     return null;
   }
   savedOpsByKey[opsKey] = JSON.parse(JSON.stringify(merged));
@@ -4146,18 +4143,15 @@ const SITE_IMAGES_KEYS = ["hero", "greeting", "categories", "decorationCakes", "
 const lineMembersRef = ref(fbDb, "lineMembers");
 const aiReviewQueueRef = ref(fbDb, "aiReviewQueue");
 
+// 2026-09-11、他のfbLoad*関数と同じ理由でエラーを握りつぶさずそのまま投げる
+// （呼び出し元のtry/catchで実際のエラー内容をトースト表示できるようにするため）。
 window.fbLoadSiteImages = async function () {
-  try {
-    const data = {};
-    await Promise.all(SITE_IMAGES_KEYS.map(async k => {
-      const snap = await get(ref(fbDb, "siteImages/" + k));
-      data[k] = snap.val();
-    }));
-    return data;
-  } catch (err) {
-    console.warn("サイト画像の読み込み失敗:", err);
-    return null;
-  }
+  const data = {};
+  await Promise.all(SITE_IMAGES_KEYS.map(async k => {
+    const snap = await get(ref(fbDb, "siteImages/" + k));
+    data[k] = snap.val();
+  }));
+  return data;
 };
 // 2026-09-11、変更が無いキーも毎回まとめて書き込んでいた（「一括更新」方式）のをやめ、
 // 呼び出し側（saveBtnハンドラ）が実際に変更されたキーだけを渡す形に変更。
@@ -4497,7 +4491,7 @@ async function saveExpDates(action, date) {
     renderExpDateList();
   } catch (err) {
     console.warn("候補日保存失敗:", err);
-    showToast("候補日の保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+    showToast("候補日の保存に失敗しました: " + (err && err.message ? err.message : String(err)), "error");
   }
 }
 // 「お子様の一日店長体験」をLINE予約フォーム（member.html）に表示するかのON/OFF（siteConfig/kidsManagerReserveOpen）。
@@ -4572,7 +4566,7 @@ function createFlavorListEditor({ fbPath, defaultList, listElId, inputElId, addB
       render();
     } catch (err) {
       console.warn("種類の保存失敗:", err);
-      showToast("保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+      showToast("保存に失敗しました: " + (err && err.message ? err.message : String(err)), "error");
     }
   }
   function init() {
@@ -4667,7 +4661,7 @@ function initCakeSizePricesPanel() {
         if (note) { note.textContent = "保存しました"; setTimeout(() => { note.textContent = ""; }, 3000); }
       }).catch(err => {
         console.warn("料金の保存失敗:", err);
-        showToast("保存に失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+        showToast("保存に失敗しました: " + (err && err.message ? err.message : String(err)), "error");
       });
     });
   }
