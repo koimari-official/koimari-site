@@ -1408,8 +1408,12 @@ document.querySelectorAll(".tab").forEach(t => {
 /* ============================================================
    画像管理
    ============================================================ */
-// maxWidthを指定すると、その横幅（px）に自動リサイズ・JPEG圧縮してから返す。
-// 未指定の場合は元のファイルをそのままdata URL化する（従来の挙動）。
+// maxWidthを指定すると、その横幅（px）に自動リサイズ・JPEG圧縮してから、Firebase Storageへ
+// アップロードしてそのURLを返す（2026-09-11、base64文字列をRealtime Databaseへ直接埋め込む
+// 方式は高解像度写真でレコードが肥大化し保存失敗を招いていたため廃止）。
+// maxWidth未指定の場合は元のファイルをそのままdata URL化する（従来の挙動。用途上サイズが
+// 小さいことが分かっている呼び出し元向け）。Storageアップロードに失敗した場合も、
+// サイトの表示自体は止まらないようdata URLへフォールバックする。
 function fileToDataUrl(file, maxWidth) {
   return new Promise((resolve, reject) => {
     if (file.size > 15 * 1024 * 1024) { reject(new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください")); return; }
@@ -1423,8 +1427,18 @@ function fileToDataUrl(file, maxWidth) {
         const canvas = document.createElement("canvas");
         canvas.width = w; canvas.height = h;
         canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        try { resolve(canvas.toDataURL("image/jpeg", 0.85)); }
-        catch (err) { resolve(r.result); } // 万一canvas変換に失敗した場合は元データをそのまま使う
+        canvas.toBlob(async (blob) => {
+          if (!blob || typeof window.fbUploadImage !== "function") {
+            try { resolve(canvas.toDataURL("image/jpeg", 0.85)); } catch (err) { resolve(r.result); }
+            return;
+          }
+          try {
+            resolve(await window.fbUploadImage(blob));
+          } catch (err) {
+            console.warn("Storageアップロード失敗、data URLにフォールバック:", err);
+            try { resolve(canvas.toDataURL("image/jpeg", 0.85)); } catch (err2) { resolve(r.result); }
+          }
+        }, "image/jpeg", 0.85);
       };
       img.onerror = () => reject(new Error("画像を読み込めませんでした。ファイル形式（JPEG・PNG等）をご確認のうえ、もう一度お試しください"));
       img.src = r.result;
@@ -1482,9 +1496,20 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
   if (!_cropperInstance) { closeCropModal(); if (_cropResolve) { _cropResolve(null); _cropResolve = null; } return; }
   const targetWidth = _cropTargetWidth || 1000;
   const canvas = _cropperInstance.getCroppedCanvas({ width: targetWidth, imageSmoothingQuality: "high" });
-  const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+  const resolveFn = _cropResolve;
   closeCropModal();
-  if (_cropResolve) { _cropResolve(dataUrl); _cropResolve = null; }
+  _cropResolve = null;
+  // 2026-09-11、切り抜き後の画像もStorageへアップロードしてURLを返す（fileToDataUrlと同じ理由）。
+  // アップロード失敗時はdata URLにフォールバックする。
+  canvas.toBlob(async (blob) => {
+    let result;
+    try { result = canvas.toDataURL("image/jpeg", 0.85); } catch (err) { result = null; }
+    if (blob && typeof window.fbUploadImage === "function") {
+      try { result = await window.fbUploadImage(blob); }
+      catch (err) { console.warn("Storageアップロード失敗、data URLにフォールバック:", err); }
+    }
+    if (resolveFn) resolveFn(result);
+  }, "image/jpeg", 0.85);
 });
 // aspectRatioを指定すると切り抜きモーダルを開く。キャンセル時はnullを返す。
 // Cropper.js未読み込み（CDN読み込み失敗等）の場合は従来の自動リサイズにフォールバックする。
@@ -4078,6 +4103,7 @@ function applyFetchedOpsContent(all) {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, update, remove, get, push, set, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
@@ -4091,6 +4117,19 @@ const firebaseConfig = {
 const fbApp = initializeApp(firebaseConfig);
 const fbDb = getDatabase(fbApp);
 const fbAuth = getAuth(fbApp);
+const fbStorage = getStorage(fbApp);
+// 2026-09-11判明：写真をbase64文字列としてそのままRealtime Databaseのレコードに埋め込む
+// 方式は、高解像度・複雑な写真ほどレコードが肥大化し、保存の失敗を招いていた
+// （JSON木構造のデータベースに大きなバイナリを直接持たせること自体が根本的に無理があった）。
+// 画像バイナリはFirebase Storageに保存し、Realtime Databaseには軽量なURL文字列だけを
+// 持たせる、本来あるべき構成に変更する。これにより、写真の解像度・複雑さに関わらず
+// レコードサイズは常に小さいまま保たれる。
+window.fbUploadImage = async function (blob) {
+  const path = "siteImages/uploads/" + Date.now() + "-" + Math.random().toString(36).slice(2) + ".jpg";
+  const snapRef = storageRef(fbStorage, path);
+  await uploadBytes(snapRef, blob, { contentType: "image/jpeg" });
+  return await getDownloadURL(snapRef);
+};
 const reservationsRef = ref(fbDb, "reservations");
 const experiencesRef = ref(fbDb, "experiences");
 const corporateRef = ref(fbDb, "corporate");
