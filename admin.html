@@ -2150,7 +2150,7 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     // 2026-09-11オーナー指示：変更の無いキーまで毎回書き込む「一括更新」方式をやめ、
     // fresh（保存直前のサーバー側の値）と実際に異なるキーだけを書き込む。
     const changedKeys = {};
-    SITE_IMAGES_KEYS.forEach(k => {
+    window.SITE_IMAGES_KEYS.forEach(k => {
       if (JSON.stringify(merged[k]) !== JSON.stringify(fresh[k])) changedKeys[k] = merged[k];
     });
     await window.fbSaveSiteImages(changedKeys);
@@ -4140,6 +4140,11 @@ const siteImagesRef = ref(fbDb, "siteImages");
 // ことがあった（product.html等で見つかった大容量ノードの不具合と同根）。管理画面の保存は
 // データ消失リスクに直結するため、カテゴリごとに個別のパスで読み書きするよう修正。
 const SITE_IMAGES_KEYS = ["hero", "greeting", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "experiences"];
+// 2026-09-11判明：ES modulesのトップレベルconstは、同じファイル内の別のscriptタグ
+// （type=moduleを付けていない通常のスクリプト）からは参照できない。保存ボタンの
+// ハンドラ（通常のscript側）がこの配列を直接参照していたため「SITE_IMAGES_KEYS is not
+// defined」で保存が毎回失敗していた。windowに公開して跨いで参照できるようにする。
+window.SITE_IMAGES_KEYS = SITE_IMAGES_KEYS;
 const lineMembersRef = ref(fbDb, "lineMembers");
 const aiReviewQueueRef = ref(fbDb, "aiReviewQueue");
 
