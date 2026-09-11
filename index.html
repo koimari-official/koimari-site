@@ -52,9 +52,6 @@ a:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
 .hero__slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease}
 .hero__slide.active{opacity:1}
 .hero__slide img{width:100%;height:100%;object-fit:cover}
-/* 2026-09-10、2枚目のヒーロー写真は左側の薔薇の花束が大きく占めすぎて、主役であるべき
-   ケーキの存在感が薄くなっていたため、表示位置をケーキ側（右寄り）にずらした。 */
-.hero__slide:nth-of-type(2) img{object-position:68% 48%}
 .hero__brand-mark{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,.22) 0%,rgba(0,0,0,.04) 45%,rgba(0,0,0,0) 65%)}
 .hero__brand-mark-lockup{width:clamp(440px,52vw,640px);height:auto;filter:drop-shadow(0 4px 18px rgba(0,0,0,.35))}
 /* 2026-09-10判明：管理画面でヒーロースライドごとに入力できる見出し文言(titleJp)が、
@@ -996,16 +993,27 @@ function renderHeroSlides(){
   heroEl.querySelectorAll(".hero__slide").forEach(el=>el.remove());
   dotsEl.innerHTML="";
   currentSlide=0;
+  // 2026-09-11判明：非表示(visible:false)のスライドを除外した「表示件数」ではなく、
+  // 除外前のIMAGES.hero.length（=DOM上に実在しないスライド数を含む）でローテーション間隔を
+  // 判定していたため、1枚だけ表示中でも自動切り替えタイマーが動き続け、存在しないスライド
+  // 番号へ切り替わろうとしてヒーローが一定間隔で真っ白になる不具合があった。
+  const visibleCount = IMAGES.hero.filter(s=>s.visible!==false).length;
   IMAGES.hero.filter(s=>s.visible!==false).forEach((slide,i)=>{
     const div=document.createElement("div");div.className="hero__slide"+(i===0?" active":"");
     const heroAlt=escape((slide.titleJp||"こいまり").replace(/<\s*br\s*\/?\s*>/gi," "));
     const captionHtml=slide.titleJp?`<div class="hero__caption">${slide.titleJp}</div>`:"";
-    div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}">${captionHtml}`;
+    // 2026-09-11判明：写真ごとのクロップ位置調整を「何番目のスライドか」というDOM位置基準の
+    // CSS(:nth-of-type)で行っていたため、管理画面での並び替え・非表示切り替えで該当スライドの
+    // 順番が変わるたびに、意図した写真ではなく別の写真（または存在しない位置）に適用されて
+    // しまう不具合があった。写真データ自体が持つfocusPosition値に基づかせることで、
+    // 並び替えても正しい写真に追従するようにする。
+    const focusStyle=slide.focusPosition?` style="object-position:${escape(slide.focusPosition)}"`:"";
+    div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}"${focusStyle}>${captionHtml}`;
     heroEl.insertBefore(div,dotsEl);
     const dot=document.createElement("button");dot.className="hero__dot"+(i===0?" active":"");dot.addEventListener("click",()=>goToSlide(i));dotsEl.appendChild(dot);
   });
   if(heroInterval)clearInterval(heroInterval);
-  if(IMAGES.hero.length>1)heroInterval=setInterval(()=>goToSlide((currentSlide+1)%IMAGES.hero.length),5500);
+  if(visibleCount>1)heroInterval=setInterval(()=>goToSlide((currentSlide+1)%visibleCount),5500);
 }
 window.renderHeroSlides=renderHeroSlides;
 renderHeroSlides();

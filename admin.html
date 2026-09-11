@@ -1748,7 +1748,8 @@ function renderHero() {
       fields: [
         { label: "画像URL", key: "src", value: s.src, type: "input" },
         { label: "英語タイトル", key: "titleEn", value: s.titleEn || "", type: "input" },
-        { label: "日本語タイトル(<br>で改行可)", key: "titleJp", value: s.titleJp || "", type: "textarea" }
+        { label: "日本語タイトル(<br>で改行可)", key: "titleJp", value: s.titleJp || "", type: "textarea" },
+        { label: "表示位置の微調整（例: 68% 48%／空欄なら中央。写真の見せたい部分が切れる場合に指定）", key: "focusPosition", value: s.focusPosition || "", type: "input" }
       ],
       onChange: (k, v) => { workingData.hero[i][k] = v; if (k === "src") refreshPreview(grid.children[i], v); updateSaveBar(); },
       onFile: historyAwareOnFile(s, "src", () => { renderHero(); updateSaveBar(); }),
@@ -2121,7 +2122,13 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
       return;
     }
     const { merged, conflicts } = mergeSiteImages(savedData, fresh, workingData);
-    await window.fbSaveSiteImages(merged);
+    // 2026-09-11オーナー指示：変更の無いキーまで毎回書き込む「一括更新」方式をやめ、
+    // fresh（保存直前のサーバー側の値）と実際に異なるキーだけを書き込む。
+    const changedKeys = {};
+    SITE_IMAGES_KEYS.forEach(k => {
+      if (JSON.stringify(merged[k]) !== JSON.stringify(fresh[k])) changedKeys[k] = merged[k];
+    });
+    await window.fbSaveSiteImages(changedKeys);
     workingData = merged;
     savedData = JSON.parse(JSON.stringify(merged));
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) { /* ローカルキャッシュへの反映は失敗しても致命的ではないため無視 */ }
@@ -4110,8 +4117,11 @@ window.fbLoadSiteImages = async function () {
     return null;
   }
 };
+// 2026-09-11、変更が無いキーも毎回まとめて書き込んでいた（「一括更新」方式）のをやめ、
+// 呼び出し側（saveBtnハンドラ）が実際に変更されたキーだけを渡す形に変更。
+// dataに存在するキーだけを書き込む（SITE_IMAGES_KEYS全件を強制的に書き込まない）。
 window.fbSaveSiteImages = async function (data) {
-  for (const k of SITE_IMAGES_KEYS) {
+  for (const k of Object.keys(data)) {
     await set(ref(fbDb, "siteImages/" + k), data[k] === undefined ? null : data[k]);
   }
 };
