@@ -541,7 +541,11 @@ body.chrome-visible .site-header{opacity:1;pointer-events:auto}
 
 /* ===== FAB: 常時表示を優先するオーバーライド（位置・表示の安定化） ===== */
 .fab{position:fixed !important;z-index:1200 !important;display:flex !important;opacity:1 !important;transform:none !important;animation:none !important;pointer-events:auto}
-.fab--pc{bottom:30px;right:30px;width:130px;height:130px;border-radius:50%}
+/* 2026-09-17、このオーバーライドがメディアクエリの外にあったため、スマホ向けの
+   88px/72pxサイズ指定（上のmax-width:900px側）を毎回デスクトップの130pxで
+   上書きしてしまい、スマホで予約FABが画面の1/3近くを覆う不具合があった。
+   デスクトップ幅にだけ適用するよう修正。 */
+@media(min-width:901px){.fab--pc{bottom:30px;right:30px;width:130px;height:130px;border-radius:50%}}
 /* ヒーロー表示中は予約ボタンも隠し、ヘッダーが現れるタイミング（body.chrome-visible）
    と同期して表示する（2026-09-07オーナー指示、2026-09-10ヘッダー側もopacityで
    同じchrome-visibleに揃えた）。position:fixedのFABはヘッダーのようにposition:sticky
@@ -629,15 +633,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <button data-lang-btn="en" onclick="I18nCtrl.setLang('en')" class="lang-btn">EN</button>
   </div>
   <ul class="max-w-[var(--max-w)] mx-auto flex justify-center flex-wrap items-center gap-1 list-none py-1 px-2">
+    <li><a href="#categories" data-i18n="nav.menu" class="nav-link">商品・ケーキ</a></li>
     <li><a href="#about" data-i18n="nav.about" class="nav-link">こいまりについて</a></li>
-    <li><a href="#categories" data-i18n="nav.menu" class="nav-link">商品カテゴリー</a></li>
-    <li><a href="#experience" data-i18n="nav.workshop" class="nav-link">体験プログラム</a></li>
+    <li><a href="#shop" data-i18n="nav.shop" class="nav-link">店舗情報・アクセス</a></li>
     <li><a href="gallery.html" data-i18n="nav.gallery" class="nav-link">ギャラリー</a></li>
-    <li><a href="blog.html" data-i18n="nav.blog" class="nav-link">ブログ</a></li>
     <li><a href="faq.html" data-i18n="nav.faq" class="nav-link">よくある質問</a></li>
-    <li><a href="#bcal" data-i18n="nav.bcal" class="nav-link">営業日</a></li>
-    <li><a href="#shop" data-i18n="nav.shop" class="nav-link">店舗情報</a></li>
-    <li><a href="reservation.html" data-i18n="nav.reserve" class="nav-link">ご予約</a></li>
   </ul>
 </nav>
 
