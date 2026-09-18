@@ -93,7 +93,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <img src="koimari-temari-mark.png" alt="こいまり" class="header__logo-mark">
       <span class="header__logo-text">
         <span class="header__logo-en">KOIMARI</span>
-        <span class="header__logo-jp">ケーキ屋さん こいまり 城東店</span>
+        <span class="header__logo-jp">ケーキ屋さん こいまり 城東</span>
       </span>
     </a>
   </div>
@@ -141,7 +141,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field">
           <label class="field__check">
             <input type="checkbox" id="reserveStoreConfirm">
-            <span>「ケーキ屋さんこいまり <strong>城東店</strong>」のご予約で間違いないことを確認しました</span>
+            <span>「ケーキ屋さんこいまり <strong>城東</strong>」のご予約で間違いないことを確認しました</span>
           </label>
           <div class="error" id="reserveStoreConfirmError"></div>
         </div>
@@ -838,7 +838,7 @@ function validateReserve(data) {
   let ok = true;
   ["reserveStoreConfirmError","reserveSizeError","reserveFlavorError","reserveOccasionError","reserveCreamTypeError","reserveDecorationError","reserveCandleError","reserveDateError","reserveTimeError","reserveFuriganaError","reserveNameError","reserveTelError","reserveEmailError","reserveConsentError","reserveNoteError","reserveReceiptNameError","kmChildNameError","kmGradeError","kmBakingExperienceError","kmDateError","kmCountError"].forEach(id => setReserveError(id, ""));
 
-  if (!data.storeConfirmed) { setReserveError("reserveStoreConfirmError", "「ケーキ屋さんこいまり 城東店」のご予約で間違いないかご確認ください"); ok = false; }
+  if (!data.storeConfirmed) { setReserveError("reserveStoreConfirmError", "「ケーキ屋さんこいまり 城東」のご予約で間違いないかご確認ください"); ok = false; }
 
   if (data.category === "kidsManager") {
     if (!data.childName.trim()) { setReserveError("kmChildNameError", "お子様のお名前をご入力ください"); ok = false; }
