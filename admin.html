@@ -661,6 +661,29 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="panel__head"><h2 class="panel__title" style="font-size:16px;">オーダーメイドの1点物</h2><button class="btn btn--small" id="addGallery">＋ 作品を追加</button></div>
       <p class="panel__desc">お名前入りなど、真にオーダーメイドの1点物（作品No.・見積り相談形式）のみをここに登録します（上記カテゴリー別の通常ラインナップとは別枠です）。</p>
       <div class="img-grid" id="galleryAdminGrid"></div>
+
+      <hr style="margin:26px 0;border:none;border-top:1px solid var(--color-line);">
+      <div class="panel__head"><h2 class="panel__title" style="font-size:16px;">AI宣材写真プロンプト集</h2><button class="btn btn--small" id="addAiPromptPreset">＋ プロンプトを追加</button></div>
+      <p class="panel__desc">実物写真からAIで宣材写真を作る際にうまくいったプロンプトを、パターンとして何件でも保存しておけます。次回以降はここからコピーして使えます。</p>
+      <div id="aiPromptPresetFormArea" style="display:none; background:#fff; border:1px solid var(--color-line); padding:24px 28px; max-width:720px; margin-bottom:20px;">
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">パターン名</label>
+          <input type="text" id="aiPromptPresetTitle" class="input" placeholder="例: ゴージャス系（黒石テーブル・金の燭台）" style="font-size:14px;padding:10px 12px;">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">プロンプト本文</label>
+          <textarea id="aiPromptPresetPrompt" class="input" rows="6" placeholder="AIに渡すプロンプトをそのまま貼り付け" style="font-size:13px;padding:10px 12px;font-family:monospace;line-height:1.6;"></textarea>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">メモ（任意）</label>
+          <input type="text" id="aiPromptPresetNote" class="input" placeholder="例: デコレーションケーキ向け、背景を暗めにしたい時に" style="font-size:14px;padding:10px 12px;">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn--small" id="aiPromptPresetSave">保存</button>
+          <button class="btn btn--small btn--ghost" id="aiPromptPresetCancel">キャンセル</button>
+        </div>
+      </div>
+      <div id="aiPromptPresetList"></div>
     </section>
 
     <!-- ===== お客様の声 管理 ===== -->
@@ -993,6 +1016,7 @@ const VIEWS_KEY = "koimari_views";
 const MANUAL_SALES_KEY = "koimari_manual_sales";
 const SALES_GOAL_KEY = "koimari_sales_goal";
 const COUPON_KEY = "koimari_coupons";
+const AI_PROMPT_PRESET_KEY = "koimari_ai_prompt_presets";
 const LINE_MEMBERS_KEY = "koimari_lineMembers";
 const PAGE_ERRORS_KEY = "koimari_page_errors";
 
@@ -1399,7 +1423,7 @@ document.querySelectorAll(".tab").forEach(t => {
     if (t.dataset.panel === "statsTop") renderStatsAdmin();
     if (t.dataset.panel === "holidays") renderHolidaysAdmin();
     if (t.dataset.panel === "faq") renderFaqAdmin();
-    if (t.dataset.panel === "galleryAdmin") renderGalleryAdmin();
+    if (t.dataset.panel === "galleryAdmin") { renderGalleryAdmin(); renderAiPromptPresets(); }
     if (t.dataset.panel === "voicesAdmin") renderVoicesAdmin();
     if (t.dataset.panel === "blogAdmin") { blogData = null; renderBlogAdmin(); }
   });
@@ -2704,6 +2728,71 @@ document.getElementById("addCouponBtn").addEventListener("click", () => {
 document.getElementById("couponCancel").addEventListener("click", () => {
   document.getElementById("couponFormArea").style.display = "none";
 });
+/* ============================================================
+   AI宣材写真プロンプト集
+   ============================================================ */
+function loadAiPromptPresets() { try { return JSON.parse(localStorage.getItem(AI_PROMPT_PRESET_KEY)) || []; } catch { return []; } }
+function renderAiPromptPresets() {
+  const list = loadAiPromptPresets();
+  const el = document.getElementById("aiPromptPresetList");
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="empty">保存されたプロンプトはまだありません</div>'; return; }
+  let html = '';
+  list.forEach((p, i) => {
+    html += `<div style="background:#fff;border:1px solid var(--color-line);padding:18px 22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">
+        <div>
+          <div style="font-family:var(--font-mincho);font-size:15px;font-weight:700;color:var(--color-text);">${escapeHtml(p.title)}</div>
+          ${p.note ? `<div style="font-size:12px;color:var(--color-text-soft);margin-top:4px;">${escapeHtml(p.note)}</div>` : ""}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button class="btn btn--small btn--ghost" style="padding:6px 14px;font-size:12px;" onclick="copyAiPromptPreset(${i})">コピー</button>
+          <button class="btn btn--small btn--danger" style="padding:6px 14px;font-size:12px;" onclick="deleteAiPromptPreset(${i})">削除</button>
+        </div>
+      </div>
+      <textarea readonly style="width:100%;font-family:monospace;font-size:12px;line-height:1.6;padding:10px 12px;border:1px solid var(--color-line);background:var(--color-bg-soft);color:var(--color-text-soft);resize:vertical;" rows="4">${escapeHtml(p.prompt)}</textarea>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+function copyAiPromptPreset(idx) {
+  const list = loadAiPromptPresets();
+  const p = list[idx];
+  if (!p) return;
+  navigator.clipboard.writeText(p.prompt).then(
+    () => showToast("プロンプトをコピーしました"),
+    () => showToast("コピーに失敗しました。手動で選択してコピーしてください", "error")
+  );
+}
+async function deleteAiPromptPreset(idx) {
+  if (!confirm("このプロンプトを削除しますか？")) return;
+  const list = loadAiPromptPresets(); list.splice(idx, 1);
+  afterSave(await saveByOpsKey(AI_PROMPT_PRESET_KEY, list), () => renderAiPromptPresets(), "削除しました");
+}
+document.getElementById("addAiPromptPreset").addEventListener("click", () => {
+  document.getElementById("aiPromptPresetFormArea").style.display = "block";
+  document.getElementById("aiPromptPresetTitle").focus();
+});
+document.getElementById("aiPromptPresetCancel").addEventListener("click", () => {
+  document.getElementById("aiPromptPresetFormArea").style.display = "none";
+});
+document.getElementById("aiPromptPresetSave").addEventListener("click", async () => {
+  const title = document.getElementById("aiPromptPresetTitle").value.trim();
+  const prompt = document.getElementById("aiPromptPresetPrompt").value.trim();
+  const note = document.getElementById("aiPromptPresetNote").value.trim();
+  if (!title || !prompt) { showToast("パターン名とプロンプト本文は必須です", "error"); return; }
+  const list = loadAiPromptPresets();
+  list.push({ title, prompt, note, createdAt: new Date().toISOString() });
+  const result = await saveByOpsKey(AI_PROMPT_PRESET_KEY, list);
+  afterSave(result, () => renderAiPromptPresets(), "プロンプトを保存しました");
+  if (result) {
+    document.getElementById("aiPromptPresetFormArea").style.display = "none";
+    document.getElementById("aiPromptPresetTitle").value = "";
+    document.getElementById("aiPromptPresetPrompt").value = "";
+    document.getElementById("aiPromptPresetNote").value = "";
+  }
+});
+
 document.getElementById("couponSave").addEventListener("click", async () => {
   const code = document.getElementById("couponCode").value.trim().toUpperCase();
   const discount = document.getElementById("couponDiscount").value.trim();
@@ -3447,8 +3536,8 @@ function afterSave(result, applyFn, successMsg) {
 // 売上目標・手動売上記録・クーポンは、koimariContentとは別の非公開パス(koimariOps)を使う
 // （売上金額等の機微な数値を、一般公開ページと同じ「誰でも読める」ルールに置きたくないため）。
 // マージ処理自体はsaveByKeyと同じ仕組みを流用する。
-const OPS_SHAPES = { manualSales: "array", salesGoal: "object", coupons: "array" };
-const OPS_LABELS = { manualSales: "手動売上記録", salesGoal: "売上目標", coupons: "クーポン" };
+const OPS_SHAPES = { manualSales: "array", salesGoal: "object", coupons: "array", aiPromptPresets: "array" };
+const OPS_LABELS = { manualSales: "手動売上記録", salesGoal: "売上目標", coupons: "クーポン", aiPromptPresets: "AI宣材写真プロンプト集" };
 let savedOpsByKey = {};
 async function saveByOpsKey(key, data) {
   const opsKey = key.replace(/^koimari_/, "");
@@ -4089,7 +4178,7 @@ function applyFetchedContent(all) {
 // 表示中のパネルだけ再描画すればよい（他パネルのように複雑な3者マージは不要）。
 function applyFetchedOpsContent(all) {
   if (!all) return;
-  const KEYMAP = { manualSales: MANUAL_SALES_KEY, salesGoal: SALES_GOAL_KEY, coupons: COUPON_KEY };
+  const KEYMAP = { manualSales: MANUAL_SALES_KEY, salesGoal: SALES_GOAL_KEY, coupons: COUPON_KEY, aiPromptPresets: AI_PROMPT_PRESET_KEY };
   Object.keys(KEYMAP).forEach(opsKey => {
     const fresh = all[opsKey];
     if (fresh === undefined) return;
@@ -4098,6 +4187,7 @@ function applyFetchedOpsContent(all) {
   });
   if (document.getElementById("panel-stats")?.classList.contains("active")) { renderManualSalesTable(); renderStats(); renderSalesGoal(); }
   if (document.getElementById("panel-coupons")?.classList.contains("active")) { renderCoupons(); }
+  if (document.getElementById("panel-galleryAdmin")?.classList.contains("active")) { renderAiPromptPresets(); }
   if (document.getElementById("panel-dashboard")?.classList.contains("active")) { renderDashboard(); }
 }
 </script>
@@ -4245,7 +4335,7 @@ window.fbSaveOpsKey = async function (opsKey, data) {
   await set(ref(fbDb, "koimariOps/" + opsKey), data);
 };
 // koimariContentと同じ理由で、"koimariOps"全体の一括購読も個別パス購読に変更（2026-09-10）。
-const OPS_KEYS = ["manualSales", "salesGoal", "coupons"];
+const OPS_KEYS = ["manualSales", "salesGoal", "coupons", "aiPromptPresets"];
 let unsubOps = null;
 let liveOpsCache = {};
 let liveOpsLoadedKeys = new Set();
