@@ -992,7 +992,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <h3 style="font-family:var(--font-mincho);font-size:16px;font-weight:600;">画像の切り抜き位置を調整してください</h3>
     <div id="cropRatioToggle" style="display:none;gap:8px;"></div>
     <div style="max-height:60vh;overflow:hidden;">
-      <img id="cropImage" style="display:block;max-width:100%;">
+      <img id="cropImage" crossorigin="anonymous" style="display:block;max-width:100%;">
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;">
       <button class="btn btn--small btn--ghost" id="cropCancelBtn" type="button">キャンセル</button>
@@ -1519,7 +1519,20 @@ document.getElementById("cropCancelBtn").addEventListener("click", () => {
 document.getElementById("cropConfirmBtn").addEventListener("click", () => {
   if (!_cropperInstance) { closeCropModal(); if (_cropResolve) { _cropResolve(null); _cropResolve = null; } return; }
   const targetWidth = _cropTargetWidth || 1000;
-  const canvas = _cropperInstance.getCroppedCanvas({ width: targetWidth, imageSmoothingQuality: "high" });
+  let canvas;
+  try {
+    canvas = _cropperInstance.getCroppedCanvas({ width: targetWidth, imageSmoothingQuality: "high" });
+  } catch (err) {
+    // 2026-09-21、登録済みの画像（別オリジンのURL）を再度切り抜こうとした際、CORSの都合で
+    // キャンバスが「汚染」され読み出せないことがある。無限に待たせず、はっきり失敗を伝えて
+    // Promiseも解決させる（そのままだとボタンを押しても何も起きないように見えてしまう）。
+    const resolveFn = _cropResolve;
+    closeCropModal();
+    _cropResolve = null;
+    showToast("この画像は現在の位置のまま調整できませんでした。もう一度ファイルから選び直してください", "error");
+    if (resolveFn) resolveFn(null);
+    return;
+  }
   const resolveFn = _cropResolve;
   closeCropModal();
   _cropResolve = null;
@@ -1563,6 +1576,26 @@ function stockPhotoWarning(src) {
 function refreshPreview(itemEl, src) {
   const p = itemEl.querySelector(".img-item__preview");
   p.innerHTML = src ? `<img src="${src}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(src)}` : "画像なし";
+  const loc = itemEl.querySelector(".img-item__location");
+  if (loc) loc.innerHTML = imageLocationLabel(src);
+}
+// 画像データが実際にどこに保管されているかを管理画面内で確認できるようにする（2026-09-21オーナー指示）。
+// Firebase Storageの軽量なURLなのか、データベースに直接埋め込まれた重いbase64のままなのかが
+// 一目でわかるようにし、後者の場合は容量が肥大化する不具合の早期発見にもつなげる。
+function imageLocationLabel(src) {
+  if (!src) return "";
+  if (/^data:image/i.test(src)) {
+    return `<span style="color:#b94a3a;font-weight:600;">⚠ データベースに直接埋め込み（容量が大きくなり表示が不安定になる原因になります。再アップロードするとStorageへ保存し直されます）</span>`;
+  }
+  const m = /firebasestorage\.googleapis\.com\/v0\/b\/[^/]+\/o\/([^?]+)/.exec(src);
+  if (m) {
+    const path = decodeURIComponent(m[1]);
+    return `<span style="color:var(--color-text-mute, var(--color-text-soft));">保管場所: Firebase Storage — <code style="font-size:11px;">${escapeHtml(path)}</code></span>`;
+  }
+  try {
+    const host = new URL(src).hostname;
+    return `<span style="color:var(--color-text-mute, var(--color-text-soft));">保管場所: 外部URL（${escapeHtml(host)}）</span>`;
+  } catch (e) { return ""; }
 }
 function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions }) {
   const item = document.createElement("div");
@@ -1572,6 +1605,11 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
   if (aspectRatio) previewEl.style.aspectRatio = String(aspectRatio); // 実際にサイト上で使われる比率とプレビューを一致させる
   previewEl.innerHTML = preview ? `<img src="${preview}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(preview)}` : "画像なし（ここに写真をドラッグ＆ドロップも可）";
   item.appendChild(previewEl);
+  const locationEl = document.createElement("div");
+  locationEl.className = "img-item__location";
+  locationEl.style.cssText = "font-size:11px;margin-top:6px;line-height:1.6;word-break:break-all;";
+  locationEl.innerHTML = imageLocationLabel(preview);
+  item.appendChild(locationEl);
   // プレビュー枠へのドラッグ&ドロップでも画像を選択できるようにする（2026-09-05、従来はファイル選択ボタンのみだった）。
   async function handleDroppedOrPickedFile(file) {
     if (!file || !file.type.startsWith("image/")) { showToast("画像ファイルを選択してください", "error"); return; }
@@ -1612,6 +1650,21 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
     fileInput.value = "";
   });
   fileBtn.appendChild(fileInput); actions.appendChild(fileBtn);
+  // 2026-09-21オーナー指示：新しいファイルを選び直さなくても、登録済みの画像のまま
+  // 切り抜き位置だけ調整し直せるようにする（構図の微調整のたびに再アップロードするのは非効率なため）。
+  if (aspectRatio) {
+    const recropBtn = document.createElement("button");
+    recropBtn.type = "button";
+    recropBtn.textContent = "位置を調整";
+    recropBtn.addEventListener("click", async () => {
+      const currentSrc = previewEl.querySelector("img")?.src;
+      if (!currentSrc) { showToast("先に画像を登録してください", "error"); return; }
+      _cropTargetWidth = maxWidth;
+      const result = await openCropModal(currentSrc, aspectRatio, ratioOptions);
+      if (result !== null) onFile(result);
+    });
+    actions.appendChild(recropBtn);
+  }
   if (onDelete) {
     const delBtn = document.createElement("button"); delBtn.textContent = "削除";
     delBtn.addEventListener("click", () => { if (confirm("この項目を削除しますか？")) onDelete(); });
