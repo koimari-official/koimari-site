@@ -116,6 +116,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .img-item__preview { position: relative; aspect-ratio: 4/3; background: var(--color-bg-soft); margin-bottom: 14px; overflow: hidden; display: flex; align-items: center; justify-content: center; color: var(--color-text-soft); font-size: 13px; }
 .img-item__preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .stock-photo-badge { position: absolute; top: 8px; left: 8px; z-index: 2; background: rgba(176,59,72,0.92); color: #fff; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; padding: 4px 9px; pointer-events: none; }
+/* 2026-09-22、旧上限で保存されたままの低解像度写真を赤枠で目立たせる（オーナー指示） */
+.img-item__preview--lowres { outline: 4px solid #b94a3a; outline-offset: -4px; }
 .img-item__field { margin-bottom: 12px; }
 .img-item__field label { display: block; font-size: 12px; color: var(--color-text-soft); margin-bottom: 5px; letter-spacing: 0.08em; font-weight: 500; }
 .img-item__field input, .img-item__field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--color-line); background: #fdfaf6; font-family: inherit; font-size: 14px; resize: vertical; }
@@ -1590,6 +1592,41 @@ function refreshPreview(itemEl, src) {
   p.innerHTML = src ? `<img src="${src}" alt="" onerror="this.parentNode.innerHTML='読み込みエラー'">${stockPhotoWarning(src)}` : "画像なし";
   const loc = itemEl.querySelector(".img-item__location");
   if (loc) loc.innerHTML = imageLocationLabel(src);
+  const maxWidth = Number(itemEl.dataset.maxwidth) || null;
+  checkImageResolution(itemEl, src, maxWidth);
+}
+// 2026-09-22オーナー指示：旧上限（500px等）で保存されたままの低解像度写真を、再アップロード
+// 漏れなく洗い出せるように、画像ごとの実際のピクセル数を表示し、現在の上限（maxWidth。
+// 各カテゴリーとも2400pxに統一済み）に満たないものは赤枠で目立たせる。
+function checkImageResolution(itemEl, src, maxWidth) {
+  const previewEl = itemEl.querySelector(".img-item__preview");
+  let resEl = itemEl.querySelector(".img-item__resolution");
+  if (!resEl) {
+    resEl = document.createElement("div");
+    resEl.className = "img-item__resolution";
+    resEl.style.cssText = "font-size:11px;margin-top:4px;line-height:1.6;font-weight:600;";
+    const loc = itemEl.querySelector(".img-item__location");
+    if (loc) loc.insertAdjacentElement("afterend", resEl);
+    else previewEl.insertAdjacentElement("afterend", resEl);
+  }
+  previewEl.classList.remove("img-item__preview--lowres");
+  if (!src) { resEl.textContent = ""; return; }
+  resEl.textContent = "解像度を確認中…";
+  resEl.style.color = "var(--color-text-soft)";
+  const probe = new Image();
+  probe.onload = () => {
+    const w = probe.naturalWidth, h = probe.naturalHeight;
+    if (maxWidth && w < maxWidth) {
+      previewEl.classList.add("img-item__preview--lowres");
+      resEl.innerHTML = `⚠ 解像度: ${w}×${h}px（低解像度・再アップロード推奨。目安${maxWidth}px以上）`;
+      resEl.style.color = "#b94a3a";
+    } else {
+      resEl.textContent = `解像度: ${w}×${h}px`;
+      resEl.style.color = "var(--color-text-soft)";
+    }
+  };
+  probe.onerror = () => { resEl.textContent = ""; };
+  probe.src = src;
 }
 // 画像データが実際にどこに保管されているかを管理画面内で確認できるようにする（2026-09-21オーナー指示）。
 // Firebase Storageの軽量なURLなのか、データベースに直接埋め込まれた重いbase64のままなのかが
@@ -1612,6 +1649,7 @@ function imageLocationLabel(src) {
 function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions }) {
   const item = document.createElement("div");
   item.className = "img-item";
+  item.dataset.maxwidth = maxWidth || "";
   const previewEl = document.createElement("div");
   previewEl.className = "img-item__preview";
   if (aspectRatio) previewEl.style.aspectRatio = String(aspectRatio); // 実際にサイト上で使われる比率とプレビューを一致させる
@@ -1622,6 +1660,7 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
   locationEl.style.cssText = "font-size:11px;margin-top:6px;line-height:1.6;word-break:break-all;";
   locationEl.innerHTML = imageLocationLabel(preview);
   item.appendChild(locationEl);
+  checkImageResolution(item, preview, maxWidth);
   // プレビュー枠へのドラッグ&ドロップでも画像を選択できるようにする（2026-09-05、従来はファイル選択ボタンのみだった）。
   async function handleDroppedOrPickedFile(file) {
     if (!file || !file.type.startsWith("image/")) { showToast("画像ファイルを選択してください", "error"); return; }
