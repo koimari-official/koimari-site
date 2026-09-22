@@ -1866,11 +1866,15 @@ function pushImageHistory(item, key, oldUrl) {
   if (!Array.isArray(item.imgHistory)) item.imgHistory = [];
   item.imgHistory = item.imgHistory.filter(u => u !== oldUrl);
   item.imgHistory.unshift(oldUrl);
-  // 上限を超えて完全に押し出された古い履歴は、記録を消すだけでなくStorage上の
-  // 実ファイルも削除し、無駄なデータが残らないようにする（2026-09-11オーナー指示）。
+  // 2026-09-11時点では、上限を超えて押し出された古い履歴はStorage上の実ファイルも自動で
+  // 物理削除していた。2026-09-23判明：同じStorageファイルが別の場所（例：商品カテゴリーの
+  // サムネイル）からも参照されているケースがあり、この自動削除がその参照先を巻き込んで
+  // サイレントに壊す事故が実際に発生した（「カットケーキ」カテゴリー画像が404に）。
+  // 他での使用有無を確認せずに削除する設計自体が構造的に危ういため、自動物理削除は廃止し、
+  // 履歴一覧（DB上の参照）から外すだけにする。Storage容量は現状の使用量（カテゴリー全体で
+  // 数MB程度）からして気にする必要がない一方、誤削除は本番表示を壊す実害があるため。
   if (item.imgHistory.length > IMAGE_HISTORY_LIMIT) {
-    const dropped = item.imgHistory.splice(IMAGE_HISTORY_LIMIT);
-    dropped.forEach(u => { if (typeof window.fbDeleteImage === "function") window.fbDeleteImage(u); });
+    item.imgHistory.splice(IMAGE_HISTORY_LIMIT);
   }
 }
 // 2026-09-23、cropAndResizeImage/openCropModalの戻り値は{cropped, original}のオブジェクトに
