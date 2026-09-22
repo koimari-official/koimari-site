@@ -283,6 +283,12 @@ const DEFAULT_VOICES = [
 
 function loadList(key, fallback){try{const r=localStorage.getItem(key);if(r)return JSON.parse(r)}catch(e){}return fallback}
 function escape(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+// 商品名が長い場合、括弧書き（例:「生クリームあり」）の途中で折り返されて読みにくくなるのを防ぐ。
+// 括弧の中身をwhite-space:nowrapで囲むと、括弧内では改行されなくなり、1行に収まらない時は
+// 括弧の直前でまとめて次の行に送られる（2026-09-22オーナー指摘、括弧の途中で切れる問題の対策）。
+function titleWithWrap(s){
+  return escape(s).replace(/[（(][^）)]*[）)]/g, m => `<span style="white-space:nowrap;">${m}</span>`);
+}
 // 各作品に通し番号を振る（カテゴリ絞り込みで並びが変わっても番号は一覧全体での並び順で固定）。
 // 金額はギャラリー上に出さず、この番号でお問合せいただいてから個別に見積もる運用にするため。
 function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = i+1; }); return arr; }
@@ -386,7 +392,7 @@ function renderGrid(){
     const sizeMatch = g.isMenuItem ? String(g.desc || "").match(/^【([^】]+)】/) : null;
     const descBody = sizeMatch ? String(g.desc || "").slice(sizeMatch[0].length) : g.desc;
     const bodyHtml = g.isMenuItem
-      ? `<h3 class="gal-card__title">${escape(g.title)}</h3>
+      ? `<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(descBody||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${sizeMatch ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(sizeMatch[1])}</strong>（参考）</span>` : ""}
@@ -394,7 +400,7 @@ function renderGrid(){
         </div>
         <span class="gal-card__cta">くわしく見る →</span>`
       : `<div class="gal-card__no">作品 No.${String(g.__no).padStart(2,"0")}</div>
-        <h3 class="gal-card__title">${escape(g.title)}</h3>
+        <h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong>（参考）</span>` : ""}

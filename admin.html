@@ -1445,6 +1445,11 @@ document.querySelectorAll(".tab").forEach(t => {
 // maxWidth未指定の場合は元のファイルをそのままdata URL化する（従来の挙動。用途上サイズが
 // 小さいことが分かっている呼び出し元向け）。Storageアップロードに失敗した場合も、
 // サイトの表示自体は止まらないようdata URLへフォールバックする。
+// 2026-09-22、各呼び出し元のmaxWidthが500〜1000px程度に抑えられたままだった（Storage移行前、
+// データベース肥大化を避けるための名残）。Storage移行後はファイルサイズの心配が無いため、
+// 全カテゴリーでmaxWidthを2400px（ヒーロー画像と同じ水準）に統一し、JPEG品質も0.85→0.92に
+// 引き上げた（オーナー指摘：登録した写真の解像度が落ちて見える）。2400px未満の画像は
+// そもそもリサイズされず、アップロードした元画像のままになる。
 function fileToDataUrl(file, maxWidth) {
   return new Promise((resolve, reject) => {
     if (file.size > 15 * 1024 * 1024) { reject(new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください")); return; }
@@ -1460,16 +1465,16 @@ function fileToDataUrl(file, maxWidth) {
         canvas.getContext("2d").drawImage(img, 0, 0, w, h);
         canvas.toBlob(async (blob) => {
           if (!blob || typeof window.fbUploadImage !== "function") {
-            try { resolve(canvas.toDataURL("image/jpeg", 0.85)); } catch (err) { resolve(r.result); }
+            try { resolve(canvas.toDataURL("image/jpeg", 0.92)); } catch (err) { resolve(r.result); }
             return;
           }
           try {
             resolve(await window.fbUploadImage(blob));
           } catch (err) {
             console.warn("Storageアップロード失敗、data URLにフォールバック:", err);
-            try { resolve(canvas.toDataURL("image/jpeg", 0.85)); } catch (err2) { resolve(r.result); }
+            try { resolve(canvas.toDataURL("image/jpeg", 0.92)); } catch (err2) { resolve(r.result); }
           }
-        }, "image/jpeg", 0.85);
+        }, "image/jpeg", 0.92);
       };
       img.onerror = () => reject(new Error("画像を読み込めませんでした。ファイル形式（JPEG・PNG等）をご確認のうえ、もう一度お試しください"));
       img.src = r.result;
@@ -1547,13 +1552,13 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
   // アップロード失敗時はdata URLにフォールバックする。
   canvas.toBlob(async (blob) => {
     let result;
-    try { result = canvas.toDataURL("image/jpeg", 0.85); } catch (err) { result = null; }
+    try { result = canvas.toDataURL("image/jpeg", 0.92); } catch (err) { result = null; }
     if (blob && typeof window.fbUploadImage === "function") {
       try { result = await window.fbUploadImage(blob); }
       catch (err) { console.warn("Storageアップロード失敗、data URLにフォールバック:", err); }
     }
     if (resolveFn) resolveFn(result);
-  }, "image/jpeg", 0.85);
+  }, "image/jpeg", 0.92);
 });
 // aspectRatioを指定すると切り抜きモーダルを開く。キャンセル時はnullを返す。
 // Cropper.js未読み込み（CDN読み込み失敗等）の場合は従来の自動リサイズにフォールバックする。
@@ -1883,7 +1888,7 @@ function renderGreeting() {
   const grid = document.getElementById("greetingGrid"); grid.innerHTML = "";
   grid.appendChild(makeImageItem({
     preview: workingData.greeting,
-    maxWidth: 900,
+    maxWidth: 2400,
     aspectRatio: 4 / 5,
     ratioOptions: [{ label: "縦 (4:5)", ratio: 4 / 5 }, { label: "横 (5:4)", ratio: 5 / 4 }],
     fields: [{ label: "画像URL", key: "src", value: workingData.greeting, type: "input" }],
@@ -1948,7 +1953,7 @@ function renderCategories() {
     if (!Array.isArray(c.gallery)) c.gallery = [];
     const item = makeImageItem({
       preview: c.img,
-      maxWidth: 600,
+      maxWidth: 2400,
       aspectRatio: 4 / 3,
       fields: [
         { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
@@ -1974,7 +1979,7 @@ function renderCategories() {
     });
     item.querySelector(".img-item__actions").appendChild(pickBtn);
     appendImageHistoryUI(item, c, "img", () => { renderCategories(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(c, "img", { maxWidth: 900, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(c, "img", { maxWidth: 2400, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.categories[i].visible, () => { workingData.categories[i].visible = !workingData.categories[i].visible; renderCategories(); updateSaveBar(); });
     grid.appendChild(item);
   });
@@ -2008,7 +2013,7 @@ function renderDecorationCakes() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
-      maxWidth: 500,
+      maxWidth: 2400,
       aspectRatio: 1,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
@@ -2022,7 +2027,7 @@ function renderDecorationCakes() {
       onDelete: () => { workingData.decorationCakes.splice(i,1); renderDecorationCakes(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, r, "img", () => { renderDecorationCakes(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderDecorationCakes(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderDecorationCakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.decorationCakes[i].visible, () => { workingData.decorationCakes[i].visible = !workingData.decorationCakes[i].visible; renderDecorationCakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
     grid.appendChild(item);
@@ -2035,7 +2040,7 @@ function renderCutcakes() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
-      maxWidth: 500,
+      maxWidth: 2400,
       aspectRatio: 1,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
@@ -2049,7 +2054,7 @@ function renderCutcakes() {
       onDelete: () => { workingData.cutcakes.splice(i,1); renderCutcakes(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, r, "img", () => { renderCutcakes(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderCutcakes(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderCutcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.cutcakes[i].visible, () => { workingData.cutcakes[i].visible = !workingData.cutcakes[i].visible; renderCutcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
     grid.appendChild(item);
@@ -2062,7 +2067,7 @@ function renderRollcakes() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
-      maxWidth: 500,
+      maxWidth: 2400,
       aspectRatio: 1,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
@@ -2076,7 +2081,7 @@ function renderRollcakes() {
       onDelete: () => { workingData.rollcakes.splice(i,1); renderRollcakes(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, r, "img", () => { renderRollcakes(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderRollcakes(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderRollcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.rollcakes[i].visible, () => { workingData.rollcakes[i].visible = !workingData.rollcakes[i].visible; renderRollcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
     grid.appendChild(item);
@@ -2089,7 +2094,7 @@ function renderBaked() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
-      maxWidth: 500,
+      maxWidth: 2400,
       aspectRatio: 1,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
@@ -2103,7 +2108,7 @@ function renderBaked() {
       onDelete: () => { workingData.baked.splice(i,1); renderBaked(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, r, "img", () => { renderBaked(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderBaked(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderBaked(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.baked[i].visible, () => { workingData.baked[i].visible = !workingData.baked[i].visible; renderBaked(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
     grid.appendChild(item);
@@ -2116,7 +2121,7 @@ function renderGift() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
-      maxWidth: 500,
+      maxWidth: 2400,
       aspectRatio: 1,
       fields: [
         { label: "商品名", key: "name", value: r.name, type: "input" },
@@ -2130,7 +2135,7 @@ function renderGift() {
       onDelete: () => { workingData.gift.splice(i,1); renderGift(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, r, "img", () => { renderGift(); updateSaveBar(); });
-    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 700, max: 6, onChange: () => { renderGift(); updateSaveBar(); } }));
+    item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderGift(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.gift[i].visible, () => { workingData.gift[i].visible = !workingData.gift[i].visible; renderGift(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
     grid.appendChild(item);
@@ -2142,7 +2147,7 @@ function renderExperiences() {
     if (e.visible === undefined) e.visible = true; // 既存データの後方互換
     const item = makeImageItem({
       preview: e.img,
-      maxWidth: 800,
+      maxWidth: 2400,
       aspectRatio: 5 / 3,
       fields: [
         { label: "プログラム名", key: "title", value: e.title, type: "input" },
@@ -3668,7 +3673,7 @@ function renderNewsAdmin() {
       if (n.visible === undefined) n.visible = true;
       const item = makeImageItem({
         preview: n.img,
-        maxWidth: 800,
+        maxWidth: 2400,
         aspectRatio: 4 / 3,
         fields: [
           { label: "日付（例: 2026.04.20）", key: "date", value: n.date||"", type: "input" },
@@ -4094,7 +4099,7 @@ function renderGalleryAdmin() {
     if (!Array.isArray(g.gallery)) g.gallery = [];
     const item = makeImageItem({
       preview: g.img,
-      maxWidth: 1000,
+      maxWidth: 2400,
       aspectRatio: 1,
       fields: [
         { label: `タイトル（サイト上の表示は「作品No.${String(i+1).padStart(2,"0")}」）`, key: "title", value: g.title||"", type: "input" },
@@ -4127,7 +4132,7 @@ function renderGalleryAdmin() {
     // 最初のフィールド(タイトル)の前に挿入
     const firstField = item.querySelector(".img-item__field");
     item.insertBefore(catBox, firstField);
-    item.appendChild(makeGalleryEditor(g, "img", { maxWidth: 1000, max: 6, onChange: () => renderGalleryAdmin() }));
+    item.appendChild(makeGalleryEditor(g, "img", { maxWidth: 2400, max: 6, onChange: () => renderGalleryAdmin() }));
     grid.appendChild(item);
   });
   const sb = document.createElement("div"); sb.style.cssText = "grid-column:1/-1; margin-top:10px;";
@@ -4182,7 +4187,7 @@ function renderBlogAdmin() {
   blogData.forEach((p, i) => {
     grid.appendChild(makeImageItem({
       preview: p.img,
-      maxWidth: 800,
+      maxWidth: 2400,
       aspectRatio: 3 / 2,
       fields: [
         { label: "タイトル", key: "title", value: p.title||"", type: "input" },
