@@ -1088,10 +1088,23 @@ const vGrid=document.getElementById("voicesGrid");
 // 2026-09-08、全カテゴリーをgallery.htmlの該当タブへ遷移させる（商品カード一覧に統一。
 // cutcakes.html/rollcakes.htmlは廃止しgallery.htmlへ統合したため）。
 const CATEGORY_GALLERY_KEY={"デコレーションケーキ":"cake","カットケーキ":"cutcake","ロールケーキ":"roll","焼き菓子":"baked","ギフト":"gift"};
+// 2026-09-23、カテゴリー画像は個別に保存したURLではなく、指定した商品（sourceCategory/
+// sourceIndex）の画像を都度参照する方式に変更（admin.html側の変更と対応）。こうすることで
+// 商品側の写真を差し替えればカテゴリー画像も自動的に追従し、参照先が個別に消えて表示が
+// 壊れる事故が起きなくなる。参照先が見つからない場合はc.img（フォールバック用キャッシュ）を使う。
+const CATEGORY_PRODUCT_POOLS={decorationCakes:()=>menuDecorationCakes,cutcakes:()=>menuCutcakes,rollcakes:()=>menuRollcakes,baked:()=>menuBaked,gift:()=>menuGift};
+function resolveCategoryImg(c){
+  if(c&&c.sourceCategory&&CATEGORY_PRODUCT_POOLS[c.sourceCategory]){
+    const pool=CATEGORY_PRODUCT_POOLS[c.sourceCategory]();
+    const item=Array.isArray(pool)?pool[c.sourceIndex]:null;
+    if(item&&item.img)return item.img;
+  }
+  return c?c.img:"";
+}
 function renderCategories(){
   catGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");const galKey=CATEGORY_GALLERY_KEY[c.name];a.href=galKey?("gallery.html?cat="+galKey):("product.html?type=category&idx="+i);a.className="cat-card";const rawName=en?(c.en||c.name):c.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();const enCaption=(!en&&c.en)?`<div class="cat-card__en">${escape(c.en)}</div>`:"";a.innerHTML=`<div class="cat-card__img"><img src="${c.img}" alt="${escape(plainName)}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${safeName}</div>${enCaption}</div>`;catGrid.appendChild(a)});
+  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");const galKey=CATEGORY_GALLERY_KEY[c.name];a.href=galKey?("gallery.html?cat="+galKey):("product.html?type=category&idx="+i);a.className="cat-card";const rawName=en?(c.en||c.name):c.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();const enCaption=(!en&&c.en)?`<div class="cat-card__en">${escape(c.en)}</div>`:"";a.innerHTML=`<div class="cat-card__img"><img src="${escape(resolveCategoryImg(c))}" alt="${escape(plainName)}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${safeName}</div>${enCaption}</div>`;catGrid.appendChild(a)});
 }
 
 // 2026-09-08、「おすすめ商品」専用のストック写真データは廃止。デコレーションケーキ・
@@ -1114,6 +1127,7 @@ function applyFetchedFeaturedMenu(data){
   if(Array.isArray(data.baked))menuBaked=data.baked;
   if(Array.isArray(data.gift))menuGift=data.gift;
   renderRecommended();
+  renderCategories(); // 商品データがカテゴリーの参照解決より後に届いた場合に備えて再描画する
 }
 window.applyFetchedFeaturedMenu=applyFetchedFeaturedMenu;
 

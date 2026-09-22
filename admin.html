@@ -2043,11 +2043,15 @@ const GALLERY_PICKER_CATEGORIES = [
   { key: "baked", label: "焼き菓子" },
   { key: "gift", label: "ギフト" },
 ];
+// 2026-09-23オーナー指示：カテゴリー画像は「写真データを個別にコピーして持つ」のではなく、
+// 「どの商品の画像を使うか」を参照で指定する方式に変更する（商品側の写真を差し替えれば
+// カテゴリー画像も自動的に追従し、今回のようにStorageファイルが個別に消えて壊れる心配がなくなる）。
+// そのためonSelectにはURLだけでなく、選んだ元の商品（sourceCategory/sourceIndex）も渡す。
 function openGalleryPickerModal(onSelect) {
   const photos = [];
   GALLERY_PICKER_CATEGORIES.forEach(({ key, label }) => {
     const arr = (workingData && Array.isArray(workingData[key])) ? workingData[key] : [];
-    arr.forEach(item => { if (item && item.img) photos.push({ img: item.img, title: item.name || "", catLabel: label }); });
+    arr.forEach((item, idx) => { if (item && item.img) photos.push({ img: item.img, title: item.name || "", catLabel: label, sourceCategory: key, sourceIndex: idx }); });
   });
   const overlay = document.createElement("div");
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:flex;align-items:center;justify-content:center;padding:24px;";
@@ -2069,46 +2073,96 @@ function openGalleryPickerModal(onSelect) {
     cell.type = "button";
     cell.style.cssText = "border:1px solid var(--color-line);background:#fff;padding:0;cursor:pointer;overflow:hidden;text-align:left;";
     cell.innerHTML = `<img src="${p.img}" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;"><div style="padding:8px 10px;font-size:12.5px;"><span style="color:var(--color-accent-dark);">${escapeHtml(p.catLabel)}</span><br>${escapeHtml(p.title)}</div>`;
-    cell.addEventListener("click", () => { onSelect(p.img); overlay.remove(); });
+    cell.addEventListener("click", () => { onSelect(p.img, { category: p.sourceCategory, index: p.sourceIndex }); overlay.remove(); });
     gridEl.appendChild(cell);
   });
   const close = () => overlay.remove();
   panel.querySelector("#galleryPickerClose").addEventListener("click", close);
   overlay.addEventListener("click", e => { if (e.target === overlay) close(); });
 }
+// 2026-09-23、カテゴリー画像は指定した商品（sourceCategory/sourceIndex）の画像を都度解決して
+// 使う。参照先の商品が見つからない場合（削除された等）はc.img（最後にキャッシュした値。
+// 手動アップロード時の値でもある）にフォールバックする。
+function resolveCategoryImg(c) {
+  if (c && c.sourceCategory && Array.isArray(workingData[c.sourceCategory])) {
+    const item = workingData[c.sourceCategory][c.sourceIndex];
+    if (item && item.img) return item.img;
+  }
+  return c ? c.img : "";
+}
 function renderCategories() {
   const grid = document.getElementById("categoriesGrid"); grid.innerHTML = "";
   workingData.categories.forEach((c, i) => {
     if (c.visible === undefined) c.visible = true;
     if (!Array.isArray(c.gallery)) c.gallery = [];
+    const resolvedImg = resolveCategoryImg(c);
     const item = makeImageItem({
-      preview: c.img,
+      preview: resolvedImg,
       originalSrc: c.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 4 / 3,
       fields: [
         { label: "カテゴリ名", key: "name", value: c.name, type: "input" },
         { label: "英語表記", key: "en", value: c.en, type: "input" },
-        { label: "メイン画像URL（トップページ・一覧・商品詳細ページの一番上に表示されます）", key: "img", value: c.img, type: "input" },
+        { label: "メイン画像URL（「商品と連動」時はここを直接編集すると連動が解除されます）", key: "img", value: c.img, type: "input" },
         { label: "説明文（商品詳細ページに表示されます）", key: "desc", value: c.desc||"", type: "textarea" }
       ],
-      onChange: (k, v) => { workingData.categories[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); updateSaveBar(); },
-      onFile: historyAwareOnFile(c, "img", () => { renderCategories(); updateSaveBar(); }),
+      onChange: (k, v) => {
+        workingData.categories[i][k] = v;
+        if (k === "img") { c.sourceCategory = null; c.sourceIndex = null; refreshPreview(grid.children[i], v); }
+        updateSaveBar();
+      },
+      // 手動でファイルを選ぶ/位置を調整する＝このカテゴリー専用の画像に切り替える意思表示のため、
+      // 商品との連動（sourceCategory/sourceIndex）はここで解除する。
+      onFile: result => {
+        const { url, original } = applyCropResult(result);
+        pushImageHistory(c, "img", c.img);
+        c.img = url;
+        if (original) c.imgOriginal = original;
+        c.sourceCategory = null; c.sourceIndex = null;
+        renderCategories();
+        updateSaveBar();
+      },
       onDelete: () => { workingData.categories.splice(i,1); renderCategories(); updateSaveBar(); }
     });
     const pickBtn = document.createElement("button");
     pickBtn.type = "button";
     pickBtn.className = "btn btn--small btn--ghost";
-    pickBtn.textContent = "🖼 ギャラリーから選ぶ";
+    pickBtn.textContent = "🔗 商品の写真と連動させる";
     pickBtn.addEventListener("click", () => {
-      openGalleryPickerModal(url => {
-        pushImageHistory(c, "img", c.img);
-        c.img = url;
+      openGalleryPickerModal((url, meta) => {
+        c.sourceCategory = meta.category;
+        c.sourceIndex = meta.index;
+        c.img = url; // Firebase未同期時などのフォールバック用キャッシュ。表示は原則resolveCategoryImgで解決する
         renderCategories();
         updateSaveBar();
       });
     });
     item.querySelector(".img-item__actions").appendChild(pickBtn);
+    // 現在の連動状態を表示（連動中なら参照先の商品名、未連動ならその旨と解除ボタン）
+    const refStatus = document.createElement("div");
+    refStatus.style.cssText = "font-size:12px;margin-top:6px;line-height:1.6;";
+    if (c.sourceCategory) {
+      const catLabel = (GALLERY_PICKER_CATEGORIES.find(g => g.key === c.sourceCategory) || {}).label || c.sourceCategory;
+      const productItem = (workingData[c.sourceCategory] || [])[c.sourceIndex];
+      refStatus.style.color = "var(--color-accent-dark)";
+      refStatus.innerHTML = `🔗 商品と連動中：${escapeHtml(catLabel)}「${escapeHtml(productItem ? (productItem.name || "") : "見つかりません")}」の画像を自動表示`;
+      const unlinkBtn = document.createElement("button");
+      unlinkBtn.type = "button";
+      unlinkBtn.textContent = "連動を解除";
+      unlinkBtn.className = "btn btn--small btn--ghost";
+      unlinkBtn.style.cssText = "font-size:10px;padding:2px 6px;margin-left:8px;";
+      unlinkBtn.addEventListener("click", () => {
+        c.img = resolveCategoryImg(c); // 解除時点の表示画像をこのカテゴリー専用の値として確定させる
+        c.sourceCategory = null; c.sourceIndex = null;
+        renderCategories(); updateSaveBar();
+      });
+      refStatus.appendChild(unlinkBtn);
+    } else {
+      refStatus.style.color = "var(--color-text-soft)";
+      refStatus.textContent = "商品と連動していません（このカテゴリー専用の画像を個別管理中）";
+    }
+    item.querySelector(".img-item__location").insertAdjacentElement("afterend", refStatus);
     appendImageHistoryUI(item, c, "img", () => { renderCategories(); updateSaveBar(); });
     item.appendChild(makeGalleryEditor(c, "img", { maxWidth: 2400, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.categories[i].visible, () => { workingData.categories[i].visible = !workingData.categories[i].visible; renderCategories(); updateSaveBar(); });
