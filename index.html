@@ -118,7 +118,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .recommended__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,274px));gap:28px;justify-content:center}
 .rec-card{text-align:center;transition:transform .3s cubic-bezier(.25,.46,.45,.94)}
 .rec-card:hover{transform:translateY(-6px)}
-.rec-card__img{aspect-ratio:1/1;overflow:hidden;margin-bottom:18px;background:var(--color-bg-soft);border-radius:3px;box-shadow:0 4px 12px rgba(58,42,35,.08);transition:box-shadow .3s}
+.rec-card__img{aspect-ratio:1/1;overflow:hidden;margin-bottom:18px;background:var(--color-bg-soft);border-radius:12px;box-shadow:0 4px 12px rgba(58,42,35,.08);transition:box-shadow .3s}
 .rec-card:hover .rec-card__img{box-shadow:0 8px 24px rgba(201,169,110,.15)}
 .rec-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .7s cubic-bezier(.25,.46,.45,.94)}
 .rec-card:hover .rec-card__img img{transform:scale(1.07)}
@@ -252,6 +252,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 /* ===== 法人向けバナー ===== */
 /* 2026-09-22、ファーストビュー直下の「2つの予約導線」新設(CRO改修指示書) */
 .quick-reserve{background:var(--color-bg-soft);padding:56px 24px 40px}
+.quick-reserve__kicker{max-width:var(--max-w);margin:0 auto 22px;text-align:center;font-family:var(--font-mincho);font-size:15px;letter-spacing:.06em;color:var(--color-accent-dark);font-weight:600}
 .quick-reserve__inner{max-width:var(--max-w);margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:22px}
 .quick-reserve__card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:30px 30px 26px;background:#fff;border:1px solid var(--color-line);transition:transform .25s ease,box-shadow .25s ease;text-decoration:none}
 .quick-reserve__card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(58,42,35,.14)}
@@ -671,6 +672,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
      2つの予約導線を並べる。「定番ホールケーキ」はLINEへ直行、「オーダーケーキ」は仕様・
      ギャラリー確認ページ(reservation.html)へ。直前予約(受取2日未満)は電話誘導を明記。 -->
 <section class="quick-reserve" id="quickReserve">
+  <p class="quick-reserve__kicker">「こんなケーキできる？」を叶える。LINEでかんたん予約・ご相談</p>
   <div class="quick-reserve__inner">
     <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="quick-reserve__card quick-reserve__card--urgent">
       <span class="quick-reserve__tag">お急ぎの方へ</span>
@@ -690,7 +692,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <section class="categories" id="categories">
   <div class="section__inner">
-    <div class="section__head"><span class="section__en">Categories</span><h2 class="section__title">商品カテゴリー</h2></div>
+    <div class="section__head"><span class="section__en">Categories</span><h2 class="section__title">今日はどれにする？<br>こいまりのお品書き</h2></div>
     <div class="categories__grid" id="categoriesGrid"></div>
   </div>
 </section>
@@ -757,7 +759,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="story-split__panel">
     <span class="story-split__tag">For Every Generation</span>
     <h2 class="story-split__title">小さなお子様からご年配の方まで安心して</h2>
-    <p class="story-split__body">お菓子に使用するお酒はごく少量にとどめ、アルコール分は焼き上げの際にしっかりと飛ばすことを基本としています。小さなお子様からご年配の方まで、幅広い世代の皆様に安心して召し上がっていただけるお菓子作りに努めています。</p>
+    <p class="story-split__body">お菓子に使用するお酒は、素材の風味を引き立てるためのごく少量にとどめ、焼き上げの加熱工程でアルコール分はしっかりと飛ばすことを基本としています。小さなお子様やご年配の方はもちろん、妊娠中の方やお酒が苦手な方にも、安心して召し上がっていただけるお菓子作りに努めています。</p>
   </div>
 </section>
 

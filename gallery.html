@@ -56,6 +56,8 @@ a{color:inherit;text-decoration:none}
 .page-head__title{font-family:var(--font-mincho);font-size:clamp(28px,3.8vw,38px);letter-spacing:.2em;font-weight:600;position:relative;display:inline-block;padding-bottom:24px;margin-bottom:24px}
 .page-head__title::after{content:"";position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:52px;height:1px;background:var(--color-gold)}
 .page-head__lead{color:var(--color-text);font-size:16px;font-family:var(--font-mincho);letter-spacing:.04em;line-height:2}
+/* 2026-09-22、お酒の使用に関する安心表記バッジ（オーナー指示） */
+.safety-note{display:inline-block;margin-top:16px;padding:8px 20px;background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;font-family:var(--font-mincho);font-size:13px;letter-spacing:.03em;color:var(--color-text-soft)}
 main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 
 /* ===== カテゴリタブ ===== */
@@ -67,14 +69,16 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 
 /* ===== ギャラリーグリッド ===== */
 .gallery-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-bottom:60px}
-.gal-card{background:var(--color-paper);overflow:hidden;border:1px solid var(--color-line);transition:transform .3s,box-shadow .3s,border-color .3s;display:flex;flex-direction:column;text-decoration:none;color:inherit}
-.gal-card:hover{transform:translateY(-4px);box-shadow:0 14px 30px rgba(58,42,35,.12);border-color:var(--color-accent-dark)}
+.gal-card{background:var(--color-paper);overflow:hidden;border:1px solid var(--color-line);border-radius:14px;box-shadow:0 4px 14px rgba(58,42,35,.06);transition:transform .3s,box-shadow .3s,border-color .3s;display:flex;flex-direction:column;text-decoration:none;color:inherit}
+.gal-card:hover{transform:translateY(-4px);box-shadow:0 16px 34px rgba(58,42,35,.14);border-color:var(--color-accent-dark)}
 .gal-card__img{aspect-ratio:1/1;overflow:hidden;background:var(--color-bg-soft);cursor:zoom-in;position:relative}
 a.gal-card .gal-card__img{cursor:pointer}
 .gal-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .gal-card:hover .gal-card__img img{transform:scale(1.06)}
 .gal-card__cat{position:absolute;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
 .gal-card__seasonal{position:absolute;top:12px;right:12px;background:rgba(74,58,42,.88);color:#f5d6a8;font-family:var(--font-mincho);font-size:11.5px;letter-spacing:.06em;padding:5px 11px;font-weight:600;backdrop-filter:blur(4px)}
+/* 2026-09-22、既存の「featured」データ（おすすめ商品に使われている実際のフラグ）を流用した人気バッジ */
+.gal-card__popular{position:absolute;bottom:12px;left:12px;background:rgba(176,59,72,.92);color:#fff;font-family:var(--font-mincho);font-size:11.5px;letter-spacing:.06em;padding:5px 11px;font-weight:600;backdrop-filter:blur(4px);border-radius:999px}
 .gal-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
 .gal-card__no{font-family:var(--font-sans);font-size:12px;letter-spacing:.02em;color:var(--color-accent-dark);font-weight:700;margin-bottom:4px}
 .gal-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:8px;font-weight:600;line-height:1.5}
@@ -176,11 +180,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="page-head">
   <div class="page-head__inner">
     <span class="page-head__en">Gallery &amp; Voices</span>
-    <h1 class="page-head__title">作品ギャラリー</h1>
+    <h1 class="page-head__title">みんなの「美味しい！」を集めました</h1>
     <p class="page-head__lead">
       デコレーションケーキの作品例から、カットケーキ・ロールケーキなど店頭の商品まで。<br>
       カテゴリーを選んで、こいまりのお菓子をご覧ください。
     </p>
+    <span class="safety-note">🍶 お酒はごく少量・焼き上げ時にしっかり加熱飛散済み、小さなお子様も安心</span>
   </div>
 </div>
 <main>
@@ -316,7 +321,7 @@ const urlCat = new URLSearchParams(location.search).get("cat");
 let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
 
 function menuItemToCard(item, catKey, idx, productType){
-  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal };
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured };
 }
 function buildGallery(){
   const decorationCards = menuDecorationCakes
@@ -412,6 +417,7 @@ function renderGrid(){
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
         ${g.seasonal ? `<span class="gal-card__seasonal">季節限定</span>` : ""}
+        ${g.featured ? `<span class="gal-card__popular">★ 人気</span>` : ""}
         <img src="${escape(g.img)}" alt="${escape(g.title)}">
       </div>
       ${subPhotos.length ? `<div class="gal-card__thumbs">${subPhotos.map((p,i) => `<img class="gal-card__thumb" src="${escape(p)}" data-idx="${i+1}" alt="">`).join("")}</div>` : ""}
