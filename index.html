@@ -678,11 +678,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <span class="quick-reserve__sub">最短3日後〜・LINEで簡単予約</span>
       <span class="quick-reserve__btn">LINEで予約する →</span>
     </a>
-    <a href="reservation.html" class="quick-reserve__card quick-reserve__card--custom">
+    <a href="gallery.html" class="quick-reserve__card quick-reserve__card--custom">
       <span class="quick-reserve__tag">こだわりたい方へ</span>
-      <span class="quick-reserve__title">オーダーケーキの仕様・ギャラリーを見る</span>
+      <span class="quick-reserve__title">ギャラリー・ケーキの仕様を見る</span>
       <span class="quick-reserve__sub">サイズ・価格の目安をじっくり確認</span>
-      <span class="quick-reserve__btn">仕様を見る →</span>
+      <span class="quick-reserve__btn">ギャラリーを見る →</span>
     </a>
   </div>
   <p class="quick-reserve__note">※お受取日まで2日を切っている場合は、お電話（<a href="tel:07091580641">070-9158-0641</a>）にて直接ご相談ください。ホームページの「仕様」をご覧いただきながらお電話いただけますとスムーズです。</p>
@@ -855,7 +855,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </section>
 
-<section class="stats" id="statsKoimari">
+<section class="stats" id="statsKoimari" style="display:none">
   <div class="stats__inner">
     <div class="stats__head"><span class="section__en">By the Numbers</span><h2 class="section__title">数字で見るこいまり</h2></div>
     <div class="stats__grid" id="statsGrid"></div>
@@ -1372,6 +1372,14 @@ const db = getDatabase(fbApp);
 onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
   const cfg = snapshot.val() || { show: true, label: "Special", text: "母の日ケーキのご予約を受け付けております", link: "mothers-day.html" };
   if (typeof window.applyEventBannerConfig === "function") window.applyEventBannerConfig(cfg);
+});
+
+// 「数字で見るこいまり」のトップページ表示ON/OFF(2026-09-22、CRO改修指示書により既定オフ)。
+// admin.htmlの「数字で見る」パネルにある切り替えボタン(siteConfig/showStatsSection)で管理者が
+// 再表示できるようにしておく。初期表示はCSSでdisplay:noneにしてあり、trueの時だけ解除する。
+onValue(ref(db, "siteConfig/showStatsSection"), (snapshot) => {
+  const el = document.getElementById("statsKoimari");
+  if (el) el.style.display = snapshot.val() ? "" : "none";
 });
 
 // 管理画面で保存された画像データ(ヒーロー・カテゴリ・おすすめ・体験プログラム等)を反映する。
