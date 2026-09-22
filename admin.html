@@ -1534,6 +1534,34 @@ function openCropModal(dataUrl, aspectRatio, ratioOptions, originalBlob) {
     modal.style.display = "flex";
   });
 }
+// 2026-09-23追加：オーダーメイド作品ギャラリーは縦長のケーキ（複数段等）を正方形に切り抜くと
+// 上下が必ず切れてしまうという指摘への対応。Cropper.jsの選択枠自体を画像の外へはみ出させる
+// （viewMode:0）方式は、はみ出した位置の可視化・ドラッグ操作の両面で不安定になりやすいため、
+// より単純で確実な方法として「切り抜きを始める前に、目的のアスペクト比に合わせた白背景の
+// キャンバスへ元画像を中央配置してから」Cropper.jsへ渡す。こうすると、はみ出す部分は
+// 画像データそのものの一部（白いピクセル）になるため、以降の切り抜き処理（getCroppedCanvas等）
+// は一切変更不要で、既存のカテゴリーには影響しない。
+function padImageToAspectRatio(dataUrl, aspectRatio) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous"; // Storage上の既存URL（位置を調整時）を渡してもcanvasが汚染されないように
+    img.onload = () => {
+      const naturalW = img.naturalWidth, naturalH = img.naturalHeight;
+      let canvasW, canvasH;
+      if (naturalW / naturalH > aspectRatio) { canvasW = naturalW; canvasH = Math.round(naturalW / aspectRatio); }
+      else { canvasH = naturalH; canvasW = Math.round(naturalH * aspectRatio); }
+      const canvas = document.createElement("canvas");
+      canvas.width = canvasW; canvas.height = canvasH;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvasW, canvasH);
+      ctx.drawImage(img, Math.round((canvasW - naturalW) / 2), Math.round((canvasH - naturalH) / 2));
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => reject(new Error("画像を読み込めませんでした"));
+    img.src = dataUrl;
+  });
+}
 function closeCropModal() {
   document.getElementById("cropModal").style.display = "none";
   if (_cropperInstance) { _cropperInstance.destroy(); _cropperInstance = null; }
@@ -1589,7 +1617,9 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
 });
 // aspectRatioを指定すると切り抜きモーダルを開く。キャンセル時はnullを返す。
 // Cropper.js未読み込み（CDN読み込み失敗等）の場合は従来の自動リサイズにフォールバックする。
-async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions) {
+// padToFit:trueの場合、切り抜き前に目的のアスペクト比の白背景キャンバスへ元画像を中央配置して
+// から渡す（オーダーメイド作品ギャラリー等、縦長の写真の全体を切らずに収めたい場合用）。
+async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions, padToFit) {
   if (file.size > 15 * 1024 * 1024) { throw new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください"); }
   if (typeof Cropper !== "function") { return fileToDataUrl(file, targetWidth); }
   const rawDataUrl = await new Promise((resolve, reject) => {
@@ -1598,8 +1628,9 @@ async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions) 
     r.onerror = () => reject(r.error);
     r.readAsDataURL(file);
   });
+  const sourceDataUrl = padToFit ? await padImageToAspectRatio(rawDataUrl, aspectRatio) : rawDataUrl;
   _cropTargetWidth = targetWidth;
-  return openCropModal(rawDataUrl, aspectRatio, ratioOptions, file);
+  return openCropModal(sourceDataUrl, aspectRatio, ratioOptions, file);
 }
 function renderAll() {
   renderHero(); renderGreeting(); renderCategories(); renderDecorationCakes(); renderCutcakes(); renderRollcakes(); renderBaked(); renderGift(); renderExperiences();
@@ -1676,7 +1707,7 @@ function imageLocationLabel(src) {
     return `<span style="color:var(--color-text-mute, var(--color-text-soft));">保管場所: 外部URL（${escapeHtml(host)}）</span>`;
   } catch (e) { return ""; }
 }
-function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions }) {
+function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions, padToFit }) {
   const item = document.createElement("div");
   item.className = "img-item";
   item.dataset.maxwidth = maxWidth || "";
@@ -1696,7 +1727,7 @@ function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelet
     if (!file || !file.type.startsWith("image/")) { showToast("画像ファイルを選択してください", "error"); return; }
     try {
       if (aspectRatio) {
-        const result = await cropAndResizeImage(file, aspectRatio, maxWidth, ratioOptions);
+        const result = await cropAndResizeImage(file, aspectRatio, maxWidth, ratioOptions, padToFit);
         if (result !== null) onFile(result); // nullはキャンセルを意味するため何もしない
       } else {
         onFile(await fileToDataUrl(file, maxWidth));
@@ -1745,8 +1776,11 @@ function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelet
       const cropSourceSrc = originalSrc || previewEl.querySelector("img")?.src;
       if (!cropSourceSrc) { showToast("先に画像を登録してください", "error"); return; }
       _cropTargetWidth = maxWidth;
-      const result = await openCropModal(cropSourceSrc, aspectRatio, ratioOptions);
-      if (result !== null) onFile(result);
+      try {
+        const sourceForCrop = padToFit ? await padImageToAspectRatio(cropSourceSrc, aspectRatio) : cropSourceSrc;
+        const result = await openCropModal(sourceForCrop, aspectRatio, ratioOptions);
+        if (result !== null) onFile(result);
+      } catch (err) { showToast(err.message || "画像の読み込みに失敗しました", "error"); }
     });
     actions.appendChild(recropBtn);
   }
@@ -4207,6 +4241,10 @@ function renderGalleryAdmin() {
       originalSrc: g.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 1,
+      // 2026-09-23オーナー指示：多段ケーキ等、縦長の写真を正方形に切り抜くと全体が収まらないため、
+      // このパネル（オーダーメイド作品ギャラリー）だけは切り抜き前に白背景で正方形に整えてから
+      // 選択できるようにする（ケーキの一部が切れることなく全体を収められる）。
+      padToFit: true,
       fields: [
         { label: `タイトル（サイト上の表示は「作品No.${String(i+1).padStart(2,"0")}」）`, key: "title", value: g.title||"", type: "input" },
         { label: "説明", key: "desc", value: g.desc||"", type: "textarea" },
