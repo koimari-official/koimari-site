@@ -1294,6 +1294,11 @@ function mergeSiteImages(base, fresh, working) {
   const merged = {
     hero: mergeArraySection(base.hero, fresh.hero, working.hero, "ヒーロー画像", conflicts),
     greeting: mergeScalarSection(base.greeting, fresh.greeting, working.greeting, "店舗紹介画像", conflicts),
+    // 2026-09-23追加。greetingOriginal（元画像）が無いとSITE_IMAGES_KEYSには含まれるのにmerged
+    // からは抜け落ち、保存のたびにnullで上書きされてしまう（mergeSiteImagesはキーを列挙する
+    // 実装のため、SITE_IMAGES_KEYSに足しただけでは自動的に拾われない）。greeting本体と同じ
+    // scalarとして必ず一緒にマージする。
+    greetingOriginal: mergeScalarSection(base.greetingOriginal, fresh.greetingOriginal, working.greetingOriginal, "店舗紹介画像（元画像）", conflicts),
     categories: mergeArraySection(base.categories, fresh.categories, working.categories, "商品カテゴリー", conflicts),
     decorationCakes: mergeArraySection(base.decorationCakes, fresh.decorationCakes, working.decorationCakes, "デコレーションケーキ", conflicts),
     cutcakes: mergeArraySection(base.cutcakes, fresh.cutcakes, working.cutcakes, "カットケーキ", conflicts),
@@ -1490,9 +1495,16 @@ function fileToDataUrl(file, maxWidth) {
 let _cropperInstance = null;
 let _cropResolve = null;
 let _cropTargetWidth = null;
-function openCropModal(dataUrl, aspectRatio, ratioOptions) {
+let _cropOriginalBlob = null;
+// 2026-09-23オーナー指示：「元画像はそのまま保存し、選択した範囲を表示に使う」という
+// 一般的な非破壊トリミングの考え方に統一。新規ファイルのアップロード時はoriginalBlobに
+// 元ファイルを渡すと、切り抜き結果とは別にオリジナルもStorageへ保存し、両方のURLを返す。
+// 「位置を調整」（既存画像の再トリミング）はoriginalBlob省略＝新しいオリジナルは作らず、
+// 既存のオリジナル（無ければ現状の表示画像）から切り抜き直すだけにする。
+function openCropModal(dataUrl, aspectRatio, ratioOptions, originalBlob) {
   return new Promise((resolve) => {
     _cropResolve = resolve;
+    _cropOriginalBlob = originalBlob || null;
     const modal = document.getElementById("cropModal");
     const img = document.getElementById("cropImage");
     const toggle = document.getElementById("cropRatioToggle");
@@ -1528,10 +1540,11 @@ function closeCropModal() {
 }
 document.getElementById("cropCancelBtn").addEventListener("click", () => {
   closeCropModal();
+  _cropOriginalBlob = null;
   if (_cropResolve) { _cropResolve(null); _cropResolve = null; }
 });
 document.getElementById("cropConfirmBtn").addEventListener("click", () => {
-  if (!_cropperInstance) { closeCropModal(); if (_cropResolve) { _cropResolve(null); _cropResolve = null; } return; }
+  if (!_cropperInstance) { closeCropModal(); _cropOriginalBlob = null; if (_cropResolve) { _cropResolve(null); _cropResolve = null; } return; }
   const targetWidth = _cropTargetWidth || 1000;
   let canvas;
   try {
@@ -1543,23 +1556,35 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
     const resolveFn = _cropResolve;
     closeCropModal();
     _cropResolve = null;
+    _cropOriginalBlob = null;
     showToast("この画像は現在の位置のまま調整できませんでした。もう一度ファイルから選び直してください", "error");
     if (resolveFn) resolveFn(null);
     return;
   }
   const resolveFn = _cropResolve;
+  const originalBlob = _cropOriginalBlob;
   closeCropModal();
   _cropResolve = null;
+  _cropOriginalBlob = null;
   // 2026-09-11、切り抜き後の画像もStorageへアップロードしてURLを返す（fileToDataUrlと同じ理由）。
   // アップロード失敗時はdata URLにフォールバックする。
+  // 2026-09-23、元画像（originalBlob）が渡されている場合は、それも並行してStorageへアップロード
+  // し、{cropped, original}の形で返す。「元画像はそのまま保存し、選んだ範囲を表示に使う」という
+  // オーナー指示（一般的な非破壊トリミング）に対応するため。再トリミング（originalBlobなし）の
+  // 場合はoriginal:nullを返し、呼び出し側は既存のオリジナルを上書きしない。
   canvas.toBlob(async (blob) => {
-    let result;
-    try { result = canvas.toDataURL("image/jpeg", 0.92); } catch (err) { result = null; }
+    let cropped;
+    try { cropped = canvas.toDataURL("image/jpeg", 0.92); } catch (err) { cropped = null; }
     if (blob && typeof window.fbUploadImage === "function") {
-      try { result = await window.fbUploadImage(blob); }
+      try { cropped = await window.fbUploadImage(blob); }
       catch (err) { console.warn("Storageアップロード失敗、data URLにフォールバック:", err); }
     }
-    if (resolveFn) resolveFn(result);
+    let original = null;
+    if (originalBlob && typeof window.fbUploadImage === "function") {
+      try { original = await window.fbUploadImage(originalBlob, originalBlob.type); }
+      catch (err) { console.warn("元画像のStorageアップロードに失敗（切り抜き結果は保存されます）:", err); }
+    }
+    if (resolveFn) resolveFn({ cropped, original });
   }, "image/jpeg", 0.92);
 });
 // aspectRatioを指定すると切り抜きモーダルを開く。キャンセル時はnullを返す。
@@ -1574,7 +1599,7 @@ async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions) 
     r.readAsDataURL(file);
   });
   _cropTargetWidth = targetWidth;
-  return openCropModal(rawDataUrl, aspectRatio, ratioOptions);
+  return openCropModal(rawDataUrl, aspectRatio, ratioOptions, file);
 }
 function renderAll() {
   renderHero(); renderGreeting(); renderCategories(); renderDecorationCakes(); renderCutcakes(); renderRollcakes(); renderBaked(); renderGift(); renderExperiences();
@@ -1651,7 +1676,7 @@ function imageLocationLabel(src) {
     return `<span style="color:var(--color-text-mute, var(--color-text-soft));">保管場所: 外部URL（${escapeHtml(host)}）</span>`;
   } catch (e) { return ""; }
 }
-function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions }) {
+function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions }) {
   const item = document.createElement("div");
   item.className = "img-item";
   item.dataset.maxwidth = maxWidth || "";
@@ -1708,15 +1733,19 @@ function makeImageItem({ preview, fields, onChange, onFile, onDelete, maxWidth, 
   fileBtn.appendChild(fileInput); actions.appendChild(fileBtn);
   // 2026-09-21オーナー指示：新しいファイルを選び直さなくても、登録済みの画像のまま
   // 切り抜き位置だけ調整し直せるようにする（構図の微調整のたびに再アップロードするのは非効率なため）。
+  // 2026-09-23、以前は表示中の（=すでに切り抜き済みの小さい）画像を再度切り抜いていたため、
+  // 選択範囲を一度縮めるとそれ以上広げられなくなる問題があった。元画像（originalSrc）が
+  // 保存されていればそちらを使い、フル解像度から選び直せるようにする。まだ元画像が無い
+  // 古いデータは、従来通り表示中の画像から切り抜く（次に新しいファイルを選べば以降は元画像も残る）。
   if (aspectRatio) {
     const recropBtn = document.createElement("button");
     recropBtn.type = "button";
     recropBtn.textContent = "位置を調整";
     recropBtn.addEventListener("click", async () => {
-      const currentSrc = previewEl.querySelector("img")?.src;
-      if (!currentSrc) { showToast("先に画像を登録してください", "error"); return; }
+      const cropSourceSrc = originalSrc || previewEl.querySelector("img")?.src;
+      if (!cropSourceSrc) { showToast("先に画像を登録してください", "error"); return; }
       _cropTargetWidth = maxWidth;
-      const result = await openCropModal(currentSrc, aspectRatio, ratioOptions);
+      const result = await openCropModal(cropSourceSrc, aspectRatio, ratioOptions);
       if (result !== null) onFile(result);
     });
     actions.appendChild(recropBtn);
@@ -1810,11 +1839,23 @@ function pushImageHistory(item, key, oldUrl) {
     dropped.forEach(u => { if (typeof window.fbDeleteImage === "function") window.fbDeleteImage(u); });
   }
 }
-// アップロードで画像を差し替える際、置き換え前の画像を履歴に積んでからitem[key]を更新するonFileラッパー
+// 2026-09-23、cropAndResizeImage/openCropModalの戻り値は{cropped, original}のオブジェクトに
+// なった（従来コード・Cropper.js未読み込み時のフォールバックは文字列のまま）。呼び出し側で
+// いちいち分岐しなくて済むよう、両方の形を統一的に{url, original}へ正規化するヘルパー。
+function applyCropResult(result) {
+  if (result && typeof result === "object") return { url: result.cropped, original: result.original || null };
+  return { url: result, original: null };
+}
+// アップロードで画像を差し替える際、置き換え前の画像を履歴に積んでからitem[key]を更新するonFileラッパー。
+// 2026-09-23、元画像（<key>Original）が付いてきた場合はそれも一緒に保存する（「元画像はそのまま保存し、
+// 選択した範囲を表示に使う」というオーナー指示に対応。再トリミングのみの場合はoriginalが無いため、
+// 既存の<key>Originalを上書きしない＝保持され続ける）。
 function historyAwareOnFile(item, key, afterSet) {
-  return newUrl => {
+  return result => {
+    const { url, original } = applyCropResult(result);
     pushImageHistory(item, key, item[key]);
-    item[key] = newUrl;
+    item[key] = url;
+    if (original) item[key + "Original"] = original;
     afterSet();
   };
 }
@@ -1910,6 +1951,7 @@ function renderHero() {
     if (s.visible === undefined) s.visible = true;
     const item = makeImageItem({
       preview: s.src,
+      originalSrc: s.srcOriginal,
       maxWidth: 2400,
       aspectRatio: 16 / 9,
       fields: [
@@ -1932,12 +1974,18 @@ function renderGreeting() {
   const grid = document.getElementById("greetingGrid"); grid.innerHTML = "";
   grid.appendChild(makeImageItem({
     preview: workingData.greeting,
+    originalSrc: workingData.greetingOriginal,
     maxWidth: 2400,
     aspectRatio: 4 / 5,
     ratioOptions: [{ label: "縦 (4:5)", ratio: 4 / 5 }, { label: "横 (5:4)", ratio: 5 / 4 }],
     fields: [{ label: "画像URL", key: "src", value: workingData.greeting, type: "input" }],
     onChange: (k, v) => { workingData.greeting = v; refreshPreview(grid.children[0], v); updateSaveBar(); },
-    onFile: u => { workingData.greeting = u; renderGreeting(); updateSaveBar(); },
+    onFile: result => {
+      const { url, original } = applyCropResult(result);
+      workingData.greeting = url;
+      if (original) workingData.greetingOriginal = original;
+      renderGreeting(); updateSaveBar();
+    },
     onDelete: null
   }));
 }
@@ -1997,6 +2045,7 @@ function renderCategories() {
     if (!Array.isArray(c.gallery)) c.gallery = [];
     const item = makeImageItem({
       preview: c.img,
+      originalSrc: c.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 4 / 3,
       fields: [
@@ -2057,6 +2106,7 @@ function renderDecorationCakes() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
+      originalSrc: r.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 1,
       fields: [
@@ -2084,6 +2134,7 @@ function renderCutcakes() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
+      originalSrc: r.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 1,
       fields: [
@@ -2111,6 +2162,7 @@ function renderRollcakes() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
+      originalSrc: r.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 1,
       fields: [
@@ -2138,6 +2190,7 @@ function renderBaked() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
+      originalSrc: r.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 1,
       fields: [
@@ -2165,6 +2218,7 @@ function renderGift() {
     if (!Array.isArray(r.gallery)) r.gallery = [];
     const item = makeImageItem({
       preview: r.img,
+      originalSrc: r.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 1,
       fields: [
@@ -2191,6 +2245,7 @@ function renderExperiences() {
     if (e.visible === undefined) e.visible = true; // 既存データの後方互換
     const item = makeImageItem({
       preview: e.img,
+      originalSrc: e.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 5 / 3,
       fields: [
@@ -3717,6 +3772,7 @@ function renderNewsAdmin() {
       if (n.visible === undefined) n.visible = true;
       const item = makeImageItem({
         preview: n.img,
+        originalSrc: n.imgOriginal,
         maxWidth: 2400,
         aspectRatio: 4 / 3,
         fields: [
@@ -3728,7 +3784,12 @@ function renderNewsAdmin() {
           { label: "アイキャッチ画像URL", key: "img", value: n.img||"", type: "input" }
         ],
         onChange: (k, v) => { newsData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
-        onFile: u => { newsData[i].img = u; renderNewsAdmin(); },
+        onFile: result => {
+          const { url, original } = applyCropResult(result);
+          newsData[i].img = url;
+          if (original) newsData[i].imgOriginal = original;
+          renderNewsAdmin();
+        },
         onDelete: () => { if (confirm("削除しますか？")) { newsData.splice(i,1); renderNewsAdmin(); } }
       });
       appendVisibleToggle(item, () => newsData[i].visible, () => { newsData[i].visible = !newsData[i].visible; renderNewsAdmin(); });
@@ -4143,6 +4204,7 @@ function renderGalleryAdmin() {
     if (!Array.isArray(g.gallery)) g.gallery = [];
     const item = makeImageItem({
       preview: g.img,
+      originalSrc: g.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 1,
       fields: [
@@ -4155,7 +4217,12 @@ function renderGalleryAdmin() {
         { label: "画像URL", key: "img", value: g.img||"", type: "input" }
       ],
       onChange: (k, v) => { galleryData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
-      onFile: u => { galleryData[i].img = u; renderGalleryAdmin(); },
+      onFile: result => {
+        const { url, original } = applyCropResult(result);
+        galleryData[i].img = url;
+        if (original) galleryData[i].imgOriginal = original;
+        renderGalleryAdmin();
+      },
       onDelete: () => { galleryData.splice(i,1); renderGalleryAdmin(); }
     });
     // カテゴリ選択を追加
@@ -4231,6 +4298,7 @@ function renderBlogAdmin() {
   blogData.forEach((p, i) => {
     grid.appendChild(makeImageItem({
       preview: p.img,
+      originalSrc: p.imgOriginal,
       maxWidth: 2400,
       aspectRatio: 3 / 2,
       fields: [
@@ -4242,7 +4310,12 @@ function renderBlogAdmin() {
         { label: "アイキャッチ画像URL", key: "img", value: p.img||"", type: "input" }
       ],
       onChange: (k, v) => { blogData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
-      onFile: u => { blogData[i].img = u; renderBlogAdmin(); },
+      onFile: result => {
+        const { url, original } = applyCropResult(result);
+        blogData[i].img = url;
+        if (original) blogData[i].imgOriginal = original;
+        renderBlogAdmin();
+      },
       onDelete: () => { if (confirm("削除しますか？")) { blogData.splice(i,1); renderBlogAdmin(); } }
     }));
   });
@@ -4343,10 +4416,15 @@ const fbStorage = getStorage(fbApp);
 // 画像バイナリはFirebase Storageに保存し、Realtime Databaseには軽量なURL文字列だけを
 // 持たせる、本来あるべき構成に変更する。これにより、写真の解像度・複雑さに関わらず
 // レコードサイズは常に小さいまま保たれる。
-window.fbUploadImage = async function (blob) {
-  const path = "siteImages/uploads/" + Date.now() + "-" + Math.random().toString(36).slice(2) + ".jpg";
+window.fbUploadImage = async function (blob, contentType) {
+  // 2026-09-23、元画像（トリミング前のオリジナル）もそのままアップロードするようになったため、
+  // 常にJPEG固定ではなく、渡されたBlobの実際の型（file.type）を尊重する。キャンバス由来の
+  // 切り抜き結果は元々image/jpegなので挙動は変わらない。
+  const type = contentType || blob.type || "image/jpeg";
+  const ext = type.split("/")[1] || "jpg";
+  const path = "siteImages/uploads/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "." + ext;
   const snapRef = storageRef(fbStorage, path);
-  await uploadBytes(snapRef, blob, { contentType: "image/jpeg" });
+  await uploadBytes(snapRef, blob, { contentType: type });
   return await getDownloadURL(snapRef);
 };
 // 2026-09-11オーナー指示：使われなくなった古い画像履歴を削除する際、データベース上の
@@ -4369,7 +4447,11 @@ const siteImagesRef = ref(fbDb, "siteImages");
 // 読み書きすると、一部カテゴリ（カットケーキ等）が欠落して届いたり、保存自体が失敗する
 // ことがあった（product.html等で見つかった大容量ノードの不具合と同根）。管理画面の保存は
 // データ消失リスクに直結するため、カテゴリごとに個別のパスで読み書きするよう修正。
-const SITE_IMAGES_KEYS = ["hero", "greeting", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "experiences"];
+// 2026-09-23、greetingOriginal（あいさつ画像の元画像URL）を追加。他のカテゴリー（hero.srcOriginal
+// やcategories[].imgOriginal等）は既存の配列要素の中に持たせているため、配列自体を含む
+// hero/categories等のキーがあれば自動的に一緒に保存・読込される。greetingだけは単一の文字列
+// フィールドで配列に入っていないため、Original版も独立したキーとして追加する必要がある。
+const SITE_IMAGES_KEYS = ["hero", "greeting", "greetingOriginal", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "experiences"];
 // 2026-09-11判明：ES modulesのトップレベルconstは、同じファイル内の別のscriptタグ
 // （type=moduleを付けていない通常のスクリプト）からは参照できない。保存ボタンの
 // ハンドラ（通常のscript側）がこの配列を直接参照していたため「SITE_IMAGES_KEYS is not
