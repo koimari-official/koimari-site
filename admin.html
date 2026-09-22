@@ -1596,8 +1596,10 @@ function refreshPreview(itemEl, src) {
   checkImageResolution(itemEl, src, maxWidth);
 }
 // 2026-09-22オーナー指示：旧上限（500px等）で保存されたままの低解像度写真を、再アップロード
-// 漏れなく洗い出せるように、画像ごとの実際のピクセル数を表示し、現在の上限（maxWidth。
-// 各カテゴリーとも2400pxに統一済み）に満たないものは赤枠で目立たせる。
+// 漏れなく洗い出せるように、画像ごとの実際のピクセル数を表示し、低解像度のものは赤枠で目立たせる。
+// 赤枠の基準（LOWRES_FLAG_THRESHOLD）は当初カテゴリーごとの理想値（2400px等）だったが、
+// 無料AI高画質化ツールでの再アップロードでは1500px前後が実用上限になるため、固定1500pxに変更（同日）。
+const LOWRES_FLAG_THRESHOLD = 1500;
 function checkImageResolution(itemEl, src, maxWidth) {
   const previewEl = itemEl.querySelector(".img-item__preview");
   let resEl = itemEl.querySelector(".img-item__resolution");
@@ -1616,9 +1618,12 @@ function checkImageResolution(itemEl, src, maxWidth) {
   const probe = new Image();
   probe.onload = () => {
     const w = probe.naturalWidth, h = probe.naturalHeight;
-    if (maxWidth && w < maxWidth) {
+    // 2026-09-22オーナー指示：無料AI高画質化ツールの実用上限（元画像の3倍程度）を踏まえ、
+    // 赤枠の基準はカテゴリーごとの理想値（maxWidth・2400px等）ではなく固定1500pxに変更。
+    // 1500px以上あれば再アップロード済みと判断できるようにし、対応漏れの洗い出しを終わらせやすくする。
+    if (w < LOWRES_FLAG_THRESHOLD) {
       previewEl.classList.add("img-item__preview--lowres");
-      resEl.innerHTML = `⚠ 解像度: ${w}×${h}px（低解像度・再アップロード推奨。目安${maxWidth}px以上）`;
+      resEl.innerHTML = `⚠ 解像度: ${w}×${h}px（低解像度・再アップロード推奨。目安${LOWRES_FLAG_THRESHOLD}px以上）`;
       resEl.style.color = "#b94a3a";
     } else {
       resEl.textContent = `解像度: ${w}×${h}px`;
