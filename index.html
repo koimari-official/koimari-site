@@ -250,6 +250,32 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .voices__more a:hover::before{transform:scaleX(1)}
 
 /* ===== 法人向けバナー ===== */
+/* 2026-09-22、ファーストビュー直下の「2つの予約導線」新設(CRO改修指示書) */
+.quick-reserve{background:var(--color-bg-soft);padding:56px 24px 40px}
+.quick-reserve__inner{max-width:var(--max-w);margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.quick-reserve__card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:30px 30px 26px;background:#fff;border:1px solid var(--color-line);transition:transform .25s ease,box-shadow .25s ease;text-decoration:none}
+.quick-reserve__card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(58,42,35,.14)}
+.quick-reserve__card--urgent{border-top:4px solid #06c755}
+.quick-reserve__card--custom{border-top:4px solid var(--color-accent)}
+.quick-reserve__tag{font-family:var(--font-mincho);font-size:13px;letter-spacing:.1em;color:var(--color-accent-dark);font-weight:600}
+.quick-reserve__title{font-family:var(--font-mincho);font-size:clamp(17px,2.1vw,21px);letter-spacing:.04em;font-weight:700;line-height:1.5;color:var(--color-text)}
+.quick-reserve__sub{font-size:13px;color:var(--color-text-soft)}
+.quick-reserve__btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:11px 24px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.08em;font-weight:600;color:#fff;background:var(--color-accent-dark);transition:background .2s}
+.quick-reserve__card--urgent .quick-reserve__btn{background:#06c755}
+.quick-reserve__card:hover .quick-reserve__btn{background:var(--color-accent);}
+.quick-reserve__card--urgent:hover .quick-reserve__btn{background:#05b34c}
+.quick-reserve__note{max-width:var(--max-w);margin:22px auto 0;font-size:13px;line-height:1.9;color:var(--color-text-soft);text-align:center}
+.quick-reserve__note a{color:var(--color-accent-dark);font-weight:600;text-decoration:underline;text-underline-offset:2px}
+@media(max-width:700px){.quick-reserve__inner{grid-template-columns:1fr}}
+
+/* 2026-09-22、法人案内・体験プログラムを説明文なしのコンパクトなリンクバーに変更(CRO改修指示書) */
+.mini-banner{background:var(--color-bg-soft);padding:34px 24px}
+.mini-banner--alt{background:var(--color-bg)}
+.mini-banner__inner{max-width:var(--max-w);margin:0 auto;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;text-align:center}
+.mini-banner__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.2em;font-size:14px;font-weight:500}
+.mini-banner__title{font-family:var(--font-mincho);font-size:19px;letter-spacing:.08em;font-weight:600}
+.mini-banner__cta{display:inline-flex;align-items:center;gap:6px;padding:10px 26px;border:1px solid var(--color-accent-dark);color:var(--color-accent-dark);font-family:var(--font-mincho);font-size:14px;letter-spacing:.1em;font-weight:500;transition:all .2s;white-space:nowrap}
+.mini-banner__cta:hover{background:var(--color-accent);border-color:var(--color-accent);color:#fff}
 .corporate-banner{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;position:relative;overflow:hidden}
 .corporate-banner .section__en{color:#f0c896}
 .corporate-banner .section__title{background:none;-webkit-text-fill-color:#fff;color:#fff;filter:none}
@@ -641,71 +667,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </ul>
 </nav>
 
-<section class="greeting" id="about">
-  <div class="section__inner">
-    <div class="section__head"><span class="section__en">About Us</span><h2 class="section__title">こいまりについて</h2></div>
-    <div class="greeting__inner">
-      <div class="greeting__img"><img id="img-greeting" src="" alt="こいまり 店主" loading="lazy"></div>
-      <div class="greeting__text">
-        <h2 data-i18n="greeting.heading">四季の彩りを<br>ひと皿のお菓子に。</h2>
-        <p data-i18n="greeting.body1">こいまりは、<strong>季節の素材を大切にした手作りのケーキと焼き菓子</strong>のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
-        <p data-i18n="greeting.body2">誕生日や記念日のデコレーションケーキ、贈り物の焼き菓子など、お客様の大切なひとときに寄り添えるお菓子作りを心がけています。お気軽にご相談ください。</p>
-        <p data-i18n="greeting.body3">近年、原材料費や人件費の高騰により、業界全体で手間や材料費を抑える傾向が進んでいます。それでも私たちは、素材と製法にこだわり、昔ながらの手間を惜しまないものづくりをこれからも大切にしてまいります。</p>
-        <div class="greeting__sign">
-          <span class="greeting__sign-name">ケーキ屋さん こいまり 城東</span>
-          <img src="koimari-kakuin.png" alt="こいまり 角印" class="greeting__kakuin">
-        </div>
-      </div>
-    </div>
+<!-- ===== 予約導線(2026-09-22新設・CRO改修指示書)。ファーストビュー直下に、目的別の
+     2つの予約導線を並べる。「定番ホールケーキ」はLINEへ直行、「オーダーケーキ」は仕様・
+     ギャラリー確認ページ(reservation.html)へ。直前予約(受取2日未満)は電話誘導を明記。 -->
+<section class="quick-reserve" id="quickReserve">
+  <div class="quick-reserve__inner">
+    <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="quick-reserve__card quick-reserve__card--urgent">
+      <span class="quick-reserve__tag">お急ぎの方へ</span>
+      <span class="quick-reserve__title">定番ホールケーキの簡単ご予約</span>
+      <span class="quick-reserve__sub">最短3日後〜・LINEで簡単予約</span>
+      <span class="quick-reserve__btn">LINEで予約する →</span>
+    </a>
+    <a href="reservation.html" class="quick-reserve__card quick-reserve__card--custom">
+      <span class="quick-reserve__tag">こだわりたい方へ</span>
+      <span class="quick-reserve__title">オーダーケーキの仕様・ギャラリーを見る</span>
+      <span class="quick-reserve__sub">サイズ・価格の目安をじっくり確認</span>
+      <span class="quick-reserve__btn">仕様を見る →</span>
+    </a>
   </div>
-</section>
-
-<!-- ===== ブランドストーリー（mille-feuille.comの「パティシエの想い」参考の左右セパレート
-     レイアウト。2026-09-08オーナー指示）。写真は全て実写真（店頭2枚・実商品1枚）を使用。 -->
-<section class="story-split">
-  <div class="story-split__img"><img src="brand-story-community.jpg" alt="こいまり 店頭" loading="lazy"></div>
-  <div class="story-split__panel">
-    <span class="story-split__tag">Our Philosophy</span>
-    <h2 class="story-split__title">地域に愛される店舗でありたい</h2>
-    <p class="story-split__body">地域に愛される店舗でありたいと考えています。地元中学校の職業体験では、毎年一番人気の職場としてご評価いただき、卒業後もアルバイトに来てくれるスタッフもいます。お子様からご年配の方まで、すべての世代のご家族に愛していただける、田舎の実家のような存在を目指して日々お菓子を焼き上げております。難しい世の中だからこそ、その輪をより広いエリアへと広げていきたいと考えています。</p>
-  </div>
-</section>
-<section class="story-split story-split--reverse">
-  <div class="story-split__img"><img src="brand-story-anzen.jpg" alt="こいまり ストロベリーショートケーキ" loading="lazy"></div>
-  <div class="story-split__panel">
-    <span class="story-split__tag">For Every Generation</span>
-    <h2 class="story-split__title">小さなお子様からご年配の方まで安心して</h2>
-    <p class="story-split__body">お菓子に使用するお酒はごく少量にとどめ、アルコール分は焼き上げの際にしっかりと飛ばすことを基本としています。小さなお子様からご年配の方まで、幅広い世代の皆様に安心して召し上がっていただけるお菓子作りに努めています。</p>
-  </div>
-</section>
-<section class="story-split">
-  <div class="story-split__img"><img src="brand-story-osaka.jpg" alt="こいまり 城東区の街並み" loading="lazy"></div>
-  <div class="story-split__panel">
-    <span class="story-split__tag">From Joto, Osaka</span>
-    <h2 class="story-split__title">大阪市城東区から、大阪の魅力を</h2>
-    <p class="story-split__body">私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。</p>
-  </div>
-</section>
-
-<!-- ===== お知らせ ===== -->
-<section class="pickup" id="news">
-  <div class="section__inner">
-    <div class="section__head"><span class="section__en">News</span><h2 class="section__title">お知らせ</h2></div>
-    <div class="pickup__list" id="newsList"></div>
-  </div>
-</section>
-
-<!-- ===== 今月の主役 ===== -->
-<section class="spotlight" id="spotlight">
-  <div class="spotlight__inner" id="spotlightInner"></div>
-</section>
-
-<!-- ===== 数字で見るこいまり ===== -->
-<section class="stats" id="statsKoimari">
-  <div class="stats__inner">
-    <div class="stats__head"><span class="section__en">By the Numbers</span><h2 class="section__title">数字で見るこいまり</h2></div>
-    <div class="stats__grid" id="statsGrid"></div>
-  </div>
+  <p class="quick-reserve__note">※お受取日まで2日を切っている場合は、お電話（<a href="tel:07091580641">070-9158-0641</a>）にて直接ご相談ください。ホームページの「仕様」をご覧いただきながらお電話いただけますとスムーズです。</p>
 </section>
 
 <section class="categories" id="categories">
@@ -721,45 +701,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="recommended__grid" id="recommendedGrid"></div>
     <div style="text-align:center;margin-top:60px;"><a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="inline-flex items-center gap-3 px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-bold text-[var(--color-on-accent)] bg-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:-translate-y-0.5">ご予約はこちら <span class="[font-family:var(--font-en)] text-[19px]">→</span></a></div>
     <p style="text-align:center;margin-top:18px;font-size:14px;color:var(--color-text-soft);">LINE公式アカウントを<strong>友だち追加</strong>のうえ、チャットでご予約・お問合せください</p>
-  </div>
-</section>
-
-
-<!-- ===== 法人向け案内バナー ===== -->
-<section class="corporate-banner">
-  <div class="section__head">
-    <span class="section__en">Corporate</span>
-    <h2 class="section__title">法人・企業のお客様</h2>
-  </div>
-  <div class="corporate-banner__inner">
-    <div class="corporate-banner__text">
-      <span class="corporate-banner__badge">For Corporate Clients</span>
-      <span class="corporate-banner__en">Premium Corporate Gifts</span>
-      <h2 class="corporate-banner__title">法人・企業のお客様。<br><em>品格ある贈答品をオーダーメイドで。</em></h2>
-      <p class="corporate-banner__desc">周年記念、取引先様への贈答、ノベルティ、式典の引き出物。<br>ご予算とご用途に合わせ、無料でお見積もりいたします。</p>
-    </div>
-    <a href="corporate.html" class="corporate-banner__cta">詳しく見る</a>
-  </div>
-</section>
-
-<section class="bcal" id="bcal">
-  <div class="section__inner">
-    <div class="section__head"><span class="section__en">Open Days</span><h2 class="section__title">営業日カレンダー</h2></div>
-    <div class="bcal__wrap">
-      <div class="bcal__header">
-        <div class="bcal__nav"><button id="bcalPrev" aria-label="前の月">◀</button><div class="bcal__title" id="bcalTitle"></div><button id="bcalNext" aria-label="次の月">▶</button></div>
-        <div class="bcal__legend"><span><i style="background:rgba(201,169,110,.2);border:1px solid rgba(201,169,110,.5);"></i>定休日・臨時休業</span><span><i style="background:rgba(176,59,72,.15);border:1px solid rgba(176,59,72,.4);"></i>イベント</span></div>
-      </div>
-      <div class="bcal__grid" id="bcalGrid"></div>
-      <p class="bcal__note">基本定休日: 月曜日　/　火-土 10:00-20:00、日 10:00-19:00　/　臨時休業や営業時間変更がある場合は上記をご確認ください</p>
-    </div>
-  </div>
-</section>
-
-<section class="experience" id="experience">
-  <div class="section__inner">
-    <div class="section__head"><span class="section__en">Experience</span><h2 class="section__title">体験プログラム</h2><p class="section__lead">お子様や学生の皆様を対象とした体験プログラムをご用意しております。<br>お菓子づくりの楽しさや、お店の仕事を通して学ぶ機会をぜひご活用ください。</p></div>
-    <div class="exp-grid" id="experienceGrid"></div>
   </div>
 </section>
 
@@ -781,6 +722,112 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </a>
     </div>
   </div>
+</section>
+
+<section class="greeting" id="about">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">About Us</span><h2 class="section__title">こいまりについて</h2></div>
+    <div class="greeting__inner">
+      <div class="greeting__img"><img id="img-greeting" src="" alt="こいまり 店主" loading="lazy"></div>
+      <div class="greeting__text">
+        <h2 data-i18n="greeting.heading">四季の彩りを<br>ひと皿のお菓子に。</h2>
+        <p data-i18n="greeting.body1">こいまりは、<strong>季節の素材を大切にした手作りのケーキと焼き菓子</strong>のお店です。ひとつひとつ丁寧に焼き上げたお菓子で、日々の小さな喜びをお届けしています。</p>
+        <p data-i18n="greeting.body2">誕生日や記念日のデコレーションケーキ、贈り物の焼き菓子など、お客様の大切なひとときに寄り添えるお菓子作りを心がけています。お気軽にご相談ください。</p>
+        <p data-i18n="greeting.body3">昔ながらの手間と素材へのこだわりを惜しまず、一つひとつ丁寧にお作りしています。</p>
+        <div class="greeting__sign">
+          <span class="greeting__sign-name">ケーキ屋さん こいまり 城東</span>
+          <img src="koimari-kakuin.png" alt="こいまり 角印" class="greeting__kakuin">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="story-split">
+  <div class="story-split__img"><img src="brand-story-community.jpg" alt="こいまり 店頭" loading="lazy"></div>
+  <div class="story-split__panel">
+    <span class="story-split__tag">Our Philosophy</span>
+    <h2 class="story-split__title">地域に愛される店舗でありたい</h2>
+    <p class="story-split__body">地域に愛される店舗でありたいと考えています。地元中学校の職業体験では、毎年一番人気の職場としてご評価いただき、卒業後もアルバイトに来てくれるスタッフもいます。お子様からご年配の方まで、すべての世代のご家族に愛していただける、田舎の実家のような存在を目指して日々お菓子を焼き上げております。難しい世の中だからこそ、その輪をより広いエリアへと広げていきたいと考えています。</p>
+  </div>
+</section>
+
+<section class="story-split story-split--reverse">
+  <div class="story-split__img"><img src="brand-story-anzen.jpg" alt="こいまり ストロベリーショートケーキ" loading="lazy"></div>
+  <div class="story-split__panel">
+    <span class="story-split__tag">For Every Generation</span>
+    <h2 class="story-split__title">小さなお子様からご年配の方まで安心して</h2>
+    <p class="story-split__body">お菓子に使用するお酒はごく少量にとどめ、アルコール分は焼き上げの際にしっかりと飛ばすことを基本としています。小さなお子様からご年配の方まで、幅広い世代の皆様に安心して召し上がっていただけるお菓子作りに努めています。</p>
+  </div>
+</section>
+
+<section class="story-split">
+  <div class="story-split__img"><img src="brand-story-osaka.jpg" alt="こいまり 城東区の街並み" loading="lazy"></div>
+  <div class="story-split__panel">
+    <span class="story-split__tag">From Joto, Osaka</span>
+    <h2 class="story-split__title">大阪市城東区から、大阪の魅力を</h2>
+    <p class="story-split__body">私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。</p>
+  </div>
+</section>
+
+<section class="pickup" id="news">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">News</span><h2 class="section__title">お知らせ</h2></div>
+    <div class="pickup__list" id="newsList"></div>
+  </div>
+</section>
+
+<section class="spotlight" id="spotlight">
+  <div class="spotlight__inner" id="spotlightInner"></div>
+</section>
+
+<section class="bcal" id="bcal">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">Open Days</span><h2 class="section__title">営業日カレンダー</h2></div>
+    <div class="bcal__wrap">
+      <div class="bcal__header">
+        <div class="bcal__nav"><button id="bcalPrev" aria-label="前の月">◀</button><div class="bcal__title" id="bcalTitle"></div><button id="bcalNext" aria-label="次の月">▶</button></div>
+        <div class="bcal__legend"><span><i style="background:rgba(201,169,110,.2);border:1px solid rgba(201,169,110,.5);"></i>定休日・臨時休業</span><span><i style="background:rgba(176,59,72,.15);border:1px solid rgba(176,59,72,.4);"></i>イベント</span></div>
+      </div>
+      <div class="bcal__grid" id="bcalGrid"></div>
+      <p class="bcal__note">基本定休日: 月曜日　/　火-土 10:00-20:00、日 10:00-19:00　/　臨時休業や営業時間変更がある場合は上記をご確認ください</p>
+    </div>
+  </div>
+</section>
+
+<section class="shop" id="shop" style="padding:0;">
+  <div class="shop__map"><iframe src="https://www.google.com/maps?q=%E5%A4%A7%E9%98%AA%E5%BA%9C%E5%A4%A7%E9%98%AA%E5%B8%82%E5%9F%8E%E6%9D%B1%E5%8C%BA%E6%88%90%E8%82%B22%E4%B8%81%E7%9B%AE13-15&output=embed" loading="lazy" title="店舗の地図"></iframe></div>
+  <div class="shop__info">
+    <h2>店舗情報・アクセス</h2>
+    <table class="shop__table">
+      <tr><th>店名</th><td>ケーキ屋さん こいまり 城東</td></tr>
+      <tr><th>住所</th><td>〒536-0007<br>大阪府大阪市城東区成育2丁目13-15<br>アイビーマンション 1階</td></tr>
+      <tr><th>電話</th><td>070-9158-0641</td></tr>
+      <tr><th>営業時間</th><td>火曜〜土曜 10:00 〜 20:00<br>日曜 10:00 〜 19:00</td></tr>
+      <tr><th>定休日</th><td>月曜日（祝日の場合は翌日）</td></tr>
+      <tr><th>目印</th><td>スーパーライフ 関目店・コーナン 関目店と同じ交差点内</td></tr>
+      <tr><th>駐車場</th><td>近隣駐車場をご利用ください。<br>お電話頂ければお伝えも可能です。</td></tr>
+    </table>
+    <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="inline-block mt-[22px] px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-medium text-[var(--color-on-accent)] bg-[var(--color-accent)] border border-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:border-[var(--color-accent-dark)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(168,138,82,.4)]">ご予約・お問合せ</a>
+    <p class="mt-4"><a href="kadoma.html" class="[font-family:var(--font-mincho)] text-[13px] tracking-[.05em] text-[var(--color-text-soft)] underline underline-offset-2 hover:text-[var(--color-accent-dark)]">こいまりのルーツについて</a></p>
+  </div>
+</section>
+
+<section class="mini-banner">
+  <div class="mini-banner__inner">
+    <span class="mini-banner__en">Corporate</span>
+    <h2 class="mini-banner__title">法人・企業のお客様</h2>
+    <a href="corporate.html" class="mini-banner__cta">詳しく見る →</a>
+  </div>
+</section>
+
+<section class="mini-banner mini-banner--alt" id="experience">
+  <div class="mini-banner__inner">
+    <span class="mini-banner__en">Experience</span>
+    <h2 class="mini-banner__title">体験プログラム</h2>
+    <a href="experience.html" class="mini-banner__cta">詳しく見る →</a>
+  </div>
+  <div class="exp-grid" id="experienceGrid" style="display:none"></div>
 </section>
 
 <section class="social" id="social">
@@ -808,21 +855,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </section>
 
-<section class="shop" id="shop" style="padding:0;">
-  <div class="shop__map"><iframe src="https://www.google.com/maps?q=%E5%A4%A7%E9%98%AA%E5%BA%9C%E5%A4%A7%E9%98%AA%E5%B8%82%E5%9F%8E%E6%9D%B1%E5%8C%BA%E6%88%90%E8%82%B22%E4%B8%81%E7%9B%AE13-15&output=embed" loading="lazy" title="店舗の地図"></iframe></div>
-  <div class="shop__info">
-    <h2>店舗情報・アクセス</h2>
-    <table class="shop__table">
-      <tr><th>店名</th><td>ケーキ屋さん こいまり 城東</td></tr>
-      <tr><th>住所</th><td>〒536-0007<br>大阪府大阪市城東区成育2丁目13-15<br>アイビーマンション 1階</td></tr>
-      <tr><th>電話</th><td>070-9158-0641</td></tr>
-      <tr><th>営業時間</th><td>火曜〜土曜 10:00 〜 20:00<br>日曜 10:00 〜 19:00</td></tr>
-      <tr><th>定休日</th><td>月曜日（祝日の場合は翌日）</td></tr>
-      <tr><th>目印</th><td>スーパーライフ 関目店・コーナン 関目店と同じ交差点内</td></tr>
-      <tr><th>駐車場</th><td>近隣駐車場をご利用ください。<br>お電話頂ければお伝えも可能です。</td></tr>
-    </table>
-    <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="inline-block mt-[22px] px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-medium text-[var(--color-on-accent)] bg-[var(--color-accent)] border border-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:border-[var(--color-accent-dark)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(168,138,82,.4)]">ご予約・お問合せ</a>
-    <p class="mt-4"><a href="kadoma.html" class="[font-family:var(--font-mincho)] text-[13px] tracking-[.05em] text-[var(--color-text-soft)] underline underline-offset-2 hover:text-[var(--color-accent-dark)]">こいまりのルーツについて</a></p>
+<section class="stats" id="statsKoimari">
+  <div class="stats__inner">
+    <div class="stats__head"><span class="section__en">By the Numbers</span><h2 class="section__title">数字で見るこいまり</h2></div>
+    <div class="stats__grid" id="statsGrid"></div>
   </div>
 </section>
 
