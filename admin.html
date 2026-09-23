@@ -1136,6 +1136,20 @@ function reservationItemsHtml(r) {
   }
   return "";
 }
+// 2026-09-23オーナー指示：デコレーションケーキの予約フォームは、送信時にお客様のLINEトークへ
+// 自動計算した基本料金の目安を案内している（buildReserveSummaryText/liff.sendMessages、
+// member.html）。スタッフ側の予約一覧にも同じ内容を表示し、「お客様には何と案内されているか」
+// を確認電話の前に把握できるようにする。r.subtotal/r.priceNeedsConsultは予約データに
+// 既に保存されている値をそのまま使う（二重計算しない）。
+function reservationPriceHtml(r) {
+  if (r.priceNeedsConsult) {
+    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#a98554;">💰 お客様への案内: 料金は追ってお電話でご案内（たぬきちケーキ／カットケーキ／セルクルを含む）</div>`;
+  }
+  if (r.subtotal) {
+    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#5d8a4e;">💰 お客様への案内: 基本料金の目安 ¥${Number(r.subtotal).toLocaleString()}${r.note ? "〜（ご希望内容により変動）" : ""}</div>`;
+  }
+  return "";
+}
 function fmtDate(iso) {
   const d = new Date(iso);
   return `${d.getFullYear()}/${(d.getMonth()+1).toString().padStart(2,"0")}/${d.getDate().toString().padStart(2,"0")} ${d.getHours().toString().padStart(2,"0")}:${d.getMinutes().toString().padStart(2,"0")}`;
@@ -3528,7 +3542,7 @@ function renderReservations() {
       <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
       <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span>${r.birthday?`<br><span class="small">生: ${escapeHtml(r.birthday)}</span>`:""}</td>
       <td>${escapeHtml(r.pickupDate)} ${escapeHtml(r.pickupTime)}</td>
-      <td>${reservationItemsHtml(r)}</td>
+      <td>${reservationItemsHtml(r)}${reservationPriceHtml(r)}</td>
       <td>${r.receiptNeeded?`<div style="font-size:11px;font-weight:700;color:#a98554;margin-bottom:4px;">🧾 領収書必要<br>宛名: ${escapeHtml(r.receiptName)}</div>`:""}<span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
       <td><textarea rows="2" style="font-size:12px;width:120px;padding:4px;border:1px solid #ddd;resize:vertical;" onchange="updateResNotes(${idx},this.value)">${escapeHtml(r.notes||"")}</textarea></td>
       <td>

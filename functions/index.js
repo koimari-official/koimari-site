@@ -468,6 +468,11 @@ exports.sendPickupReminders = onSchedule(
 // 「確認電話」「予約確定」のチェックができる画面に移動できるようにする。
 const ADMIN_RESERVATIONS_URL = "https://koimari-official.github.io/koimari-site/admin.html";
 
+// 2026-09-23オーナー指示：デコレーションケーキの予約フォーム（member.html）は送信時に
+// お客様のLINEトークへ自動計算した基本料金の目安を案内している。スタッフ通知にも同じ
+// 金額を載せ、「お客様には何と案内されているか」を確認電話の前に把握できるようにする。
+// data.subtotal/data.priceNeedsConsultは予約データに既に保存されている値をそのまま使う
+// （Functions側では再計算しない＝計算ロジックの二重管理を避ける）。
 function buildStaffNotifyText(data) {
   const product = productLabel(data);
   const channel = data.channel === "LINE" ? "LINE公式アカウント" : "こいまりHP";
@@ -479,6 +484,11 @@ function buildStaffNotifyText(data) {
     `引き取り希望: ${data.pickupDate || ""} ${data.pickupTime || ""}`,
     `お電話番号: ${data.tel || ""}`,
   ];
+  if (data.priceNeedsConsult) {
+    lines.push("お客様への案内: 料金は追ってお電話でご案内（たぬきちケーキ／カットケーキ／セルクルを含む）");
+  } else if (data.subtotal) {
+    lines.push(`お客様への案内: 基本料金の目安 ¥${Number(data.subtotal).toLocaleString()}${data.note ? "〜（ご希望内容により変動）" : ""}`);
+  }
   if (data.note) lines.push(`ご要望・備考: ${data.note}`);
   lines.push("", "確認電話・予約確定のチェックは管理画面から↓", ADMIN_RESERVATIONS_URL);
   return lines.join("\n");
