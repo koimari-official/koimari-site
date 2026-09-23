@@ -49,6 +49,12 @@ a:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
    ヘッダーは初期表示では完全に隠し、スクロールすると下からふわっと現れる半透明の
    バー（背景アルファ約50%＋ぼかし）として常時表示する（下のJS参照）。 */
 .hero{position:relative;height:100vh;overflow:hidden;background:var(--color-bg-soft)}
+/* 2026-09-23、写真の上にロゴ・キャプション文字が平面的に乗って見える問題への対策。
+   写真そのものの発色（シズル感）は崩さないよう中央帯はほぼ透明のままにし、ロゴが乗る
+   上部とキャプションが乗る下部だけを薄暗くするグラデーション。既存の.hero__brand-mark
+   （中央の円形グラデーション）・.hero__caption（text-shadow）と役割が重ならないよう、
+   全スライド共通の層として.hero自体に一枚だけ重ねる（スライドを跨いで作り直す必要がない）。 */
+.hero::after{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(0,0,0,.14) 0%,rgba(0,0,0,0) 24%,rgba(0,0,0,0) 58%,rgba(0,0,0,.4) 100%)}
 .hero__slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease}
 .hero__slide.active{opacity:1}
 .hero__slide picture{display:block;width:100%;height:100%}
