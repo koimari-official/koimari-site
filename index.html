@@ -1092,7 +1092,9 @@ const CATEGORY_GALLERY_KEY={"デコレーションケーキ":"cake","カット�
 // sourceIndex）の画像を都度参照する方式に変更（admin.html側の変更と対応）。こうすることで
 // 商品側の写真を差し替えればカテゴリー画像も自動的に追従し、参照先が個別に消えて表示が
 // 壊れる事故が起きなくなる。参照先が見つからない場合はc.img（フォールバック用キャッシュ）を使う。
-const CATEGORY_PRODUCT_POOLS={decorationCakes:()=>menuDecorationCakes,cutcakes:()=>menuCutcakes,rollcakes:()=>menuRollcakes,baked:()=>menuBaked,gift:()=>menuGift};
+// 2026-09-23、カテゴリー画像の連動先に「オーダーメイド」（koimariContent/gallery・1点物
+// ポートフォリオ、gallery.htmlの galleryPortfolio と同じデータ）も選べるようにした（admin.html側）。
+const CATEGORY_PRODUCT_POOLS={decorationCakes:()=>menuDecorationCakes,cutcakes:()=>menuCutcakes,rollcakes:()=>menuRollcakes,baked:()=>menuBaked,gift:()=>menuGift,custom:()=>galleryPortfolio};
 function resolveCategoryImg(c){
   if(c&&c.sourceCategory&&CATEGORY_PRODUCT_POOLS[c.sourceCategory]){
     const pool=CATEGORY_PRODUCT_POOLS[c.sourceCategory]();
@@ -1110,7 +1112,7 @@ function renderCategories(){
 // 2026-09-08、「おすすめ商品」専用のストック写真データは廃止。デコレーションケーキ・
 // カットケーキ・ロールケーキの実商品メニューの中から、管理画面で「★おすすめ商品に表示」を
 // チェックした商品だけをここに集めて表示する（実商品と二重管理にならないようにするため）。
-let menuDecorationCakes=[], menuCutcakes=[], menuRollcakes=[], menuBaked=[], menuGift=[];
+let menuDecorationCakes=[], menuCutcakes=[], menuRollcakes=[], menuBaked=[], menuGift=[], galleryPortfolio=[];
 function renderRecommended(){
   recGrid.innerHTML='';
   const en=I18nCtrl.isEn();
@@ -1458,6 +1460,14 @@ Object.entries(CONTENT_KEY_TO_LS).forEach(([contentKey, lsKey]) => {
     if (typeof window.renderBcal === "function") window.renderBcal();
     if (typeof window.renderInstaCard === "function") window.renderInstaCard();
   });
+});
+// 2026-09-23、カテゴリー画像が「オーダーメイド」の作品と連動している場合に解決できるよう、
+// koimariContent/gallery（1点物ポートフォリオ）も購読する（他のkoimariContentキーと違い
+// localStorageミラーは不要なため、CONTENT_KEY_TO_LSとは別に直接galleryPortfolioへ入れる）。
+onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
+  const val = snapshot.val();
+  galleryPortfolio = Array.isArray(val) ? val : [];
+  renderCategories();
 });
 </script>
 </body>

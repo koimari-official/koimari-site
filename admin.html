@@ -2056,7 +2056,21 @@ const GALLERY_PICKER_CATEGORIES = [
   { key: "rollcakes", label: "ロールケーキ" },
   { key: "baked", label: "焼き菓子" },
   { key: "gift", label: "ギフト" },
+  { key: "custom", label: "オーダーメイド" },
 ];
+// 2026-09-23、カテゴリー画像の連動先として「オーダーメイド」（koimariContent/gallery・
+// galleryData、1点物ポートフォリオ）も選べるようにする。こちらだけ他の5カテゴリーと違い
+// workingData配下ではなくgalleryData（別のFirebaseパス）で管理されているため、参照先の
+// 配列を取得する処理を1箇所にまとめる。galleryDataは他タブ（ギャラリー管理）を開いた時に
+// 遅延初期化される変数だが、実データ自体はログイン時点からFirebase購読で常にlocalStorage
+// に同期され続けているため、未初期化でもここでloadByKeyし直せば最新の内容が取れる。
+function getProductArray(sourceCategory) {
+  if (sourceCategory === "custom") {
+    if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
+    return galleryData || [];
+  }
+  return (workingData && Array.isArray(workingData[sourceCategory])) ? workingData[sourceCategory] : [];
+}
 // 2026-09-23オーナー指示：カテゴリー画像は「写真データを個別にコピーして持つ」のではなく、
 // 「どの商品の画像を使うか」を参照で指定する方式に変更する（商品側の写真を差し替えれば
 // カテゴリー画像も自動的に追従し、今回のようにStorageファイルが個別に消えて壊れる心配がなくなる）。
@@ -2064,8 +2078,8 @@ const GALLERY_PICKER_CATEGORIES = [
 function openGalleryPickerModal(onSelect) {
   const photos = [];
   GALLERY_PICKER_CATEGORIES.forEach(({ key, label }) => {
-    const arr = (workingData && Array.isArray(workingData[key])) ? workingData[key] : [];
-    arr.forEach((item, idx) => { if (item && item.img) photos.push({ img: item.img, title: item.name || "", catLabel: label, sourceCategory: key, sourceIndex: idx }); });
+    // オーダーメイド（galleryData）はtitleフィールドに商品名を持つ（他5カテゴリーはname）
+    getProductArray(key).forEach((item, idx) => { if (item && item.img) photos.push({ img: item.img, title: item.name || item.title || "", catLabel: label, sourceCategory: key, sourceIndex: idx }); });
   });
   const overlay = document.createElement("div");
   overlay.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:3000;display:flex;align-items:center;justify-content:center;padding:24px;";
@@ -2098,8 +2112,8 @@ function openGalleryPickerModal(onSelect) {
 // 使う。参照先の商品が見つからない場合（削除された等）はc.img（最後にキャッシュした値。
 // 手動アップロード時の値でもある）にフォールバックする。
 function resolveCategoryImg(c) {
-  if (c && c.sourceCategory && Array.isArray(workingData[c.sourceCategory])) {
-    const item = workingData[c.sourceCategory][c.sourceIndex];
+  if (c && c.sourceCategory) {
+    const item = getProductArray(c.sourceCategory)[c.sourceIndex];
     if (item && item.img) return item.img;
   }
   return c ? c.img : "";
@@ -2158,9 +2172,9 @@ function renderCategories() {
     refStatus.style.cssText = "font-size:12px;margin-top:6px;line-height:1.6;";
     if (c.sourceCategory) {
       const catLabel = (GALLERY_PICKER_CATEGORIES.find(g => g.key === c.sourceCategory) || {}).label || c.sourceCategory;
-      const productItem = (workingData[c.sourceCategory] || [])[c.sourceIndex];
+      const productItem = getProductArray(c.sourceCategory)[c.sourceIndex];
       refStatus.style.color = "var(--color-accent-dark)";
-      refStatus.innerHTML = `🔗 商品と連動中：${escapeHtml(catLabel)}「${escapeHtml(productItem ? (productItem.name || "") : "見つかりません")}」の画像を自動表示`;
+      refStatus.innerHTML = `🔗 商品と連動中：${escapeHtml(catLabel)}「${escapeHtml(productItem ? (productItem.name || productItem.title || "") : "見つかりません")}」の画像を自動表示`;
       const unlinkBtn = document.createElement("button");
       unlinkBtn.type = "button";
       unlinkBtn.textContent = "連動を解除";
