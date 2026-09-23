@@ -51,6 +51,7 @@ a:focus-visible{outline:2px solid var(--color-accent);outline-offset:3px}
 .hero{position:relative;height:100vh;overflow:hidden;background:var(--color-bg-soft)}
 .hero__slide{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease}
 .hero__slide.active{opacity:1}
+.hero__slide picture{display:block;width:100%;height:100%}
 .hero__slide img{width:100%;height:100%;object-fit:cover}
 .hero__brand-mark{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;pointer-events:none;background:radial-gradient(ellipse at center,rgba(0,0,0,.22) 0%,rgba(0,0,0,.04) 45%,rgba(0,0,0,0) 65%)}
 .hero__brand-mark-lockup{width:clamp(440px,52vw,640px);height:auto;filter:drop-shadow(0 4px 18px rgba(0,0,0,.35))}
@@ -1066,7 +1067,14 @@ function renderHeroSlides(){
     // しまう不具合があった。写真データ自体が持つfocusPosition値に基づかせることで、
     // 並び替えても正しい写真に追従するようにする。
     const focusStyle=slide.focusPosition?` style="object-position:${escape(slide.focusPosition)}"`:"";
-    div.innerHTML=`<img src="${slide.src}" alt="${heroAlt}"${focusStyle}>${captionHtml}`;
+    // 2026-09-23オーナー指示：スマホ縦画面とPC/横画面で最も伝わる構図が異なるため、
+    // スライドごとにスマホ縦画面専用の写真（srcMobile）が設定されていれば<picture>で
+    // 出し分ける。未設定の場合は従来通り単一の<img>のみ（後方互換、余計なDOM変更をしない）。
+    const imgTag=`<img src="${escape(slide.src)}" alt="${heroAlt}"${focusStyle}>`;
+    const mediaTag=slide.srcMobile
+      ? `<picture><source media="(max-width:767px) and (orientation:portrait)" srcset="${escape(slide.srcMobile)}">${imgTag}</picture>`
+      : imgTag;
+    div.innerHTML=`${mediaTag}${captionHtml}`;
     heroEl.insertBefore(div,dotsEl);
     const dot=document.createElement("button");dot.className="hero__dot"+(i===0?" active":"");dot.addEventListener("click",()=>goToSlide(i));dotsEl.appendChild(dot);
   });

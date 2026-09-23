@@ -1875,11 +1875,20 @@ function makeGalleryEditor(item, key, { maxWidth, max, onChange }) {
 // 保持する構成にしたため、履歴を複数件保持してもレコードサイズは肥大化しなくなった
 // （一時的に上限を2件へ下げていたが、根本対応が入ったので元の5件に戻した）。
 const IMAGE_HISTORY_LIMIT = 5;
+// 2026-09-23判明：履歴は常にitem.imgHistoryという固定名に積んでいたため、同じオブジェクトが
+// 複数の画像フィールド（例：ヒーローのsrc「PC/横画面用」とsrcMobile「スマホ縦画面用」）を
+// 持つようになると、別フィールドの履歴が混ざってしまう（「戻す」を押すと違う方の画像に
+// 復元されてしまう）。フィールドごとに履歴を分ける（item[key+"History"]）。
+// key="img"の場合は従来通り"imgHistory"のままなので、既存データとの互換性は保たれる。
+// key="src"（ヒーロー・店舗紹介画像）は新たに"srcHistory"となり、この変更より前に
+// imgHistoryとして保存されていた古い履歴は表示上見えなくなるが、Storageの実ファイルは
+// 削除されない（自動物理削除は既に廃止済み）ため実害はない。
 function pushImageHistory(item, key, oldUrl) {
   if (!oldUrl) return;
-  if (!Array.isArray(item.imgHistory)) item.imgHistory = [];
-  item.imgHistory = item.imgHistory.filter(u => u !== oldUrl);
-  item.imgHistory.unshift(oldUrl);
+  const histKey = key + "History";
+  if (!Array.isArray(item[histKey])) item[histKey] = [];
+  item[histKey] = item[histKey].filter(u => u !== oldUrl);
+  item[histKey].unshift(oldUrl);
   // 2026-09-11時点では、上限を超えて押し出された古い履歴はStorage上の実ファイルも自動で
   // 物理削除していた。2026-09-23判明：同じStorageファイルが別の場所（例：商品カテゴリーの
   // サムネイル）からも参照されているケースがあり、この自動削除がその参照先を巻き込んで
@@ -1887,8 +1896,8 @@ function pushImageHistory(item, key, oldUrl) {
   // 他での使用有無を確認せずに削除する設計自体が構造的に危ういため、自動物理削除は廃止し、
   // 履歴一覧（DB上の参照）から外すだけにする。Storage容量は現状の使用量（カテゴリー全体で
   // 数MB程度）からして気にする必要がない一方、誤削除は本番表示を壊す実害があるため。
-  if (item.imgHistory.length > IMAGE_HISTORY_LIMIT) {
-    item.imgHistory.splice(IMAGE_HISTORY_LIMIT);
+  if (item[histKey].length > IMAGE_HISTORY_LIMIT) {
+    item[histKey].splice(IMAGE_HISTORY_LIMIT);
   }
 }
 // 2026-09-23、cropAndResizeImage/openCropModalの戻り値は{cropped, original}のオブジェクトに
@@ -1913,7 +1922,8 @@ function historyAwareOnFile(item, key, afterSet) {
 }
 // 過去の画像を一覧表示し、「戻す」「完全に削除」できるUIをimg-itemに追加する
 function appendImageHistoryUI(container, item, key, onChange) {
-  const hist = Array.isArray(item.imgHistory) ? item.imgHistory : [];
+  const histKey = key + "History";
+  const hist = Array.isArray(item[histKey]) ? item[histKey] : [];
   if (!hist.length) return;
   const wrap = document.createElement("div");
   wrap.className = "img-item__field";
@@ -1932,7 +1942,7 @@ function appendImageHistoryUI(container, item, key, onChange) {
     restoreBtn.type = "button"; restoreBtn.textContent = "戻す"; restoreBtn.className = "btn btn--small btn--ghost"; restoreBtn.style.cssText = "font-size:10px;padding:2px 5px;";
     restoreBtn.addEventListener("click", () => {
       const current = item[key];
-      item.imgHistory.splice(hi, 1);
+      item[histKey].splice(hi, 1);
       pushImageHistory(item, key, current);
       item[key] = src;
       onChange();
@@ -1941,7 +1951,7 @@ function appendImageHistoryUI(container, item, key, onChange) {
     delBtn.type = "button"; delBtn.textContent = "削除"; delBtn.className = "btn btn--small btn--ghost"; delBtn.style.cssText = "font-size:10px;padding:2px 5px;color:#b03b48;";
     delBtn.addEventListener("click", () => {
       if (!confirm("この過去の画像を完全に削除しますか？この操作は取り消せません。")) return;
-      item.imgHistory.splice(hi, 1);
+      item[histKey].splice(hi, 1);
       if (typeof window.fbDeleteImage === "function") window.fbDeleteImage(src);
       onChange();
     });
@@ -2017,6 +2027,29 @@ function renderHero() {
       onDelete: workingData.hero.length > 1 ? () => { workingData.hero.splice(i,1); renderHero(); updateSaveBar(); } : null
     });
     appendImageHistoryUI(item, s, "src", () => { renderHero(); updateSaveBar(); });
+    // 2026-09-23オーナー指示：スマホ縦画面とPC/横画面で最も伝わる構図が異なるため
+    // （例：縦は「切り分けの瞬間」の近接ショット、横は「テーブル全体」の引きの構図）、
+    // ヒーロー画像はスライドごとにスマホ縦画面専用の写真を任意で追加設定できるようにする。
+    // 未設定の場合は従来通りPC/横画面用の画像（src）がスマホでもそのまま使われる（後方互換）。
+    const mobileWrap = document.createElement("div");
+    mobileWrap.style.cssText = "margin-top:14px;padding-top:14px;border-top:1px dashed var(--color-line);";
+    const mobileLabel = document.createElement("div");
+    mobileLabel.style.cssText = "font-size:12px;font-weight:600;color:var(--color-text-soft);margin-bottom:8px;";
+    mobileLabel.textContent = "📱 スマホ縦画面用の画像（任意・未設定ならPC/横画面用の画像がそのまま使われます）";
+    mobileWrap.appendChild(mobileLabel);
+    const mobileItem = makeImageItem({
+      preview: s.srcMobile,
+      originalSrc: s.srcMobileOriginal,
+      maxWidth: 2000,
+      aspectRatio: 9 / 16,
+      fields: [],
+      onChange: () => {},
+      onFile: historyAwareOnFile(s, "srcMobile", () => { renderHero(); updateSaveBar(); }),
+      onDelete: s.srcMobile ? () => { s.srcMobile = ""; s.srcMobileOriginal = ""; renderHero(); updateSaveBar(); } : null
+    });
+    appendImageHistoryUI(mobileItem, s, "srcMobile", () => { renderHero(); updateSaveBar(); });
+    mobileWrap.appendChild(mobileItem);
+    item.appendChild(mobileWrap);
     appendVisibleToggle(item, () => workingData.hero[i].visible, () => { workingData.hero[i].visible = !workingData.hero[i].visible; renderHero(); updateSaveBar(); });
     appendReorderControls(item, workingData.hero, i, () => { renderHero(); updateSaveBar(); });
     grid.appendChild(item);
