@@ -2017,7 +2017,7 @@ function renderHero() {
       maxWidth: 2400,
       aspectRatio: 16 / 9,
       fields: [
-        { label: "画像URL", key: "src", value: s.src, type: "input" },
+        { label: "画像URL（PC・スマホ横向き専用）", key: "src", value: s.src, type: "input" },
         { label: "英語タイトル", key: "titleEn", value: s.titleEn || "", type: "input" },
         { label: "日本語タイトル(<br>で改行可)", key: "titleJp", value: s.titleJp || "", type: "textarea" },
         { label: "表示位置の微調整（例: 68% 48%／空欄なら中央。写真の見せたい部分が切れる場合に指定）", key: "focusPosition", value: s.focusPosition || "", type: "input" }
@@ -2026,6 +2026,10 @@ function renderHero() {
       onFile: historyAwareOnFile(s, "src", () => { renderHero(); updateSaveBar(); }),
       onDelete: workingData.hero.length > 1 ? () => { workingData.hero.splice(i,1); renderHero(); updateSaveBar(); } : null
     });
+    const mainLabel = document.createElement("div");
+    mainLabel.style.cssText = "font-size:12px;font-weight:600;color:var(--color-text-soft);margin-bottom:8px;";
+    mainLabel.textContent = "💻 PC・スマホ横向き専用の画像";
+    item.insertBefore(mainLabel, item.firstChild);
     appendImageHistoryUI(item, s, "src", () => { renderHero(); updateSaveBar(); });
     // 2026-09-23オーナー指示：スマホ縦画面とPC/横画面で最も伝わる構図が異なるため
     // （例：縦は「切り分けの瞬間」の近接ショット、横は「テーブル全体」の引きの構図）、
