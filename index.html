@@ -396,6 +396,22 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .line-card__btn:hover{opacity:1;transform:translateY(-1px);box-shadow:0 8px 20px rgba(6,199,85,.35)}
 .line-card__btn:hover::before{transform:translateX(100%)}
 .line-card__btn:focus-visible{outline:2px solid #06c755;outline-offset:2px}
+
+/* 2026-09-23、「ご予約はこちら」の単なるボタン+一文を、温かみのあるカード型の案内に変更。
+   何を相談できるか（デザイン・アレルギー）を添えることで、LINEに連絡する心理的ハードルを
+   下げる狙い（オーナー指示のCRO案）。QRコードは設置しない（LINE公式リンク先ページ自体が
+   PC訪問時に自動でQRコードを表示するため、独自に用意する必要はないと既に確認済み）。 */
+.line-reserve{background:var(--color-bg-soft);padding:70px 24px}
+.line-reserve__card{max-width:760px;margin:0 auto;background:var(--color-bg,#fff);border:1px solid var(--color-line);border-radius:16px;box-shadow:0 16px 36px rgba(58,42,35,.08);padding:44px 44px;display:flex;flex-wrap:wrap;align-items:center;gap:34px}
+.line-reserve__info{flex:1;min-width:260px}
+.line-reserve__title{font-family:var(--font-mincho);font-size:20px;letter-spacing:.08em;color:#06c755;margin-bottom:14px;font-weight:700}
+.line-reserve__desc{font-size:14px;line-height:1.9;color:var(--color-text-soft);margin-bottom:22px}
+.line-reserve__steps{list-style:none;padding:0;margin:0}
+.line-reserve__steps li{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--color-text);margin-bottom:10px}
+.line-reserve__steps li:last-child{margin-bottom:0}
+.line-reserve__steps li span{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;font-size:12px;font-weight:700}
+.line-reserve__btn{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;padding:17px 36px;border-radius:999px;background:#06c755;color:#fff;font-family:var(--font-mincho);font-size:15px;font-weight:600;letter-spacing:.08em;text-decoration:none;box-shadow:0 6px 18px rgba(6,199,85,.28);transition:transform .3s,box-shadow .3s}
+.line-reserve__btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(6,199,85,.38)}
 .shop{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0}
 .shop__map{min-height:420px;background:var(--color-bg-soft)}
 .shop__map iframe{width:100%;height:100%;border:0;display:block}
@@ -447,7 +463,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .bcal__cell-event{font-size:16px}
 .fab--pc__label{font-size:14px}
 
-@media(max-width:900px){body{font-size:19px;padding-bottom:80px}section{padding:46px 18px}.greeting__inner{grid-template-columns:0.85fr 1.15fr;gap:14px;align-items:start}.greeting__text h2{font-size:18px;line-height:1.5;margin-bottom:10px}.greeting__text p{font-size:12px;line-height:1.6;margin-bottom:10px}.categories__grid{gap:34px 18px}.recommended__grid{grid-template-columns:repeat(2,1fr);gap:18px}.news-row{grid-template-columns:auto 1fr auto;gap:12px;padding:18px;align-items:start}.news-row:hover{padding-left:20px}.news-row__date{font-size:14px;grid-column:1}.news-row__tag{font-size:12px;padding:3px 9px;grid-column:2;justify-self:start}.news-row__title{grid-column:1/3;font-size:15px;line-height:1.6}.news-row__arrow{grid-column:3;grid-row:1/3;align-self:center}.spotlight::after{inset:16px}.spotlight__inner{grid-template-columns:1fr;gap:30px}.spotlight__title{font-size:22px}.stats__grid{grid-template-columns:repeat(2,1fr)}.stat-cell{padding:26px 14px}.stat-cell__num{font-size:32px}.voices{padding:60px 18px}.voices__grid{grid-template-columns:repeat(2,1fr);gap:14px}.voice-c{padding:16px 14px}.voice-c__stars{font-size:12px;margin-bottom:8px;padding-top:6px}.voice-c__text{font-size:12px;line-height:1.6;margin-bottom:12px}.voice-c__author{font-size:11px;padding-top:10px}.voice-c__name{font-size:12px}.corporate-banner{padding:46px 22px}.corporate-banner__inner{grid-template-columns:1fr;gap:26px;text-align:center}.corporate-banner__cta{justify-self:center}.exp-grid{grid-template-columns:repeat(2,1fr);gap:12px}.exp-card__body{padding:12px 12px 14px}.exp-card__target{font-size:10px;padding:3px 7px;margin-bottom:8px}.exp-card__title{font-size:14px;margin-bottom:4px}.exp-card__en{font-size:11px;margin-bottom:6px}.exp-card__desc{font-size:12px;line-height:1.6;margin-bottom:10px}.exp-card__meta{font-size:11px;margin-bottom:10px;padding-top:8px}.exp-card__meta dt{width:56px}.exp-card__meta dd{width:calc(100% - 60px)}.exp-card__btn{padding:9px 14px;font-size:12px}.stories__grid{grid-template-columns:repeat(2,1fr);gap:14px}.story-card{padding:18px 14px}.story-card__en{font-size:13px;margin-bottom:6px}.story-card__title{font-size:16px;margin-bottom:8px}.story-card__desc{font-size:12px;line-height:1.6;margin-bottom:12px}.story-card__more{font-size:12px}.social__grid{grid-template-columns:repeat(2,1fr);gap:14px}.ig-card__header{padding:8px 10px;gap:7px}.ig-card__avatar{width:30px;height:30px}.ig-card__avatar-inner{font-size:10px}.ig-card__handle{font-size:11px}.ig-card__location{font-size:9px}.ig-card__likes{font-size:11px;padding:0 10px}.ig-card__caption{font-size:11px;padding:0 10px 6px;max-height:60px}.ig-card__hashtags{font-size:10px;padding:0 10px 6px}.ig-card__date{font-size:9px;padding:0 10px 8px}.ig-card__cta{margin:0 10px 10px;font-size:11px;padding:8px}.line-card{padding:24px 16px}.line-card__icon{width:40px;height:40px;margin-bottom:12px}.line-card__title{font-size:15px}.line-card__handle{font-size:11px;margin-bottom:10px}.line-card__desc{font-size:11px;margin-bottom:14px}.line-card__btn{padding:10px 20px;font-size:12px}.shop{grid-template-columns:1fr}.shop__info{padding:50px 28px}.shop__info h2{font-size:24px}.footer__inner{grid-template-columns:1fr 1fr;gap:32px}.footer__bottom{justify-content:center;text-align:center}.footer__legal{flex-wrap:wrap;justify-content:center}.hero__overlay{padding:0 28px}.hero__scroll{display:none}.bcal{padding:50px 12px}.bcal__wrap{padding:16px 8px;max-width:100%}.bcal__grid{gap:2px}.bcal__cell{font-size:14px;padding:4px 2px 3px;min-width:0;min-height:46px}.bcal__cell-event{font-size:8px;padding:1px}.bcal__cell.closed::after{font-size:9px;margin-top:1px}.bcal__dow{font-size:11px;padding:6px 0;min-width:0}.bcal__title{font-size:17px;min-width:120px}.bcal__nav{gap:8px}.bcal__nav button{width:32px;height:32px;font-size:13px}.bcal__header{margin-bottom:14px;justify-content:center;gap:10px}.bcal__legend{font-size:11px;justify-content:center;width:100%;gap:10px}.bcal__legend i{width:11px;height:11px}.bcal__note{font-size:12px;margin-top:14px;line-height:1.6}.fab--pc{display:none!important}.fab--mobile{display:flex}.header-status-mobile{display:flex}}
+@media(max-width:900px){body{font-size:19px;padding-bottom:80px}section{padding:46px 18px}.greeting__inner{grid-template-columns:0.85fr 1.15fr;gap:14px;align-items:start}.greeting__text h2{font-size:18px;line-height:1.5;margin-bottom:10px}.greeting__text p{font-size:12px;line-height:1.6;margin-bottom:10px}.categories__grid{gap:34px 18px}.recommended__grid{grid-template-columns:repeat(2,1fr);gap:18px}.news-row{grid-template-columns:auto 1fr auto;gap:12px;padding:18px;align-items:start}.news-row:hover{padding-left:20px}.news-row__date{font-size:14px;grid-column:1}.news-row__tag{font-size:12px;padding:3px 9px;grid-column:2;justify-self:start}.news-row__title{grid-column:1/3;font-size:15px;line-height:1.6}.news-row__arrow{grid-column:3;grid-row:1/3;align-self:center}.spotlight::after{inset:16px}.spotlight__inner{grid-template-columns:1fr;gap:30px}.spotlight__title{font-size:22px}.stats__grid{grid-template-columns:repeat(2,1fr)}.stat-cell{padding:26px 14px}.stat-cell__num{font-size:32px}.voices{padding:60px 18px}.voices__grid{grid-template-columns:repeat(2,1fr);gap:14px}.voice-c{padding:16px 14px}.voice-c__stars{font-size:12px;margin-bottom:8px;padding-top:6px}.voice-c__text{font-size:12px;line-height:1.6;margin-bottom:12px}.voice-c__author{font-size:11px;padding-top:10px}.voice-c__name{font-size:12px}.corporate-banner{padding:46px 22px}.corporate-banner__inner{grid-template-columns:1fr;gap:26px;text-align:center}.corporate-banner__cta{justify-self:center}.exp-grid{grid-template-columns:repeat(2,1fr);gap:12px}.exp-card__body{padding:12px 12px 14px}.exp-card__target{font-size:10px;padding:3px 7px;margin-bottom:8px}.exp-card__title{font-size:14px;margin-bottom:4px}.exp-card__en{font-size:11px;margin-bottom:6px}.exp-card__desc{font-size:12px;line-height:1.6;margin-bottom:10px}.exp-card__meta{font-size:11px;margin-bottom:10px;padding-top:8px}.exp-card__meta dt{width:56px}.exp-card__meta dd{width:calc(100% - 60px)}.exp-card__btn{padding:9px 14px;font-size:12px}.stories__grid{grid-template-columns:repeat(2,1fr);gap:14px}.story-card{padding:18px 14px}.story-card__en{font-size:13px;margin-bottom:6px}.story-card__title{font-size:16px;margin-bottom:8px}.story-card__desc{font-size:12px;line-height:1.6;margin-bottom:12px}.story-card__more{font-size:12px}.social__grid{grid-template-columns:repeat(2,1fr);gap:14px}.ig-card__header{padding:8px 10px;gap:7px}.ig-card__avatar{width:30px;height:30px}.ig-card__avatar-inner{font-size:10px}.ig-card__handle{font-size:11px}.ig-card__location{font-size:9px}.ig-card__likes{font-size:11px;padding:0 10px}.ig-card__caption{font-size:11px;padding:0 10px 6px;max-height:60px}.ig-card__hashtags{font-size:10px;padding:0 10px 6px}.ig-card__date{font-size:9px;padding:0 10px 8px}.ig-card__cta{margin:0 10px 10px;font-size:11px;padding:8px}.line-card{padding:24px 16px}.line-card__icon{width:40px;height:40px;margin-bottom:12px}.line-card__title{font-size:15px}.line-card__handle{font-size:11px;margin-bottom:10px}.line-card__desc{font-size:11px;margin-bottom:14px}.line-card__btn{padding:10px 20px;font-size:12px}.line-reserve{padding:50px 16px}.line-reserve__card{padding:30px 24px;flex-direction:column;text-align:center;gap:22px}.line-reserve__steps li{justify-content:center}.line-reserve__btn{width:100%;justify-content:center}.shop{grid-template-columns:1fr}.shop__info{padding:50px 28px}.shop__info h2{font-size:24px}.footer__inner{grid-template-columns:1fr 1fr;gap:32px}.footer__bottom{justify-content:center;text-align:center}.footer__legal{flex-wrap:wrap;justify-content:center}.hero__overlay{padding:0 28px}.hero__scroll{display:none}.bcal{padding:50px 12px}.bcal__wrap{padding:16px 8px;max-width:100%}.bcal__grid{gap:2px}.bcal__cell{font-size:14px;padding:4px 2px 3px;min-width:0;min-height:46px}.bcal__cell-event{font-size:8px;padding:1px}.bcal__cell.closed::after{font-size:9px;margin-top:1px}.bcal__dow{font-size:11px;padding:6px 0;min-width:0}.bcal__title{font-size:17px;min-width:120px}.bcal__nav{gap:8px}.bcal__nav button{width:32px;height:32px;font-size:13px}.bcal__header{margin-bottom:14px;justify-content:center;gap:10px}.bcal__legend{font-size:11px;justify-content:center;width:100%;gap:10px}.bcal__legend i{width:11px;height:11px}.bcal__note{font-size:12px;margin-top:14px;line-height:1.6}.fab--pc{display:none!important}.fab--mobile{display:flex}.header-status-mobile{display:flex}}
 @media(max-width:380px){.bcal__wrap{padding:12px 4px}.bcal__cell{font-size:12px;min-height:42px}.bcal__cell-event{font-size:7px}.bcal__cell.closed::after{font-size:8px}.bcal__dow{font-size:10px;padding:4px 0}}
 .header-status-mobile{display:none}
 @media(min-width:901px){.fab--mobile{display:none!important}}
@@ -684,7 +700,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="quick-reserve__card quick-reserve__card--urgent">
       <span class="quick-reserve__tag">お急ぎの方へ</span>
       <span class="quick-reserve__title">定番ホールケーキの簡単ご予約</span>
-      <span class="quick-reserve__sub">最短3日後〜・LINEで簡単予約</span>
+      <span class="quick-reserve__sub">最短3日後〜・パティシエに直接LINEでご相談</span>
       <span class="quick-reserve__btn">LINEで予約する →</span>
     </a>
     <a href="gallery.html" class="quick-reserve__card quick-reserve__card--custom">
@@ -708,8 +724,20 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="section__inner">
     <div class="section__head"><span class="section__en">Recommended</span><h2 class="section__title">おすすめ商品</h2></div>
     <div class="recommended__grid" id="recommendedGrid"></div>
-    <div style="text-align:center;margin-top:60px;"><a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="inline-flex items-center gap-3 px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-bold text-[var(--color-on-accent)] bg-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:-translate-y-0.5">ご予約はこちら <span class="[font-family:var(--font-en)] text-[19px]">→</span></a></div>
-    <p style="text-align:center;margin-top:18px;font-size:14px;color:var(--color-text-soft);">LINE公式アカウントを<strong>友だち追加</strong>のうえ、チャットでご予約・お問合せください</p>
+  </div>
+</section>
+
+<section class="line-reserve" id="lineReserve">
+  <div class="line-reserve__card">
+    <div class="line-reserve__info">
+      <h3 class="line-reserve__title">スマホで簡単！LINEでご予約</h3>
+      <p class="line-reserve__desc">パティシエと直接やり取りができるので、<br>「こんなデザインにできる？」「アレルギーの相談」も安心です。</p>
+      <ol class="line-reserve__steps">
+        <li><span>1</span>「こいまり公式LINE」を友だち追加</li>
+        <li><span>2</span>トーク画面からご希望の日時を送るだけ！</li>
+      </ol>
+    </div>
+    <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="line-reserve__btn">友だち追加してご予約 <span>→</span></a>
   </div>
 </section>
 
@@ -857,7 +885,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <h3 class="line-card__title">LINE公式アカウント</h3>
       <div class="line-card__handle">@744lgqjn</div>
-      <p class="line-card__desc">友だち追加で会員登録完了。お誕生日特典・新商品情報をお届けします。</p>
+      <p class="line-card__desc">友だち追加で会員登録完了。ご予約のご相談はもちろん、お誕生日特典・新商品情報もお届けします。</p>
       <span class="line-card__btn">友だち追加 ↗</span>
     </a>
 
