@@ -561,6 +561,29 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         「ファイルから選択」でアップロードすると自動的に縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。
       </span></p>
       <div class="img-grid" id="heroGrid"></div>
+
+      <hr style="margin:26px 0;border:none;border-top:1px solid var(--color-line);">
+      <div class="panel__head"><h2 class="panel__title" style="font-size:16px;">ヒーロー画像プロンプト集</h2><button class="btn btn--small" id="addHeroPromptPreset">＋ プロンプトを追加</button></div>
+      <p class="panel__desc">ヒーロー画像（PC・スマホ横向き用／スマホ縦向き用）をAIで生成する際にうまくいったプロンプトを保存しておけます。次回以降はここからコピーして使えます。</p>
+      <div id="heroPromptPresetFormArea" style="display:none; background:#fff; border:1px solid var(--color-line); padding:24px 28px; max-width:720px; margin-bottom:20px;">
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">パターン名</label>
+          <input type="text" id="heroPromptPresetTitle" class="input" placeholder="例: スマホ縦画面用・引き出しの瞬間" style="font-size:14px;padding:10px 12px;">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">プロンプト本文</label>
+          <textarea id="heroPromptPresetPrompt" class="input" rows="6" placeholder="AIに渡すプロンプトをそのまま貼り付け" style="font-size:13px;padding:10px 12px;font-family:monospace;line-height:1.6;"></textarea>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">メモ（任意）</label>
+          <input type="text" id="heroPromptPresetNote" class="input" placeholder="例: 横向き（16:9）用／縦向き（9:16）用など" style="font-size:14px;padding:10px 12px;">
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn btn--small" id="heroPromptPresetSave">保存</button>
+          <button class="btn btn--small btn--ghost" id="heroPromptPresetCancel">キャンセル</button>
+        </div>
+      </div>
+      <div id="heroPromptPresetList"></div>
     </section>
     <section class="panel" id="panel-greeting">
       <div class="panel__head"><h2 class="panel__title">店舗紹介画像</h2></div>
@@ -1026,6 +1049,19 @@ const MANUAL_SALES_KEY = "koimari_manual_sales";
 const SALES_GOAL_KEY = "koimari_sales_goal";
 const COUPON_KEY = "koimari_coupons";
 const AI_PROMPT_PRESET_KEY = "koimari_ai_prompt_presets";
+const HERO_PROMPT_PRESET_KEY = "koimari_hero_prompt_presets";
+// 2026-09-23判明：saveByOpsKey()はlocalStorage用のキー文字列（例: "koimari_ai_prompt_presets"）
+// から先頭の"koimari_"を取り除くだけでFirebase保存先のパス名（opsKey）を作っていたが、
+// 実際のFirebase購読（fbSubscribeOps・OPS_KEYS）はキャメルケース（例: "aiPromptPresets"）で
+// 購読していたため、"manual_sales"（保存先）と"manualSales"（購読先）のように一致しない
+// ケースが3つ（manualSales・salesGoal・aiPromptPresets）あった。coupons（単語1つで
+// 大文字小文字の差が出ない）だけ偶然一致していたため気付かれていなかった。実害として、
+// これらの保存内容はFirebaseの別パスに書き込まれ、保存した本人のブラウザのlocalStorage
+// キャッシュにしか反映されず、他端末・他の従業員には一切同期されていなかった（こいまりサイト
+// で繰り返し起きてきた「ローカルにしか保存されない」問題と同根）。正しい対応表を明示的に
+// 持たせることで、今後同様のキーを追加しても同じ事故が起きないようにする。
+const OPS_KEY_TO_LS_KEY = { manualSales: MANUAL_SALES_KEY, salesGoal: SALES_GOAL_KEY, coupons: COUPON_KEY, aiPromptPresets: AI_PROMPT_PRESET_KEY, heroPromptPresets: HERO_PROMPT_PRESET_KEY };
+const LS_KEY_TO_OPS_KEY = Object.fromEntries(Object.entries(OPS_KEY_TO_LS_KEY).map(([opsKey, lsKey]) => [lsKey, opsKey]));
 const LINE_MEMBERS_KEY = "koimari_lineMembers";
 const PAGE_ERRORS_KEY = "koimari_page_errors";
 
@@ -1452,6 +1488,7 @@ document.querySelectorAll(".tab").forEach(t => {
     if (t.dataset.panel === "holidays") renderHolidaysAdmin();
     if (t.dataset.panel === "faq") renderFaqAdmin();
     if (t.dataset.panel === "galleryAdmin") { renderGalleryAdmin(); renderAiPromptPresets(); }
+    if (t.dataset.panel === "hero") renderHeroPromptPresets();
     if (t.dataset.panel === "voicesAdmin") renderVoicesAdmin();
     if (t.dataset.panel === "blogAdmin") { blogData = null; renderBlogAdmin(); }
   });
@@ -3136,6 +3173,71 @@ document.getElementById("aiPromptPresetSave").addEventListener("click", async ()
   }
 });
 
+// 2026-09-23、ヒーロー画像用のプロンプト保管欄。AI宣材写真プロンプト集と全く同じ仕組みを、
+// 別のFirebaseパス（koimariOps/heroPromptPresets）で独立管理する（保存先を分けて用途が
+// 混ざらないようにするため）。
+function loadHeroPromptPresets() { try { return JSON.parse(localStorage.getItem(HERO_PROMPT_PRESET_KEY)) || []; } catch { return []; } }
+function renderHeroPromptPresets() {
+  const list = loadHeroPromptPresets();
+  const el = document.getElementById("heroPromptPresetList");
+  if (!el) return;
+  if (!list.length) { el.innerHTML = '<div class="empty">保存されたプロンプトはまだありません</div>'; return; }
+  let html = '';
+  list.forEach((p, i) => {
+    html += `<div style="background:#fff;border:1px solid var(--color-line);padding:18px 22px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px;">
+        <div>
+          <div style="font-family:var(--font-mincho);font-size:15px;font-weight:700;color:var(--color-text);">${escapeHtml(p.title)}</div>
+          ${p.note ? `<div style="font-size:12px;color:var(--color-text-soft);margin-top:4px;">${escapeHtml(p.note)}</div>` : ""}
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button class="btn btn--small btn--ghost" style="padding:6px 14px;font-size:12px;" onclick="copyHeroPromptPreset(${i})">コピー</button>
+          <button class="btn btn--small btn--danger" style="padding:6px 14px;font-size:12px;" onclick="deleteHeroPromptPreset(${i})">削除</button>
+        </div>
+      </div>
+      <textarea readonly style="width:100%;font-family:monospace;font-size:12px;line-height:1.6;padding:10px 12px;border:1px solid var(--color-line);background:var(--color-bg-soft);color:var(--color-text-soft);resize:vertical;" rows="4">${escapeHtml(p.prompt)}</textarea>
+    </div>`;
+  });
+  el.innerHTML = html;
+}
+function copyHeroPromptPreset(idx) {
+  const list = loadHeroPromptPresets();
+  const p = list[idx];
+  if (!p) return;
+  navigator.clipboard.writeText(p.prompt).then(
+    () => showToast("プロンプトをコピーしました"),
+    () => showToast("コピーに失敗しました。手動で選択してコピーしてください", "error")
+  );
+}
+async function deleteHeroPromptPreset(idx) {
+  if (!confirm("このプロンプトを削除しますか？")) return;
+  const list = loadHeroPromptPresets(); list.splice(idx, 1);
+  afterSave(await saveByOpsKey(HERO_PROMPT_PRESET_KEY, list), () => renderHeroPromptPresets(), "削除しました");
+}
+document.getElementById("addHeroPromptPreset").addEventListener("click", () => {
+  document.getElementById("heroPromptPresetFormArea").style.display = "block";
+  document.getElementById("heroPromptPresetTitle").focus();
+});
+document.getElementById("heroPromptPresetCancel").addEventListener("click", () => {
+  document.getElementById("heroPromptPresetFormArea").style.display = "none";
+});
+document.getElementById("heroPromptPresetSave").addEventListener("click", async () => {
+  const title = document.getElementById("heroPromptPresetTitle").value.trim();
+  const prompt = document.getElementById("heroPromptPresetPrompt").value.trim();
+  const note = document.getElementById("heroPromptPresetNote").value.trim();
+  if (!title || !prompt) { showToast("パターン名とプロンプト本文は必須です", "error"); return; }
+  const list = loadHeroPromptPresets();
+  list.push({ title, prompt, note, createdAt: new Date().toISOString() });
+  const result = await saveByOpsKey(HERO_PROMPT_PRESET_KEY, list);
+  afterSave(result, () => renderHeroPromptPresets(), "プロンプトを保存しました");
+  if (result) {
+    document.getElementById("heroPromptPresetFormArea").style.display = "none";
+    document.getElementById("heroPromptPresetTitle").value = "";
+    document.getElementById("heroPromptPresetPrompt").value = "";
+    document.getElementById("heroPromptPresetNote").value = "";
+  }
+});
+
 document.getElementById("couponSave").addEventListener("click", async () => {
   const code = document.getElementById("couponCode").value.trim().toUpperCase();
   const discount = document.getElementById("couponDiscount").value.trim();
@@ -3879,11 +3981,14 @@ function afterSave(result, applyFn, successMsg) {
 // 売上目標・手動売上記録・クーポンは、koimariContentとは別の非公開パス(koimariOps)を使う
 // （売上金額等の機微な数値を、一般公開ページと同じ「誰でも読める」ルールに置きたくないため）。
 // マージ処理自体はsaveByKeyと同じ仕組みを流用する。
-const OPS_SHAPES = { manualSales: "array", salesGoal: "object", coupons: "array", aiPromptPresets: "array" };
-const OPS_LABELS = { manualSales: "手動売上記録", salesGoal: "売上目標", coupons: "クーポン", aiPromptPresets: "AI宣材写真プロンプト集" };
+const OPS_SHAPES = { manualSales: "array", salesGoal: "object", coupons: "array", aiPromptPresets: "array", heroPromptPresets: "array" };
+const OPS_LABELS = { manualSales: "手動売上記録", salesGoal: "売上目標", coupons: "クーポン", aiPromptPresets: "AI宣材写真プロンプト集", heroPromptPresets: "ヒーロー画像プロンプト集" };
 let savedOpsByKey = {};
 async function saveByOpsKey(key, data) {
-  const opsKey = key.replace(/^koimari_/, "");
+  // 2026-09-23修正：単純な"koimari_"接頭辞除去（snake_case想定）ではなく、実際にFirebase
+  // 購読側が使っているキャメルケースのopsKeyへ対応表（LS_KEY_TO_OPS_KEY）で変換する。
+  // 以前の方式ではmanualSales/salesGoal/aiPromptPresetsの保存先が購読先と食い違っていた。
+  const opsKey = LS_KEY_TO_OPS_KEY[key] || key.replace(/^koimari_/, "");
   const shape = OPS_SHAPES[opsKey] || "array";
   const label = OPS_LABELS[opsKey] || opsKey;
   const conflicts = [];
@@ -4543,16 +4648,16 @@ function applyFetchedContent(all) {
 // 表示中のパネルだけ再描画すればよい（他パネルのように複雑な3者マージは不要）。
 function applyFetchedOpsContent(all) {
   if (!all) return;
-  const KEYMAP = { manualSales: MANUAL_SALES_KEY, salesGoal: SALES_GOAL_KEY, coupons: COUPON_KEY, aiPromptPresets: AI_PROMPT_PRESET_KEY };
-  Object.keys(KEYMAP).forEach(opsKey => {
+  Object.keys(OPS_KEY_TO_LS_KEY).forEach(opsKey => {
     const fresh = all[opsKey];
     if (fresh === undefined) return;
     savedOpsByKey[opsKey] = JSON.parse(JSON.stringify(fresh));
-    try { localStorage.setItem(KEYMAP[opsKey], JSON.stringify(fresh)); } catch(e) {}
+    try { localStorage.setItem(OPS_KEY_TO_LS_KEY[opsKey], JSON.stringify(fresh)); } catch(e) {}
   });
   if (document.getElementById("panel-stats")?.classList.contains("active")) { renderManualSalesTable(); renderStats(); renderSalesGoal(); }
   if (document.getElementById("panel-coupons")?.classList.contains("active")) { renderCoupons(); }
   if (document.getElementById("panel-galleryAdmin")?.classList.contains("active")) { renderAiPromptPresets(); }
+  if (document.getElementById("panel-hero")?.classList.contains("active")) { renderHeroPromptPresets(); }
   if (document.getElementById("panel-dashboard")?.classList.contains("active")) { renderDashboard(); }
 }
 </script>
@@ -4709,7 +4814,7 @@ window.fbSaveOpsKey = async function (opsKey, data) {
   await set(ref(fbDb, "koimariOps/" + opsKey), data);
 };
 // koimariContentと同じ理由で、"koimariOps"全体の一括購読も個別パス購読に変更（2026-09-10）。
-const OPS_KEYS = ["manualSales", "salesGoal", "coupons", "aiPromptPresets"];
+const OPS_KEYS = ["manualSales", "salesGoal", "coupons", "aiPromptPresets", "heroPromptPresets"];
 let unsubOps = null;
 let liveOpsCache = {};
 let liveOpsLoadedKeys = new Set();
