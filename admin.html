@@ -2230,6 +2230,7 @@ function renderDecorationCakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderDecorationCakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.decorationCakes[i].visible, () => { workingData.decorationCakes[i].visible = !workingData.decorationCakes[i].visible; renderDecorationCakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    appendReorderControls(item, workingData.decorationCakes, i, () => { renderDecorationCakes(); updateSaveBar(); });
     grid.appendChild(item);
   });
 }
@@ -2258,6 +2259,7 @@ function renderCutcakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderCutcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.cutcakes[i].visible, () => { workingData.cutcakes[i].visible = !workingData.cutcakes[i].visible; renderCutcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    appendReorderControls(item, workingData.cutcakes, i, () => { renderCutcakes(); updateSaveBar(); });
     grid.appendChild(item);
   });
 }
@@ -2286,6 +2288,7 @@ function renderRollcakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderRollcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.rollcakes[i].visible, () => { workingData.rollcakes[i].visible = !workingData.rollcakes[i].visible; renderRollcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    appendReorderControls(item, workingData.rollcakes, i, () => { renderRollcakes(); updateSaveBar(); });
     grid.appendChild(item);
   });
 }
@@ -2314,6 +2317,7 @@ function renderBaked() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderBaked(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.baked[i].visible, () => { workingData.baked[i].visible = !workingData.baked[i].visible; renderBaked(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    appendReorderControls(item, workingData.baked, i, () => { renderBaked(); updateSaveBar(); });
     grid.appendChild(item);
   });
 }
@@ -2342,6 +2346,7 @@ function renderGift() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderGift(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.gift[i].visible, () => { workingData.gift[i].visible = !workingData.gift[i].visible; renderGift(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    appendReorderControls(item, workingData.gift, i, () => { renderGift(); updateSaveBar(); });
     grid.appendChild(item);
   });
 }
