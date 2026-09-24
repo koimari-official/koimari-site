@@ -1178,6 +1178,13 @@ function reservationItemsHtml(r) {
 // を確認電話の前に把握できるようにする。r.subtotal/r.priceNeedsConsultは予約データに
 // 既に保存されている値をそのまま使う（二重計算しない）。
 function reservationPriceHtml(r) {
+  // 2026-09-24：お客様が商品ページ（ギャラリー）で選んだ商品を併せて表示する（reserve-draft.js経由）
+  const pick = r.galleryPick && r.galleryPick.name
+    ? `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#4a6f9c;">🖼 ギャラリーで選択: ${escapeHtml(r.galleryPick.name)}${r.galleryPick.size ? "（" + escapeHtml(r.galleryPick.size) + "）" : ""}</div>` : "";
+  if (pick) return pick + reservationPriceHtmlBody(r);
+  return reservationPriceHtmlBody(r);
+}
+function reservationPriceHtmlBody(r) {
   if (r.priceNeedsConsult) {
     return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#a98554;">💰 お客様への案内: 料金は追ってお電話でご案内（たぬきちケーキ／カットケーキ／セルクルを含む）</div>`;
   }

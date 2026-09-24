@@ -144,6 +144,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div id="reserveFormWrap">
+        <div id="draftBanner" style="display:none;"></div>
         <div class="field">
           <label class="field__check">
             <input type="checkbox" id="reserveStoreConfirm">
@@ -1023,6 +1024,7 @@ function buildReserveSummaryText(data) {
   const candleLine = data.candleNeeded ? `${data.candleType} ${data.candleBags}袋${data.candleBags > 1 ? "（2袋目以降は追加料金）" : ""}` : "なし";
   const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降は追加料金）" : ""}` : "なし";
   const lines = ["【ご予約を送信しました】", `商品: ${productName}${data.items.length > 1 ? `（${data.items.length}段）` : ""}`];
+  if (data.galleryPick) lines.push(`ギャラリーで選んだ商品: ${data.galleryPick.name}${data.galleryPick.size ? `（${data.galleryPick.size}）` : ""}`);
   if (item.flavor) lines.push(`ケーキの種類: ${item.flavor}`);
   if (isCake) lines.push(`クリームの種類: ${data.creamType}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`);
   if (isCake) lines.push(`飾り付け: ${data.decoration}`);
@@ -1045,7 +1047,72 @@ function buildReserveSummaryText(data) {
   return lines.join("\n");
 }
 
+// ===== ギャラリーで選んだ仕様の引き継ぎ（2026-09-24）=====
+// 商品ページ(reserve-draft.js)がFirebaseの reservationDrafts/{コード} に保存した選択内容を、
+// URLの?draft= ／ liff.state ／ 同一端末のlocalStorage ／ 手入力コードのいずれかから読み込み、
+// フォーム上部に表示して予約データ(galleryPick)へ添付する。ブラウザ→LINEアプリで保存領域が
+// 変わっても消えないよう、内容自体はサーバー側に置いている。
+const DRAFT_DB = "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app";
+const DRAFT_LS_KEY = "koimari_draft_code";
+let currentDraft = null;
+function normalizeDraftCode(s) { return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8); }
+function draftCodeFromUrl() {
+  const p = new URLSearchParams(location.search);
+  let c = p.get("draft");
+  if (!c) { const st = p.get("liff.state"); if (st) { const m = decodeURIComponent(st).match(/[?&]draft=([A-Za-z0-9]+)/); if (m) c = m[1]; } }
+  if (!c) { try { c = localStorage.getItem(DRAFT_LS_KEY); } catch (e) {} }
+  return normalizeDraftCode(c);
+}
+async function fetchDraft(code) {
+  code = normalizeDraftCode(code);
+  if (code.length !== 8) return null;
+  try {
+    const r = await fetch(`${DRAFT_DB}/reservationDrafts/${code}.json`);
+    if (!r.ok) return null;
+    const d = await r.json();
+    return d && d.name ? Object.assign({ code }, d) : null;
+  } catch (e) { return null; }
+}
+const DRAFT_TYPE_TO_RADIO = { decorationCake: "デコレーションケーキ", rollcake: "ロールケーキ", baked: "焼き菓子・ギフト", gift: "焼き菓子・ギフト" };
+function applyDraft(d) {
+  currentDraft = d;
+  const radioValue = DRAFT_TYPE_TO_RADIO[d.productType];
+  if (radioValue) {
+    const radio = Array.from(document.querySelectorAll('input[name="reserveType"]')).find(r => r.value === radioValue);
+    if (radio && !radio.checked) { radio.checked = true; radio.dispatchEvent(new Event("change", { bubbles: true })); }
+  }
+  renderDraftBanner();
+}
+function renderDraftBanner() {
+  const el = document.getElementById("draftBanner");
+  if (!el) return;
+  el.style.display = "block";
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  if (currentDraft) {
+    el.innerHTML = `<div style="display:flex;gap:12px;align-items:center;background:#f3ece1;border:1px solid #d8baa4;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
+      ${currentDraft.img ? `<img src="${esc(currentDraft.img)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ""}
+      <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div></div>
+      <button type="button" id="draftClear" style="font-size:12px;border:1px solid #c9a96e;background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;">解除</button></div>`;
+    document.getElementById("draftClear").addEventListener("click", () => { currentDraft = null; try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {} renderDraftBanner(); });
+  } else {
+    el.innerHTML = `<details style="margin-bottom:18px;font-size:13px;"><summary style="cursor:pointer;color:#6b5a48;">ギャラリーで選んだ商品の「仕様コード」をお持ちの方</summary>
+      <div style="display:flex;gap:8px;margin-top:10px;"><input id="draftCodeInput" type="text" maxlength="9" placeholder="例: ABCD2345" style="flex:1;padding:10px 12px;border:1px solid #d8baa4;border-radius:8px;font-size:16px;letter-spacing:.15em;text-transform:uppercase;">
+      <button type="button" id="draftCodeLoad" style="padding:10px 16px;border:none;border-radius:8px;background:#a88a52;color:#fff;cursor:pointer;">読み込む</button></div>
+      <div id="draftCodeMsg" style="margin-top:6px;color:#b03b48;"></div></details>`;
+    document.getElementById("draftCodeLoad").addEventListener("click", async () => {
+      const d = await fetchDraft(document.getElementById("draftCodeInput").value);
+      if (d) applyDraft(d); else document.getElementById("draftCodeMsg").textContent = "コードが見つかりませんでした。入力内容をご確認ください。";
+    });
+  }
+}
+async function initDraftFeature() {
+  renderDraftBanner();
+  const code = draftCodeFromUrl();
+  if (code) { const d = await fetchDraft(code); if (d) applyDraft(d); }
+}
+
 function setupReserveForm(uid, displayName) {
+  initDraftFeature();
   populateReserveSelects();
   updateReserveFieldVisibility();
   updateReserveCategoryVisibility();
@@ -1131,6 +1198,7 @@ function setupReserveForm(uid, displayName) {
         items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
         candleNeeded, candleType, candleBags, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
+        ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
       };
     }
@@ -1177,6 +1245,8 @@ function setupReserveForm(uid, displayName) {
       errEl.textContent = "送信に失敗しました。お手数ですがお電話（070-9158-0641）にてご連絡いただくか、時間をおいて再度お試しください。";
       return;
     }
+    // 予約が確定したら保存済みの仕様コードは使い終わり。次回の予約に古い選択が残らないよう消す。
+    try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {}
 
     // LINEチャットに予約内容を投稿する（お客様の履歴・スタッフの受信箱の両方に残すため）。
     // 外部ブラウザから開かれた場合はsendMessagesが使えないため、失敗しても予約自体は成立させる。

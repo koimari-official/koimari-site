@@ -28,6 +28,13 @@
         ".write": "auth != null || !data.exists()"
       }
     },
+    "reservationDrafts": {
+      "$code": {
+        ".read": true,
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['name', 'productType', 'createdAt']) && newData.child('name').isString() && newData.child('name').val().length <= 120 && newData.child('productType').isString() && newData.child('productType').val().length <= 30 && (!newData.child('img').exists() || (newData.child('img').isString() && newData.child('img').val().length <= 600)) && (!newData.child('price').exists() || (newData.child('price').isString() && newData.child('price').val().length <= 60)) && (!newData.child('size').exists() || (newData.child('size').isString() && newData.child('size').val().length <= 40))"
+      }
+    },
     "experiences": {
       ".read": "auth != null",
       "$id": {

@@ -361,6 +361,22 @@ exports.lineWebhook = onRequest(
           continue;
         }
 
+        // 商品ページで選んだ仕様のコード（例:【ご希望仕様コード】ABCD2345）が送られてきたら、
+        // その内容を確認して、選択内容が引き継がれる専用の予約フォームリンクを返す（2026-09-24）。
+        // 友だち追加前にブラウザで選んだ内容を、LINE内の予約フォームへ渡すための受け口。
+        const draftMatch = event.message.text.match(/仕様コード[^A-Za-z0-9]*([A-Za-z0-9]{8})/);
+        if (draftMatch) {
+          const code = draftMatch[1].toUpperCase();
+          const snap = await admin.database().ref("reservationDrafts/" + code).once("value");
+          const d = snap.val();
+          const link = RESERVE_LIFF_URL.replace("#reserve", "") + "?draft=" + code + "#reserve";
+          const text = d && d.name
+            ? ["ご希望の仕様を確認しました🎂", d.name + (d.size ? "（" + d.size + "）" : ""), "", "こちらから、この内容を引き継いだままご予約に進めます↓", link].join("\n")
+            : ["コードが見つかりませんでした。お手数ですが、下のボタンからご予約フォームを開き、ご希望をご入力ください🙇", RESERVE_LIFF_URL].join("\n");
+          await replyToLine(event.replyToken, text, LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
+          continue;
+        }
+
         // リッチメニュー「スタンプカード」タップ時も、AIの生成に任せず準備中の案内を確実に返す。
         if (event.message.text.trim() === STAMP_CARD_TRIGGER_TEXT) {
           await replyToLine(event.replyToken, STAMP_CARD_REPLY_TEXT, LINE_CHANNEL_ACCESS_TOKEN.value());
@@ -484,6 +500,9 @@ function buildStaffNotifyText(data) {
     `引き取り希望: ${data.pickupDate || ""} ${data.pickupTime || ""}`,
     `お電話番号: ${data.tel || ""}`,
   ];
+  if (data.galleryPick && data.galleryPick.name) {
+    lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
+  }
   if (data.priceNeedsConsult) {
     lines.push("お客様への案内: 料金は追ってお電話でご案内（たぬきちケーキ／カットケーキ／セルクルを含む）");
   } else if (data.subtotal) {
