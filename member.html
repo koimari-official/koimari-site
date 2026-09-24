@@ -269,7 +269,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field">
           <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
           <input type="date" id="reserveDate" class="input">
-          <div class="field__hint">3営業日前（定休日・臨時休業を除く）までにご予約ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。</div>
+          <div class="field__hint">3営業日前（定休日・臨時休業を除く）まではこちらからネット予約いただけます（ご予約後、内容確認のためお電話またはチャットでご連絡します）。2営業日前以降はお電話（070-9158-0641）でご予約ください。ギャラリーで選んだ仕様をお伝えいただくと、お見積もり・お引き取り日をスムーズにご案内できます。</div>
           <div class="error" id="reserveDateError"></div>
           <div id="reservePhoneNotice" style="display:none;"></div>
         </div>
@@ -364,7 +364,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="reserveConfirmWrap" style="display:none;">
         <div class="confirm-box" id="reserveConfirmSummary"></div>
-        <p style="font-size:13px;color:var(--color-text-soft);line-height:1.8;margin:14px 0 10px;">皆様にご満足いただくため、仕様を含めた予約内容の確認でスタッフよりお電話を差し上げることがございます。お手数でございますが、ご対応もしくは折り返しのお電話をいただきますようご協力をお願い致します。</p>
+        <p style="font-size:13px;color:var(--color-text-soft);line-height:1.8;margin:14px 0 10px;">皆様にご満足いただくため、仕様を含めた予約内容の確認でスタッフよりお電話またはチャットでご連絡を差し上げることがございます。お手数でございますが、ご対応もしくは折り返しのご連絡をいただきますようご協力をお願い致します。</p>
         <ul style="font-size:13px;color:var(--color-error);line-height:1.8;margin:0 0 20px;padding-left:1.2em;">
           <li>ご連絡がつかない場合や折り返しをいただけない場合は、ご予約をキャンセルとさせていただくことがございます。</li>
           <li>ご連絡なく引き取り希望日を過ぎてもお引き取りがない場合は、商品代金をご請求させていただく場合がございます。</li>
@@ -1134,6 +1134,7 @@ function updateReservePhoneNotice() {
     '<div style="font-weight:700;color:#8a5a12;margin-bottom:6px;">お受取日まで日数が少ないため、お電話でご予約ください</div>' +
     '<div style="color:#4a3a2a;">お電話でこちらの内容をお伝えください：</div>' +
     '<ul style="margin:4px 0 10px 1.2em;padding:0;color:#2e2118;"><li>引き取り希望日：' + esc(v) + '</li><li>商品：' + esc(productLine) + '</li>' + (priceLine ? '<li>' + esc(priceLine) + '</li>' : '') + '</ul>' +
+    '<div style="color:#4a3a2a;margin-bottom:10px;">ギャラリーで選んだ仕様をお伝えいただくと、お見積もり・お引き取り日をスムーズにご案内できます。オーダー内容によっては、取り寄せが必要な材料・資材がある場合は別途ご相談させていただきます。</div>' +
     '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">📞 070-9158-0641 に電話する</a></div>';
 }
 
