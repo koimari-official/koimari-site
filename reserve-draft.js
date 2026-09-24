@@ -76,6 +76,14 @@
       var code = await saveDraft(pick);
       try { localStorage.setItem(LS_KEY, code); } catch (e) {}
       if (isLineBrowser()) { location.href = liffUrl(code); return; }
+      // スマホ（LINE未起動のブラウザ）：LINEアプリで予約フォームを直接開く。登録済みの方はそのまま予約画面、
+      // 未登録の方はLINE側の案内に従って友だち追加へ進める。アプリが開かなかった場合(LINE未導入・
+      // PC等)は数秒後もこのページが見えたままなので、その時だけ案内モーダルを出す。
+      if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
+        location.href = liffUrl(code);
+        setTimeout(function () { if (document.visibilityState === "visible") showModal(code, pick); }, 2800);
+        return;
+      }
       showModal(code, pick);
     } catch (e) {
       alert("保存に失敗しました。通信環境をご確認のうえ、もう一度お試しください。");

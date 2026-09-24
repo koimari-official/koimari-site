@@ -271,6 +271,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <input type="date" id="reserveDate" class="input">
           <div class="field__hint">3営業日前（定休日・臨時休業を除く）までにご予約ください。それ以降のお急ぎのご予約はお電話（070-9158-0641）にてご相談ください。</div>
           <div class="error" id="reserveDateError"></div>
+          <div id="reservePhoneNotice" style="display:none;"></div>
         </div>
         <div class="field">
           <label class="field__label" for="reserveTime">引き取り希望時間<span class="req-mark">必須</span></label>
@@ -897,7 +898,7 @@ document.addEventListener("change", (e) => {
   if (e.target && e.target.id === "reserveDate") populateReserveTimeOptions(e.target.value);
   // 2026-09-22、価格に影響しうるあらゆる変更(サイズ・クリーム・ろうそく・メッセージプレート等)を
   // 個別に判定せず、変更のたびに毎回再計算する(安全側・計算漏れ防止)。
-  if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) updateLivePriceDisplay();
+  if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { updateLivePriceDisplay(); updateReservePhoneNotice(); }
 });
 
 function validateReserve(data) {
@@ -1109,6 +1110,48 @@ async function initDraftFeature() {
   renderDraftBanner();
   const code = draftCodeFromUrl();
   if (code) { const d = await fetchDraft(code); if (d) applyDraft(d); }
+}
+
+// ===== 引き取り日が締切（3営業日前）を過ぎている場合は、お電話でのご予約へスムーズに案内する（2026-09-24）=====
+// 送信時に初めてエラーを出すのではなく、日付を選んだ時点で「お電話でお伝えいただく内容」（選んだ商品・
+// 費用の目安）を表示し、ワンタップで発信できるようにする。フォーム側の締切ルール(computeOrderDeadline)を
+// そのまま使うので、締切の考え方が二重管理にならない。
+function updateReservePhoneNotice() {
+  const el = document.getElementById("reservePhoneNotice");
+  if (!el) return;
+  const v = document.getElementById("reserveDate") ? document.getElementById("reserveDate").value : "";
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const pick = v ? new Date(v) : null;
+  if (!pick || isNaN(pick) || isClosedDate(pick) || today <= computeOrderDeadline(pick)) { el.style.display = "none"; el.innerHTML = ""; return; }
+  const typeVal = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
+  const productLine = currentDraft ? currentDraft.name + (currentDraft.size ? "（" + currentDraft.size + "）" : "") : typeVal;
+  const price = computeCakeSubtotal();
+  let priceLine = "";
+  if (price.applicable) priceLine = price.priceNeedsConsult ? "費用：お電話で個別にご案内します" : "費用の目安：¥" + price.subtotal.toLocaleString() + "（税込・目安）";
+  const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  el.style.display = "block";
+  el.innerHTML = '<div style="margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.8;">' +
+    '<div style="font-weight:700;color:#8a5a12;margin-bottom:6px;">お受取日まで日数が少ないため、お電話でご予約ください</div>' +
+    '<div style="color:#4a3a2a;">お電話でこちらの内容をお伝えください：</div>' +
+    '<ul style="margin:4px 0 10px 1.2em;padding:0;color:#2e2118;"><li>引き取り希望日：' + esc(v) + '</li><li>商品：' + esc(productLine) + '</li>' + (priceLine ? '<li>' + esc(priceLine) + '</li>' : '') + '</ul>' +
+    '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">📞 070-9158-0641 に電話する</a></div>';
+}
+
+// ===== 友だち未登録の方への案内（2026-09-24）=====
+// 予約フォームはLINEアプリ内で開かれる前提（友だち登録済みかどうかは問わない）。未登録の場合は、
+// ご予約の確認・お受取前のご案内がLINEに届くよう、友だち追加をやさしく促す。送信は止めない。
+// getFriendship()はLINE Developers側の設定次第で失敗しうるため、失敗時は何も出さない（fail-open）。
+async function checkFriendship() {
+  try {
+    const fr = await liff.getFriendship();
+    if (fr && fr.friendFlag === false) {
+      const wrap = document.getElementById("reserveFormWrap");
+      const box = document.createElement("div");
+      box.style.cssText = "background:#eaf9ef;border:1px solid #9ad9b0;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.7;";
+      box.innerHTML = '<div style="font-weight:700;color:#0b7a37;">「こいまり公式LINE」を友だち追加してください</div>ご予約の確認やお受取前のご案内が、LINEのトークに届きます。<a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" style="display:block;margin-top:8px;text-align:center;background:#06c755;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:10px;">友だち追加する</a>';
+      wrap.insertBefore(box, wrap.firstChild);
+    }
+  } catch (e) { /* 判定できない場合は何も表示しない */ }
 }
 
 function setupReserveForm(uid, displayName) {
@@ -1326,6 +1369,7 @@ async function main() {
     });
 
     setupReserveForm(uid, profile.displayName || "");
+    checkFriendship();
     if (location.hash === "#reserve") {
       document.getElementById("reserveSection").scrollIntoView({ block: "start" });
     }
