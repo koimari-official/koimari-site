@@ -190,6 +190,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ</label>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
             <label class="field__label" style="font-size:12px;">生クリームの有無（同一価格）</label>
@@ -203,7 +204,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field" id="reserveStrawberryAddField" style="display:none;">
           <label class="field__check">
             <input type="checkbox" id="reserveStrawberryAdd">
-            <span>いちご追加（+¥1,000程度）</span>
+            <span>いちごトッピング（+¥1,000程度）</span>
           </label>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
@@ -244,6 +245,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__check">
             <input type="checkbox" id="reserveCreamTopping">
             <span id="reserveCreamToppingLabel">生クリームたっぷり乗せ（+540円・税込）</span>
+          </label>
+        </div>
+        <div class="field" id="reserveAddOnsField" style="display:none;">
+          <label class="field__label">デコレーション追加（砂糖菓子・オーナメント）</label>
+          <div class="field__hint">かわいい砂糖菓子やオーナメントを、写真を見ながらお好きなだけ追加できます。＋ーで個数をえらんでね🎂</div>
+          <div id="reserveAddOnsGrid"></div>
+        </div>
+        <div class="field" id="reserveOnsiteField" style="display:none;">
+          <div class="field__hint" style="margin-bottom:8px;">3段ケーキは、1段ずつ箱に入れてお渡しします。お持ち帰りのうえ、ご購入者様で組み立てていただきます。または、出張料20,000円＋交通費（燃料費・高速代往復・駐車料金・その他）を加算のうえ、日程によってはパティシエがお伺いして組み立てることも可能です。</div>
+          <label class="field__check">
+            <input type="checkbox" id="reserveOnsite">
+            <span>出張での組み立てを希望する（出張料 ¥20,000＋交通費。日程によりお受けできない場合があります）</span>
           </label>
         </div>
         <div class="field" id="reserveTierNoticeField" style="display:none;">
@@ -576,6 +589,54 @@ onValue(ref(db, "koimariContent/cakeMessagePlatePrice"), (snap) => { currentMess
 // 2026-09-24：概算見積もりは cake-pricing.js（オーナー提供の仕様）で計算する。入力の集約と表示だけここで行う。
 // 従来のこの関数と送信確認ステップの計算は同じ関数を共用（二重管理でズレないようにする）。
 // 表示は必ず「¥○○○〜」（あくまで概算。確定金額はご予約内容の確認後にスタッフよりご案内）。
+// ===== 追加商品（砂糖菓子・オーナメント等）と、ケーキの種類別の単段価格（2026-09-24）=====
+// 追加商品は admin.html「デコレーション追加商品」で、写真・名前・金額を登録する（Firebase siteImages/cakeAddOns）。
+// お子様と一緒に写真を見ながら選べるよう、画像つきのカードで＋−で個数を選ぶ。登録が無い間は欄ごと非表示。
+// ケーキの種類（ミッシェルBOX等）ごとに単段の金額が異なるため、種類別の価格表（koimariContent/cakeTypePrices）を持つ。
+let currentTypePrices = {};
+onValue(ref(db, "koimariContent/cakeTypePrices"), (snap) => { currentTypePrices = snap.val() || {}; updateLivePriceDisplay(); });
+let addOnCatalog = [];
+const addOnQty = {};
+function addOnKey(it) { return it.name + "|" + it.priceNum; }
+function parseYenNumber(s) { const n = Number(String(s == null ? "" : s).replace(/[^0-9]/g, "")); return isFinite(n) ? n : 0; }
+onValue(ref(db, "siteImages/cakeAddOns"), (snap) => {
+  const v = snap.val();
+  const arr = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+  addOnCatalog = arr.filter(it => it && it.name && it.visible !== false).map(it => ({ name: String(it.name), priceNum: parseYenNumber(it.price), img: it.img || "", kind: it.kind || "", desc: it.desc || "" }));
+  renderAddOns();
+  updateCakeOptionUI();
+  updateLivePriceDisplay();
+});
+function selectedAddOns() {
+  return addOnCatalog.map(it => ({ name: it.name, price: it.priceNum, qty: addOnQty[addOnKey(it)] || 0 })).filter(a => a.qty > 0);
+}
+function renderAddOns() {
+  const grid = document.getElementById("reserveAddOnsGrid");
+  if (!grid) return;
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  grid.innerHTML = addOnCatalog.map((it, i) => {
+    const q = addOnQty[addOnKey(it)] || 0;
+    return `<div class="addon-card" data-i="${i}" style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;${q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : ""}">
+      ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">` : `<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;">🍬</div>`}
+      <div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">${esc(it.name)}</div>
+      <div style="font-size:12px;color:#a88a52;">${it.priceNum ? "¥" + it.priceNum.toLocaleString() : "料金は別途"}</div>
+      <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">
+        <button type="button" class="addon-minus" data-i="${i}" style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;">−</button>
+        <span class="addon-qty" style="min-width:18px;font-weight:700;">${q}</span>
+        <button type="button" class="addon-plus" data-i="${i}" style="width:30px;height:30px;border-radius:50%;border:none;background:#f0a63a;color:#fff;font-size:18px;line-height:1;cursor:pointer;">＋</button>
+      </div></div>`;
+  }).join("");
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:10px;";
+  grid.querySelectorAll(".addon-plus, .addon-minus").forEach(btn => btn.addEventListener("click", () => {
+    const it = addOnCatalog[Number(btn.dataset.i)];
+    const k = addOnKey(it);
+    const cur = addOnQty[k] || 0;
+    addOnQty[k] = Math.max(0, Math.min(20, cur + (btn.classList.contains("addon-plus") ? 1 : -1)));
+    renderAddOns();
+    updateLivePriceDisplay();
+  }));
+}
+
 function gatherEstimateInput() {
   const g = id => document.getElementById(id);
   const checkedVal = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || "";
@@ -591,7 +652,9 @@ function gatherEstimateInput() {
     candleNeeded: candleNeeded,
     candleType: candleNeeded ? checkedVal("reserveCandleType") : "",
     candleBags: candleNeeded ? (Number(g("reserveCandleBags").value) || 1) : 0,
-    messageCount: g("reserveMessageCount") ? (Number(g("reserveMessageCount").value) || 0) : 0
+    messageCount: g("reserveMessageCount") ? (Number(g("reserveMessageCount").value) || 0) : 0,
+    addOns: selectedAddOns(),
+    onsiteAssembly: currentTierCount() === 3 && !!(g("reserveOnsite") && g("reserveOnsite").checked)
   };
 }
 function computeCakeSubtotal() {
@@ -600,7 +663,7 @@ function computeCakeSubtotal() {
   const input = gatherEstimateInput();
   if (!input.tiers.length || input.tiers.some(v => !v)) return { subtotal: 0, priceNeedsConsult: false, applicable: true, incomplete: true, lines: [], notes: [] };
   const r = CakePricing.estimate(input, {
-    sizePrices: currentSizePrices, creamToppingPrice: currentCreamToppingPrice, chocoCream: currentChocoCreamSurcharge,
+    sizePrices: currentSizePrices, typePrices: currentTypePrices, creamToppingPrice: currentCreamToppingPrice, chocoCream: currentChocoCreamSurcharge,
     candlePlain: currentCandleBagPricePlain, candleNumber: currentCandleBagPriceNumber, messagePlate: currentMessagePlatePrice
   });
   return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, applicable: true, lines: r.lines, notes: r.notes };
@@ -767,6 +830,12 @@ function updateCakeOptionUI() {
   const strawOk = CakePricing.SPEC.strawberryAdd.creamTypes.includes(creamType);
   g("reserveStrawberryAddField").style.display = strawOk ? "" : "none";
   if (!strawOk) g("reserveStrawberryAdd").checked = false;
+  // ミッシェルBOX・ガトーショコラBOXの飾りは「いちごトッピング」（上のチェック）だけ。バラエティフルーツの選択は出さない。
+  g("reserveDecorationField").style.display = strawOk ? "none" : "";
+  if (strawOk) { const d = document.querySelector('input[name="reserveDecoration"][value="いちごのみ"]'); if (d) d.checked = true; }
+  g("reserveOnsiteField").style.display = tierCount === 3 ? "" : "none";
+  if (tierCount !== 3) g("reserveOnsite").checked = false;
+  g("reserveAddOnsField").style.display = addOnCatalog.length ? "" : "none";
   const colorOk = creamType === "生クリーム" || creamType === "生チョコクリーム";
   g("reserveColorCreamField").style.display = colorOk ? "" : "none";
   if (!colorOk) g("reserveColorCream").value = "0";
@@ -1103,7 +1172,9 @@ function renderReserveConfirm(data, targetId) {
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
-    ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちご追加（+¥1,000程度）</dd>` : ""}
+    ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
+    ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
+    ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料+交通費）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${data.christmasOrder ? "無料でお付けします" : candleLine}</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>メッセージプレート</dt><dd>${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}</dd>` : ""}
     ${(isCake && (data.subtotal || data.priceNeedsConsult)) ? `<dt>概算お見積もり</dt><dd><strong>${estimateHeadline(data)}</strong>${(data.estimateLines || []).length ? `<div style="font-size:12px;margin-top:6px;line-height:1.7;">${data.estimateLines.map(l => `${escape(l.label)}　${CakePricing.yen(l.amount)}`).join("<br>")}</div>` : ""}${(data.estimateNotes || []).length ? `<div style="font-size:12px;margin-top:4px;">※${data.estimateNotes.map(n => escape(n)).join("／")}</div>` : ""}<div style="font-size:11.5px;color:#856e58;margin-top:6px;">${estimateDisclaimer()}</div></dd>` : ""}
@@ -1156,7 +1227,9 @@ function buildReserveSummaryText(data) {
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
-  if (data.strawberryAdd) lines.push("オプション: いちご追加（+¥1,000程度）");
+  if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
+  (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
+  if (data.onsiteAssembly) lines.push("3段ケーキの組み立て: 出張組み立てを希望（出張料+交通費）");
   if (isCake || isRoll) lines.push(`ろうそく: ${data.christmasOrder ? "無料でお付けします" : candleLine}`);
   if (isCake || isRoll) lines.push(`メッセージプレート: ${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}`);
   if (isCake && (data.subtotal || data.priceNeedsConsult)) {
@@ -1353,6 +1426,8 @@ function setupReserveForm(uid, displayName) {
       const colorCreamCount = canColor ? (Number(document.getElementById("reserveColorCream").value) || 0) : 0;
       const colorCreamNote = colorCreamCount > 0 ? (document.getElementById("reserveColorCreamNote").value || "") : "";
       const strawberryAdd = isCake && CakePricing.SPEC.strawberryAdd.creamTypes.includes(creamType) && document.getElementById("reserveStrawberryAdd").checked;
+      const addOnsPicked = isCake ? selectedAddOns() : [];
+      const onsiteAssembly = isCake && currentTierCount() === 3 && document.getElementById("reserveOnsite").checked;
       let items;
       if (isBaked) {
         items = [{ category: "焼き菓子", image: "", size: "", flavor: "", message: "" }];
@@ -1381,6 +1456,8 @@ function setupReserveForm(uid, displayName) {
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [],
         ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, note: colorCreamNote } } : {}),
         ...(strawberryAdd ? { strawberryAdd: true } : {}),
+        ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
+        ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""

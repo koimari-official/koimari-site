@@ -16,7 +16,10 @@
     fruitTopping: { "4号": 900, "5号": 1300, "6号": 1600 }, // 7号は取り決めなし→別途ご案内
     chocoCream: 500,
     colorCream: { 1: 500, 2: 1000, 3: 1500 },
+    // ミッシェルBOX・ガトーショコラBOXの「フルーツトッピング」はいちごトッピングの意味（オーナー確認 2026-09-24）。
     strawberryAdd: { price: 1000, creamTypes: ["ミッシェルBOX", "ガトーショコラBOX"] },
+    onsiteAssemblyFee: 20000, // 3段の出張組み立て料（交通費は別途）
+    plainCreams: ["生クリーム", "生チョコクリーム"], // 単段の基本料金(sizePrices)がそのまま当てはまる種類
     // 2段・3段は「段ごとの合計」ではなく組み合わせごとの固定価格。lead＝箱・資材調達のため、
     // お受取日の何日前までに要予約か（min＝これを切ったらネット予約不可、soft＝これを切ったら調達状況次第）。
     // 3段のリードタイムは取り決めが無いため、土台となる2段の組み合わせと同じにしている（assumed）。
@@ -41,9 +44,9 @@
   function yen(n) { return "¥" + Number(n).toLocaleString(); }
   function fromYen(n) { return yen(n) + "〜"; }
 
-  // input: { tiers:[サイズ値...], creamType, decoration, creamTopping, colorCreamCount, strawberryAdd,
+  // input: { tiers:[サイズ値...], creamType, decoration, creamTopping, colorCreamCount, strawberryAdd, addOns, onsiteAssembly,
   //          candleNeeded, candleType, candleBags, messageCount, occasion }
-  // base : { sizePrices, creamToppingPrice, chocoCream, candlePlain, candleNumber, messagePlate }（admin管理の値。chocoCreamは未指定ならSPECの値）
+  // base : { sizePrices, typePrices, creamToppingPrice, chocoCream, candlePlain, candleNumber, messagePlate }（admin管理の値。chocoCreamは未指定ならSPECの値）
   function estimate(input, base) {
     var lines = [], notes = [], consult = false;
     var tiers = (input.tiers || []).filter(Boolean);
@@ -52,17 +55,22 @@
 
     if (!tiers.length) return { subtotal: 0, lines: [], notes: [], needsConsult: true, reason: "サイズ未選択" };
 
+    var cream = input.creamType || "";
     if (!multi) {
       var k = tierKey(tiers[0]);
-      var p = base.sizePrices && base.sizePrices[k];
-      if (p) lines.push({ label: k + "ケーキ", amount: p }); else consult = true;
+      // ケーキの種類ごとに単段の価格が異なる（typePrices: 種類→{号数→金額}）。種類別の価格が未登録で、かつ
+      // 生クリーム系でもない場合は、誤った金額を出さないよう「お電話で個別にご案内」にする。
+      var typeMap = base.typePrices && base.typePrices[cream];
+      var p;
+      if (typeMap && typeMap[k] != null) p = typeMap[k];
+      else if (!cream || SPEC.plainCreams.indexOf(cream) >= 0) p = base.sizePrices && base.sizePrices[k];
+      if (p) lines.push({ label: (cream && SPEC.plainCreams.indexOf(cream) < 0 ? cream + " " : "") + k + "ケーキ", amount: p }); else consult = true;
     } else {
       var combo = SPEC.multiTier[comboKey(tiers)];
       if (combo) lines.push({ label: tiers.length + "段ケーキ（" + comboKey(tiers).replace(/\+/g, "＋") + "）", amount: combo.price });
       else consult = true;
     }
 
-    var cream = input.creamType || "";
     if (cream === "生チョコクリーム") lines.push({ label: "生チョコクリーム変更", amount: base.chocoCream != null ? base.chocoCream : SPEC.chocoCream });
 
     var colors = Number(input.colorCreamCount) || 0;
@@ -70,7 +78,7 @@
       lines.push({ label: "カラークリーム（" + colors + "色）", amount: SPEC.colorCream[colors] || 0 });
     }
     if (input.strawberryAdd && SPEC.strawberryAdd.creamTypes.indexOf(cream) >= 0) {
-      lines.push({ label: "いちご追加（目安）", amount: SPEC.strawberryAdd.price });
+      lines.push({ label: "いちごトッピング（目安）", amount: SPEC.strawberryAdd.price });
     }
     if (input.decoration === "バラエティフルーツ") {
       var fp = !multi ? SPEC.fruitTopping[tierKey(tiers[0])] : undefined;
@@ -86,6 +94,18 @@
     }
     var msgCount = Number(input.messageCount) || 0;
     if (!isXmas && msgCount > 1 && base.messagePlate) lines.push({ label: "メッセージプレート（追加分）", amount: (msgCount - 1) * base.messagePlate });
+
+    // 追加商品（砂糖菓子・オーナメント等）：input.addOns = [{name, price, qty}]
+    (input.addOns || []).forEach(function (a) {
+      var q = Number(a.qty) || 0, pr = Number(a.price) || 0;
+      if (q <= 0) return;
+      if (pr > 0) lines.push({ label: a.name + " × " + q, amount: pr * q });
+      else notes.push(a.name + "の料金は別途ご案内します");
+    });
+    if (input.onsiteAssembly && tiers.length === 3) {
+      lines.push({ label: "出張組み立て料", amount: SPEC.onsiteAssemblyFee });
+      notes.push("出張の交通費（燃料費・高速代往復・駐車料金・その他）は別途かかります");
+    }
 
     var subtotal = lines.reduce(function (s, l) { return s + l.amount; }, 0);
     return { subtotal: consult ? 0 : subtotal, lines: consult ? [] : lines, notes: notes, needsConsult: consult };
