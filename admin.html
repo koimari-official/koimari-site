@@ -1185,11 +1185,15 @@ function reservationPriceHtml(r) {
   return reservationPriceHtmlBody(r);
 }
 function reservationPriceHtmlBody(r) {
+  // 2026-09-24：お客様には必ず「¥○○○〜」の概算（税込）を案内している。内訳（estimateLines）も併せて表示する。
   if (r.priceNeedsConsult) {
-    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#a98554;">💰 お客様への案内: 料金は追ってお電話でご案内（たぬきちケーキ／カットケーキ／セルクルを含む）</div>`;
+    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#a98554;">💰 お客様への案内: この組み合わせは料金をお電話で個別にご案内</div>`;
   }
   if (r.subtotal) {
-    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#5d8a4e;">💰 お客様への案内: 基本料金の目安 ¥${Number(r.subtotal).toLocaleString()}${r.note ? "〜（ご希望内容により変動）" : ""}</div>`;
+    const lines = Array.isArray(r.estimateLines) && r.estimateLines.length
+      ? `<div style="font-size:10.5px;font-weight:500;color:#6b5a48;line-height:1.6;margin-top:2px;">${r.estimateLines.map(l => escapeHtml(l.label) + " ¥" + Number(l.amount).toLocaleString()).join("<br>")}</div>` : "";
+    const notes = Array.isArray(r.estimateNotes) && r.estimateNotes.length ? `<div style="font-size:10.5px;color:#a98554;">※${r.estimateNotes.map(escapeHtml).join("／")}</div>` : "";
+    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#5d8a4e;">💰 お客様への案内: 概算 ¥${Number(r.subtotal).toLocaleString()}〜（税込）</div>${lines}${notes}`;
   }
   return "";
 }

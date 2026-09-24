@@ -1,0 +1,119 @@
+/* デコレーションケーキの概算見積もり計算（2026-09-24、オーナー提供の「ケーキオーダー仕様」に基づく）。
+   すべて税込。表示は必ず「〇〇円〜」（あくまで概算。確定金額はご予約内容の確認後に案内）。
+   予約フォーム(member.html)からもテスト(Node)からも使えるよう、DOMに依存しない純粋な関数にしている。
+   単段の基本料金・生クリームたっぷり乗せ・ろうそく・メッセージプレートの金額は、従来どおり
+   admin.html（Firebase koimariContent/cake*）で管理している値を base として渡す。 */
+(function (root) {
+  var SPEC = {
+    sizes: {
+      "3号": { cm: "約9cm" },
+      "4号": { cm: "約12cm", serves: "3〜4人前" },
+      "5号": { cm: "約15cm", serves: "5〜6人前" },
+      "6号": { cm: "約18cm", serves: "7〜8人前" },
+      "7号": { cm: "約21cm", serves: "9〜10人前" }
+    },
+    christmas: { deadlineMonth: 12, deadlineDay: 10 },
+    fruitTopping: { "4号": 900, "5号": 1300, "6号": 1600 }, // 7号は取り決めなし→別途ご案内
+    chocoCream: 500,
+    colorCream: { 1: 500, 2: 1000, 3: 1500 },
+    strawberryAdd: { price: 1000, creamTypes: ["ミッシェルBOX", "ガトーショコラBOX"] },
+    // 2段・3段は「段ごとの合計」ではなく組み合わせごとの固定価格。lead＝箱・資材調達のため、
+    // お受取日の何日前までに要予約か（min＝これを切ったらネット予約不可、soft＝これを切ったら調達状況次第）。
+    // 3段のリードタイムは取り決めが無いため、土台となる2段の組み合わせと同じにしている（assumed）。
+    multiTier: {
+      "4号+セルクル": { price: 5500 },
+      "5号+3号": { price: 8200, lead: { min: 7, soft: 10 } },
+      "6号+4号": { price: 11600, lead: { min: 7, soft: 10 } },
+      "7号+5号": { price: 16800, lead: { min: 14, soft: 14 } },
+      "6号+4号+セルクル": { price: 17000, lead: { min: 7, soft: 10, assumed: true } },
+      "6号+4号+カットケーキ": { price: 17000, lead: { min: 7, soft: 10, assumed: true } },
+      "7号+5号+3号": { price: 22000, lead: { min: 14, soft: 14, assumed: true } },
+      "7号+5号+カットケーキ": { price: 22000, lead: { min: 14, soft: 14, assumed: true } }
+    }
+  };
+
+  function tierKey(v) {
+    v = String(v || "");
+    if (v.indexOf("カットケーキ") === 0) return "カットケーキ";
+    return v.split("(")[0];
+  }
+  function comboKey(values) { return values.map(tierKey).join("+"); }
+  function yen(n) { return "¥" + Number(n).toLocaleString(); }
+  function fromYen(n) { return yen(n) + "〜"; }
+
+  // input: { tiers:[サイズ値...], creamType, decoration, creamTopping, colorCreamCount, strawberryAdd,
+  //          candleNeeded, candleType, candleBags, messageCount, occasion }
+  // base : { sizePrices, creamToppingPrice, chocoCream, candlePlain, candleNumber, messagePlate }（admin管理の値。chocoCreamは未指定ならSPECの値）
+  function estimate(input, base) {
+    var lines = [], notes = [], consult = false;
+    var tiers = (input.tiers || []).filter(Boolean);
+    var isXmas = input.occasion === "クリスマス";
+    var multi = tiers.length >= 2;
+
+    if (!tiers.length) return { subtotal: 0, lines: [], notes: [], needsConsult: true, reason: "サイズ未選択" };
+
+    if (!multi) {
+      var k = tierKey(tiers[0]);
+      var p = base.sizePrices && base.sizePrices[k];
+      if (p) lines.push({ label: k + "ケーキ", amount: p }); else consult = true;
+    } else {
+      var combo = SPEC.multiTier[comboKey(tiers)];
+      if (combo) lines.push({ label: tiers.length + "段ケーキ（" + comboKey(tiers).replace(/\+/g, "＋") + "）", amount: combo.price });
+      else consult = true;
+    }
+
+    var cream = input.creamType || "";
+    if (cream === "生チョコクリーム") lines.push({ label: "生チョコクリーム変更", amount: base.chocoCream != null ? base.chocoCream : SPEC.chocoCream });
+
+    var colors = Number(input.colorCreamCount) || 0;
+    if (colors > 0 && (cream === "生クリーム" || cream === "生チョコクリーム")) {
+      lines.push({ label: "カラークリーム（" + colors + "色）", amount: SPEC.colorCream[colors] || 0 });
+    }
+    if (input.strawberryAdd && SPEC.strawberryAdd.creamTypes.indexOf(cream) >= 0) {
+      lines.push({ label: "いちご追加（目安）", amount: SPEC.strawberryAdd.price });
+    }
+    if (input.decoration === "バラエティフルーツ") {
+      var fp = !multi ? SPEC.fruitTopping[tierKey(tiers[0])] : undefined;
+      if (fp) lines.push({ label: "フルーツトッピング", amount: fp });
+      else notes.push("フルーツトッピングの料金は別途ご案内します");
+    }
+    if (input.creamTopping && !isXmas) lines.push({ label: "生クリームたっぷり乗せ", amount: base.creamToppingPrice || 0 });
+
+    if (!isXmas && input.candleNeeded) {
+      var bags = Number(input.candleBags) || 1;
+      var candle = input.candleType === "ナンバーろうそく" ? bags * (base.candleNumber || 0) : Math.max(0, bags - 1) * (base.candlePlain || 0);
+      if (candle) lines.push({ label: "ろうそく（追加分）", amount: candle });
+    }
+    var msgCount = Number(input.messageCount) || 0;
+    if (!isXmas && msgCount > 1 && base.messagePlate) lines.push({ label: "メッセージプレート（追加分）", amount: (msgCount - 1) * base.messagePlate });
+
+    var subtotal = lines.reduce(function (s, l) { return s + l.amount; }, 0);
+    return { subtotal: consult ? 0 : subtotal, lines: consult ? [] : lines, notes: notes, needsConsult: consult };
+  }
+
+  // 箱・資材の調達リードタイム。today/pickupは日付(時刻は無視)。
+  function checkLead(tiers, pickup, today) {
+    var combo = SPEC.multiTier[comboKey((tiers || []).filter(Boolean))];
+    if (!combo || !combo.lead || !pickup) return { level: "ok" };
+    var p = new Date(pickup); p.setHours(0, 0, 0, 0);
+    var t = new Date(today || new Date()); t.setHours(0, 0, 0, 0);
+    var days = Math.round((p - t) / 86400000);
+    var lead = combo.lead;
+    if (days < lead.min) return { level: "block", min: lead.min, soft: lead.soft, days: days, assumed: !!lead.assumed };
+    if (days < lead.soft) return { level: "soft", min: lead.min, soft: lead.soft, days: days, assumed: !!lead.assumed };
+    return { level: "ok", min: lead.min, soft: lead.soft, days: days };
+  }
+
+  // クリスマスケーキの予約締切（12/10まで）。お受取が12月の場合、その年の12/10を過ぎていたら受付終了。
+  function christmasClosed(pickup, today) {
+    if (!pickup) return false;
+    var p = new Date(pickup);
+    if (p.getMonth() + 1 !== 12) return false;
+    var deadline = new Date(p.getFullYear(), SPEC.christmas.deadlineMonth - 1, SPEC.christmas.deadlineDay, 23, 59, 59);
+    return new Date(today || new Date()) > deadline;
+  }
+
+  var api = { SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, estimate: estimate, checkLead: checkLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  if (typeof module !== "undefined" && module.exports) module.exports = api;
+  root.CakePricing = api;
+})(typeof window !== "undefined" ? window : globalThis);

@@ -504,9 +504,12 @@ function buildStaffNotifyText(data) {
     lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
   }
   if (data.priceNeedsConsult) {
-    lines.push("お客様への案内: 料金は追ってお電話でご案内（たぬきちケーキ／カットケーキ／セルクルを含む）");
+    lines.push("概算お見積もり: この組み合わせは料金を個別に電話案内（お客様には「お電話で個別にご案内」と表示済み）");
   } else if (data.subtotal) {
-    lines.push(`お客様への案内: 基本料金の目安 ¥${Number(data.subtotal).toLocaleString()}${data.note ? "〜（ご希望内容により変動）" : ""}`);
+    const detail = Array.isArray(data.estimateLines) && data.estimateLines.length
+      ? ["", ...data.estimateLines.map((l) => "　" + l.label + " ¥" + Number(l.amount).toLocaleString())].join("\n")
+      : "";
+    lines.push(`概算お見積もり（お客様への表示）: ¥${Number(data.subtotal).toLocaleString()}〜（税込）` + detail);
   }
   if (data.note) lines.push(`ご要望・備考: ${data.note}`);
   lines.push("", "確認電話・予約確定のチェックは管理画面から↓", ADMIN_RESERVATIONS_URL);
