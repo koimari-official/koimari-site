@@ -217,14 +217,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </label>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
-          <label class="field__label" for="reserveColorCream">カラークリーム（お好みの色数）</label>
-          <select id="reserveColorCream" class="input select">
-            <option value="0">なし</option>
-            <option value="1">1色（+¥500）</option>
-            <option value="2">2色（+¥1,000）</option>
-            <option value="3">3色（+¥1,500）</option>
-          </select>
-          <input type="text" id="reserveColorCreamNote" class="input" style="display:none;margin-top:10px;" maxlength="40" placeholder="ご希望の色（例: ピンク・水色）">
+          <label class="field__label">カラークリーム（お好みの色を最大3色まで）</label>
+          <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。色をタップして選んでね🎨</div>
+          <div id="reserveColorChips"></div>
+          <div id="reserveColorSummary" class="field__hint">色を選ぶと、色数に応じた金額が加算されます</div>
+          <select id="reserveColorCream" style="display:none;"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
+          <input type="text" id="reserveColorCreamNote" class="input" style="display:none;margin-top:10px;" maxlength="40" placeholder="「その他」の色・ご希望のイメージ（例: くすみピンク、ミントグリーン）">
         </div>
         <div class="field" id="reserveDecorationField" style="display:none;">
           <label class="field__label">飾り付け<span class="req-mark">必須</span></label>
@@ -648,6 +646,47 @@ function renderAddOns() {
   }));
 }
 
+// ===== カラークリームの色選択（2026-09-24オーナー指示：黒・赤・青・紺・黄色・ピンク・緑・黄緑・茶色・水色ほか）=====
+// 色数（1〜3色）が金額に直結するため、色のチップを最大3色まで選ぶ形にする。選んだ数が隠しselect(#reserveColorCream)の値になり、
+// 従来の概算計算・確認画面の仕組みをそのまま使う。色の追加・変更はこの配列だけを直せばよい。
+const CREAM_COLORS = [
+  { name: "黒", css: "#2b2b2b" }, { name: "赤", css: "#d62839" }, { name: "青", css: "#2f6fd6" }, { name: "紺", css: "#1c2f6b" },
+  { name: "黄色", css: "#f6d21f" }, { name: "ピンク", css: "#f7a6c1" }, { name: "緑", css: "#2e9b52" }, { name: "黄緑", css: "#9bd13f" },
+  { name: "茶色", css: "#7a4a2a" }, { name: "水色", css: "#8fd3f4" },
+  { name: "その他（下に記入）", css: "conic-gradient(#f7a6c1,#f6d21f,#9bd13f,#8fd3f4,#8a5bd0,#f7a6c1)" }
+];
+const CREAM_COLOR_MAX = 3;
+let selectedCreamColors = [];
+function renderColorChips() {
+  const wrap = document.getElementById("reserveColorChips");
+  if (!wrap) return;
+  wrap.innerHTML = CREAM_COLORS.map((c) => {
+    const on = selectedCreamColors.includes(c.name);
+    return '<button type="button" class="color-chip" data-color="' + c.name + '" aria-pressed="' + on + '" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;margin:0 8px 8px 0;border-radius:999px;background:#fff;cursor:pointer;font-size:13px;border:' + (on ? "2px solid #f0a63a" : "1px solid #d8baa4") + ';' + (on ? "background:#fff7ea;font-weight:700;" : "") + '"><span style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:' + c.css + ';"></span>' + c.name + (on ? " ✓" : "") + '</button>';
+  }).join("");
+  wrap.querySelectorAll(".color-chip").forEach((btn) => btn.addEventListener("click", () => {
+    const name = btn.dataset.color;
+    const i = selectedCreamColors.indexOf(name);
+    if (i >= 0) selectedCreamColors.splice(i, 1);
+    else if (selectedCreamColors.length < CREAM_COLOR_MAX) selectedCreamColors.push(name);
+    else { showColorLimitHint(); return; }
+    renderColorChips();
+    syncColorSelect();
+  }));
+  const hint = document.getElementById("reserveColorSummary");
+  if (hint) hint.textContent = selectedCreamColors.length ? "選んだ色：" + selectedCreamColors.join("・") + "（" + selectedCreamColors.length + "色）" : "色を選ぶと、色数に応じた金額が加算されます";
+}
+function showColorLimitHint() {
+  const hint = document.getElementById("reserveColorSummary");
+  if (hint) { hint.textContent = "選べるのは最大" + CREAM_COLOR_MAX + "色までです。ほかの色にしたい場合は、先に選んだ色をもう一度タップして外してください。"; hint.style.color = "#b03b48"; setTimeout(() => { hint.style.color = ""; renderColorChips(); }, 3500); }
+}
+function syncColorSelect() {
+  const sel = document.getElementById("reserveColorCream");
+  if (!sel) return;
+  sel.value = String(selectedCreamColors.length);
+  sel.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
 function gatherEstimateInput() {
   const g = id => document.getElementById(id);
   const checkedVal = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || "";
@@ -864,8 +903,8 @@ function updateCakeOptionUI() {
   g("reserveSpecialNotice").style.display = CakePricing.SPEC.specialTypes[creamType] ? "" : "none";
   const colorOk = creamType === "生クリーム" || creamType === "生チョコクリーム";
   g("reserveColorCreamField").style.display = colorOk ? "" : "none";
-  if (!colorOk) g("reserveColorCream").value = "0";
-  g("reserveColorCreamNote").style.display = (colorOk && Number(g("reserveColorCream").value) > 0) ? "" : "none";
+  if (!colorOk && selectedCreamColors.length) { selectedCreamColors = []; g("reserveColorCream").value = "0"; renderColorChips(); }
+  g("reserveColorCreamNote").style.display = (colorOk && selectedCreamColors.some(n => n.indexOf("その他") === 0)) ? "" : "none";
 
   const fruit = g("decoFruitPrice");
   if (fruit) {
@@ -1201,7 +1240,7 @@ function renderReserveConfirm(data, targetId) {
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(data.decoration)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
-    ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
+    ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
     ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
     ${data.topCut ? `<dt>カットケーキ載せ</dt><dd>載せる（入れ物代あり）${data.topCut.note ? `：${escape(data.topCut.note)}` : ""}</dd>` : ""}
@@ -1257,7 +1296,7 @@ function buildReserveSummaryText(data) {
   if (isCake) lines.push(`飾り付け: ${data.decoration}`);
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
-  if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
+  if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
   if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
   (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
   if (data.topCut) lines.push(`カットケーキ載せ: 載せる（入れ物代あり）${data.topCut.note ? "：" + data.topCut.note : ""}`);
@@ -1393,6 +1432,7 @@ async function checkFriendship() {
 
 function setupReserveForm(uid, displayName) {
   initDraftFeature();
+  renderColorChips();
   populateReserveSelects();
   updateReserveFieldVisibility();
   updateReserveCategoryVisibility();
@@ -1488,7 +1528,7 @@ function setupReserveForm(uid, displayName) {
         candleNeeded, candleType, candleBags, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [],
-        ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, note: colorCreamNote } } : {}),
+        ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: selectedCreamColors.slice(), note: colorCreamNote } } : {}),
         ...(strawberryAdd ? { strawberryAdd: true } : {}),
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
