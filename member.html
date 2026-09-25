@@ -747,8 +747,17 @@ function sizeOptionLabel(o, tierCount) {
     const p = multiBottomPrice(tierCount, key);
     if (p) priceText = ` - ${CakePricing.fromYen(p)}（セット価格）`;
   } else if (tierCount === 1) {
-    const price = currentSizePrices[key];
-    if (price) priceText = ` - ¥${price.toLocaleString()}〜`;
+    // ケーキの種類ごとに単段の価格が違う（種類別価格表 currentTypePrices）。生クリーム系は基本料金を表示。
+    const creamNow = (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "";
+    const typeMap = currentTypePrices[creamNow];
+    if (typeMap) {
+      priceText = typeMap[key] ? ` - ¥${typeMap[key].toLocaleString()}〜` : "（この種類はお電話で個別にご案内）";
+    } else if (!creamNow || CakePricing.SPEC.plainCreams.indexOf(creamNow) >= 0) {
+      const price = currentSizePrices[key];
+      if (price) priceText = ` - ¥${price.toLocaleString()}〜`;
+    } else {
+      priceText = "（この種類はお電話で個別にご案内）";
+    }
   }
   const badge = (tierCount === 1 && o.value === RECOMMENDED_SIZE_VALUE) ? "（定番）" : "";
   return `${o.label}${priceText}${badge}`;
@@ -1077,6 +1086,7 @@ document.addEventListener("change", (e) => {
     if (e.target.checked) updateCandleBagsUI();
   }
   if (e.target && e.target.name === "reserveCandleType") updateCandleBagsUI();
+  if (e.target && e.target.name === "reserveCreamType" && currentTierCount() === 1) renderTierSizeSelects(1); // 種類ごとに価格表示が変わるため選択肢を描き直す
   if (e.target && e.target.name === "reserveCreamType") {
     const needsSub = e.target.value === "フルーツタルトBOX" || e.target.value === "ストロベリータルトBOX";
     document.getElementById("reserveCreamTypeSubWrap").style.display = needsSub ? "" : "none";
