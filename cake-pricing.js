@@ -18,6 +18,8 @@
     colorCream: { 1: 500, 2: 1000, 3: 1500 },
     // ミッシェルBOX・ガトーショコラBOXの「フルーツトッピング」はいちごトッピングの意味（オーナー確認 2026-09-24）。
     strawberryAdd: { price: 1000, creamTypes: ["ミッシェルBOX", "ガトーショコラBOX"] },
+    // 特殊仕様の種類：通常と納期が異なる（材料の仕入れに2週間程度かかる場合がある。オーナー指示 2026-09-26）。
+    specialTypes: { "ブルーベリーケーキ": { leadSoft: 14 } },
     onsiteAssemblyFee: 20000, // 3段の出張組み立て料（交通費は別途）
     plainCreams: ["生クリーム", "生チョコクリーム"], // 単段の基本料金(sizePrices)がそのまま当てはまる種類
     // 2段・3段は「段ごとの合計」ではなく組み合わせごとの固定価格。lead＝箱・資材調達のため、
@@ -107,6 +109,8 @@
       notes.push("出張の交通費（燃料費・高速代往復・駐車料金・その他）は別途かかります");
     }
 
+    if (SPEC.specialTypes[cream]) notes.push(cream + "は特殊仕様のため、納期は通常と異なります（材料の仕入れに2週間程度かかる場合がございます）");
+
     var subtotal = lines.reduce(function (s, l) { return s + l.amount; }, 0);
     return { subtotal: consult ? 0 : subtotal, lines: consult ? [] : lines, notes: notes, needsConsult: consult };
   }
@@ -124,6 +128,16 @@
     return { level: "ok", min: lead.min, soft: lead.soft, days: days };
   }
 
+  // 特殊仕様の種類（ブルーベリーケーキ等）：お受取日までの日数が少ない場合の案内（ブロックはせず、ご予約後に確認）。
+  function checkSpecialLead(creamType, pickup, today) {
+    var s = SPEC.specialTypes[creamType];
+    if (!s || !pickup) return { level: "ok" };
+    var p = new Date(pickup); p.setHours(0, 0, 0, 0);
+    var t = new Date(today || new Date()); t.setHours(0, 0, 0, 0);
+    var days = Math.round((p - t) / 86400000);
+    return days < s.leadSoft ? { level: "soft", soft: s.leadSoft, days: days } : { level: "ok", soft: s.leadSoft, days: days };
+  }
+
   // クリスマスケーキの予約締切（12/10まで）。お受取が12月の場合、その年の12/10を過ぎていたら受付終了。
   function christmasClosed(pickup, today) {
     if (!pickup) return false;
@@ -133,7 +147,7 @@
     return new Date(today || new Date()) > deadline;
   }
 
-  var api = { SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, estimate: estimate, checkLead: checkLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  var api = { SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);

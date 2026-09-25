@@ -503,6 +503,9 @@ function buildStaffNotifyText(data) {
   if (data.galleryPick && data.galleryPick.name) {
     lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
   }
+  if (data.specialSpec) {
+    lines.push("⚠ 特殊仕様: " + data.specialSpec + "（納期は通常と異なります・要確認）");
+  }
   if (data.priceNeedsConsult) {
     lines.push("概算お見積もり: この組み合わせは料金を個別に電話案内（お客様には「お電話で個別にご案内」と表示済み）");
   } else if (data.subtotal) {

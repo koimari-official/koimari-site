@@ -1206,6 +1206,10 @@ function reservationPriceHtml(r) {
   return reservationPriceHtmlBody(r);
 }
 function reservationPriceHtmlBody(r) {
+  const special = r.specialSpec ? `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#b03b48;">⚠ 特殊仕様: ${escapeHtml(r.specialSpec)}（納期は通常と異なります）</div>` : "";
+  return special + reservationPriceHtmlBody2(r);
+}
+function reservationPriceHtmlBody2(r) {
   // 2026-09-24：お客様には必ず「¥○○○〜」の概算（税込）を案内している。内訳（estimateLines）も併せて表示する。
   if (r.priceNeedsConsult) {
     return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#a98554;">💰 お客様への案内: この組み合わせは料金をお電話で個別にご案内</div>`;

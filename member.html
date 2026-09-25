@@ -190,7 +190,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ（特殊仕様・納期は通常と異なります）</label>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
             <label class="field__label" style="font-size:12px;">生クリームの有無（同一価格）</label>
@@ -199,6 +199,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamTypeSub" value="生クリームなし"> 生クリームなし</label>
             </div>
           </div>
+          <div id="reserveSpecialNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>ブルーベリーケーキは特殊仕様です</strong><br>納期は通常と異なり、材料の仕入れに2週間程度かかる場合がございます。お受取日はご予約後にスタッフよりご相談・ご連絡します。</div>
           <div class="error" id="reserveCreamTypeError"></div>
         </div>
         <div class="field" id="reserveStrawberryAddField" style="display:none;">
@@ -845,6 +846,7 @@ function updateCakeOptionUI() {
   g("reserveOnsiteField").style.display = tierCount === 3 ? "" : "none";
   if (tierCount !== 3) g("reserveOnsite").checked = false;
   g("reserveAddOnsField").style.display = addOnCatalog.length ? "" : "none";
+  g("reserveSpecialNotice").style.display = CakePricing.SPEC.specialTypes[creamType] ? "" : "none";
   const colorOk = creamType === "生クリーム" || creamType === "生チョコクリーム";
   g("reserveColorCreamField").style.display = colorOk ? "" : "none";
   if (!colorOk) g("reserveColorCream").value = "0";
@@ -878,6 +880,9 @@ function updateReserveDateNotices() {
   const days = lead.min === lead.soft ? String(lead.min) : lead.min + "〜" + lead.soft;
   if (lead.level === "block") html += box("#8a2a1a", "#fdeeea", "#e6a698", `この段数・サイズの組み合わせは、箱・資材の手配のため、お受取日の${days}日前までのご予約が必要です。お受取日が近いため、お電話（070-9158-0641）でご相談ください。`);
   else if (lead.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `箱・資材の調達状況により、お受取日まで${lead.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
+  const creamNow = (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "";
+  const sl = CakePricing.checkSpecialLead(creamNow, v, new Date());
+  if (sl.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `${creamNow}は特殊仕様のため、お受取日まで${sl.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
   if (occasion === "クリスマス" && CakePricing.christmasClosed(v, new Date())) html += box("#8a2a1a", "#fdeeea", "#e6a698", "クリスマスケーキのご予約は12月10日までです。恐れ入りますが、お電話（070-9158-0641）でご相談ください。");
   el.style.display = html ? "block" : "none";
   el.innerHTML = html;
@@ -1469,6 +1474,7 @@ function setupReserveForm(uid, displayName) {
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
+        ...(CakePricing.SPEC.specialTypes[creamType] ? { specialSpec: creamType } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
       };
