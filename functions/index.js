@@ -503,6 +503,9 @@ function buildStaffNotifyText(data) {
   if (data.galleryPick && data.galleryPick.name) {
     lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
   }
+  if (data.topCut) {
+    lines.push("カットケーキ載せ: 載せる（入れ物代あり）" + (data.topCut.note ? "：" + data.topCut.note : ""));
+  }
   if (data.specialSpec) {
     lines.push("⚠ 特殊仕様: " + data.specialSpec + "（納期は通常と異なります・要確認）");
   }

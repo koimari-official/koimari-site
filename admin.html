@@ -1003,6 +1003,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
             <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">生チョコクリーム（CF）の差額（段数に関わらず一律）</label>
             <input type="number" id="cfChocoCreamSurcharge" class="input" placeholder="200">
           </div>
+          <div>
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">タルトにカットケーキを載せる場合の入れ物代（税込・未入力なら「別途ご案内」）</label>
+            <input type="number" id="cfCutContainerFee" class="input" placeholder="未設定">
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;padding-top:14px;border-top:1px solid var(--color-line);">
           <div>
@@ -5285,6 +5289,7 @@ const rollFlavorsEditor = createFlavorListEditor({
 });
 const cakeSizePricesRef = ref(fbDb, "koimariContent/cakeSizePrices");
 const cakeTypePricesRef = ref(fbDb, "koimariContent/cakeTypePrices");
+const cakeCutContainerFeeRef = ref(fbDb, "koimariContent/cakeCutContainerFee");
 // member.htmlの種類別価格表（CakePricing.estimateのtypePrices）。種類名はフォームのクリームの種類の値と揃える。
 const CAKE_TYPE_PRICE_ROWS = ["フルーツタルトBOX","ストロベリータルトBOX","ミッシェルBOX","ガトーショコラBOX","ブルーベリーケーキ"];
 const CAKE_TYPE_PRICE_SIZES = [4, 5, 6, 7];
@@ -5324,6 +5329,10 @@ function initCakeSizePricesPanel() {
     const el = document.getElementById("cfCreamToppingPrice");
     if (el && snapshot.val() != null) el.value = snapshot.val();
   });
+  onValue(cakeCutContainerFeeRef, (snapshot) => {
+    const el = document.getElementById("cfCutContainerFee");
+    if (el && snapshot.val() != null) el.value = snapshot.val();
+  });
   onValue(cakeChocoCreamSurchargeRef, (snapshot) => {
     const el = document.getElementById("cfChocoCreamSurcharge");
     if (el && snapshot.val() != null) el.value = snapshot.val();
@@ -5356,13 +5365,14 @@ function initCakeSizePricesPanel() {
           if (val > 0) { (typePrices[name] = typePrices[name] || {})[n + "号"] = val; }
         });
       });
+      const cutContainerFee = Number(document.getElementById("cfCutContainerFee").value) || 0;
       const creamToppingPrice = Number(document.getElementById("cfCreamToppingPrice").value) || 0;
       const chocoCreamSurcharge = Number(document.getElementById("cfChocoCreamSurcharge").value) || 0;
       const candleBagPriceNumber = Number(document.getElementById("cfCandleBagPriceNumber").value) || 0;
       const candleBagPricePlain = Number(document.getElementById("cfCandleBagPricePlain").value) || 0;
       const messagePlatePrice = Number(document.getElementById("cfMessagePlatePrice").value) || 0;
       update(ref(fbDb, "koimariContent"), {
-        cakeSizePrices: prices, cakeTypePrices: typePrices, cakeCreamToppingPrice: creamToppingPrice, cakeChocoCreamSurcharge: chocoCreamSurcharge,
+        cakeSizePrices: prices, cakeTypePrices: typePrices, cakeCutContainerFee: cutContainerFee, cakeCreamToppingPrice: creamToppingPrice, cakeChocoCreamSurcharge: chocoCreamSurcharge,
         cakeCandleBagPriceNumber: candleBagPriceNumber, cakeCandleBagPricePlain: candleBagPricePlain,
         cakeMessagePlatePrice: messagePlatePrice
       }).then(() => {

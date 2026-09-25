@@ -20,6 +20,7 @@
     strawberryAdd: { price: 1000, creamTypes: ["ミッシェルBOX", "ガトーショコラBOX"] },
     // 特殊仕様の種類：通常と納期が異なる（材料の仕入れに2週間程度かかる場合がある。オーナー指示 2026-09-26）。
     specialTypes: { "ブルーベリーケーキ": { leadSoft: 14 } },
+    tartTypes: ["フルーツタルトBOX", "ストロベリータルトBOX"], // カットケーキを載せられる種類
     onsiteAssemblyFee: 20000, // 3段の出張組み立て料（交通費は別途）
     plainCreams: ["生クリーム", "生チョコクリーム"], // 単段の基本料金(sizePrices)がそのまま当てはまる種類
     // 2段・3段は「段ごとの合計」ではなく組み合わせごとの固定価格。lead＝箱・資材調達のため、
@@ -48,7 +49,7 @@
 
   // input: { tiers:[サイズ値...], creamType, decoration, creamTopping, colorCreamCount, strawberryAdd, addOns, onsiteAssembly,
   //          candleNeeded, candleType, candleBags, messageCount, occasion }
-  // base : { sizePrices, typePrices, creamToppingPrice, chocoCream, candlePlain, candleNumber, messagePlate }（admin管理の値。chocoCreamは未指定ならSPECの値）
+  // base : { sizePrices, typePrices, cutContainerFee, creamToppingPrice, chocoCream, candlePlain, candleNumber, messagePlate }（admin管理の値。chocoCreamは未指定ならSPECの値）
   function estimate(input, base) {
     var lines = [], notes = [], consult = false;
     var tiers = (input.tiers || []).filter(Boolean);
@@ -109,6 +110,13 @@
       notes.push("出張の交通費（燃料費・高速代往復・駐車料金・その他）は別途かかります");
     }
 
+    // タルトにカットケーキを載せる（オーナー確認 2026-09-26）：入れ物代がかかる。納期は通常どおり（2段のような資材の長い調達は不要）。
+    // カットケーキ自体の代金は選ぶケーキにより異なるため別途案内。入れ物代はadminで設定した値（未設定なら別途案内）。
+    if (input.topCut && SPEC.tartTypes.indexOf(cream) >= 0) {
+      var fee = base.cutContainerFee || 0;
+      if (fee > 0) lines.push({ label: "カットケーキ用の入れ物代", amount: fee });
+      notes.push("カットケーキ代" + (fee > 0 ? "" : "・入れ物代") + "は別途ご案内します（納期は通常どおりです）");
+    }
     if (SPEC.specialTypes[cream]) notes.push(cream + "は特殊仕様のため、納期は通常と異なります（材料の仕入れに2週間程度かかる場合がございます）");
 
     var subtotal = lines.reduce(function (s, l) { return s + l.amount; }, 0);

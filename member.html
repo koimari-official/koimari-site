@@ -202,6 +202,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div id="reserveSpecialNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>ブルーベリーケーキは特殊仕様です</strong><br>納期は通常と異なり、材料の仕入れに2週間程度かかる場合がございます。お受取日はご予約後にスタッフよりご相談・ご連絡します。</div>
           <div class="error" id="reserveCreamTypeError"></div>
         </div>
+        <div class="field" id="reserveTopCutField" style="display:none;">
+          <label class="field__check">
+            <input type="checkbox" id="reserveTopCut">
+            <span>カットケーキを載せる（入れ物代がかかります）</span>
+          </label>
+          <input type="text" id="reserveTopCutNote" class="input" style="display:none;margin-top:10px;" maxlength="40" placeholder="載せたいカットケーキ（例: ストロベリーショートケーキ）">
+          <div class="field__hint">タルトの上に、お好きなカットケーキを載せられます。カットケーキ代は選ぶケーキにより異なるため、ご予約後にご案内します。納期は通常どおりです。</div>
+        </div>
         <div class="field" id="reserveStrawberryAddField" style="display:none;">
           <label class="field__check">
             <input type="checkbox" id="reserveStrawberryAdd">
@@ -595,6 +603,8 @@ onValue(ref(db, "koimariContent/cakeMessagePlatePrice"), (snap) => { currentMess
 // お子様と一緒に写真を見ながら選べるよう、画像つきのカードで＋−で個数を選ぶ。登録が無い間は欄ごと非表示。
 // ケーキの種類（ミッシェルBOX等）ごとに単段の金額が異なるため、種類別の価格表（koimariContent/cakeTypePrices）を持つ。
 let currentTypePrices = {};
+let currentCutContainerFee = 0;
+onValue(ref(db, "koimariContent/cakeCutContainerFee"), (snap) => { currentCutContainerFee = Number(snap.val()) || 0; updateLivePriceDisplay(); });
 onValue(ref(db, "koimariContent/cakeTypePrices"), (snap) => { currentTypePrices = snap.val() || {}; updateLivePriceDisplay(); });
 let addOnCatalog = [];
 const addOnQty = {};
@@ -655,7 +665,8 @@ function gatherEstimateInput() {
     candleBags: candleNeeded ? (Number(g("reserveCandleBags").value) || 1) : 0,
     messageCount: g("reserveMessageCount") ? (Number(g("reserveMessageCount").value) || 0) : 0,
     addOns: selectedAddOns(),
-    onsiteAssembly: currentTierCount() === 3 && !!(g("reserveOnsite") && g("reserveOnsite").checked)
+    onsiteAssembly: currentTierCount() === 3 && !!(g("reserveOnsite") && g("reserveOnsite").checked),
+    topCut: !!(g("reserveTopCut") && g("reserveTopCut").checked)
   };
 }
 function computeCakeSubtotal() {
@@ -664,7 +675,7 @@ function computeCakeSubtotal() {
   const input = gatherEstimateInput();
   if (!input.tiers.length || input.tiers.some(v => !v)) return { subtotal: 0, priceNeedsConsult: false, applicable: true, incomplete: true, lines: [], notes: [] };
   const r = CakePricing.estimate(input, {
-    sizePrices: currentSizePrices, typePrices: currentTypePrices, creamToppingPrice: currentCreamToppingPrice, chocoCream: currentChocoCreamSurcharge,
+    sizePrices: currentSizePrices, typePrices: currentTypePrices, cutContainerFee: currentCutContainerFee, creamToppingPrice: currentCreamToppingPrice, chocoCream: currentChocoCreamSurcharge,
     candlePlain: currentCandleBagPricePlain, candleNumber: currentCandleBagPriceNumber, messagePlate: currentMessagePlatePrice
   });
   return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, applicable: true, lines: r.lines, notes: r.notes };
@@ -846,6 +857,10 @@ function updateCakeOptionUI() {
   g("reserveOnsiteField").style.display = tierCount === 3 ? "" : "none";
   if (tierCount !== 3) g("reserveOnsite").checked = false;
   g("reserveAddOnsField").style.display = addOnCatalog.length ? "" : "none";
+  const tartOk = CakePricing.SPEC.tartTypes.includes(creamType);
+  g("reserveTopCutField").style.display = tartOk ? "" : "none";
+  if (!tartOk) g("reserveTopCut").checked = false;
+  g("reserveTopCutNote").style.display = (tartOk && g("reserveTopCut").checked) ? "" : "none";
   g("reserveSpecialNotice").style.display = CakePricing.SPEC.specialTypes[creamType] ? "" : "none";
   const colorOk = creamType === "生クリーム" || creamType === "生チョコクリーム";
   g("reserveColorCreamField").style.display = colorOk ? "" : "none";
@@ -1189,6 +1204,7 @@ function renderReserveConfirm(data, targetId) {
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
     ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
+    ${data.topCut ? `<dt>カットケーキ載せ</dt><dd>載せる（入れ物代あり）${data.topCut.note ? `：${escape(data.topCut.note)}` : ""}</dd>` : ""}
     ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料+交通費）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${data.christmasOrder ? "無料でお付けします" : candleLine}</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>メッセージプレート</dt><dd>${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}</dd>` : ""}
@@ -1244,6 +1260,7 @@ function buildReserveSummaryText(data) {
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
   if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
   (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
+  if (data.topCut) lines.push(`カットケーキ載せ: 載せる（入れ物代あり）${data.topCut.note ? "：" + data.topCut.note : ""}`);
   if (data.onsiteAssembly) lines.push("3段ケーキの組み立て: 出張組み立てを希望（出張料+交通費）");
   if (isCake || isRoll) lines.push(`ろうそく: ${data.christmasOrder ? "無料でお付けします" : candleLine}`);
   if (isCake || isRoll) lines.push(`メッセージプレート: ${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}`);
@@ -1441,6 +1458,8 @@ function setupReserveForm(uid, displayName) {
       const colorCreamCount = canColor ? (Number(document.getElementById("reserveColorCream").value) || 0) : 0;
       const colorCreamNote = colorCreamCount > 0 ? (document.getElementById("reserveColorCreamNote").value || "") : "";
       const strawberryAdd = isCake && CakePricing.SPEC.strawberryAdd.creamTypes.includes(creamType) && document.getElementById("reserveStrawberryAdd").checked;
+      const topCutOn = isCake && CakePricing.SPEC.tartTypes.includes(creamType) && document.getElementById("reserveTopCut").checked;
+      const topCutNote = topCutOn ? (document.getElementById("reserveTopCutNote").value || "") : "";
       const addOnsPicked = isCake ? selectedAddOns() : [];
       const onsiteAssembly = isCake && currentTierCount() === 3 && document.getElementById("reserveOnsite").checked;
       let items;
@@ -1472,6 +1491,7 @@ function setupReserveForm(uid, displayName) {
         ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, note: colorCreamNote } } : {}),
         ...(strawberryAdd ? { strawberryAdd: true } : {}),
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
+        ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
         ...(CakePricing.SPEC.specialTypes[creamType] ? { specialSpec: creamType } : {}),
