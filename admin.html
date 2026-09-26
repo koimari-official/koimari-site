@@ -213,6 +213,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .card__head { font-family: var(--font-mincho); font-size: 15px; font-weight: 600; padding: 14px 20px; border-bottom: 1px solid var(--color-line); letter-spacing: 0.06em; background: var(--color-bg-soft); }
 .card__body { padding: 20px; }
 </style>
+<script src="cake-pricing.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
 </head>
@@ -680,6 +681,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <button class="btn btn--small" id="addExtraDate">＋ 追加</button>
         </div>
         <div id="extraClosedList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;"></div>
+        <h3 style="font-family:var(--font-mincho); font-size:17px; margin-bottom:6px; font-weight:600;">ケーキのご注文が満席の日</h3>
+        <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:12px;">営業はしているが、ケーキのネット予約を受け付けない日（製造がいっぱいの日）です。予約フォームで選べなくなり、お電話案内になります。</p>
+        <div style="display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap;">
+          <input type="date" id="fullDateInput" class="input" style="flex:1; min-width:200px; max-width:280px;">
+          <button class="btn btn--small" id="addFullDate">＋ 追加</button>
+        </div>
+        <div id="fullDatesList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;"></div>
         <button class="btn" id="saveHolidays" style="margin-top:10px;">変更を保存</button>
       </div>
     </section>
@@ -1022,6 +1030,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
             <input type="number" id="cfMessagePlatePrice" class="input" placeholder="未設定">
           </div>
         </div>
+        <h3 style="font-family:var(--font-mincho);font-size:16px;margin:26px 0 6px;font-weight:600;">オーダーケーキの詳細料金・納期（空欄＝既定値）</h3>
+        <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:12px;">2段・3段のセット価格や、フルーツトッピング・カラークリームなどの金額です。価格改定のときはここを書き換えて保存してください（税込）。</p>
+        <div id="cfSpecOverrides" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:22px;"></div>
         <button class="btn" id="cfSavePrices">保存して反映</button>
         <span id="cfPricesSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
       </div>
@@ -3978,7 +3989,7 @@ const DEFAULT_NEWS_LIST = [
   {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
   {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
 ];
-const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };
+const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[], cakeFullDates:[] };
 const DEFAULT_FAQ = [
   { category: "ご予約について", items: [
     { q: "デコレーションケーキの予約はいつまでに必要ですか？", a: "デコレーションケーキは原則として引き取り希望日の3営業日前までにご予約をお願いしております。それ以降のお急ぎのご予約はお電話にてご相談ください。" }
@@ -4447,6 +4458,19 @@ function renderHolidaysAdmin() {
     });
     w.appendChild(label);
   }
+  const fullList = document.getElementById("fullDatesList");
+  if (fullList) {
+    fullList.innerHTML = "";
+    const fd = (holidaysData.cakeFullDates = (holidaysData.cakeFullDates || []).slice().sort());
+    if (!fd.length) fullList.innerHTML = '<span style="color:var(--color-text-soft); font-size:14px;">満席日は設定されていません</span>';
+    fd.forEach(date => {
+      const tag = document.createElement("span");
+      tag.style.cssText = "display:inline-flex; align-items:center; gap:8px; padding:8px 14px; background:rgba(200,140,30,0.12); color:#8a5a12; font-size:14px;";
+      tag.innerHTML = escapeHtml(date) + ' <button style="background:none; border:none; color:#8a5a12; cursor:pointer; font-size:16px; line-height:1;">×</button>';
+      tag.querySelector("button").addEventListener("click", () => { holidaysData.cakeFullDates = holidaysData.cakeFullDates.filter(d => d !== date); renderHolidaysAdmin(); });
+      fullList.appendChild(tag);
+    });
+  }
   const list = document.getElementById("extraClosedList");
   list.innerHTML = "";
   if (!holidaysData.extraClosed || !holidaysData.extraClosed.length) {
@@ -4465,6 +4489,15 @@ function renderHolidaysAdmin() {
     });
   }
 }
+document.getElementById("addFullDate").addEventListener("click", () => {
+  const v = document.getElementById("fullDateInput").value;
+  if (!v) { showToast("日付を選択してください", "error"); return; }
+  if (!holidaysData) holidaysData = loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS);
+  if (!holidaysData.cakeFullDates) holidaysData.cakeFullDates = [];
+  if (!holidaysData.cakeFullDates.includes(v)) holidaysData.cakeFullDates.push(v);
+  document.getElementById("fullDateInput").value = "";
+  renderHolidaysAdmin();
+});
 document.getElementById("addExtraDate").addEventListener("click", () => {
   const v = document.getElementById("extraDateInput").value;
   if (!v) { showToast("日付を選択してください", "error"); return; }
@@ -5349,6 +5382,44 @@ function initCakeSizePricesPanel() {
     const el = document.getElementById("cfMessagePlatePrice");
     if (el && snapshot.val() != null) el.value = snapshot.val();
   });
+  // --- 詳細料金・納期（cake-pricing.jsのSPECを既定値として表示）---
+  const SO = window.CakePricing && window.CakePricing.SPEC;
+  const soWrap = document.getElementById("cfSpecOverrides");
+  const soIds = [];
+  if (SO && soWrap && !soWrap.dataset.built) {
+    soWrap.dataset.built = "1";
+    const field = (id, label, ph) => { soIds.push(id); return '<div><label style="display:block;font-size:12.5px;color:var(--color-text-soft);margin-bottom:5px;">' + label + '</label><input type="number" id="' + id + '" class="input" placeholder="' + ph + '"></div>'; };
+    let html = "";
+    ["4号", "5号", "6号"].forEach(k => { html += field("cso_fruit_" + k, "フルーツトッピング " + k, SO.fruitTopping[k]); });
+    [1, 2, 3].forEach(n => { html += field("cso_color_" + n, "カラークリーム " + n + "色（合計）", SO.colorCream[n]); });
+    html += field("cso_straw", "いちごトッピング（ミッシェル/ガトーショコラBOX）", SO.strawberryAdd.price);
+    html += field("cso_onsite", "3段の出張組み立て料", SO.onsiteAssemblyFee);
+    Object.keys(SO.multiTier).forEach((k, i) => {
+      const t = SO.multiTier[k];
+      html += field("cso_mt_" + i + "_price", k.replace(/\+/g, "＋") + " セット価格", t.price);
+      if (t.lead) { html += field("cso_mt_" + i + "_min", k.replace(/\+/g, "＋") + " ネット予約の締切（日前）", t.lead.min); html += field("cso_mt_" + i + "_soft", k.replace(/\+/g, "＋") + " 調達状況次第の目安（日前）", t.lead.soft); }
+    });
+    soWrap.innerHTML = html;
+    onValue(ref(fbDb, "koimariContent/cakeSpecOverrides"), (snap) => {
+      const o = snap.val() || {};
+      const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+      ["4号", "5号", "6号"].forEach(k => set("cso_fruit_" + k, o.fruitTopping && o.fruitTopping[k]));
+      [1, 2, 3].forEach(n => set("cso_color_" + n, o.colorCream && o.colorCream[n]));
+      set("cso_straw", o.strawberryPrice); set("cso_onsite", o.onsiteAssemblyFee);
+      Object.keys(SO.multiTier).forEach((k, i) => { const s = (o.multiTier || {})[k] || {}; set("cso_mt_" + i + "_price", s.price); set("cso_mt_" + i + "_min", s.min); set("cso_mt_" + i + "_soft", s.soft); });
+    });
+  }
+  function collectSpecOverrides() {
+    if (!SO) return null;
+    const n = id => { const el = document.getElementById(id); const v = el ? Number(el.value) : 0; return v > 0 ? v : null; };
+    const o = { fruitTopping: {}, colorCream: {}, multiTier: {} };
+    ["4号", "5号", "6号"].forEach(k => { const v = n("cso_fruit_" + k); if (v) o.fruitTopping[k] = v; });
+    [1, 2, 3].forEach(i => { const v = n("cso_color_" + i); if (v) o.colorCream[i] = v; });
+    const st = n("cso_straw"); if (st) o.strawberryPrice = st;
+    const os = n("cso_onsite"); if (os) o.onsiteAssemblyFee = os;
+    Object.keys(SO.multiTier).forEach((k, i) => { const s = {}; const p = n("cso_mt_" + i + "_price"), mn = n("cso_mt_" + i + "_min"), sf = n("cso_mt_" + i + "_soft"); if (p) s.price = p; if (mn) s.min = mn; if (sf) s.soft = sf; if (Object.keys(s).length) o.multiTier[k] = s; });
+    return o;
+  }
   const saveBtn = document.getElementById("cfSavePrices");
   if (saveBtn && !saveBtn.dataset.bound) {
     saveBtn.dataset.bound = "1";
@@ -5374,7 +5445,8 @@ function initCakeSizePricesPanel() {
       update(ref(fbDb, "koimariContent"), {
         cakeSizePrices: prices, cakeTypePrices: typePrices, cakeCutContainerFee: cutContainerFee, cakeCreamToppingPrice: creamToppingPrice, cakeChocoCreamSurcharge: chocoCreamSurcharge,
         cakeCandleBagPriceNumber: candleBagPriceNumber, cakeCandleBagPricePlain: candleBagPricePlain,
-        cakeMessagePlatePrice: messagePlatePrice
+        cakeMessagePlatePrice: messagePlatePrice,
+        cakeSpecOverrides: collectSpecOverrides() || {}
       }).then(() => {
         const note = document.getElementById("cfPricesSavedNote");
         if (note) { note.textContent = "保存しました"; setTimeout(() => { note.textContent = ""; }, 3000); }

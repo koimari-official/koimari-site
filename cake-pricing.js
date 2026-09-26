@@ -178,7 +178,25 @@
     return new Date(today || new Date()) > deadline;
   }
 
-  var api = { SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  // 管理画面(admin.html)で設定した料金・納期の上書き値（Firebase koimariContent/cakeSpecOverrides）をSPECに反映する。
+  // 正の数値だけを採用し、未設定の項目は既定値のまま。
+  function applyOverrides(o) {
+    if (!o || typeof o !== "object") return;
+    var num = function (v) { v = Number(v); return isFinite(v) && v > 0 ? v : null; };
+    var v;
+    Object.keys(SPEC.fruitTopping).concat(["6号"]).forEach(function (k) { v = num(o.fruitTopping && o.fruitTopping[k]); if (v) SPEC.fruitTopping[k] = v; });
+    [1, 2, 3].forEach(function (n) { v = num(o.colorCream && o.colorCream[n]); if (v) SPEC.colorCream[n] = v; });
+    v = num(o.strawberryPrice); if (v) SPEC.strawberryAdd.price = v;
+    v = num(o.onsiteAssemblyFee); if (v) SPEC.onsiteAssemblyFee = v;
+    Object.keys(o.multiTier || {}).forEach(function (k) {
+      var t = SPEC.multiTier[k], s = o.multiTier[k];
+      if (!t || !s) return;
+      v = num(s.price); if (v) t.price = v;
+      if (t.lead) { var mn = num(s.min), sf = num(s.soft); if (mn) t.lead.min = mn; if (sf) t.lead.soft = sf; if (t.lead.soft < t.lead.min) t.lead.soft = t.lead.min; }
+    });
+  }
+
+  var api = { applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);
