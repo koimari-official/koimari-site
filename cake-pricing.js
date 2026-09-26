@@ -59,6 +59,10 @@
     if (!tiers.length) return { subtotal: 0, lines: [], notes: [], needsConsult: true, reason: "サイズ未選択" };
 
     var cream = input.creamType || "";
+    // 段ごとのケーキの種類（input.tierSpecs＝下の段から順、[{cream}]）。未指定なら全段が creamType（従来どおり）。
+    var specs = input.tierSpecs && input.tierSpecs.length === tiers.length ? input.tierSpecs : null;
+    var creamOf = function (i) { return specs ? (specs[i].cream || cream) : cream; };
+    var anyTier = function (f) { for (var i = 0; i < tiers.length; i++) if (f(creamOf(i))) return true; return false; };
     if (!multi) {
       var k = tierKey(tiers[0]);
       // ケーキの種類ごとに単段の価格が異なる（typePrices: 種類→{号数→金額}）。種類別の価格が未登録で、かつ
@@ -72,13 +76,29 @@
       var combo = SPEC.multiTier[comboKey(tiers)];
       if (combo) lines.push({ label: tiers.length + "段ケーキ（" + comboKey(tiers).replace(/\+/g, "＋") + "）", amount: combo.price });
       else consult = true;
+      // セット価格は生クリームの価格。段ごとに別の種類を選んだ場合は、その段の単品価格との差額を加減算する（暫定ルール・パティシエ相談中）。
+      if (combo && specs) {
+        for (var ti = 0; ti < tiers.length; ti++) {
+          var c = creamOf(ti), tk = tierKey(tiers[ti]);
+          var plainP = base.sizePrices && base.sizePrices[tk];
+          if (!plainP || !c || SPEC.plainCreams.indexOf(c) >= 0) continue; // セルクル・カット等、または生クリーム系は差額なし
+          var tm = base.typePrices && base.typePrices[c];
+          if (tm && tm[tk] != null) {
+            var diff = tm[tk] - plainP;
+            if (diff !== 0) lines.push({ label: (tiers.length - ti) + "段目 " + c + "（単品価格との差額）", amount: diff });
+          } else consult = true;
+        }
+        notes.push("段ごとに種類を変える場合は、納期・料金をスタッフより改めてご案内します");
+      }
     }
 
-    if (cream === "生チョコクリーム") lines.push({ label: "生チョコクリーム変更", amount: base.chocoCream != null ? base.chocoCream : SPEC.chocoCream });
+    if (anyTier(function (c) { return c === "生チョコクリーム"; })) lines.push({ label: "生チョコクリーム変更", amount: base.chocoCream != null ? base.chocoCream : SPEC.chocoCream });
 
     var colors = Number(input.colorCreamCount) || 0;
-    if (colors > 0 && (cream === "生クリーム" || cream === "生チョコクリーム")) {
-      lines.push({ label: "カラークリーム（" + colors + "色）", amount: SPEC.colorCream[colors] || 0 });
+    if (colors > 0 && anyTier(function (c) { return SPEC.plainCreams.indexOf(c) >= 0; })) {
+      // 色数は全段の合計。4色以上は1色あたり+500を加算（暫定・パティシエ相談中）。
+      var cc = Math.min(colors, 3);
+      lines.push({ label: "カラークリーム（" + colors + "色）", amount: (SPEC.colorCream[cc] || 0) + (colors > 3 ? (colors - 3) * SPEC.colorCream[1] : 0) });
     }
     if (input.strawberryAdd && SPEC.strawberryAdd.creamTypes.indexOf(cream) >= 0) {
       lines.push({ label: "いちごトッピング（目安）", amount: SPEC.strawberryAdd.price });
@@ -117,7 +137,9 @@
       if (fee > 0) lines.push({ label: "カットケーキ用の入れ物代", amount: fee });
       notes.push("カットケーキ代" + (fee > 0 ? "" : "・入れ物代") + "は別途ご案内します（納期は通常どおりです）");
     }
-    if (SPEC.specialTypes[cream]) notes.push(cream + "は特殊仕様のため、納期は通常と異なります（材料の仕入れに2週間程度かかる場合がございます）");
+    var specialFound = "";
+    for (var si = 0; si < tiers.length; si++) if (SPEC.specialTypes[creamOf(si)]) { specialFound = creamOf(si); break; }
+    if (specialFound) notes.push(specialFound + "は特殊仕様のため、納期は通常と異なります（材料の仕入れに2週間程度かかる場合がございます）");
 
     var subtotal = lines.reduce(function (s, l) { return s + l.amount; }, 0);
     return { subtotal: consult ? 0 : subtotal, lines: consult ? [] : lines, notes: notes, needsConsult: consult };

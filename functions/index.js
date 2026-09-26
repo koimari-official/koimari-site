@@ -503,6 +503,14 @@ function buildStaffNotifyText(data) {
   if (data.galleryPick && data.galleryPick.name) {
     lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
   }
+  if (Array.isArray(data.tierSpecs) && data.tierSpecs.length) {
+    data.tierSpecs.forEach(function (t) {
+      lines.push(t.tier + ": " + String(t.size || "").replace(/\(.*$/, "") + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""));
+    });
+  }
+  if (data.colorCream && !(Array.isArray(data.tierSpecs) && data.tierSpecs.length)) {
+    lines.push("カラークリーム: " + data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : "") + (data.colorCream.note ? "（" + data.colorCream.note + "）" : ""));
+  }
   if (data.topCut) {
     lines.push("カットケーキ載せ: 載せる（入れ物代あり）" + (data.topCut.note ? "：" + data.topCut.note : ""));
   }

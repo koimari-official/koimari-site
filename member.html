@@ -159,6 +159,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt" id="kidsManagerOptionWrap" style="display:none;"><input type="radio" name="reserveCategory" value="kidsManager"> お子様の一日店長体験</label>
           </div>
         </div>
+        <div id="resumeBanner" style="display:none;"></div>
         <div id="cakeFieldsWrap">
         <div class="field">
           <label class="field__label">商品<span class="req-mark">必須</span></label>
@@ -176,13 +177,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="3"> 3段</label>
           </div>
         </div>
+        <div id="reserveTierDiagram" style="display:none;margin-bottom:16px;"></div>
         <div class="field" id="reserveFlavorField" style="display:none;">
           <label class="field__label" for="reserveFlavor">ケーキの種類<span class="req-mark">必須</span></label>
           <select id="reserveFlavor" class="input select"></select>
           <div class="error" id="reserveFlavorError"></div>
         </div>
         <div class="field" id="reserveCreamTypeField" style="display:none;">
-          <label class="field__label">クリームの種類<span class="req-mark">必須</span></label>
+          <label class="field__label"><span id="reserveActiveTierLabel"></span>ケーキ・クリームの種類<span class="req-mark">必須</span></label>
           <div class="radio-list">
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生クリーム" checked> 生クリーム</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリーム<span id="reserveChocoCreamPriceLabel"></span></label>
@@ -303,6 +305,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
         <!-- 2026-09-22新設：ここまでの選択内容に応じたリアルタイム合計金額表示(CRO改修指示書) -->
+        <div id="autosaveBadge" style="display:none;font-size:11.5px;color:#0b7a37;margin:0 0 8px;"></div>
         <div id="liveTotalBar" class="live-total-bar" style="display:none;"></div>
         <div class="field">
           <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
@@ -674,7 +677,11 @@ function renderColorChips() {
     syncColorSelect();
   }));
   const hint = document.getElementById("reserveColorSummary");
-  if (hint) hint.textContent = selectedCreamColors.length ? "選んだ色：" + selectedCreamColors.join("・") + "（" + selectedCreamColors.length + "色）" : "色を選ぶと、色数に応じた金額が加算されます";
+  if (hint) {
+    const tot = (typeof totalColors === "function") ? totalColors() : selectedCreamColors.length;
+    const price = (typeof colorPriceFor === "function") ? colorPriceFor(tot) : 0;
+    hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.join("・") + "（" + selectedCreamColors.length + "色）" : "この段の色：未選択") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込・概算）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
+  }
 }
 function showColorLimitHint() {
   const hint = document.getElementById("reserveColorSummary");
@@ -683,9 +690,255 @@ function showColorLimitHint() {
 function syncColorSelect() {
   const sel = document.getElementById("reserveColorCream");
   if (!sel) return;
-  sel.value = String(selectedCreamColors.length);
+  sel.value = String(Math.min(3, (typeof totalColors === "function") ? totalColors() : selectedCreamColors.length));
   sel.dispatchEvent(new Event("change", { bubbles: true }));
 }
+
+// ===== 段ごとの仕様（ケーキの種類・クリームの色）と円柱の図（2026-09-26オーナー指示）=====
+// 2段・3段は、段ごとにケーキの種類と色を選ぶ。下の段（土台）から順に選ぶ。内部は tierSpecs[0]＝一番下の段。
+// 画面上の呼び方は「上から数えた段目」（3段なら 3段目＝一番下、1段目＝一番上）で、円柱の図と一致させる。
+// 既存の「クリームの種類」「カラークリーム」の入力欄は、いま選択中の段の入力欄として使い回す。
+let tierSpecs = [{ cream: "生クリーム", colors: [] }];
+let activeTier = 0;
+const TIER_W = { "3号": 56, "4号": 72, "5号": 88, "6号": 104, "7号": 120 };
+function tierName(i, n) { return n <= 1 ? "" : (n - i) + "段目" + (i === 0 ? "（一番下）" : i === n - 1 ? "（一番上）" : ""); }
+function ensureTierSpecs() {
+  const n = currentTierCount();
+  while (tierSpecs.length < n) tierSpecs.push({ cream: "生クリーム", colors: [] });
+  if (activeTier > n - 1) activeTier = 0;
+}
+function checkedCream() { return (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "生クリーム"; }
+function saveActiveSpec() {
+  ensureTierSpecs();
+  tierSpecs[activeTier] = { cream: checkedCream(), colors: selectedCreamColors.slice() };
+}
+function loadActiveSpec() {
+  ensureTierSpecs();
+  const s = tierSpecs[activeTier] || { cream: "生クリーム", colors: [] };
+  const r = Array.from(document.querySelectorAll('input[name="reserveCreamType"]')).find(x => x.value === s.cream);
+  if (r) r.checked = true;
+  const needsSub = s.cream === "フルーツタルトBOX" || s.cream === "ストロベリータルトBOX";
+  const subWrap = document.getElementById("reserveCreamTypeSubWrap");
+  if (subWrap) subWrap.style.display = needsSub ? "" : "none";
+  selectedCreamColors = s.colors.slice();
+  renderColorChips();
+  syncColorSelectQuiet();
+}
+function activeSpecs() {
+  ensureTierSpecs();
+  return tierSpecs.slice(0, currentTierCount()).map((s, i) => i === activeTier ? { cream: checkedCream(), colors: selectedCreamColors.slice() } : s);
+}
+function bottomCream() { return activeSpecs()[0].cream; }
+function totalColors() { return activeSpecs().reduce((n, s) => n + s.colors.length, 0); }
+function anySpecialCream() {
+  const hit = activeSpecs().find(s => CakePricing.SPEC.specialTypes[s.cream]);
+  return hit ? hit.cream : "";
+}
+function colorPriceFor(n) {
+  const S = CakePricing.SPEC.colorCream;
+  return n <= 0 ? 0 : n <= 3 ? S[n] : S[3] + (n - 3) * S[1];
+}
+function syncColorSelectQuiet() {
+  const sel = document.getElementById("reserveColorCream");
+  if (sel) sel.value = String(Math.min(3, totalColors()));
+}
+function svgColorOf(name) {
+  const c = CREAM_COLORS.find(x => x.name === name);
+  return !c ? "#fff4e0" : c.css.indexOf("conic") === 0 ? "#c9a0e6" : c.css;
+}
+function tierIsSpecialTop(sizeVal) { return SPECIAL_TOP_OPTIONS.some(o => o.value && o.value === sizeVal); }
+function renderTierDiagram() {
+  const wrap = document.getElementById("reserveTierDiagram");
+  if (!wrap) return;
+  const category = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
+  const n = currentTierCount();
+  if (category !== "デコレーションケーキ" || n < 2) { wrap.style.display = "none"; wrap.innerHTML = ""; return; }
+  const specs = activeSpecs();
+  const sizes = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
+  const H = 50, W = 140;
+  let defs = "", body = "", rows = "";
+  for (let i = n - 1; i >= 0; i--) { // 上の段から描く
+    const sp = specs[i], sz = sizes[i] || "", key = sizeKeyOf(sz);
+    const special = tierIsSpecialTop(sz);
+    const w = special ? 60 : (TIER_W[key] || 96);
+    const x = (W - w) / 2, top = (n - 1 - i) * H + 8;
+    const on = i === activeTier;
+    let fill = on ? "#ffe9b8" : "#fff4e0";
+    if (sp.colors.length === 1) fill = svgColorOf(sp.colors[0]);
+    else if (sp.colors.length > 1) {
+      const id = "tg" + i, k = sp.colors.length;
+      defs += `<linearGradient id="${id}" x1="0" x2="1" y1="0" y2="0">` + sp.colors.map((c, j) => `<stop offset="${j / k}" stop-color="${svgColorOf(c)}"/><stop offset="${(j + 1) / k}" stop-color="${svgColorOf(c)}"/>`).join("") + `</linearGradient>`;
+      fill = `url(#${id})`;
+    }
+    const stroke = on ? "#e08a00" : "#b99e7c", sw = on ? 3 : 1.5;
+    body += `<g data-tier="${i}" style="cursor:pointer;"><ellipse cx="${W / 2}" cy="${top + 34}" rx="${w / 2}" ry="8" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><rect x="${x}" y="${top}" width="${w}" height="34" fill="${fill}" stroke="none"/><line x1="${x}" y1="${top}" x2="${x}" y2="${top + 34}" stroke="${stroke}" stroke-width="${sw}"/><line x1="${x + w}" y1="${top}" x2="${x + w}" y2="${top + 34}" stroke="${stroke}" stroke-width="${sw}"/><ellipse cx="${W / 2}" cy="${top}" rx="${w / 2}" ry="8" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>${on ? `<ellipse cx="${W / 2}" cy="${top}" rx="${w / 2}" ry="8" fill="rgba(255,255,255,.35)"/>` : ""}</g>`;
+    const line2 = [special ? (key === "" ? "" : sz.replace(/\(.*$/, "")) : (key || "サイズ未選択"), special ? "" : sp.cream, sp.colors.length ? sp.colors.join("・") : ""].filter(Boolean).join(" ／ ");
+    rows += `<button type="button" class="tier-row" data-tier="${i}" style="display:block;width:100%;height:${H - 4}px;margin:0 0 4px;text-align:left;padding:4px 10px;border-radius:10px;cursor:pointer;background:${on ? "#fff7ea" : "#fff"};border:${on ? "2px solid #e08a00" : "1px solid #d8baa4"};"><span style="font-weight:700;font-size:13px;">${tierName(i, n)}</span>${on ? ` <span style="background:#e08a00;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;margin-left:4px;white-space:nowrap;display:inline-block;">選択中</span>` : ""}<br><span style="font-size:12px;color:#6b5a48;">${escape(line2 || "未選択")}</span></button>`;
+  }
+  const isBottom = activeTier === 0;
+  wrap.style.display = "block";
+  wrap.innerHTML = `<div style="background:#fdfaf6;border:1px solid #ecd9c4;border-radius:14px;padding:14px;">
+    <div style="font-weight:700;font-size:14px;margin-bottom:2px;">ケーキの種類・色は、下の段（土台）から順に選びます</div>
+    <div style="font-size:12px;color:#6b5a48;margin-bottom:10px;">図の段、または右の名前をタップすると、その段を選べます。いま選んでいるのは「<b>${tierName(activeTier, n)}</b>」です。</div>
+    <div style="display:flex;gap:12px;align-items:flex-start;">
+      <svg id="reserveTierSvg" viewBox="0 0 ${W} ${n * H + 16}" width="${W}" height="${n * H + 16}" style="flex-shrink:0;max-width:40%;height:auto;"><defs>${defs}</defs>${body}</svg>
+      <div style="flex:1;min-width:0;padding-top:8px;">${rows}</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px;">
+      <button type="button" id="tierPrevBtn" ${isBottom ? "disabled" : ""} style="flex:1;padding:10px;border-radius:999px;border:1px solid #c9a96e;background:#fff;cursor:pointer;${isBottom ? "opacity:.4;" : ""}">↓ ひとつ下の段へ</button>
+      <button type="button" id="tierNextBtn" ${activeTier >= n - 1 ? "disabled" : ""} style="flex:1;padding:10px;border-radius:999px;border:none;background:#a88a52;color:#fff;font-weight:700;cursor:pointer;${activeTier >= n - 1 ? "opacity:.4;" : ""}">次の段（${tierName(Math.min(activeTier + 1, n - 1), n).replace(/（.*$/, "")}）へ ↑</button>
+    </div></div>`;
+  const go = (i) => setActiveTier(i);
+  wrap.querySelectorAll("[data-tier]").forEach(el => el.addEventListener("click", () => go(Number(el.dataset.tier))));
+  const pb = document.getElementById("tierPrevBtn"), nb = document.getElementById("tierNextBtn");
+  if (pb) pb.addEventListener("click", () => go(activeTier - 1));
+  if (nb) nb.addEventListener("click", () => go(activeTier + 1));
+  const lbl = document.getElementById("reserveActiveTierLabel");
+  if (lbl) lbl.textContent = tierName(activeTier, n) + "の";
+}
+function setActiveTier(i) {
+  const n = currentTierCount();
+  if (i < 0 || i > n - 1) return;
+  saveActiveSpec();
+  activeTier = i;
+  loadActiveSpec();
+  updateCakeOptionUI(); updateLivePriceDisplay(); updateReservePhoneNotice(); updateReserveDateNotices();
+  scheduleAutosave();
+  const f = document.getElementById("reserveTierDiagram");
+  if (f && f.scrollIntoView) f.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+// 選択中の段の入力欄（種類・色）を保存し、図を描き直す。フォーム内のあらゆる変更で呼ばれる。
+function syncSpecFromControls() {
+  saveActiveSpec();
+  renderTierDiagram();
+  syncColorSelectQuiet();
+  scheduleAutosave();
+}
+
+// ===== 途中保存（2026-09-26オーナー指示）=====
+// 選択のたびに端末へ保存し、一定間隔でサーバー(reservationDrafts)にも保存する。個人情報（氏名・電話・メール）は保存しない。
+// サーバー側は「上書き不可」の仕様のため、保存のたびに新しいコードで作り、端末には最新のコードだけを覚えておく。
+// 端末を変えた・LINEアプリに切り替わった場合も、コードで復元できる。
+const AUTOSAVE_LS_KEY = "koimari_form_autosave";
+const AUTOSAVE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+let autosaveTimer = null, lastServerSaveAt = 0, lastServerSavedJson = "", autosaveSuppressed = false;
+function genDraftCode() { const a = new Uint8Array(8); crypto.getRandomValues(a); let s = ""; for (let i = 0; i < 8; i++) s += AUTOSAVE_ALPHABET[a[i] % AUTOSAVE_ALPHABET.length]; return s; }
+function collectFormSpec() {
+  const g = id => document.getElementById(id);
+  const cv = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || "";
+  const category = cv("reserveType") || "デコレーションケーキ";
+  if (currentReserveCategory() !== "cake") return null;
+  return {
+    v: 1, type: category, tiers: currentTierCount(), activeTier,
+    sizes: Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value),
+    specs: activeSpecs(),
+    creamSub: cv("reserveCreamTypeSub"), decoration: cv("reserveDecoration"), occasion: cv("reserveOccasion"),
+    occasionOther: (g("reserveOccasionOther") || {}).value || "",
+    creamTopping: !!(g("reserveCreamTopping") || {}).checked, strawberry: !!(g("reserveStrawberryAdd") || {}).checked,
+    topCut: !!(g("reserveTopCut") || {}).checked, topCutNote: (g("reserveTopCutNote") || {}).value || "",
+    onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
+    candle: !!(g("reserveCandleNeeded") || {}).checked, candleType: cv("reserveCandleType"), candleBags: (g("reserveCandleBags") || {}).value || "1",
+    msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
+    addOns: Object.keys(addOnQty).filter(k => addOnQty[k] > 0).map(k => [k, addOnQty[k]]),
+    date: (g("reserveDate") || {}).value || "", time: (g("reserveTime") || {}).value || ""
+  };
+}
+function specIsMeaningful(s) {
+  if (!s) return false;
+  return (s.sizes || []).some(Boolean) || (s.specs || []).some(x => x.colors.length || x.cream !== "生クリーム") || s.occasion || s.date;
+}
+function scheduleAutosave() {
+  if (autosaveSuppressed) return;
+  clearTimeout(autosaveTimer);
+  autosaveTimer = setTimeout(() => autosaveNow(false), 1200);
+}
+async function autosaveNow(force) {
+  let spec;
+  try { spec = collectFormSpec(); } catch (e) { return; }
+  if (!specIsMeaningful(spec)) return;
+  const json = JSON.stringify(spec);
+  let prev = null;
+  try { prev = JSON.parse(localStorage.getItem(AUTOSAVE_LS_KEY) || "null"); } catch (e) {}
+  const now = Date.now();
+  const local = { savedAt: now, spec, code: prev && prev.code || "" };
+  try { localStorage.setItem(AUTOSAVE_LS_KEY, JSON.stringify(local)); } catch (e) {}
+  if (json === lastServerSavedJson) return;
+  if (!force && now - lastServerSaveAt < 15000) { clearTimeout(autosaveTimer); autosaveTimer = setTimeout(() => autosaveNow(false), 15000 - (now - lastServerSaveAt) + 200); return; }
+  lastServerSaveAt = now;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const code = genDraftCode();
+    try {
+      const res = await fetch(`${DRAFT_DB}/reservationDrafts/${code}.json`, { method: "PUT", keepalive: json.length < 6000, body: JSON.stringify({ name: "途中保存", productType: "autosave", createdAt: now, spec: json }) });
+      if (res.ok) {
+        lastServerSavedJson = json;
+        try { localStorage.setItem(AUTOSAVE_LS_KEY, JSON.stringify({ savedAt: now, spec, code })); } catch (e) {}
+        renderAutosaveBadge(code);
+        return;
+      }
+    } catch (e) { return; }
+  }
+}
+function renderAutosaveBadge(code) {
+  const el = document.getElementById("autosaveBadge");
+  if (!el) return;
+  el.style.display = "block";
+  el.textContent = "✓ 入力内容を自動で保存しています" + (code ? "（続きのコード: " + code + "）" : "");
+}
+function applyFormSpec(s) {
+  if (!s) return;
+  autosaveSuppressed = true;
+  try {
+    const setRadio = (name, val) => { const r = Array.from(document.querySelectorAll('input[name="' + name + '"]')).find(x => x.value === val); if (r) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); } };
+    const setVal = (id, v) => { const e = document.getElementById(id); if (e) { e.value = v; e.dispatchEvent(new Event("change", { bubbles: true })); } };
+    const setChk = (id, v) => { const e = document.getElementById(id); if (e) { e.checked = !!v; e.dispatchEvent(new Event("change", { bubbles: true })); } };
+    setRadio("reserveType", s.type);
+    setRadio("reserveTiers", String(s.tiers || 1));
+    tierSpecs = (s.specs || []).map(x => ({ cream: x.cream, colors: (x.colors || []).slice() }));
+    ensureTierSpecs();
+    // サイズ：一番下の段を先に決めると上の段の選択肢が確定する。
+    const setSize = (i, v) => { const el = document.querySelector('.tier-size-select[data-tier="' + i + '"]'); if (el && !el.disabled && v) { el.value = v; el.dispatchEvent(new Event("change", { bubbles: true })); } };
+    (s.sizes || []).forEach((v, i) => setSize(i, v));
+    (s.sizes || []).forEach((v, i) => setSize(i, v));
+    activeTier = Math.min(s.activeTier || 0, currentTierCount() - 1);
+    loadActiveSpec();
+    setRadio("reserveCreamTypeSub", s.creamSub); setRadio("reserveDecoration", s.decoration); setRadio("reserveOccasion", s.occasion);
+    setVal("reserveOccasionOther", s.occasionOther || "");
+    setChk("reserveCreamTopping", s.creamTopping); setChk("reserveStrawberryAdd", s.strawberry); setChk("reserveTopCut", s.topCut); setVal("reserveTopCutNote", s.topCutNote || "");
+    setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
+    setChk("reserveCandleNeeded", s.candle); setRadio("reserveCandleType", s.candleType); setVal("reserveCandleBags", s.candleBags || "1");
+    setVal("reserveMessageCount", s.msgCount || "0"); setVal("reserveChocoText", s.msgText || "");
+    Object.keys(addOnQty).forEach(k => delete addOnQty[k]);
+    (s.addOns || []).forEach(([k, q]) => { addOnQty[k] = q; });
+    renderAddOns();
+    if (s.date) setVal("reserveDate", s.date);
+    if (s.time) setVal("reserveTime", s.time);
+    updateCakeOptionUI(); renderTierDiagram(); updateLivePriceDisplay(); updateReservePhoneNotice(); updateReserveDateNotices();
+  } finally { autosaveSuppressed = false; }
+  scheduleAutosave();
+}
+async function initResumeBanner(fromUrlSpec) {
+  const el = document.getElementById("resumeBanner");
+  if (!el) return;
+  let saved = null;
+  if (fromUrlSpec) saved = { savedAt: fromUrlSpec.createdAt || Date.now(), spec: fromUrlSpec.spec, code: fromUrlSpec.code };
+  else { try { saved = JSON.parse(localStorage.getItem(AUTOSAVE_LS_KEY) || "null"); } catch (e) {} }
+  if (!saved || !specIsMeaningful(saved.spec)) { el.style.display = "none"; return; }
+  const d = new Date(saved.savedAt);
+  const when = (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  const s = saved.spec;
+  const summary = [s.tiers > 1 ? s.tiers + "段" : "", (s.sizes || []).filter(Boolean).map(x => sizeKeyOf(x)).join("＋")].filter(Boolean).join(" ");
+  el.style.display = "block";
+  el.innerHTML = `<div style="background:#fff7ea;border:1px solid #e0b872;border-radius:12px;padding:12px 14px;margin-bottom:16px;">
+    <div style="font-weight:700;color:#8a5a12;font-size:14px;">前回の続きから再開できます</div>
+    <div style="font-size:12.5px;color:#4a3a2a;margin:4px 0 10px;">${escape(when)} に保存した選択内容${summary ? "（" + escape(summary) + "）" : ""}があります。</div>
+    <div style="display:flex;gap:8px;"><button type="button" id="resumeGo" style="flex:1;padding:11px;border:none;border-radius:999px;background:#a88a52;color:#fff;font-weight:700;cursor:pointer;">続きから選ぶ</button>
+    <button type="button" id="resumeDrop" style="padding:11px 16px;border:1px solid #c9a96e;border-radius:999px;background:#fff;cursor:pointer;">最初から</button></div></div>`;
+  document.getElementById("resumeGo").addEventListener("click", () => { applyFormSpec(saved.spec); el.style.display = "none"; });
+  document.getElementById("resumeDrop").addEventListener("click", () => { try { localStorage.removeItem(AUTOSAVE_LS_KEY); } catch (e) {} el.style.display = "none"; });
+}
+window.addEventListener("pagehide", () => { try { autosaveNow(true); } catch (e) {} });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") { try { autosaveNow(true); } catch (e) {} } });
+document.addEventListener("input", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) scheduleAutosave(); });
 
 function gatherEstimateInput() {
   const g = id => document.getElementById(id);
@@ -694,10 +947,11 @@ function gatherEstimateInput() {
   return {
     tiers: Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value),
     occasion: checkedVal("reserveOccasion"),
-    creamType: checkedVal("reserveCreamType"),
+    creamType: bottomCream(),
+    tierSpecs: activeSpecs().map(s => ({ cream: s.cream })),
     decoration: checkedVal("reserveDecoration"),
     creamTopping: g("reserveCreamTopping") ? g("reserveCreamTopping").checked : false,
-    colorCreamCount: g("reserveColorCream") ? (Number(g("reserveColorCream").value) || 0) : 0,
+    colorCreamCount: totalColors(),
     strawberryAdd: g("reserveStrawberryAdd") ? g("reserveStrawberryAdd").checked : false,
     candleNeeded: candleNeeded,
     candleType: candleNeeded ? checkedVal("reserveCandleType") : "",
@@ -771,8 +1025,9 @@ function populateReserveSelects() {
 
 const TIER_LABELS = ["1段目のサイズ", "2段目のサイズ", "3段目のサイズ"];
 function tierFieldHtml(i, tierCount, labelSuffix, selectHtml) {
+  const tierLabel = tierName(i, tierCount) + "のサイズ";
   return `<div style="margin-bottom:${i < tierCount - 1 ? "10px" : "0"};">
-    ${tierCount > 1 ? `<label class="field__label" style="font-size:12px;">${TIER_LABELS[i]}${labelSuffix || ""}</label>` : ""}
+    ${tierCount > 1 ? `<label class="field__label" style="font-size:12px;">${tierLabel}${labelSuffix || ""}</label>` : ""}
     ${selectHtml}
   </div>`;
 }
@@ -845,10 +1100,10 @@ function renderTierSizeSelects(tierCount) {
       const topVal = SPECIAL_TOP_OPTIONS.some(o => o.value === prevSizes[1]) ? prevSizes[1] : "";
       html += tierFieldHtml(1, 2, "（セルクルまたはカットケーキからお選びください）", editableSizeSelectHtml(1, SPECIAL_TOP_OPTIONS, topVal, 0));
     } else {
-      html += tierFieldHtml(1, 2, "（1段目に合わせて自動で決まります）", lockedSizeSelectHtml(1, TIER_PARTNER_2[bKey] || ""));
+      html += tierFieldHtml(1, 2, "（一番下の段に合わせて自動で決まります）", lockedSizeSelectHtml(1, TIER_PARTNER_2[bKey] || ""));
     }
   } else {
-    html += tierFieldHtml(1, 3, "（1段目に合わせて自動で決まります）", lockedSizeSelectHtml(1, TIER_MIDDLE_3[bKey] || ""));
+    html += tierFieldHtml(1, 3, "（一番下の段に合わせて自動で決まります）", lockedSizeSelectHtml(1, TIER_MIDDLE_3[bKey] || ""));
     const topOpts = bKey === "7号"
       ? [SPECIAL_TOP_OPTIONS[0], SIZE_3, SPECIAL_TOP_OPTIONS[2]]
       : bKey === "6号" ? SPECIAL_TOP_OPTIONS : [SPECIAL_TOP_OPTIONS[0]];
@@ -870,7 +1125,7 @@ function updateCakeOptionUI() {
   const category = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
   if (category !== "デコレーションケーキ") return;
   const occasion = (document.querySelector('input[name="reserveOccasion"]:checked') || {}).value || "";
-  const creamType = (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "";
+  const creamType = bottomCream(); // 土台（一番下の段）の種類。いちご・カット・特殊仕様などの全体オプションはこれで判定する
   const isXmas = occasion === "クリスマス";
   const tierCount = currentTierCount();
   const tiers = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
@@ -901,11 +1156,17 @@ function updateCakeOptionUI() {
   if (!tartOk) g("reserveTopCut").checked = false;
   g("reserveTopCutNote").style.display = (tartOk && g("reserveTopCut").checked) ? "" : "none";
   g("reserveSpecialNotice").style.display = CakePricing.SPEC.specialTypes[creamType] ? "" : "none";
-  const colorOk = creamType === "生クリーム" || creamType === "生チョコクリーム";
+  const activeCream = checkedCream();
+  const colorOk = activeCream === "生クリーム" || activeCream === "生チョコクリーム";
   g("reserveColorCreamField").style.display = colorOk ? "" : "none";
-  if (!colorOk && selectedCreamColors.length) { selectedCreamColors = []; g("reserveColorCream").value = "0"; renderColorChips(); }
+  if (!colorOk && selectedCreamColors.length) { selectedCreamColors = []; saveActiveSpec(); renderColorChips(); syncColorSelectQuiet(); }
   g("reserveColorCreamNote").style.display = (colorOk && selectedCreamColors.some(n => n.indexOf("その他") === 0)) ? "" : "none";
 
+  // 選択中の段がセルクル・カットケーキの場合は、種類・色の選択なし。
+  const activeSizeEl = document.querySelector('.tier-size-select[data-tier="' + activeTier + '"]');
+  const activeSpecial = tierCount > 1 && activeSizeEl && tierIsSpecialTop(activeSizeEl.value);
+  if (activeSpecial) { g("reserveCreamTypeField").style.display = "none"; g("reserveColorCreamField").style.display = "none"; }
+  renderTierDiagram();
   const fruit = g("decoFruitPrice");
   if (fruit) {
     let text = "";
@@ -934,7 +1195,7 @@ function updateReserveDateNotices() {
   const days = lead.min === lead.soft ? String(lead.min) : lead.min + "〜" + lead.soft;
   if (lead.level === "block") html += box("#8a2a1a", "#fdeeea", "#e6a698", `この段数・サイズの組み合わせは、箱・資材の手配のため、お受取日の${days}日前までのご予約が必要です。お受取日が近いため、お電話（070-9158-0641）でご相談ください。`);
   else if (lead.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `箱・資材の調達状況により、お受取日まで${lead.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
-  const creamNow = (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "";
+  const creamNow = anySpecialCream() || bottomCream();
   const sl = CakePricing.checkSpecialLead(creamNow, v, new Date());
   if (sl.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `${creamNow}は特殊仕様のため、お受取日まで${sl.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
   if (occasion === "クリスマス" && CakePricing.christmasClosed(v, new Date())) html += box("#8a2a1a", "#fdeeea", "#e6a698", "クリスマスケーキのご予約は12月10日までです。恐れ入りますが、お電話（070-9158-0641）でご相談ください。");
@@ -1131,8 +1392,9 @@ function updateReserveCategoryVisibility() {
   updateLivePriceDisplay();
 }
 document.addEventListener("change", (e) => {
+  if (e.target && e.target.closest && e.target.closest("#reserveFormWrap") && e.target.name !== "reserveTiers") syncSpecFromControls();
   if (e.target && e.target.name === "reserveType") updateReserveFieldVisibility();
-  if (e.target && e.target.name === "reserveTiers") updateReserveFieldVisibility();
+  if (e.target && e.target.name === "reserveTiers") { updateReserveFieldVisibility(); ensureTierSpecs(); activeTier = 0; loadActiveSpec(); updateCakeOptionUI(); syncSpecFromControls(); }
   if (e.target && e.target.name === "reserveCategory") updateReserveCategoryVisibility();
   if (e.target && e.target.id === "reserveReceiptNeeded") {
     document.getElementById("reserveReceiptNameWrap").style.display = e.target.checked ? "block" : "none";
@@ -1240,6 +1502,7 @@ function renderReserveConfirm(data, targetId) {
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(data.decoration)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
+    ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
     ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
@@ -1296,6 +1559,7 @@ function buildReserveSummaryText(data) {
   if (isCake) lines.push(`飾り付け: ${data.decoration}`);
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
+  (data.tierSpecs || []).forEach(t => lines.push(`${t.tier}: ${String(t.size).replace(/\(.*$/, "")} ${t.cream}${(t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""}`));
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
   if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
   (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
@@ -1351,6 +1615,7 @@ async function fetchDraft(code) {
 }
 const DRAFT_TYPE_TO_RADIO = { decorationCake: "デコレーションケーキ", rollcake: "ロールケーキ", baked: "焼き菓子・ギフト", gift: "焼き菓子・ギフト" };
 function applyDraft(d) {
+  if (d && d.productType === "autosave") { try { applyFormSpec(JSON.parse(d.spec)); } catch (e) {} return; }
   currentDraft = d;
   const radioValue = DRAFT_TYPE_TO_RADIO[d.productType];
   if (radioValue) {
@@ -1384,7 +1649,13 @@ function renderDraftBanner() {
 async function initDraftFeature() {
   renderDraftBanner();
   const code = draftCodeFromUrl();
-  if (code) { const d = await fetchDraft(code); if (d) applyDraft(d); }
+  let shown = false;
+  if (code) {
+    const d = await fetchDraft(code);
+    if (d && d.productType === "autosave") { try { await initResumeBanner({ spec: JSON.parse(d.spec), createdAt: d.createdAt, code }); shown = true; } catch (e) {} }
+    else if (d) applyDraft(d);
+  }
+  if (!shown) initResumeBanner();
 }
 
 // ===== 引き取り日が締切（3営業日前）を過ぎている場合は、お電話でのご予約へスムーズに案内する（2026-09-24）=====
@@ -1426,6 +1697,7 @@ async function checkFriendship() {
       box.style.cssText = "background:#eaf9ef;border:1px solid #9ad9b0;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:13px;line-height:1.7;";
       box.innerHTML = '<div style="font-weight:700;color:#0b7a37;">「こいまり公式LINE」を友だち追加してください</div>ご予約の確認やお受取前のご案内が、LINEのトークに届きます。<a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" style="display:block;margin-top:8px;text-align:center;background:#06c755;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:10px;">友だち追加する</a>';
       wrap.insertBefore(box, wrap.firstChild);
+      const a = box.querySelector('a'); if (a) a.addEventListener('click', () => { try { autosaveNow(true); } catch (e) {} });
     }
   } catch (e) { /* 判定できない場合は何も表示しない */ }
 }
@@ -1485,7 +1757,7 @@ function setupReserveForm(uid, displayName) {
       const chocoText = messageCount > 0 ? (document.getElementById("reserveChocoText").value || "") : "";
       const occasion = (isBaked ? "" : (document.querySelector('input[name="reserveOccasion"]:checked') || {}).value) || "";
       const occasionOther = occasion === "その他" ? (document.getElementById("reserveOccasionOther").value || "") : "";
-      const creamType = isCake ? ((document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "") : "";
+      const creamType = isCake ? bottomCream() : "";
       const creamTypeNeedsSub = creamType === "フルーツタルトBOX" || creamType === "ストロベリータルトBOX";
       const creamTypeSub = creamTypeNeedsSub ? ((document.querySelector('input[name="reserveCreamTypeSub"]:checked') || {}).value || "") : "";
       const decoration = isCake ? ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "") : "";
@@ -1494,8 +1766,9 @@ function setupReserveForm(uid, displayName) {
       const candleType = candleNeeded ? ((document.querySelector('input[name="reserveCandleType"]:checked') || {}).value || "") : "";
       const candleBags = candleNeeded ? (Number(document.getElementById("reserveCandleBags").value) || 1) : 0;
 
-      const canColor = isCake && (creamType === "生クリーム" || creamType === "生チョコクリーム");
-      const colorCreamCount = canColor ? (Number(document.getElementById("reserveColorCream").value) || 0) : 0;
+      const specsNow = isCake ? activeSpecs() : [];
+      const canColor = isCake && specsNow.some(s => s.cream === "生クリーム" || s.cream === "生チョコクリーム");
+      const colorCreamCount = canColor ? totalColors() : 0;
       const colorCreamNote = colorCreamCount > 0 ? (document.getElementById("reserveColorCreamNote").value || "") : "";
       const strawberryAdd = isCake && CakePricing.SPEC.strawberryAdd.creamTypes.includes(creamType) && document.getElementById("reserveStrawberryAdd").checked;
       const topCutOn = isCake && CakePricing.SPEC.tartTypes.includes(creamType) && document.getElementById("reserveTopCut").checked;
@@ -1528,13 +1801,14 @@ function setupReserveForm(uid, displayName) {
         candleNeeded, candleType, candleBags, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [],
-        ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: selectedCreamColors.slice(), note: colorCreamNote } } : {}),
+        ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: specsNow.reduce((a, s) => a.concat(s.colors), []), note: colorCreamNote } } : {}),
+        ...(isCake && specsNow.length > 1 ? { tierSpecs: specsNow.map((s, i) => ({ tier: tierName(i, specsNow.length), size: (items[i] || {}).size || "", cream: s.cream, colors: s.colors })).reverse() } : {}),
         ...(strawberryAdd ? { strawberryAdd: true } : {}),
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
-        ...(CakePricing.SPEC.specialTypes[creamType] ? { specialSpec: creamType } : {}),
+        ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
       };
@@ -1583,7 +1857,7 @@ function setupReserveForm(uid, displayName) {
       return;
     }
     // 予約が確定したら保存済みの仕様コードは使い終わり。次回の予約に古い選択が残らないよう消す。
-    try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {}
+    try { localStorage.removeItem(DRAFT_LS_KEY); localStorage.removeItem(AUTOSAVE_LS_KEY); } catch (e) {}
 
     // LINEチャットに予約内容を投稿する（お客様の履歴・スタッフの受信箱の両方に残すため）。
     // 外部ブラウザから開かれた場合はsendMessagesが使えないため、失敗しても予約自体は成立させる。
