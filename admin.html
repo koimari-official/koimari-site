@@ -703,6 +703,16 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <button class="btn btn--small" id="addFullDate">＋ 追加</button>
         </div>
         <div id="fullDatesList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;"></div>
+        <h3 style="font-family:var(--font-mincho); font-size:17px; margin-bottom:6px; font-weight:600;">バースデーケーキのご予約不可期間</h3>
+        <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:12px;">お受取日がこの期間に入る「バースデー」のご予約は、予約フォームで受け付けなくなります（例：クリスマス期間）。「毎年くり返す」にチェックすると、来年以降も同じ月日で有効です。</p>
+        <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; align-items:center;">
+          <input type="date" id="bdFrom" class="input" style="min-width:180px;">
+          <span>〜</span>
+          <input type="date" id="bdTo" class="input" style="min-width:180px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:14px;"><input type="checkbox" id="bdYearly" checked>毎年くり返す</label>
+          <button class="btn btn--small" id="addBdBlock">＋ 追加</button>
+        </div>
+        <div id="bdBlocksList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;"></div>
         <button class="btn" id="saveHolidays" style="margin-top:10px;">変更を保存</button>
       </div>
     </section>
@@ -4018,7 +4028,7 @@ const DEFAULT_NEWS_LIST = [
   {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
   {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
 ];
-const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[], cakeFullDates:[] };
+const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[], cakeFullDates:[], birthdayBlocks:[] };
 const DEFAULT_FAQ = [
   { category: "ご予約について", items: [
     { q: "デコレーションケーキの予約はいつまでに必要ですか？", a: "デコレーションケーキは原則として引き取り希望日の3営業日前までにご予約をお願いしております。それ以降のお急ぎのご予約はお電話にてご相談ください。" }
@@ -4500,6 +4510,19 @@ function renderHolidaysAdmin() {
       fullList.appendChild(tag);
     });
   }
+  const bdList = document.getElementById("bdBlocksList");
+  if (bdList) {
+    bdList.innerHTML = "";
+    const bl = (holidaysData.birthdayBlocks = holidaysData.birthdayBlocks || []);
+    if (!bl.length) bdList.innerHTML = '<span style="color:var(--color-text-soft); font-size:14px;">不可期間は設定されていません</span>';
+    bl.forEach((b, i) => {
+      const tag = document.createElement("span");
+      tag.style.cssText = "display:inline-flex; align-items:center; gap:8px; padding:8px 14px; background:rgba(176,59,72,0.08); color:var(--color-accent-dark); font-size:14px;";
+      tag.innerHTML = escapeHtml(b.from + " 〜 " + b.to) + (b.yearly ? "（毎年）" : "") + ' <button style="background:none; border:none; color:var(--color-accent-dark); cursor:pointer; font-size:16px; line-height:1;">×</button>';
+      tag.querySelector("button").addEventListener("click", () => { holidaysData.birthdayBlocks.splice(i, 1); renderHolidaysAdmin(); });
+      bdList.appendChild(tag);
+    });
+  }
   const list = document.getElementById("extraClosedList");
   list.innerHTML = "";
   if (!holidaysData.extraClosed || !holidaysData.extraClosed.length) {
@@ -4518,6 +4541,16 @@ function renderHolidaysAdmin() {
     });
   }
 }
+document.getElementById("addBdBlock").addEventListener("click", () => {
+  const f = document.getElementById("bdFrom").value, t = document.getElementById("bdTo").value || f;
+  if (!f) { showToast("開始日を選択してください", "error"); return; }
+  if (t < f) { showToast("終了日は開始日より後にしてください", "error"); return; }
+  if (!holidaysData) holidaysData = loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS);
+  if (!holidaysData.birthdayBlocks) holidaysData.birthdayBlocks = [];
+  holidaysData.birthdayBlocks.push({ from: f, to: t, yearly: document.getElementById("bdYearly").checked });
+  document.getElementById("bdFrom").value = ""; document.getElementById("bdTo").value = "";
+  renderHolidaysAdmin();
+});
 document.getElementById("addFullDate").addEventListener("click", () => {
   const v = document.getElementById("fullDateInput").value;
   if (!v) { showToast("日付を選択してください", "error"); return; }

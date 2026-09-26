@@ -1378,6 +1378,7 @@ function updateReserveDateNotices() {
   const creamNow = anySpecialCream() || bottomCream();
   const sl = CakePricing.checkSpecialLead(creamNow, v, new Date());
   if (sl.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `${creamNow}は特殊仕様のため、お受取日まで${sl.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
+  if (occasion === "バースデー") { const bb = birthdayBlockFor(v); if (bb) html += box("#8a2a1a", "#fdeeea", "#e6a698", birthdayBlockText(bb)); }
   { const dk = dateKeyLocal(new Date(v)); if ((reserveHolidays.cakeFullDates || []).includes(dk)) html += box("#8a2a1a", "#fdeeea", "#e6a698", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください。"); }
   if (occasion === "クリスマス" && CakePricing.christmasClosed(v, new Date())) html += box("#8a2a1a", "#fdeeea", "#e6a698", "クリスマスケーキのご予約は12月20日までです（ご予約が満員になり次第、受付を終了します）。恐れ入りますが、お電話（070-9158-0641）でご相談ください。");
   el.style.display = html ? "block" : "none";
@@ -1443,6 +1444,22 @@ const JP_HOLIDAYS = new Set([
   "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23",
 ]);
 function dateKeyLocal(d) { return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,"0")}-${d.getDate().toString().padStart(2,"0")}`; }
+// バースデーケーキのご予約不可期間（管理画面「営業日設定」で設定。例：クリスマス期間の12/23〜12/25）。
+// yearly=trueは毎年くり返す（月日だけで比較）。お受取日がこの期間に入るバースデー予約は、ネットでは受け付けない。
+function birthdayBlockFor(dateStr) {
+  if (!dateStr) return null;
+  const list = reserveHolidays.birthdayBlocks || [];
+  for (const b of list) {
+    if (!b || !b.from || !b.to) continue;
+    const ok = b.yearly ? (dateStr.slice(5) >= b.from.slice(5) && dateStr.slice(5) <= b.to.slice(5)) : (dateStr >= b.from && dateStr <= b.to);
+    if (ok) return b;
+  }
+  return null;
+}
+function birthdayBlockText(b) {
+  const f = s => Number(s.slice(5, 7)) + "月" + Number(s.slice(8, 10)) + "日";
+  return f(b.from) + (b.from !== b.to ? "〜" + f(b.to) : "") + "は、バースデーケーキのご予約をお受けしておりません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください。";
+}
 function isClosedDate(d) {
   const key = dateKeyLocal(d);
   const isWeeklyClosed = (reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key);
@@ -1631,6 +1648,7 @@ function validateReserve(data) {
       const today = new Date(); today.setHours(0,0,0,0);
       const pick = new Date(data.pickupDate);
       if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
+      else if (!isBaked && data.occasion === "バースデー" && birthdayBlockFor(data.pickupDate)) { setReserveError("reserveDateError", birthdayBlockText(birthdayBlockFor(data.pickupDate))); ok = false; }
       else if (!isBaked && (reserveHolidays.cakeFullDates || []).includes(dateKeyLocal(pick))) { setReserveError("reserveDateError", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください"); ok = false; }
       else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は3営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
       else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
