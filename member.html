@@ -221,7 +221,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </label>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
-          <label class="field__label">カラークリーム（お好みの色を最大3色まで）</label>
+          <label class="field__label">カラークリーム（ケーキ全体で最大3色まで）</label>
           <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。色をタップして選んでね🎨</div>
           <div id="reserveColorChips"></div>
           <div id="reserveColorSummary" class="field__hint">色を選ぶと、色数に応じた金額が加算されます</div>
@@ -670,11 +670,12 @@ function renderAddOns() {
 // 色数（1〜3色）が金額に直結するため、色のチップを最大3色まで選ぶ形にする。選んだ数が隠しselect(#reserveColorCream)の値になり、
 // 従来の概算計算・確認画面の仕組みをそのまま使う。色の追加・変更はこの配列だけを直せばよい。
 const CREAM_COLORS = [
-  { name: "黒", css: "#2b2b2b" }, { name: "グレー", css: "#9a9a9a" }, { name: "赤", css: "#d62839" }, { name: "青", css: "#2f6fd6" }, { name: "紺", css: "#1c2f6b" },
-  { name: "黄色", css: "#f6d21f" }, { name: "ピンク", css: "#f7a6c1" }, { name: "緑", css: "#2e9b52" }, { name: "黄緑", css: "#9bd13f" },
-  { name: "茶色", css: "#7a4a2a" }, { name: "水色", css: "#8fd3f4" },
-  { name: "その他（下に記入）", css: "conic-gradient(#f7a6c1,#f6d21f,#9bd13f,#8fd3f4,#8a5bd0,#f7a6c1)" }
+  { name: "黒", label: "ノワール", css: "#2b2b2b" }, { name: "グレー", label: "シルバーミスト", css: "#9a9a9a" }, { name: "赤", label: "ルージュ", css: "#d62839" }, { name: "青", label: "ロイヤルブルー", css: "#2f6fd6" }, { name: "紺", label: "ミッドナイト", css: "#1c2f6b" },
+  { name: "黄色", label: "レモンムース", css: "#f6d21f" }, { name: "ピンク", label: "ロゼ", css: "#f7a6c1" }, { name: "緑", label: "フォレスト", css: "#2e9b52" }, { name: "黄緑", label: "ピスタチオ", css: "#9bd13f" },
+  { name: "茶色", label: "ショコラ", css: "#7a4a2a" }, { name: "水色", label: "スカイソーダ", css: "#8fd3f4" },
+  { name: "その他（下に記入）", label: "あなただけの色", css: "conic-gradient(#f7a6c1,#f6d21f,#9bd13f,#8fd3f4,#8a5bd0,#f7a6c1)" }
 ];
+function colorLabelOf(name) { const c = CREAM_COLORS.find(x => x.name === name); return c ? c.label + (c.name.indexOf("その他") === 0 ? "" : "（" + c.name + "）") : name; }
 const CREAM_COLOR_MAX = 3;
 let selectedCreamColors = [];
 function renderColorChips() {
@@ -682,13 +683,13 @@ function renderColorChips() {
   if (!wrap) return;
   wrap.innerHTML = CREAM_COLORS.map((c) => {
     const on = selectedCreamColors.includes(c.name);
-    return '<button type="button" class="color-chip" data-color="' + c.name + '" aria-pressed="' + on + '" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;margin:0 8px 8px 0;border-radius:999px;background:#fff;cursor:pointer;font-size:13px;border:' + (on ? "2px solid #f0a63a" : "1px solid #d8baa4") + ';' + (on ? "background:#fff7ea;font-weight:700;" : "") + '"><span style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:' + c.css + ';"></span>' + c.name + (on ? " ✓" : "") + '</button>';
+    return '<button type="button" class="color-chip" data-color="' + c.name + '" aria-pressed="' + on + '" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;margin:0 8px 8px 0;border-radius:999px;background:#fff;cursor:pointer;font-size:13px;border:' + (on ? "2px solid #f0a63a" : "1px solid #d8baa4") + ';' + (on ? "background:#fff7ea;font-weight:700;" : "") + '"><span style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:' + c.css + ';"></span>' + '<span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;"><span>' + c.label + (on ? " ✓" : "") + '</span>' + (c.name.indexOf("その他") === 0 ? "" : '<span style="font-size:10.5px;font-weight:400;color:#8a7a68;">' + c.name + '</span>') + '</span></button>';
   }).join("");
   wrap.querySelectorAll(".color-chip").forEach((btn) => btn.addEventListener("click", () => {
     const name = btn.dataset.color;
     const i = selectedCreamColors.indexOf(name);
     if (i >= 0) selectedCreamColors.splice(i, 1);
-    else if (selectedCreamColors.length < CREAM_COLOR_MAX) selectedCreamColors.push(name);
+    else if (totalColors() < CREAM_COLOR_MAX) selectedCreamColors.push(name);
     else { showColorLimitHint(); return; }
     renderColorChips();
     syncColorSelect();
@@ -697,12 +698,12 @@ function renderColorChips() {
   if (hint) {
     const tot = (typeof totalColors === "function") ? totalColors() : selectedCreamColors.length;
     const price = (typeof colorPriceFor === "function") ? colorPriceFor(tot) : 0;
-    hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.join("・") + "（" + selectedCreamColors.length + "色）" : "この段の色：未選択") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込・概算）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
+    hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.map(colorLabelOf).join("・") + "（" + selectedCreamColors.length + "色）" : "この段の色：未選択") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込・概算）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
   }
 }
 function showColorLimitHint() {
   const hint = document.getElementById("reserveColorSummary");
-  if (hint) { hint.textContent = "選べるのは最大" + CREAM_COLOR_MAX + "色までです。ほかの色にしたい場合は、先に選んだ色をもう一度タップして外してください。"; hint.style.color = "#b03b48"; setTimeout(() => { hint.style.color = ""; renderColorChips(); }, 3500); }
+  if (hint) { hint.textContent = "選べるのはケーキ全体で最大" + CREAM_COLOR_MAX + "色までです（1〜3色の料金に含まれます）。ほかの色にしたい場合は、先に選んだ色をもう一度タップして外してください。"; hint.style.color = "#b03b48"; setTimeout(() => { hint.style.color = ""; renderColorChips(); }, 3500); }
 }
 function syncColorSelect() {
   const sel = document.getElementById("reserveColorCream");
@@ -772,38 +773,72 @@ function renderTierDiagram() {
   if (category !== "デコレーションケーキ" || n < 2) { wrap.style.display = "none"; wrap.innerHTML = ""; return; }
   const specs = activeSpecs();
   const sizes = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
-  const H = 50, W = 140;
-  let defs = "", body = "", rows = "";
-  for (let i = n - 1; i >= 0; i--) { // 上の段から描く
+  const H = 66, W = 188, BH = 40, RY = 10; // 1段の高さ・図の幅・側面の高さ・楕円の縦半径
+  const svgH = n * H + 34;
+  let defs = `<radialGradient id="tdBoard" cx="50%" cy="40%" r="70%"><stop offset="0" stop-color="#f4ead8"/><stop offset="1" stop-color="#cdb98f"/></radialGradient>
+    <linearGradient id="tdShade" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".22"/><stop offset=".22" stop-color="#000" stop-opacity="0"/><stop offset=".62" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".30"/></linearGradient>
+    <linearGradient id="tdGloss" x1="0" x2="1" y1="0" y2="0"><stop offset=".14" stop-color="#fff" stop-opacity="0"/><stop offset=".26" stop-color="#fff" stop-opacity=".42"/><stop offset=".36" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <radialGradient id="tdTop" cx="42%" cy="35%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity=".05"/></radialGradient>
+    <filter id="tdBlur" x="-20%" y="-50%" width="140%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="tdGlow" x="-30%" y="-40%" width="160%" height="180%"><feGaussianBlur stdDeviation="3.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
+  let body = "", rows = "";
+  const cx = W / 2;
+  const bottomY = (n - 1) * H + 18 + BH; // 一番下の段の側面下端
+  const boardRx = (TIER_W["7号"] + 40) / 2;
+  // ケーキボードと影
+  body += `<ellipse cx="${cx}" cy="${bottomY + 6}" rx="${boardRx + 6}" ry="12" fill="rgba(60,40,20,.22)" filter="url(#tdBlur)"/>
+    <ellipse cx="${cx}" cy="${bottomY + 3}" rx="${boardRx}" ry="11" fill="url(#tdBoard)" stroke="#b99e7c" stroke-width="1"/>
+    <ellipse cx="${cx}" cy="${bottomY + 1}" rx="${boardRx - 3}" ry="9" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="1"/>`;
+  // 縁の絞り（手前側の半円にロゼットを並べる）
+  const piping = (y, rx, fill) => {
+    let s = ""; const cnt = Math.max(7, Math.round(rx / 5.5));
+    for (let k = 0; k <= cnt; k++) {
+      const a = Math.PI * k / cnt, px = cx - Math.cos(a) * rx, py = y + Math.sin(a) * RY;
+      s += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="3.6" fill="${fill}" stroke="rgba(0,0,0,.18)" stroke-width=".6"/><circle cx="${(px - 1).toFixed(1)}" cy="${(py - 1.1).toFixed(1)}" r="1.4" fill="#fff" fill-opacity=".55"/>`;
+    }
+    return s;
+  };
+  for (let i = 0; i < n; i++) { // 下の段から描く（上の段が手前に重なる）
     const sp = specs[i], sz = sizes[i] || "", key = sizeKeyOf(sz);
     const special = tierIsSpecialTop(sz);
-    const w = special ? 60 : (TIER_W[key] || 96);
-    const x = (W - w) / 2, top = (n - 1 - i) * H + 8;
+    const w = special ? 66 : (TIER_W[key] || 100) + 10;
+    const x = cx - w / 2, topY = (n - 1 - i) * H + 18, botY = topY + BH;
     const on = i === activeTier;
-    let fill = on ? "#ffe9b8" : "#fff4e0";
+    let fill = "#fff2dc";
     if (sp.colors.length === 1) fill = svgColorOf(sp.colors[0]);
     else if (sp.colors.length > 1) {
       const id = "tg" + i, k = sp.colors.length;
       defs += `<linearGradient id="${id}" x1="0" x2="1" y1="0" y2="0">` + sp.colors.map((c, j) => `<stop offset="${j / k}" stop-color="${svgColorOf(c)}"/><stop offset="${(j + 1) / k}" stop-color="${svgColorOf(c)}"/>`).join("") + `</linearGradient>`;
       fill = `url(#${id})`;
     }
-    const stroke = on ? "#e08a00" : "#b99e7c", sw = on ? 3 : 1.5;
-    body += `<g data-tier="${i}" style="cursor:pointer;"><ellipse cx="${W / 2}" cy="${top + 34}" rx="${w / 2}" ry="8" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/><rect x="${x}" y="${top}" width="${w}" height="34" fill="${fill}" stroke="none"/><line x1="${x}" y1="${top}" x2="${x}" y2="${top + 34}" stroke="${stroke}" stroke-width="${sw}"/><line x1="${x + w}" y1="${top}" x2="${x + w}" y2="${top + 34}" stroke="${stroke}" stroke-width="${sw}"/><ellipse cx="${W / 2}" cy="${top}" rx="${w / 2}" ry="8" fill="${fill}" stroke="${stroke}" stroke-width="${sw}"/>${on ? `<ellipse cx="${W / 2}" cy="${top}" rx="${w / 2}" ry="8" fill="rgba(255,255,255,.35)"/>` : ""}</g>`;
-    const line2 = [special ? (key === "" ? "" : sz.replace(/\(.*$/, "")) : (key || "サイズ未選択"), special ? "" : sp.cream, sp.colors.length ? sp.colors.join("・") : ""].filter(Boolean).join(" ／ ");
-    rows += `<button type="button" class="tier-row" data-tier="${i}" style="display:block;width:100%;height:${H - 4}px;margin:0 0 4px;text-align:left;padding:4px 10px;border-radius:10px;cursor:pointer;background:${on ? "#fff7ea" : "#fff"};border:${on ? "2px solid #e08a00" : "1px solid #d8baa4"};"><span style="font-weight:700;font-size:13px;">${tierName(i, n)}</span>${on ? ` <span style="background:#e08a00;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:1px 8px;margin-left:4px;white-space:nowrap;display:inline-block;">選択中</span>` : ""}<br><span style="font-size:12px;color:#6b5a48;">${escape(line2 || "未選択")}</span></button>`;
+    const rim = sp.colors.length === 1 ? svgColorOf(sp.colors[0]) : "#fffaf0";
+    const edge = "rgba(90,60,30,.35)";
+    const sidePath = `M${x} ${topY} L${x} ${botY} A${w / 2} ${RY} 0 0 0 ${x + w} ${botY} L${x + w} ${topY}Z`;
+    body += `<g data-tier="${i}" style="cursor:pointer;">
+      ${on ? `<g filter="url(#tdGlow)"><path d="${sidePath}" fill="none" stroke="#f0a020" stroke-width="3.2"/><ellipse cx="${cx}" cy="${topY}" rx="${w / 2}" ry="${RY}" fill="none" stroke="#f0a020" stroke-width="3.2"/></g>` : ""}
+      <path d="${sidePath}" fill="${fill}" stroke="${edge}" stroke-width="1"/>
+      <path d="${sidePath}" fill="url(#tdShade)"/>
+      <path d="${sidePath}" fill="url(#tdGloss)"/>
+      ${special ? "" : piping(botY, w / 2 - 4, rim)}
+      <ellipse cx="${cx}" cy="${topY}" rx="${w / 2}" ry="${RY}" fill="${fill}" stroke="${edge}" stroke-width="1"/>
+      <ellipse cx="${cx}" cy="${topY}" rx="${w / 2}" ry="${RY}" fill="url(#tdTop)"/>
+      ${special ? "" : `<ellipse cx="${cx}" cy="${topY + 1}" rx="${w / 2 - 7}" ry="${RY - 3.5}" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1"/>` + piping(topY, w / 2 - 4, rim)}
+    </g>`;
+    const line2 = [special ? sz.replace(/\(.*$/, "") : (key || "サイズ未選択"), special ? "" : sp.cream, sp.colors.length ? sp.colors.map(colorLabelOf).join("・") : ""].filter(Boolean).join(" ／ ");
+    rows = `<button type="button" class="tier-row" data-tier="${i}" style="display:block;width:100%;min-height:${H - 6}px;margin:0 0 6px;text-align:left;padding:8px 12px;border-radius:12px;cursor:pointer;background:${on ? "linear-gradient(135deg,#fff8ea,#ffeec9)" : "#fff"};border:${on ? "2px solid #e08a00" : "1px solid #ddc9b0"};box-shadow:${on ? "0 3px 10px rgba(224,138,0,.25)" : "0 1px 2px rgba(0,0,0,.05)"};"><span style="font-weight:700;font-size:13px;">${tierName(i, n)}</span>${on ? ` <span style="background:#e08a00;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:4px;white-space:nowrap;display:inline-block;">選択中</span>` : ""}<br><span style="font-size:12px;color:#6b5a48;line-height:1.5;">${escape(line2 || "未選択")}</span></button>` + rows; // 上の段が先頭
   }
   const isBottom = activeTier === 0;
   wrap.style.display = "block";
-  wrap.innerHTML = `<div style="background:#fdfaf6;border:1px solid #ecd9c4;border-radius:14px;padding:14px;">
-    <div style="font-weight:700;font-size:14px;margin-bottom:2px;">ケーキの種類・色は、下の段（土台）から順に選びます</div>
-    <div style="font-size:12px;color:#6b5a48;margin-bottom:10px;">図の段、または右の名前をタップすると、その段を選べます。いま選んでいるのは「<b>${tierName(activeTier, n)}</b>」です。</div>
-    <div style="display:flex;gap:12px;align-items:flex-start;">
-      <svg id="reserveTierSvg" viewBox="0 0 ${W} ${n * H + 16}" width="${W}" height="${n * H + 16}" style="flex-shrink:0;max-width:40%;height:auto;"><defs>${defs}</defs>${body}</svg>
-      <div style="flex:1;min-width:0;padding-top:8px;">${rows}</div>
+  wrap.innerHTML = `<div style="background:linear-gradient(180deg,#fffdf9,#fbf3e6);border:1px solid #ecd9c4;border-radius:16px;padding:16px;box-shadow:0 4px 16px rgba(120,80,30,.08);">
+    <div style="font-weight:700;font-size:14.5px;margin-bottom:2px;">ケーキの種類・色は、下の段（土台）から順に選びます</div>
+    <div style="font-size:12px;color:#6b5a48;margin-bottom:12px;line-height:1.6;">図の段、または右の名前をタップすると、その段を選べます。いま選んでいるのは「<b>${tierName(activeTier, n)}</b>」です。</div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <svg id="reserveTierSvg" viewBox="0 0 ${W} ${svgH}" width="${W}" height="${svgH}" style="flex-shrink:0;max-width:46%;height:auto;overflow:visible;"><defs>${defs}</defs>${body}</svg>
+      <div style="flex:1;min-width:0;">${rows}</div>
     </div>
-    <div style="display:flex;gap:8px;margin-top:10px;">
-      <button type="button" id="tierPrevBtn" ${isBottom ? "disabled" : ""} style="flex:1;padding:10px;border-radius:999px;border:1px solid #c9a96e;background:#fff;cursor:pointer;${isBottom ? "opacity:.4;" : ""}">↓ ひとつ下の段へ</button>
-      <button type="button" id="tierNextBtn" ${activeTier >= n - 1 ? "disabled" : ""} style="flex:1;padding:10px;border-radius:999px;border:none;background:#a88a52;color:#fff;font-weight:700;cursor:pointer;${activeTier >= n - 1 ? "opacity:.4;" : ""}">次の段（${tierName(Math.min(activeTier + 1, n - 1), n).replace(/（.*$/, "")}）へ ↑</button>
+    <div style="display:flex;gap:8px;margin-top:12px;">
+      <button type="button" id="tierPrevBtn" ${isBottom ? "disabled" : ""} style="flex:1;padding:11px;border-radius:999px;border:1px solid #c9a96e;background:#fff;cursor:pointer;${isBottom ? "opacity:.4;" : ""}">↓ ひとつ下の段へ</button>
+      <button type="button" id="tierNextBtn" ${activeTier >= n - 1 ? "disabled" : ""} style="flex:1;padding:11px;border-radius:999px;border:none;background:linear-gradient(135deg,#b89a5e,#9a7a3e);color:#fff;font-weight:700;cursor:pointer;box-shadow:0 2px 6px rgba(120,90,30,.3);${activeTier >= n - 1 ? "opacity:.4;" : ""}">次の段（${tierName(Math.min(activeTier + 1, n - 1), n).replace(/（.*$/, "")}）へ ↑</button>
     </div></div>`;
   const go = (i) => setActiveTier(i);
   wrap.querySelectorAll("[data-tier]").forEach(el => el.addEventListener("click", () => go(Number(el.dataset.tier))));
