@@ -314,7 +314,7 @@ ${faqKnowledgeText}
 
 // ローカルテスト用に内部ロジックも公開する（Cloud Functionsとしてはデプロイされない、ただのプロパティ）。
 exports._internal = {
-  buildConfirmMessage,
+  buildConfirmMessage, buildReceivedMessage,
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
@@ -559,26 +559,81 @@ exports.notifyStaffOnNewReservation = onValueCreated(
 
 // 予約内容の確定連絡（2026-09-26）：管理画面の予約一覧で「予約確定」にチェックが入った瞬間、
 // お客様のLINEトークへ確定内容を自動送信する。二重送信しないよう confirmMessageSentAt を記録する。
-function buildConfirmMessage(data) {
-  const name = data.name || "お客様";
-  const lines = [`${name}様、ご予約ありがとうございます🎂`, "ご注文内容を確認し、以下の内容で確定いたしました。", ""];
-  lines.push("■ 商品：" + productLabel(data));
-  lines.push("■ お引き取り：" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
+// 「4号(約12cm/3-4名)」→「4号（直径約12cm）」
+function sizeWithDiameter(size) {
+  const m = String(size || "").match(/^(\d号)\((約\d+cm)/);
+  return m ? m[1] + "（直径" + m[2] + "）" : String(size || "").replace(/\(.*$/, "");
+}
+// 各段・名入れ・トッピング・備考の共通行（受付時メッセージと確定連絡メッセージで同じ書き方にそろえる）
+function orderDetailLines(data, confirmed) {
+  const lines = [];
   if (Array.isArray(data.tierSpecs) && data.tierSpecs.length) {
-    data.tierSpecs.forEach((t) => lines.push("　" + t.tier + "：" + String(t.size || "").replace(/\(.*$/, "") + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "")));
-  } else if (data.colorCream && data.colorCream.count) {
-    lines.push("　カラークリーム：" + data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "（" + data.colorCream.colors.join("・") + "）" : ""));
+    data.tierSpecs.forEach((t) => lines.push("　" + t.tier + "：" + sizeWithDiameter(t.size) + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "")));
+  } else {
+    const it = (data.items && data.items[0]) || {};
+    if (it.size) lines.push("　" + sizeWithDiameter(it.size) + (data.creamType ? " " + data.creamType : "") + (data.colorCream && data.colorCream.count ? "（カラークリーム" + data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : "") + "）" : ""));
   }
   const msg = data.items && data.items[0] && data.items[0].message;
   if (msg) lines.push("　名入れチョコレート：" + msg);
-  if (Array.isArray(data.toppings) && data.toppings.length) lines.push("　トッピング：" + data.toppings.join("・") + "（料金・納期は別途ご連絡します）");
-  if (Array.isArray(data.addOns) && data.addOns.length) lines.push("　追加商品：" + data.addOns.map((a) => a.name + "×" + a.qty).join("、"));
+  const extras = [];
+  (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
+  (data.toppings || []).forEach((t) => extras.push(t));
+  if (extras.length) lines.push("　トッピング：" + extras.join("、") + ((data.toppings || []).length && !confirmed ? "（料金・納期は別途ご連絡します）" : ""));
   if (Array.isArray(data.decideLater) && data.decideLater.length) lines.push("　あとでご相談：" + data.decideLater.join("・"));
+  if (data.note) lines.push("　備考：" + data.note);
+  return lines;
+}
+
+// ① 予約を受け付けた直後にお客様のLINEへ送る文面（2026-09-26オーナー確定文面）
+function buildReceivedMessage(data) {
+  const name = data.name || "お客様";
+  const lines = [
+    name + "様、ご予約ありがとうございます🎂",
+    "選択いただいたご注文内容を以下の通り、承りました。",
+    "内容確認と確定価格・納期のご連絡のためパティシエよりご連絡を差し上げますので、",
+    "　※070-9158-0641からお電話を差し上げます。",
+    "　　連絡が取れない場合は、予約をキャンセルさせていただくことがございますので、",
+    "　　あらかじめご了承のほど、よろしくお願いいたします。",
+    "",
+    "■ 商品：" + productLabel(data),
+    "■ お引き取りご希望：" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime),
+  ].concat(orderDetailLines(data));
+  if (data.priceNeedsConsult) lines.push("■ お見積もり：この組み合わせは、パティシエより個別にご案内します");
+  else if (data.subtotal) lines.push("■ お見積もり：¥" + Number(data.subtotal).toLocaleString() + "〜（税込）");
+  lines.push("", "内容のご変更・ご相談は、このトークまたはお電話（070-9158-0641）でお気軽にお知らせください。", "当日、お会いできるのを楽しみにしております🍓");
+  return lines.join("\n");
+}
+
+// ② パティシエの確認電話のあと、管理画面で「予約確定」にした時に送る文面。確定のお引き取り日時・税込確定金額を載せる。
+function buildConfirmMessage(data) {
+  const name = data.name || "お客様";
+  const pd = data.finalPickupDate || data.pickupDate, pt = data.finalPickupTime || data.pickupTime;
+  const lines = [
+    name + "様、お電話でのご確認ありがとうございました🎂",
+    "ご注文内容が、以下の内容で確定いたしました。",
+    "",
+    "■ 商品：" + productLabel(data),
+    "■ お引き取り日時（確定）：" + formatPickupDateTimeJp(pd, pt),
+  ].concat(orderDetailLines(data, true));
   if (data.finalPrice) lines.push("■ ご確定金額：¥" + Number(data.finalPrice).toLocaleString() + "（税込）");
   else if (data.subtotal && !data.priceNeedsConsult) lines.push("■ お見積もり：¥" + Number(data.subtotal).toLocaleString() + "〜（税込・概算）");
   lines.push("", "内容のご変更・ご相談は、このトークまたはお電話（070-9158-0641）でお気軽にお知らせください。", "当日、お会いできるのを楽しみにしております🍓");
   return lines.join("\n");
 }
+
+exports.sendReservationReceivedMessage = onValueCreated(
+  {
+    ref: "/reservations/{pushId}",
+    instance: "koimari-tasting-default-rtdb",
+    region: "asia-southeast1",
+    secrets: [LINE_CHANNEL_ACCESS_TOKEN],
+  },
+  async (event) => {
+    const data = event.data.val();
+    if (!data || data.channel !== "LINE" || !data.lineUserId || data.category === "kidsManager") return;
+    await pushLineMessage(data.lineUserId, buildReceivedMessage(data), LINE_CHANNEL_ACCESS_TOKEN.value());
+  }
+);
 
 exports.sendReservationConfirmedMessage = onValueUpdated(
   {

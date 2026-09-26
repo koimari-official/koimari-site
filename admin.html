@@ -3758,6 +3758,19 @@ function updateResConfirmed(idx, checked) {
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
   const patch = { reservationConfirmed: checked, reservationConfirmedAt: checked ? new Date().toISOString() : null };
+  if (checked) {
+    // パティシエの確認電話で決まった、確定のお引き取り日時・税込金額を入力（お客様へ送る確定連絡LINEに載る）。
+    const cur = list[idx];
+    const priceIn = prompt("確定金額（税込・数字のみ）を入力してください" + (cur.subtotal ? "\n（概算：¥" + Number(cur.subtotal).toLocaleString() + "〜）" : "") + "\n\n※キャンセルすると「予約確定」になりません", cur.finalPrice || cur.subtotal || "");
+    if (priceIn === null) { renderReservations(); return; }
+    const price = Number(String(priceIn).replace(/[^0-9]/g, ""));
+    if (!price) { showToast("金額は数字で入力してください", "error"); renderReservations(); return; }
+    const dtIn = prompt("確定のお引き取り日時を入力してください（例：2026-10-03 14:00）", (cur.finalPickupDate || cur.pickupDate || "") + " " + (cur.finalPickupTime || cur.pickupTime || ""));
+    if (dtIn === null) { renderReservations(); return; }
+    const m = String(dtIn).match(/(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/);
+    if (!m) { showToast("日時は「2026-10-03 14:00」の形式で入力してください", "error"); renderReservations(); return; }
+    patch.finalPrice = price; patch.finalPickupDate = m[1]; patch.finalPickupTime = m[2].padStart(5, "0");
+  }
   Object.assign(list[idx], patch);
   localStorage.setItem(RES_KEY, JSON.stringify(list));
   if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
