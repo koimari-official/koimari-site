@@ -5571,7 +5571,7 @@ function initQuoteBuilder() {
     document.getElementById("qbCreamToppingPriceLabel").textContent = qbCreamToppingPrice.toLocaleString();
     recomputeQuote();
   });
-  onValue(cakeCandleBagPriceNumberRef, (snap) => { qbCandleBagPriceNumber = snap.val() || 0; recomputeQuote(); });
+  onValue(cakeCandleBagPriceNumberRef, (snap) => { qbCandleBagPriceNumber = snap.val() != null ? snap.val() : 200; recomputeQuote(); });
   onValue(cakeCandleBagPricePlainRef, (snap) => { qbCandleBagPricePlain = snap.val() || 0; recomputeQuote(); });
   onValue(cakeMessagePlatePriceRef, (snap) => { qbMessagePlatePrice = snap.val() || 0; recomputeQuote(); });
 

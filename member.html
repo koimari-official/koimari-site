@@ -151,6 +151,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span>「ケーキ屋さんこいまり <strong>城東</strong>」のご予約で間違いないことを確認しました</span>
           </label>
           <div class="error" id="reserveStoreConfirmError"></div>
+          <label class="field__check" style="margin-top:10px;">
+            <input type="checkbox" id="reserveLeadConfirm">
+            <span>お受取日の<strong>3営業日前まで</strong>のご予約です（2営業日前以降は、お電話 070-9158-0641 でご予約ください）。特別仕様は、お渡しまでお時間をいただく場合があります。</span>
+          </label>
+          <div class="error" id="reserveLeadConfirmError"></div>
         </div>
         <div class="field" id="reserveCategoryField">
           <label class="field__label">ご予約の種類<span class="req-mark">必須</span></label>
@@ -204,7 +209,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamTypeSub" value="生クリームなし"> 生クリームなし</label>
             </div>
           </div>
-          <div id="reserveSpecialNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>ブルーベリーケーキは特殊仕様です</strong><br>納期は通常と異なり、材料の仕入れに2週間程度かかる場合がございます。お受取日はご予約後にスタッフよりご相談・ご連絡します。</div>
           <div id="reserveColorChocoNote" class="field__hint" style="display:none;margin-top:8px;">生チョコクリームは、チョコレートの色と混ざるため、カラークリームはお選びいただけません。</div>
           <div class="error" id="reserveCreamTypeError"></div>
         </div>
@@ -232,9 +236,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveDecorationField" style="display:none;">
           <label class="field__label">飾り付け<span class="req-mark">必須</span></label>
-          <div class="radio-list" style="flex-direction:row;">
-            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveDecoration" value="いちごのみ" checked> いちごのみ</label>
-            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveDecoration" value="バラエティフルーツ"> バラエティフルーツ<span id="decoFruitPrice"></span></label>
+          <div class="radio-list">
+            <label class="radio-list__opt"><input type="radio" name="reserveDecoration" value="いちごのみ" checked> いちごのみ</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveDecoration" value="バラエティフルーツ"> バラエティフルーツ<span id="decoFruitPrice"></span></label>
           </div>
           <div class="error" id="reserveDecorationError"></div>
         </div>
@@ -261,22 +265,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </label>
         </div>
         <div class="field" id="reserveToppingsField">
-          <label class="field__label">トッピングのご希望（オプション）</label>
-          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・金箔・アラザンの料金とお日にちは、ご予約後にパティシエよりご連絡します。一般的でない材料・資材が必要な場合は、仕入れのためお日にちをいただくことがあります。</div>
+          <label class="field__label">トッピング（オプション）</label>
+          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・金箔・アラザンの料金とお日にちは、ご予約後にパティシエよりご連絡します。</div>
+          <div class="field__hint" style="margin-top:6px;">※金箔は取り寄せとなるため、お渡しまでお日にちをいただきます。</div>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉</span></label>
-          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔</span></label>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔※</span></label>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）</span></label>
         </div>
-        <div class="field" id="reserveLaterField">
-          <label class="field__label">まだ決まっていない項目（あとで相談できます）</label>
-          <div class="field__hint" style="margin-bottom:8px;">決められない項目はチェックしておけば、ご予約後にスタッフとご相談できます。カラークリームは、あとで決める場合も色数に応じた金額（1色+¥500〜）がかかります。</div>
-          <label class="field__check"><input type="checkbox" id="reserveLaterColor"><span>クリームの色</span></label>
-          <label class="field__check"><input type="checkbox" id="reserveLaterDeco"><span>砂糖菓子・オーナメント・トッピング</span></label>
-          <label class="field__check"><input type="checkbox" id="reserveLaterMsg"><span>名入れチョコレートの文字</span></label>
-        </div>
         <div class="field" id="reserveAddOnsField" style="display:none;">
-          <label class="field__label">デコレーション追加（砂糖菓子・オーナメント）</label>
-          <div class="field__hint">かわいい砂糖菓子やオーナメントを、写真を見ながらお好きなだけ追加できます。＋ーで個数をえらんでね🎂</div>
+          <label class="field__label">砂糖菓子・オーナメント・クッキー（写真から選べます）</label>
+          <div class="field__hint">かわいい飾りを、写真を見ながらお好きなだけ追加できます。＋ーで個数をえらんでね🎂</div>
           <div id="reserveAddOnsGrid"></div>
         </div>
         <div class="field" id="reserveOnsiteField" style="display:none;">
@@ -295,9 +293,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span>ろうそくが必要</span>
           </label>
           <div id="reserveCandleDetail" style="display:none;margin-top:10px;">
-            <div class="radio-list" style="flex-direction:row;margin-bottom:10px;">
-              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCandleType" value="ナンバーろうそく" checked> ナンバーろうそく</label>
-              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCandleType" value="普通のろうそく"> 普通のろうそく</label>
+            <div class="radio-list" style="margin-bottom:10px;">
+              <label class="radio-list__opt"><input type="radio" name="reserveCandleType" value="ナンバーろうそく" checked> ナンバーろうそく</label>
+              <label class="radio-list__opt"><input type="radio" name="reserveCandleType" value="普通のろうそく"> 普通のろうそく</label>
             </div>
             <label class="field__label" for="reserveCandleBags" style="font-size:12px;">袋数（1袋5本入）</label>
             <select id="reserveCandleBags" class="input select">
@@ -324,12 +322,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
         <!-- 2026-09-22新設：ここまでの選択内容に応じたリアルタイム合計金額表示(CRO改修指示書) -->
+        <div id="reserveSpecialNotice" style="display:none;margin:0 0 14px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"></div>
         <div id="autosaveBadge" style="display:none;font-size:11.5px;color:#0b7a37;margin:0 0 8px;"></div>
         <div id="liveTotalBar" class="live-total-bar" style="display:none;"></div>
         <div class="field">
           <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
           <input type="date" id="reserveDate" class="input">
-          <div class="field__hint">3営業日前（定休日・臨時休業を除く）まではこちらからネット予約いただけます（ご予約後、内容確認のためお電話またはチャットでご連絡します）。2営業日前以降はお電話（070-9158-0641）でご予約ください。ギャラリーで選んだ仕様をお伝えいただくと、お見積もり・お引き取り日をスムーズにご案内できます。</div>
           <div class="error" id="reserveDateError"></div>
           <div id="reservePhoneNotice" style="display:none;"></div>
           <div id="reserveLeadNotice" style="display:none;"></div>
@@ -589,10 +587,10 @@ function occasionCategoryName(baseCategory, occasion, occasionOther) {
 // ろうそく：ナンバーろうそくは1袋目から有料、普通のろうそくは1袋目無料・2袋目以降が有料（2026-09-04確定）。
 // メッセージプレートは1枚目まで無料、2枚目以降は追加料金。金額はadmin.htmlで設定（普通ろうそくの初期値60円は確定分）。
 const DEFAULT_CANDLE_BAG_PRICE_PLAIN = 60;
-let currentCandleBagPriceNumber = 0;
+let currentCandleBagPriceNumber = 200; // ナンバーろうそく1袋200円（2026-09-26オーナー確定）
 let currentCandleBagPricePlain = DEFAULT_CANDLE_BAG_PRICE_PLAIN;
 let currentMessagePlatePrice = 0;
-onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() || 0; });
+onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() != null ? snap.val() : 200; if (typeof updateCandleBagsUI === "function") { updateCandleBagsUI(); updateLivePriceDisplay(); } });
 onValue(ref(db, "koimariContent/cakeCandleBagPricePlain"), (snap) => { currentCandleBagPricePlain = snap.val() || DEFAULT_CANDLE_BAG_PRICE_PLAIN; });
 function candleCostFor(candleType, bags) {
   if (!bags) return 0;
@@ -606,9 +604,10 @@ function updateCandleBagsUI() {
   const opt1 = bagsSelect.querySelector('option[value="1"]');
   const hint = document.getElementById("reserveCandleHint");
   if (isNumber) {
-    opt1.textContent = "1袋";
-    hint.textContent = "ナンバーろうそくは1袋目から料金がかかります（詳細はご予約後スタッフよりご案内します）。";
+    bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "袋（+¥" + (Number(o.value) * currentCandleBagPriceNumber).toLocaleString() + "）"; });
+    hint.textContent = `ナンバーろうそくは1袋${currentCandleBagPriceNumber.toLocaleString()}円（税込）です。`;
   } else {
+    bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "袋"; });
     opt1.textContent = "1袋（無料）";
     hint.textContent = `普通のろうそくは1袋目無料、2袋目以降は1袋${currentCandleBagPricePlain.toLocaleString()}円+税かかります。`;
   }
@@ -998,6 +997,15 @@ window.addEventListener("pagehide", () => { try { autosaveNow(true); } catch (e)
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") { try { autosaveNow(true); } catch (e) {} } });
 document.addEventListener("input", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) scheduleAutosave(); });
 
+function specialReasons() {
+  const r = [];
+  const specs = activeSpecs();
+  const sp = specs.find(s => CakePricing.SPEC.specialTypes[s.cream]);
+  if (sp) r.push(sp.cream);
+  if (specs.length > 1 && new Set(specs.map(s => s.cream)).size > 1) r.push("段ごとに異なる種類");
+  selectedToppings().forEach(t => r.push(t));
+  return r;
+}
 function selectedToppings() { return Array.from(document.querySelectorAll(".reserve-topping:checked")).map(e => e.value); }
 // ===== 進捗・おすすめ・あとで決める・名入れ文字プレビュー・前回と同じ注文（2026-09-26）=====
 // 画面下に「あと◯項目」と概算金額を常に表示する（離脱防止）。
@@ -1316,7 +1324,12 @@ function updateCakeOptionUI() {
   g("reserveTopCutField").style.display = tartOk ? "" : "none";
   if (!tartOk) g("reserveTopCut").checked = false;
   g("reserveTopCutNote").style.display = (tartOk && g("reserveTopCut").checked) ? "" : "none";
-  g("reserveSpecialNotice").style.display = CakePricing.SPEC.specialTypes[creamType] ? "" : "none";
+  { // 特別仕様（ブルーベリー・段ごとに種類が異なる・金粉/金箔/アラザン）が含まれる場合の案内
+    const sr = specialReasons();
+    const sn = g("reserveSpecialNotice");
+    if (sr.length) { sn.innerHTML = "<strong>特別仕様が含まれています</strong>（" + sr.map(escape).join("・") + "）<br>お受け取り日から、お渡しまでにお時間をいただく内容が含まれております。ご予約内容を確認後にご連絡させていただきますので、仕様内容を確認した後、具体的なお渡し日時・価格をご提示いたします。"; sn.style.display = ""; }
+    else sn.style.display = "none";
+  }
   const activeCream = checkedCream();
   const colorOk = activeCream === "生クリーム"; // 生チョコクリームはチョコの色と混ざるためカラークリーム不可（オーナー判断 2026-09-26）
   { const cn = g("reserveColorChocoNote"); if (cn) cn.style.display = activeCream === "生チョコクリーム" ? "" : "none"; }
@@ -1586,8 +1599,9 @@ document.addEventListener("change", (e) => {
 
 function validateReserve(data) {
   let ok = true;
-  ["reserveStoreConfirmError","reserveSizeError","reserveFlavorError","reserveOccasionError","reserveCreamTypeError","reserveDecorationError","reserveCandleError","reserveDateError","reserveTimeError","reserveFuriganaError","reserveNameError","reserveTelError","reserveEmailError","reserveConsentError","reserveNoteError","reserveReceiptNameError","kmChildNameError","kmGradeError","kmBakingExperienceError","kmDateError","kmCountError"].forEach(id => setReserveError(id, ""));
+  ["reserveStoreConfirmError","reserveLeadConfirmError","reserveSizeError","reserveFlavorError","reserveOccasionError","reserveCreamTypeError","reserveDecorationError","reserveCandleError","reserveDateError","reserveTimeError","reserveFuriganaError","reserveNameError","reserveTelError","reserveEmailError","reserveConsentError","reserveNoteError","reserveReceiptNameError","kmChildNameError","kmGradeError","kmBakingExperienceError","kmDateError","kmCountError"].forEach(id => setReserveError(id, ""));
 
+  if (!data.leadConfirmed) { setReserveError("reserveLeadConfirmError", "お受取日の3営業日前までのご予約であることをご確認ください"); ok = false; }
   if (!data.storeConfirmed) { setReserveError("reserveStoreConfirmError", "「ケーキ屋さんこいまり 城東」のご予約で間違いないかご確認ください"); ok = false; }
 
   if (data.category === "kidsManager") {
@@ -1889,10 +1903,11 @@ function setupReserveForm(uid, displayName) {
     const email = document.getElementById("reserveEmail").value || "";
     const privacyConsent = document.getElementById("reserveConsent").checked;
     const storeConfirmed = document.getElementById("reserveStoreConfirm").checked;
+    const leadConfirmed = document.getElementById("reserveLeadConfirm").checked;
     const note = document.getElementById("reserveNote").value || "";
     const commonFields = {
       name, furigana, tel, email, zipcode: "", address: "", birthday: "",
-      privacyConsent, storeConfirmed, note,
+      privacyConsent, storeConfirmed, leadConfirmed, note,
       noshi: "", noshiTitle: "", noshiName: "", messageCard: "", wrapping: "",
       status: "受付済", notes: "",
       submittedAt: new Date().toISOString(),
