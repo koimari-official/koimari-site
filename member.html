@@ -200,7 +200,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ（特殊仕様・納期は通常と異なります）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ（お日にちをいただく場合があります）</label>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
             <label class="field__label" style="font-size:12px;">生クリームの有無（同一価格）</label>
@@ -209,6 +209,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamTypeSub" value="生クリームなし"> 生クリームなし</label>
             </div>
           </div>
+          <div id="reserveTierTypeHint" class="field__hint" style="display:none;margin-top:8px;color:#8a5a12;">段ごとに種類を変える場合は、お日にちをいただく場合があります。</div>
           <div id="reserveColorChocoNote" class="field__hint" style="display:none;margin-top:8px;">生チョコクリームは、チョコレートの色と混ざるため、カラークリームはお選びいただけません。</div>
           <div class="error" id="reserveCreamTypeError"></div>
         </div>
@@ -268,9 +269,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__label">トッピング（オプション）</label>
           <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・金箔・アラザンの料金とお日にちは、ご予約後にパティシエよりご連絡します。</div>
           <div class="field__hint" style="margin-top:6px;">※金箔は取り寄せとなるため、お渡しまでお日にちをいただきます。</div>
-          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉</span></label>
-          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔※</span></label>
-          <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）</span></label>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔※<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
         </div>
         <div class="field" id="reserveAddOnsField" style="display:none;">
           <label class="field__label">砂糖菓子・オーナメント・クッキー（写真から選べます）</label>
@@ -1237,7 +1238,8 @@ function sizeOptionLabel(o, tierCount) {
     }
   }
   const badge = (tierCount === 1 && o.value === RECOMMENDED_SIZE_VALUE) ? "（定番）" : "";
-  return `${o.label}${priceText}${badge}`;
+  const leadNote = (tierCount > 1 && (key === "6号" || key === "7号")) ? "【お日にちをいただく場合あり】" : "";
+  return `${o.label}${priceText}${badge}${leadNote}`;
 }
 // tierCountForPrice: 価格を併記する選択肢（1段目）だけ段数を渡す。上の段の選択肢には価格を出さない（0）。
 function editableSizeSelectHtml(tierIndex, options, selected, tierCountForPrice) {
@@ -1329,11 +1331,12 @@ function updateCakeOptionUI() {
   { // 特別仕様（ブルーベリー・段ごとに種類が異なる・金粉/金箔/アラザン）が含まれる場合の案内
     const sr = specialReasons();
     const sn = g("reserveSpecialNotice");
-    if (sr.length) { sn.innerHTML = "<strong>特別仕様が含まれています</strong>（" + sr.map(escape).join("・") + "）<br>お受け取り日から、お渡しまでにお時間をいただく内容が含まれております。ご予約内容を確認後にご連絡させていただきますので、仕様内容を確認した後、具体的なお渡し日時・価格をご提示いたします。"; sn.style.display = ""; }
+    if (sr.length) { sn.innerHTML = "<strong>特別仕様が含まれています</strong><br>お受け取り日から、お渡しまでにお時間をいただく内容が含まれております。ご予約内容を確認後にご連絡させていただきますので、仕様内容を確認した後、具体的なお渡し日時・価格をご提示いたします。"; sn.style.display = ""; }
     else sn.style.display = "none";
   }
   const activeCream = checkedCream();
   const colorOk = activeCream === "生クリーム"; // 生チョコクリームはチョコの色と混ざるためカラークリーム不可（オーナー判断 2026-09-26）
+  { const th = g("reserveTierTypeHint"); if (th) th.style.display = tierCount > 1 ? "" : "none"; }
   { const cn = g("reserveColorChocoNote"); if (cn) cn.style.display = activeCream === "生チョコクリーム" ? "" : "none"; }
   g("reserveColorCreamField").style.display = colorOk ? "" : "none";
   if (!colorOk && selectedCreamColors.length) { selectedCreamColors = []; saveActiveSpec(); renderColorChips(); syncColorSelectQuiet(); }
