@@ -503,6 +503,9 @@ function buildStaffNotifyText(data) {
   if (data.galleryPick && data.galleryPick.name) {
     lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
   }
+  if (Array.isArray(data.decideLater) && data.decideLater.length) {
+    lines.push("あとで相談: " + data.decideLater.join("・"));
+  }
   if (Array.isArray(data.toppings) && data.toppings.length) {
     lines.push("トッピング: " + data.toppings.join("・") + "（料金は電話でご案内）");
   }

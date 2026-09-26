@@ -160,7 +160,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
         </div>
         <div id="resumeBanner" style="display:none;"></div>
+        <div id="lastOrderBanner" style="display:none;"></div>
         <div id="cakeFieldsWrap">
+        <div id="reservePresets" style="margin-bottom:18px;"></div>
         <div class="field">
           <label class="field__label">商品<span class="req-mark">必須</span></label>
           <div class="radio-list">
@@ -262,6 +264,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔</span></label>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）</span></label>
         </div>
+        <div class="field" id="reserveLaterField">
+          <label class="field__label">まだ決まっていない項目（あとで相談できます）</label>
+          <div class="field__hint" style="margin-bottom:8px;">決められない項目はチェックしておけば、ご予約後にスタッフとご相談できます。カラークリームは、あとで決める場合も色数に応じた金額（1色+¥500〜）がかかります。</div>
+          <label class="field__check"><input type="checkbox" id="reserveLaterColor"><span>クリームの色</span></label>
+          <label class="field__check"><input type="checkbox" id="reserveLaterDeco"><span>砂糖菓子・オーナメント・トッピング</span></label>
+          <label class="field__check"><input type="checkbox" id="reserveLaterMsg"><span>名入れチョコレートの文字</span></label>
+        </div>
         <div class="field" id="reserveAddOnsField" style="display:none;">
           <label class="field__label">デコレーション追加（砂糖菓子・オーナメント）</label>
           <div class="field__hint">かわいい砂糖菓子やオーナメントを、写真を見ながらお好きなだけ追加できます。＋ーで個数をえらんでね🎂</div>
@@ -307,6 +316,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </select>
           <div id="reserveChocoTextWrap" style="display:none;margin-top:10px;">
             <input type="text" id="reserveChocoText" class="input" maxlength="15" placeholder="例: Happy Birthday（お好きな文字・15文字程度まで）">
+            <div id="reserveChocoPreview" style="display:none;justify-content:center;align-items:center;margin:10px 0 6px;height:54px;border-radius:12px;background:linear-gradient(135deg,#6b3f26,#4a2a18);box-shadow:inset 0 2px 4px rgba(255,255,255,.18);color:#fbe9c8;font-weight:700;letter-spacing:.06em;"><span style="padding:0 14px;text-align:center;">ここに文字が入ります</span></div>
             <div class="field__hint" id="reserveMessageHint">2枚目以降は追加料金がかかります（詳細はご予約後スタッフよりご案内します）。</div>
           </div>
         </div>
@@ -845,7 +855,7 @@ function collectFormSpec() {
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
     candle: !!(g("reserveCandleNeeded") || {}).checked, candleType: cv("reserveCandleType"), candleBags: (g("reserveCandleBags") || {}).value || "1",
     msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
-    toppings: selectedToppings(),
+    toppings: selectedToppings(), later: laterList(),
     addOns: Object.keys(addOnQty).filter(k => addOnQty[k] > 0).map(k => [k, addOnQty[k]]),
     date: (g("reserveDate") || {}).value || "", time: (g("reserveTime") || {}).value || ""
   };
@@ -914,6 +924,7 @@ function applyFormSpec(s) {
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
     setChk("reserveCandleNeeded", s.candle); setRadio("reserveCandleType", s.candleType); setVal("reserveCandleBags", s.candleBags || "1");
     setVal("reserveMessageCount", s.msgCount || "0"); setVal("reserveChocoText", s.msgText || "");
+    LATER_ITEMS.forEach(([id, label]) => { const e = document.getElementById(id); if (e) e.checked = (s.later || []).includes(label); });
     document.querySelectorAll(".reserve-topping").forEach(e => { e.checked = (s.toppings || []).includes(e.value); });
     Object.keys(addOnQty).forEach(k => delete addOnQty[k]);
     (s.addOns || []).forEach(([k, q]) => { addOnQty[k] = q; });
@@ -949,6 +960,84 @@ document.addEventListener("visibilitychange", () => { if (document.visibilitySta
 document.addEventListener("input", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) scheduleAutosave(); });
 
 function selectedToppings() { return Array.from(document.querySelectorAll(".reserve-topping:checked")).map(e => e.value); }
+// ===== 進捗・おすすめ・あとで決める・名入れ文字プレビュー・前回と同じ注文（2026-09-26）=====
+// 画面下に「あと◯項目」と概算金額を常に表示する（離脱防止）。
+const LATER_ITEMS = [["reserveLaterColor", "クリームの色"], ["reserveLaterDeco", "砂糖菓子・オーナメント・トッピング"], ["reserveLaterMsg", "名入れチョコレートの文字"]];
+function laterList() { return LATER_ITEMS.filter(([id]) => { const e = document.getElementById(id); return e && e.checked; }).map(x => x[1]); }
+function remainingItems() {
+  const v = id => ((document.getElementById(id) || {}).value || "").trim();
+  const cv = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || "";
+  const miss = [];
+  const category = cv("reserveType") || "デコレーションケーキ";
+  if (category === "デコレーションケーキ" && (!document.querySelectorAll(".tier-size-select").length || Array.from(document.querySelectorAll(".tier-size-select")).some(s => !s.value))) miss.push("サイズ");
+  if (category !== "焼き菓子・ギフト" && !cv("reserveOccasion")) miss.push("ご利用シーン");
+  if (!v("reserveDate")) miss.push("お受取日");
+  if (!v("reserveTime")) miss.push("お受取時間");
+  if (!v("reserveName")) miss.push("お名前");
+  if (!v("reserveTel")) miss.push("電話番号");
+  if (!v("reserveEmail")) miss.push("メール");
+  if (!(document.getElementById("reserveConsent") || {}).checked) miss.push("同意");
+  return miss;
+}
+function createReserveFloat() {
+  if (document.getElementById("reserveFloat")) return;
+  const el = document.createElement("div");
+  el.id = "reserveFloat";
+  el.style.cssText = "position:fixed;left:0;right:0;bottom:0;z-index:60;background:#fffdf9;border-top:1px solid #d8baa4;box-shadow:0 -4px 14px rgba(0,0,0,.08);padding:8px 14px calc(8px + env(safe-area-inset-bottom));display:none;";
+  document.body.appendChild(el);
+}
+function updateReserveFloat() {
+  const el = document.getElementById("reserveFloat");
+  if (!el) return;
+  const wrap = document.getElementById("reserveFormWrap");
+  const cakeOn = currentReserveCategory() === "cake";
+  if (!wrap || wrap.style.display === "none" || !cakeOn) { el.style.display = "none"; return; }
+  const miss = remainingItems();
+  const TOTAL = 8;
+  const pct = Math.round(((TOTAL - Math.min(TOTAL, miss.length)) / TOTAL) * 100);
+  const r = computeCakeSubtotal();
+  const price = !r.applicable || r.incomplete ? "" : r.priceNeedsConsult ? "料金はお電話でご案内" : CakePricing.fromYen(r.subtotal) + "（税込・概算）";
+  el.style.display = "block";
+  el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;"><span style="color:#6b5a48;">' + (miss.length ? "あと" + miss.length + "項目で確認画面へ" : "入力OK！確認画面へ進めます") + '</span><b style="color:#a88a52;font-size:16px;">' + price + '</b></div>' +
+    '<div style="height:5px;background:#eee3d3;border-radius:3px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (miss.length ? "#e0a13a" : "#3aa76d") + ';transition:width .3s;"></div></div>';
+}
+function updateChocoPreview() {
+  const box = document.getElementById("reserveChocoPreview");
+  if (!box) return;
+  const t = (document.getElementById("reserveChocoText") || {}).value || "";
+  const on = Number((document.getElementById("reserveMessageCount") || {}).value || 0) > 0;
+  box.style.display = on ? "flex" : "none";
+  const txt = box.querySelector("span");
+  txt.textContent = t || "ここに文字が入ります";
+  txt.style.opacity = t ? "1" : ".55";
+  txt.style.fontSize = (t.length > 11 ? 12 : t.length > 7 ? 14 : 17) + "px";
+}
+const PRESETS = [
+  { label: "🎂 お誕生日（5号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["5号(約15cm/5-6名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1", msgText: "Happy Birthday" } },
+  { label: "👨‍👩‍👧 みんなで（7号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["7号(約21cm/9-10名)"], specs: [{ cream: "生クリーム", colors: [] }], occasion: "バースデー", msgCount: "1" } },
+  { label: "🎀 2段ケーキ（6号＋4号）", spec: { type: "デコレーションケーキ", tiers: 2, sizes: ["6号(約18cm/7-8名)", "4号(約12cm/3-4名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }, { cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1" } }
+];
+function renderPresets() {
+  const el = document.getElementById("reservePresets");
+  if (!el) return;
+  el.innerHTML = '<div style="font-weight:700;font-size:13.5px;margin-bottom:6px;">まよったら、おすすめから選んで、あとで変更できます</div><div style="display:flex;flex-wrap:wrap;gap:8px;">' + PRESETS.map((p, i) => '<button type="button" class="preset-btn" data-i="' + i + '" style="padding:9px 14px;border:1px solid #c9a96e;background:#fff;border-radius:999px;font-size:13px;cursor:pointer;">' + p.label + '</button>').join("") + '</div>';
+  el.querySelectorAll(".preset-btn").forEach(b => b.addEventListener("click", () => { applyFormSpec(PRESETS[Number(b.dataset.i)].spec); updateReserveFloat(); }));
+}
+function initLastOrderBanner() {
+  const el = document.getElementById("lastOrderBanner");
+  if (!el) return;
+  let last = null;
+  try { last = JSON.parse(localStorage.getItem("koimari_last_order") || "null"); } catch (e) {}
+  if (!last || !specIsMeaningful(last.spec)) { el.style.display = "none"; return; }
+  const s = last.spec;
+  const summary = [s.tiers > 1 ? s.tiers + "段" : "", (s.sizes || []).filter(Boolean).map(x => sizeKeyOf(x)).join("＋")].filter(Boolean).join(" ");
+  el.style.display = "block";
+  el.innerHTML = '<div style="background:#eef7f0;border:1px solid #9ad9b0;border-radius:12px;padding:12px 14px;margin-bottom:16px;"><div style="font-weight:700;color:#0b7a37;font-size:14px;">前回のご注文と同じ内容で選べます</div><div style="font-size:12.5px;color:#3a4a3a;margin:4px 0 10px;">' + escape(summary) + '（日付以外の選択内容を引き継ぎます）</div><button type="button" id="lastOrderGo" style="width:100%;padding:11px;border:none;border-radius:999px;background:#3aa76d;color:#fff;font-weight:700;cursor:pointer;">前回と同じ内容にする</button></div>';
+  document.getElementById("lastOrderGo").addEventListener("click", () => { applyFormSpec(Object.assign({}, s, { date: "", time: "" })); el.style.display = "none"; updateReserveFloat(); });
+}
+document.addEventListener("input", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { updateChocoPreview(); updateReserveFloat(); } });
+document.addEventListener("change", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { setTimeout(() => { updateChocoPreview(); updateReserveFloat(); }, 0); } });
+
 function gatherEstimateInput() {
   const g = id => document.getElementById(id);
   const checkedVal = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || "";
@@ -992,6 +1081,7 @@ function estimateDisclaimer() { return "あくまで概算です。確定金額�
 function updateLivePriceDisplay() {
   const bar = document.getElementById("liveTotalBar");
   if (!bar) return;
+  try { updateReserveFloat(); } catch (e) {}
   const category = currentReserveCategory ? currentReserveCategory() : "cake";
   if (category === "kidsManager") { bar.style.display = "none"; return; }
   const result = computeCakeSubtotal();
@@ -1512,6 +1602,7 @@ function renderReserveConfirm(data, targetId) {
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(data.decoration)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
+    ${(data.decideLater || []).length ? `<dt>あとで相談</dt><dd>${data.decideLater.map(t => escape(t)).join("・")}</dd>` : ""}
     ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金はお電話でご案内）</dd>` : ""}
     ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
@@ -1570,6 +1661,7 @@ function buildReserveSummaryText(data) {
   if (isCake) lines.push(`飾り付け: ${data.decoration}`);
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
+  if ((data.decideLater || []).length) lines.push(`あとで相談: ${data.decideLater.join("・")}`);
   if ((data.toppings || []).length) lines.push(`トッピング: ${data.toppings.join("・")}（料金はお電話でご案内）`);
   (data.tierSpecs || []).forEach(t => lines.push(`${t.tier}: ${String(t.size).replace(/\(.*$/, "")} ${t.cream}${(t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""}`));
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
@@ -1717,6 +1809,7 @@ async function checkFriendship() {
 function setupReserveForm(uid, displayName) {
   initDraftFeature();
   renderColorChips();
+  renderPresets(); initLastOrderBanner(); createReserveFloat(); updateChocoPreview();
   populateReserveSelects();
   updateReserveFieldVisibility();
   updateReserveCategoryVisibility();
@@ -1820,6 +1913,7 @@ function setupReserveForm(uid, displayName) {
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isCake && selectedToppings().length ? { toppings: selectedToppings() } : {}),
+        ...(isCake && laterList().length ? { decideLater: laterList() } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
         ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),
@@ -1870,7 +1964,9 @@ function setupReserveForm(uid, displayName) {
       return;
     }
     // 予約が確定したら保存済みの仕様コードは使い終わり。次回の予約に古い選択が残らないよう消す。
+    try { const sp = collectFormSpec(); if (sp) localStorage.setItem("koimari_last_order", JSON.stringify({ savedAt: Date.now(), spec: Object.assign({}, sp, { date: "", time: "" }) })); } catch (e) {}
     try { localStorage.removeItem(DRAFT_LS_KEY); localStorage.removeItem(AUTOSAVE_LS_KEY); } catch (e) {}
+    { const f = document.getElementById("reserveFloat"); if (f) f.style.display = "none"; }
 
     // LINEチャットに予約内容を投稿する（お客様の履歴・スタッフの受信箱の両方に残すため）。
     // 外部ブラウザから開かれた場合はsendMessagesが使えないため、失敗しても予約自体は成立させる。
