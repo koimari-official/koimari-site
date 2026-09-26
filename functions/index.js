@@ -521,6 +521,9 @@ function buildStaffNotifyText(data) {
   if (data.topCut) {
     lines.push("カットケーキ載せ: 載せる（入れ物代あり）" + (data.topCut.note ? "：" + data.topCut.note : ""));
   }
+  if (Array.isArray(data.specialReasons) && data.specialReasons.length) {
+    lines.push("⚠ 特別仕様（納期要確認）: " + data.specialReasons.join("・"));
+  }
   if (data.specialSpec) {
     lines.push("⚠ 特殊仕様: " + data.specialSpec + "（納期は通常と異なります・要確認）");
   }

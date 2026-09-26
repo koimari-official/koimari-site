@@ -1003,6 +1003,8 @@ function specialReasons() {
   const sp = specs.find(s => CakePricing.SPEC.specialTypes[s.cream]);
   if (sp) r.push(sp.cream);
   if (specs.length > 1 && new Set(specs.map(s => s.cream)).size > 1) r.push("段ごとに異なる種類");
+  // 6号・7号の2段以上は、箱の仕入れが必要なため納期要確認（オーナー指示 2026-09-26）
+  { const bottom = Array.from(document.querySelectorAll(".tier-size-select"))[0]; const bk = bottom ? sizeKeyOf(bottom.value) : ""; if (currentTierCount() >= 2 && (bk === "6号" || bk === "7号")) r.push(bk + "の" + currentTierCount() + "段（箱の仕入れ）"); }
   selectedToppings().forEach(t => r.push(t));
   return r;
 }
@@ -1993,6 +1995,7 @@ function setupReserveForm(uid, displayName) {
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isCake && selectedToppings().length ? { toppings: selectedToppings() } : {}),
         ...(isCake && laterList().length ? { decideLater: laterList() } : {}),
+        ...(isCake && specialReasons().length ? { specialReasons: specialReasons() } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
         ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),
