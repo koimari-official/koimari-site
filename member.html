@@ -153,7 +153,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="error" id="reserveStoreConfirmError"></div>
           <label class="field__check" style="margin-top:10px;">
             <input type="checkbox" id="reserveLeadConfirm">
-            <span>お受取日の<strong>3営業日前まで</strong>のご予約です（2営業日前以降は、お電話 070-9158-0641 でご予約ください）。特別仕様は、お渡しまでお時間をいただく場合があります。<br>仕様を選択いただいてからお電話いただきますと、スムーズにご案内できます。</span>
+            <span>お受取日の<strong>3営業日前まで</strong>のご予約です（2営業日前以降は、お電話 070-9158-0641 でご予約ください）。特別仕様は、お渡しまでお時間をいただく場合があります。<br>本ページで仕様を選択いただいてからお電話いただきますと、スムーズにご案内できます。</span>
           </label>
           <div class="error" id="reserveLeadConfirmError"></div>
         </div>
@@ -252,7 +252,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <input type="text" id="reserveOccasionOther" class="input" style="display:none;margin-top:10px;" maxlength="20" placeholder="例: 退職祝い">
           <div class="error" id="reserveOccasionError"></div>
-          <div id="reserveChristmasNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>クリスマスケーキについて</strong><br>ご予約は12月10日までです。メッセージプレートは全商品「メリークリスマス」のチョコプレートが付きます（変更はできません）。ろうそくは無料でお付けします。「クリームたっぷり乗せ」などの増量はお受けできません。</div>
+          <div id="reserveChristmasNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>クリスマスケーキについて</strong><br>ご予約は12月20日までです（ご予約が満員になり次第、受付を終了します）。メッセージプレートは全商品「メリークリスマス」のチョコプレートが付きます（変更はできません）。ろうそくは無料でお付けします。「クリームたっぷり乗せ」などの増量はお受けできません。</div>
         </div>
         <div class="field" id="reserveSizeField">
           <label class="field__label" id="reserveSizeFieldLabel">サイズ<span class="req-mark">必須</span></label>
@@ -1379,7 +1379,7 @@ function updateReserveDateNotices() {
   const sl = CakePricing.checkSpecialLead(creamNow, v, new Date());
   if (sl.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `${creamNow}は特殊仕様のため、お受取日まで${sl.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
   { const dk = dateKeyLocal(new Date(v)); if ((reserveHolidays.cakeFullDates || []).includes(dk)) html += box("#8a2a1a", "#fdeeea", "#e6a698", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください。"); }
-  if (occasion === "クリスマス" && CakePricing.christmasClosed(v, new Date())) html += box("#8a2a1a", "#fdeeea", "#e6a698", "クリスマスケーキのご予約は12月10日までです。恐れ入りますが、お電話（070-9158-0641）でご相談ください。");
+  if (occasion === "クリスマス" && CakePricing.christmasClosed(v, new Date())) html += box("#8a2a1a", "#fdeeea", "#e6a698", "クリスマスケーキのご予約は12月20日までです（ご予約が満員になり次第、受付を終了します）。恐れ入りますが、お電話（070-9158-0641）でご相談ください。");
   el.style.display = html ? "block" : "none";
   el.innerHTML = html;
 }
@@ -1634,7 +1634,7 @@ function validateReserve(data) {
       else if (!isBaked && (reserveHolidays.cakeFullDates || []).includes(dateKeyLocal(pick))) { setReserveError("reserveDateError", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください"); ok = false; }
       else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は3営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
       else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
-      else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月10日までです（お電話でご相談ください）"); ok = false; }
+      else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
     }
     if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }
   }

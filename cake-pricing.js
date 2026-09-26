@@ -12,7 +12,7 @@
       "6号": { cm: "約18cm", serves: "7〜8人前" },
       "7号": { cm: "約21cm", serves: "9〜10人前" }
     },
-    christmas: { deadlineMonth: 12, deadlineDay: 10 },
+    christmas: { deadlineMonth: 12, deadlineDay: 20 },
     fruitTopping: { "4号": 900, "5号": 1300, "6号": 1600 }, // 7号は取り決めなし→別途ご案内
     chocoCream: 500,
     colorCream: { 1: 500, 2: 1000, 3: 1500 },
@@ -169,7 +169,7 @@
     return days < s.leadSoft ? { level: "soft", soft: s.leadSoft, days: days } : { level: "ok", soft: s.leadSoft, days: days };
   }
 
-  // クリスマスケーキの予約締切（12/10まで）。お受取が12月の場合、その年の12/10を過ぎていたら受付終了。
+  // クリスマスケーキの予約締切（12/20まで。満員になり次第終了）。お受取が12月の場合、その年の12/20を過ぎていたら受付終了。
   function christmasClosed(pickup, today) {
     if (!pickup) return false;
     var p = new Date(pickup);
