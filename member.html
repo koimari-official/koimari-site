@@ -205,6 +205,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
           </div>
           <div id="reserveSpecialNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>ブルーベリーケーキは特殊仕様です</strong><br>納期は通常と異なり、材料の仕入れに2週間程度かかる場合がございます。お受取日はご予約後にスタッフよりご相談・ご連絡します。</div>
+          <div id="reserveColorChocoNote" class="field__hint" style="display:none;margin-top:8px;">生チョコクリームは、チョコレートの色と混ざるため、カラークリームはお選びいただけません。</div>
           <div class="error" id="reserveCreamTypeError"></div>
         </div>
         <div class="field" id="reserveTopCutField" style="display:none;">
@@ -1317,7 +1318,8 @@ function updateCakeOptionUI() {
   g("reserveTopCutNote").style.display = (tartOk && g("reserveTopCut").checked) ? "" : "none";
   g("reserveSpecialNotice").style.display = CakePricing.SPEC.specialTypes[creamType] ? "" : "none";
   const activeCream = checkedCream();
-  const colorOk = activeCream === "生クリーム" || activeCream === "生チョコクリーム";
+  const colorOk = activeCream === "生クリーム"; // 生チョコクリームはチョコの色と混ざるためカラークリーム不可（オーナー判断 2026-09-26）
+  { const cn = g("reserveColorChocoNote"); if (cn) cn.style.display = activeCream === "生チョコクリーム" ? "" : "none"; }
   g("reserveColorCreamField").style.display = colorOk ? "" : "none";
   if (!colorOk && selectedCreamColors.length) { selectedCreamColors = []; saveActiveSpec(); renderColorChips(); syncColorSelectQuiet(); }
   g("reserveColorCreamNote").style.display = (colorOk && selectedCreamColors.some(n => n.indexOf("その他") === 0)) ? "" : "none";
@@ -1934,7 +1936,7 @@ function setupReserveForm(uid, displayName) {
       const candleBags = candleNeeded ? (Number(document.getElementById("reserveCandleBags").value) || 1) : 0;
 
       const specsNow = isCake ? activeSpecs() : [];
-      const canColor = isCake && specsNow.some(s => s.cream === "生クリーム" || s.cream === "生チョコクリーム");
+      const canColor = isCake && specsNow.some(s => s.cream === "生クリーム");
       const colorCreamCount = canColor ? totalColors() : 0;
       const colorCreamNote = colorCreamCount > 0 ? (document.getElementById("reserveColorCreamNote").value || "") : "";
       const strawberryAdd = isCake && CakePricing.SPEC.strawberryAdd.creamTypes.includes(creamType) && document.getElementById("reserveStrawberryAdd").checked;

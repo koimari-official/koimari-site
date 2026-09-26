@@ -95,7 +95,7 @@
     if (anyTier(function (c) { return c === "生チョコクリーム"; })) lines.push({ label: "生チョコクリーム変更", amount: base.chocoCream != null ? base.chocoCream : SPEC.chocoCream });
 
     var colors = Number(input.colorCreamCount) || 0;
-    if (colors > 0 && anyTier(function (c) { return SPEC.plainCreams.indexOf(c) >= 0; })) {
+    if (colors > 0 && anyTier(function (c) { return c === "生クリーム"; })) {
       // 色数は全段の合計。4色以上は1色あたり+500を加算（暫定・パティシエ相談中）。
       var cc = Math.min(colors, 3);
       lines.push({ label: "カラークリーム（" + colors + "色）", amount: (SPEC.colorCream[cc] || 0) + (colors > 3 ? (colors - 3) * SPEC.colorCream[1] : 0) });
