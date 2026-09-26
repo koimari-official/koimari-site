@@ -256,6 +256,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span id="reserveCreamToppingLabel">生クリームたっぷり乗せ（+540円・税込）</span>
           </label>
         </div>
+        <div class="field" id="reserveToppingsField">
+          <label class="field__label">トッピングのご希望（オプション）</label>
+          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。料金は、パティシエよりお電話でご案内します。</div>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔</span></label>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）</span></label>
+        </div>
         <div class="field" id="reserveAddOnsField" style="display:none;">
           <label class="field__label">デコレーション追加（砂糖菓子・オーナメント）</label>
           <div class="field__hint">かわいい砂糖菓子やオーナメントを、写真を見ながらお好きなだけ追加できます。＋ーで個数をえらんでね🎂</div>
@@ -292,7 +298,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="error" id="reserveCandleError"></div>
         </div>
         <div class="field" id="reserveChocoField" style="display:none;">
-          <label class="field__label" for="reserveMessageCount">メッセージプレート</label>
+          <label class="field__label" for="reserveMessageCount">名入れチョコレート（メッセージプレート）</label>
           <select id="reserveMessageCount" class="input select">
             <option value="0">なし</option>
             <option value="1">1枚（無料）</option>
@@ -300,7 +306,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option value="3">3枚</option>
           </select>
           <div id="reserveChocoTextWrap" style="display:none;margin-top:10px;">
-            <input type="text" id="reserveChocoText" class="input" maxlength="20" placeholder="例: Happy Birthday（1枚目の文字・20字以内・任意）">
+            <input type="text" id="reserveChocoText" class="input" maxlength="15" placeholder="例: Happy Birthday（お好きな文字・15文字程度まで）">
             <div class="field__hint" id="reserveMessageHint">2枚目以降は追加料金がかかります（詳細はご予約後スタッフよりご案内します）。</div>
           </div>
         </div>
@@ -839,6 +845,7 @@ function collectFormSpec() {
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
     candle: !!(g("reserveCandleNeeded") || {}).checked, candleType: cv("reserveCandleType"), candleBags: (g("reserveCandleBags") || {}).value || "1",
     msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
+    toppings: selectedToppings(),
     addOns: Object.keys(addOnQty).filter(k => addOnQty[k] > 0).map(k => [k, addOnQty[k]]),
     date: (g("reserveDate") || {}).value || "", time: (g("reserveTime") || {}).value || ""
   };
@@ -907,6 +914,7 @@ function applyFormSpec(s) {
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
     setChk("reserveCandleNeeded", s.candle); setRadio("reserveCandleType", s.candleType); setVal("reserveCandleBags", s.candleBags || "1");
     setVal("reserveMessageCount", s.msgCount || "0"); setVal("reserveChocoText", s.msgText || "");
+    document.querySelectorAll(".reserve-topping").forEach(e => { e.checked = (s.toppings || []).includes(e.value); });
     Object.keys(addOnQty).forEach(k => delete addOnQty[k]);
     (s.addOns || []).forEach(([k, q]) => { addOnQty[k] = q; });
     renderAddOns();
@@ -940,6 +948,7 @@ window.addEventListener("pagehide", () => { try { autosaveNow(true); } catch (e)
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") { try { autosaveNow(true); } catch (e) {} } });
 document.addEventListener("input", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) scheduleAutosave(); });
 
+function selectedToppings() { return Array.from(document.querySelectorAll(".reserve-topping:checked")).map(e => e.value); }
 function gatherEstimateInput() {
   const g = id => document.getElementById(id);
   const checkedVal = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || "";
@@ -958,6 +967,7 @@ function gatherEstimateInput() {
     candleBags: candleNeeded ? (Number(g("reserveCandleBags").value) || 1) : 0,
     messageCount: g("reserveMessageCount") ? (Number(g("reserveMessageCount").value) || 0) : 0,
     addOns: selectedAddOns(),
+    toppings: selectedToppings(),
     onsiteAssembly: currentTierCount() === 3 && !!(g("reserveOnsite") && g("reserveOnsite").checked),
     topCut: !!(g("reserveTopCut") && g("reserveTopCut").checked)
   };
@@ -1502,6 +1512,7 @@ function renderReserveConfirm(data, targetId) {
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(data.decoration)}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
+    ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金はお電話でご案内）</dd>` : ""}
     ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
     ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
@@ -1559,6 +1570,7 @@ function buildReserveSummaryText(data) {
   if (isCake) lines.push(`飾り付け: ${data.decoration}`);
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
+  if ((data.toppings || []).length) lines.push(`トッピング: ${data.toppings.join("・")}（料金はお電話でご案内）`);
   (data.tierSpecs || []).forEach(t => lines.push(`${t.tier}: ${String(t.size).replace(/\(.*$/, "")} ${t.cream}${(t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""}`));
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
   if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
@@ -1807,6 +1819,7 @@ function setupReserveForm(uid, displayName) {
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
+        ...(isCake && selectedToppings().length ? { toppings: selectedToppings() } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
         ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),

@@ -503,6 +503,9 @@ function buildStaffNotifyText(data) {
   if (data.galleryPick && data.galleryPick.name) {
     lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
   }
+  if (Array.isArray(data.toppings) && data.toppings.length) {
+    lines.push("トッピング: " + data.toppings.join("・") + "（料金は電話でご案内）");
+  }
   if (Array.isArray(data.tierSpecs) && data.tierSpecs.length) {
     data.tierSpecs.forEach(function (t) {
       lines.push(t.tier + ": " + String(t.size || "").replace(/\(.*$/, "") + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""));
