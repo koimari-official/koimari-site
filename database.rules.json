@@ -72,6 +72,12 @@
         ".write": "auth != null || !data.exists()",
         "profile": {
           ".write": true
+        },
+        "orders": {
+          ".write": true,
+          "$oid": {
+            ".validate": "newData.hasChildren(['savedAt'])"
+          }
         }
       }
     }

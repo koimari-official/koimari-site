@@ -125,7 +125,7 @@
       if (pr > 0) lines.push({ label: a.name + " × " + q, amount: pr * q });
       else notes.push(a.name + "の料金は別途ご案内します");
     });
-    if ((input.toppings || []).length) notes.push(input.toppings.join("・") + "の料金は、パティシエよりお電話でご案内します");
+    if ((input.toppings || []).length) notes.push(input.toppings.join("・") + "の料金・納期は、ご予約後にパティシエより別途ご連絡します");
     if (input.onsiteAssembly && tiers.length === 3) {
       lines.push({ label: "出張組み立て料", amount: SPEC.onsiteAssemblyFee });
       notes.push("出張の交通費（燃料費・高速代往復・駐車料金・その他）は別途かかります");

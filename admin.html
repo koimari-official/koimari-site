@@ -252,6 +252,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
       <span class="tab-group-label">予約・問い合わせ管理</span>
       <button class="tab" data-panel="notify">🔔 店舗通知モード</button>
+      <button class="tab" data-panel="kitchen">🧁 製造シート（タブレット）</button>
       <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
       <button class="tab" data-panel="quoteBuilder">個別見積もり作成</button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
@@ -430,6 +431,20 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     </section>
 
     <!-- ===== 予約一覧 ===== -->
+    <!-- ===== 製造シート（タブレット向け） ===== -->
+    <section class="panel" id="panel-kitchen">
+      <div class="panel__head"><h2 class="panel__title">製造シート</h2></div>
+      <div id="kitchenBar" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px;">
+        <button class="btn btn--ghost" id="kPrev" style="font-size:20px;padding:12px 20px;">◀</button>
+        <input type="date" id="kDate" class="input" style="font-size:20px;padding:10px 14px;max-width:220px;">
+        <button class="btn btn--ghost" id="kNext" style="font-size:20px;padding:12px 20px;">▶</button>
+        <button class="btn" id="kToday" style="font-size:18px;padding:12px 20px;">今日</button>
+        <button class="btn btn--ghost" id="kTomorrow" style="font-size:18px;padding:12px 20px;">明日</button>
+        <span id="kCount" style="font-size:18px;font-weight:700;margin-left:8px;"></span>
+      </div>
+      <div id="kitchenList"></div>
+    </section>
+
     <section class="panel" id="panel-reservations">
       <div class="panel__head">
         <h2 class="panel__title">予約・お問合せ一覧</h2>
@@ -1538,6 +1553,7 @@ document.querySelectorAll(".tab").forEach(t => {
     if (t.dataset.panel === "instagram") renderInstaAdmin();
     if (t.dataset.panel === "statsTop") renderStatsAdmin();
     if (t.dataset.panel === "holidays") renderHolidaysAdmin();
+    if (t.dataset.panel === "kitchen" && typeof window.initKitchen === "function") window.initKitchen();
     if (t.dataset.panel === "faq") renderFaqAdmin();
     if (t.dataset.panel === "galleryAdmin") { renderGalleryAdmin(); renderAiPromptPresets(); }
     if (t.dataset.panel === "hero") renderHeroPromptPresets();
@@ -4932,6 +4948,66 @@ window.fbSubscribeOps = function () {
       window.applyFetchedOpsContent({ ...liveOpsCache });
     }
   }));
+};
+
+// ===== 製造シート（タブレットで見る用、2026-09-26）=====
+// 選んだ日のお受取予約を、時間順に大きな文字で表示する。予約が入る・変わるたびにリアルタイムで更新される。
+// 「製造済み」のチェックは reservations/{id}/kitchenDone に保存され、全端末で共有される。
+let kitchenBound = false, kitchenAll = {};
+function kDateKey(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function kEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
+function renderKitchen() {
+  const list = document.getElementById("kitchenList");
+  if (!list) return;
+  const day = document.getElementById("kDate").value;
+  const rows = Object.entries(kitchenAll).filter(([, r]) => r && r.pickupDate === day && r.status !== "キャンセル").sort((a, b) => String(a[1].pickupTime || "").localeCompare(String(b[1].pickupTime || "")));
+  document.getElementById("kCount").textContent = rows.length + "件" + (rows.length ? "（未製造 " + rows.filter(([, r]) => !r.kitchenDone).length + "件）" : "");
+  if (!rows.length) { list.innerHTML = '<div style="padding:40px;text-align:center;color:#8a7a68;font-size:18px;">この日のご予約はありません</div>'; return; }
+  list.innerHTML = rows.map(([key, r]) => {
+    const it = (r.items && r.items[0]) || {};
+    const spec = [];
+    if (Array.isArray(r.tierSpecs) && r.tierSpecs.length) r.tierSpecs.forEach(t => spec.push("<b>" + kEsc(t.tier) + "</b>　" + kEsc(String(t.size || "").replace(/\(.*$/, "")) + "　" + kEsc(t.cream) + ((t.colors || []).length ? "　🎨" + t.colors.map(kEsc).join("・") : "")));
+    else {
+      spec.push(kEsc(String(it.size || "").replace(/\(.*$/, "")) + "　" + kEsc(r.creamType || "") + (r.creamTypeSub ? "（" + kEsc(r.creamTypeSub) + "）" : ""));
+      if (r.colorCream && r.colorCream.count) spec.push("🎨 カラークリーム " + r.colorCream.count + "色：" + (r.colorCream.colors || []).map(kEsc).join("・") + (r.colorCream.note ? "（" + kEsc(r.colorCream.note) + "）" : ""));
+    }
+    const extra = [];
+    if (r.occasion) extra.push("シーン：" + kEsc(r.occasion === "その他" ? (r.occasionOther || "その他") : r.occasion));
+    if (r.decoration) extra.push("飾り：" + kEsc(r.decoration));
+    if (r.strawberryAdd) extra.push("いちごトッピング");
+    if (r.topCut) extra.push("カットケーキ載せ" + (r.topCut.note ? "：" + kEsc(r.topCut.note) : ""));
+    if (r.onsiteAssembly) extra.push("⚠ 出張組み立て希望");
+    if (r.creamTopping) extra.push("生クリームたっぷり乗せ");
+    if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + "袋");
+    if (r.christmasOrder) extra.push("クリスマス（メリークリスマスプレート）");
+    if (Array.isArray(r.toppings) && r.toppings.length) extra.push("トッピング：" + r.toppings.map(kEsc).join("・") + "（要連絡）");
+    if (Array.isArray(r.addOns) && r.addOns.length) extra.push("追加商品：" + r.addOns.map(a => kEsc(a.name) + "×" + a.qty).join("、"));
+    const msg = it.message ? '<div style="margin-top:8px;padding:10px 14px;border-radius:10px;background:#4a2a18;color:#fbe9c8;font-size:22px;font-weight:700;letter-spacing:.06em;">🍫 ' + kEsc(it.message) + '</div>' : "";
+    const later = (r.decideLater || []).length ? '<div style="margin-top:8px;color:#b03b48;font-weight:700;font-size:17px;">⚠ あとで相談：' + r.decideLater.map(kEsc).join("・") + '</div>' : "";
+    const special = r.specialSpec ? '<div style="margin-top:8px;color:#b03b48;font-weight:700;font-size:17px;">⚠ 特殊仕様：' + kEsc(r.specialSpec) + '</div>' : "";
+    const done = !!r.kitchenDone;
+    return '<div style="background:' + (done ? "#eef7f0" : "#fff") + ';border:2px solid ' + (done ? "#9ad9b0" : "#d8baa4") + ';border-radius:16px;padding:18px 20px;margin-bottom:16px;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;"><div><span style="font-size:32px;font-weight:800;">' + kEsc(r.pickupTime || "--:--") + '</span> <span style="font-size:22px;font-weight:700;margin-left:10px;">' + kEsc(r.name || "") + ' 様</span></div>' +
+      '<label style="display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;cursor:pointer;"><input type="checkbox" class="k-done" data-key="' + kEsc(key) + '" ' + (done ? "checked" : "") + ' style="width:32px;height:32px;">製造済み</label></div>' +
+      '<div style="font-size:22px;line-height:1.7;margin-top:10px;">' + spec.join("<br>") + '</div>' + msg +
+      (extra.length ? '<div style="font-size:17px;line-height:1.8;margin-top:8px;color:#4a3a2a;">' + extra.join("　／　") + '</div>' : "") + later + special +
+      (r.note ? '<div style="font-size:16px;margin-top:8px;color:#4a3a2a;">📝 ' + kEsc(r.note) + '</div>' : "") +
+      '<div style="font-size:14px;color:#8a7a68;margin-top:8px;">' + (r.tel ? "☎ " + kEsc(r.tel) : "") + (r.reservationConfirmed ? "　✓予約確定済み" : "　（確認未了）") + '</div></div>';
+  }).join("");
+  list.querySelectorAll(".k-done").forEach(cb => cb.addEventListener("change", () => update(ref(fbDb, "reservations/" + cb.dataset.key), { kitchenDone: cb.checked }).catch(err => showToast("保存に失敗しました: " + (err && err.message ? err.message : err), "error"))));
+}
+window.initKitchen = function () {
+  const dEl = document.getElementById("kDate");
+  if (!dEl.value) dEl.value = kDateKey(new Date());
+  if (kitchenBound) { renderKitchen(); return; }
+  kitchenBound = true;
+  const shift = n => { const d = new Date(dEl.value); d.setDate(d.getDate() + n); dEl.value = kDateKey(d); renderKitchen(); };
+  document.getElementById("kPrev").addEventListener("click", () => shift(-1));
+  document.getElementById("kNext").addEventListener("click", () => shift(1));
+  document.getElementById("kToday").addEventListener("click", () => { dEl.value = kDateKey(new Date()); renderKitchen(); });
+  document.getElementById("kTomorrow").addEventListener("click", () => { const d = new Date(); d.setDate(d.getDate() + 1); dEl.value = kDateKey(d); renderKitchen(); });
+  dEl.addEventListener("change", renderKitchen);
+  onValue(reservationsRef, (snap) => { kitchenAll = snap.val() || {}; renderKitchen(); });
 };
 
 let reservationKeys = []; // 配列インデックス → Firebaseのキー（koimari_reservationsと同じ並び順を保つ）

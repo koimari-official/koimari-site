@@ -161,6 +161,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div id="resumeBanner" style="display:none;"></div>
         <div id="lastOrderBanner" style="display:none;"></div>
+        <div id="pastOrders" style="display:none;"></div>
         <div id="cakeFieldsWrap">
         <div id="reservePresets" style="margin-bottom:18px;"></div>
         <div class="field">
@@ -260,7 +261,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveToppingsField">
           <label class="field__label">トッピングのご希望（オプション）</label>
-          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。料金は、パティシエよりお電話でご案内します。一般的でない材料・資材が必要な場合は、仕入れのためお日にちをいただくことがあります。</div>
+          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・金箔・アラザンの料金とお日にちは、ご予約後にパティシエよりご連絡します。一般的でない材料・資材が必要な場合は、仕入れのためお日にちをいただくことがあります。</div>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉</span></label>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔</span></label>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）</span></label>
         </div>
@@ -315,7 +317,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <option value="3">3枚</option>
           </select>
           <div id="reserveChocoTextWrap" style="display:none;margin-top:10px;">
-            <input type="text" id="reserveChocoText" class="input" maxlength="15" placeholder="例: Happy Birthday（お好きな文字・15文字程度まで）">
+            <input type="text" id="reserveChocoText" class="input" maxlength="20" placeholder="例: Happy Birthday（15文字程度がおすすめ・最大20文字）">
             <div id="reserveChocoPreview" style="display:none;justify-content:center;align-items:center;margin:10px 0 6px;height:54px;border-radius:12px;background:linear-gradient(135deg,#6b3f26,#4a2a18);box-shadow:inset 0 2px 4px rgba(255,255,255,.18);color:#fbe9c8;font-weight:700;letter-spacing:.06em;"><span style="padding:0 14px;text-align:center;">ここに文字が入ります</span></div>
             <div class="field__hint" id="reserveMessageHint">2枚目以降は追加料金がかかります（詳細はご予約後スタッフよりご案内します）。</div>
           </div>
@@ -1059,6 +1061,28 @@ function renderPresets() {
   el.innerHTML = '<div style="font-weight:700;font-size:13.5px;margin-bottom:6px;">まよったら、おすすめから選んで、あとで変更できます</div><div style="display:flex;flex-wrap:wrap;gap:8px;">' + PRESETS.map((p, i) => '<button type="button" class="preset-btn" data-i="' + i + '" style="padding:9px 14px;border:1px solid #c9a96e;background:#fff;border-radius:999px;font-size:13px;cursor:pointer;">' + p.label + '</button>').join("") + '</div>';
   el.querySelectorAll(".preset-btn").forEach(b => b.addEventListener("click", () => { applyFormSpec(PRESETS[Number(b.dataset.i)].spec); updateReserveFloat(); }));
 }
+// ===== 過去のご注文（2026-09-26）：LINE会員ごとに、予約確定時の内容を lineMembers/{uid}/orders に保存し、一覧から同じ内容で注文し直せる =====
+function initPastOrders(uid) {
+  const el = document.getElementById("pastOrders");
+  if (!el || !uid) return;
+  onValue(ref(db, "lineMembers/" + uid + "/orders"), (snap) => {
+    const v = snap.val() || {};
+    const list = Object.entries(v).map(([k, o]) => Object.assign({ key: k }, o)).sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0)).slice(0, 8);
+    if (!list.length) { el.style.display = "none"; el.innerHTML = ""; return; }
+    el.style.display = "block";
+    el.innerHTML = '<details style="margin-bottom:16px;background:#fdfaf6;border:1px solid #ecd9c4;border-radius:12px;padding:10px 14px;"><summary style="cursor:pointer;font-weight:700;font-size:14px;">過去のご注文（' + list.length + '件）</summary>' +
+      list.map((o, i) => {
+        const d = new Date(o.savedAt || 0);
+        const when = isNaN(d) ? "" : d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
+        const price = o.subtotal ? " ／ 概算 " + CakePricing.fromYen(o.subtotal) : "";
+        return '<div style="border-top:1px dashed #e3d2ba;margin-top:10px;padding-top:10px;"><div style="font-size:12px;color:#8a7a68;">ご注文日 ' + escape(when) + (o.pickupDate ? "　お受取日 " + escape(o.pickupDate) : "") + escape(price) + '</div><div style="font-size:13px;margin:4px 0 8px;line-height:1.6;white-space:pre-line;">' + escape(o.headline || "") + '</div>' + (o.spec ? '<button type="button" class="past-order-btn" data-i="' + i + '" style="padding:8px 16px;border:1px solid #3aa76d;color:#0b7a37;background:#fff;border-radius:999px;cursor:pointer;font-size:13px;">この内容で注文する</button>' : "") + '</div>';
+      }).join("") + '</details>';
+    el.querySelectorAll(".past-order-btn").forEach(b => b.addEventListener("click", () => {
+      const o = list[Number(b.dataset.i)];
+      try { applyFormSpec(Object.assign({}, JSON.parse(o.spec), { date: "", time: "" })); updateReserveFloat(); window.scrollTo({ top: 0, behavior: "smooth" }); } catch (e) {}
+    }));
+  });
+}
 function initLastOrderBanner() {
   const el = document.getElementById("lastOrderBanner");
   if (!el) return;
@@ -1641,7 +1665,7 @@ function renderReserveConfirm(data, targetId) {
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
     ${(data.decideLater || []).length ? `<dt>あとで相談</dt><dd>${data.decideLater.map(t => escape(t)).join("・")}</dd>` : ""}
-    ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金はお電話でご案内）</dd>` : ""}
+    ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金・納期は別途ご連絡）</dd>` : ""}
     ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
     ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
@@ -1700,7 +1724,7 @@ function buildReserveSummaryText(data) {
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
   if ((data.decideLater || []).length) lines.push(`あとで相談: ${data.decideLater.join("・")}`);
-  if ((data.toppings || []).length) lines.push(`トッピング: ${data.toppings.join("・")}（料金はお電話でご案内）`);
+  if ((data.toppings || []).length) lines.push(`トッピング: ${data.toppings.join("・")}（料金・納期は別途ご連絡）`);
   (data.tierSpecs || []).forEach(t => lines.push(`${t.tier}: ${String(t.size).replace(/\(.*$/, "")} ${t.cream}${(t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""}`));
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
   if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
@@ -1847,7 +1871,7 @@ async function checkFriendship() {
 function setupReserveForm(uid, displayName) {
   initDraftFeature();
   renderColorChips();
-  renderPresets(); initLastOrderBanner(); createReserveFloat(); updateChocoPreview();
+  renderPresets(); initLastOrderBanner(); initPastOrders(uid); createReserveFloat(); updateChocoPreview();
   populateReserveSelects();
   updateReserveFieldVisibility();
   updateReserveCategoryVisibility();
@@ -1994,7 +2018,13 @@ function setupReserveForm(uid, displayName) {
     data.emailSent = !!emailSent;
 
     try {
-      await withTimeout(push(reservationsRef, data), 12000, "予約保存");
+      const savedRef = await withTimeout(push(reservationsRef, data), 12000, "予約保存");
+      // 過去のご注文として会員に紐づけて保存（失敗しても予約自体には影響させない）
+      try {
+        const sp = (data.category === "cake") ? collectFormSpec() : null;
+        const head = [data.type, (data.tierSpecs || []).length ? data.tierSpecs.map(t => t.tier + " " + String(t.size).replace(/\(.*$/, "") + " " + t.cream).join(" / ") : (data.items && data.items[0] ? String(data.items[0].size || "").replace(/\(.*$/, "") + " " + (data.creamType || "") : "")].filter(Boolean).join("\n");
+        await set(ref(db, "lineMembers/" + uid + "/orders/" + savedRef.key), { savedAt: Date.now(), pickupDate: data.pickupDate || "", subtotal: data.subtotal || 0, headline: head.slice(0, 300), spec: sp ? JSON.stringify(Object.assign({}, sp, { date: "", time: "" })).slice(0, 4000) : "" });
+      } catch (e) { console.warn("過去の注文の保存に失敗:", e); }
     } catch (err) {
       console.warn("Firebase保存失敗:", err);
       finalBtn.disabled = false; backBtn.disabled = false; finalBtn.textContent = "この内容でご予約を確定する";
