@@ -318,7 +318,7 @@ exports._internal = {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
-  buildCustomerConfirmationEmailText, buildCouponReplyText,
+  buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
 };
 
 exports.lineWebhook = onRequest(
@@ -567,43 +567,86 @@ function sizeWithDiameter(size) {
   const m = String(size || "").match(/^(\d号)\((約\d+cm)/);
   return m ? m[1] + "（直径" + m[2] + "）" : String(size || "").replace(/\(.*$/, "");
 }
-// 各段・名入れ・トッピング・備考の共通行（受付時メッセージと確定連絡メッセージで同じ書き方にそろえる）
-function orderDetailLines(data, confirmed) {
+// ◇項目の1行を作る。LINEのトーク画面は1行あたり全角18文字前後で折り返され、箇条書きが長いと
+// 折り返し行の頭がそろわず読みにくくなる。短ければ「◇項目：内容」の1行、長ければ「◇項目」の次の行に
+// 全角スペース付きで内容を置く（2026-09-28オーナー指示：長文の箇条書きは折り返しで見づらい）。
+function diamondLine(label, value) {
+  const v = String(value == null ? "" : value).trim();
+  if (!v) return "◇" + label;
+  const oneLine = "◇" + label + "：" + v;
+  return oneLine.length <= 18 ? oneLine : "◇" + label + "\n　" + v.split("\n").join("\n　");
+}
+
+// ご注文の仕様を「◇項目：内容」の行にまとめる（受付時メッセージと確定連絡メッセージで同じ書き方にそろえる）。
+function orderDetailLines(data) {
   const lines = [];
-  if (Array.isArray(data.tierSpecs) && data.tierSpecs.length) {
-    data.tierSpecs.forEach((t) => lines.push("　" + t.tier + "：" + sizeWithDiameter(t.size) + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "")));
-  } else {
-    const it = (data.items && data.items[0]) || {};
-    if (it.size) lines.push("　" + sizeWithDiameter(it.size) + (data.creamType ? " " + data.creamType : "") + (data.colorCream && data.colorCream.count ? "（カラークリーム" + data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : "") + "）" : ""));
+  const it = (data.items && data.items[0]) || {};
+  const isCakeLike = it.category === "デコレーションケーキ" || it.category === "ロールケーキ";
+  lines.push(diamondLine("商品", productLabel(data)));
+  if (data.galleryPick && data.galleryPick.name) {
+    lines.push(diamondLine("ギャラリーで選択", data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : "")));
   }
-  const msg = data.items && data.items[0] && data.items[0].message;
-  if (msg) lines.push("　名入れチョコレート：" + msg);
+  if (Array.isArray(data.tierSpecs) && data.tierSpecs.length) {
+    data.tierSpecs.forEach((t) => {
+      lines.push(diamondLine(t.tier, sizeWithDiameter(t.size) + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "")));
+    });
+  } else {
+    if (it.size && it.size !== "ホール") lines.push(diamondLine("サイズ", sizeWithDiameter(it.size)));
+    if (data.creamType) lines.push(diamondLine("クリーム", data.creamType + (data.creamTypeSub ? "（" + data.creamTypeSub + "）" : "")));
+    if (data.colorCream && data.colorCream.count) {
+      lines.push(diamondLine("カラークリーム", data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "（" + data.colorCream.colors.join("・") + "）" : "")));
+    }
+  }
+  if (data.decoration) lines.push(diamondLine("飾り付け", data.decoration));
+  if (isCakeLike) {
+    lines.push(diamondLine("ろうそく", data.christmasOrder ? "無料でお付けします" : (data.candleNeeded ? data.candleType + " " + data.candleBags + "袋" : "なし")));
+    if (data.christmasOrder) lines.push(diamondLine("プレート", "「メリークリスマス」"));
+    else if (it.message) lines.push(diamondLine("プレート", "「" + it.message + "」"));
+    else lines.push(diamondLine("プレート", data.messageCount > 0 ? data.messageCount + "枚（文字はご相談）" : "なし"));
+  }
   const extras = [];
+  if (data.creamTopping) extras.push("生クリームたっぷり");
+  if (data.strawberryAdd) extras.push("いちごトッピング");
+  if (data.topCut) extras.push("カットケーキ載せ" + (data.topCut.note ? "（" + data.topCut.note + "）" : ""));
+  if (data.onsiteAssembly) extras.push("出張組み立て");
   (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
   (data.toppings || []).forEach((t) => extras.push(t));
-  if (extras.length) lines.push("　トッピング：" + extras.join("、") + ((data.toppings || []).length && !confirmed ? "（料金・納期は別途ご連絡します）" : ""));
-  if (Array.isArray(data.decideLater) && data.decideLater.length) lines.push("　あとでご相談：" + data.decideLater.join("・"));
-  if (data.note) lines.push("　備考：" + data.note);
+  if (extras.length) lines.push(diamondLine("オプション", extras.join("、")));
+  if (Array.isArray(data.decideLater) && data.decideLater.length) lines.push(diamondLine("あとで相談", data.decideLater.join("・")));
+  if (data.receiptNeeded) lines.push(diamondLine("領収書", "必要" + (data.receiptName ? "（宛名：" + data.receiptName + "）" : "")));
+  if (data.note) lines.push(diamondLine("備考", data.note));
   return lines;
 }
 
-// ① 予約を受け付けた直後にお客様のLINEへ送る文面（2026-09-26オーナー確定文面）
+// ① 予約を受け付けた直後にお客様のLINEへ送る文面（2026-09-26オーナー確定文面を、2026-09-28に
+// 「1通にまとめて◆◇で見やすく」へ再構成。以前はお客様側の自動投稿（【ご予約を送信しました】）とこの
+// メッセージの計2通が長文で届いていたため、この1通に統合した）。
 function buildReceivedMessage(data) {
   const name = data.name || "お客様";
   const lines = [
     name + "様、ご予約ありがとうございます🎂",
-    "選択いただいたご注文内容を以下の通り、承りました。",
-    "内容確認と確定価格・納期のご連絡のためパティシエよりご連絡を差し上げますので、",
-    "　※070-9158-0641からお電話を差し上げます。",
-    "　　連絡が取れない場合は、予約をキャンセルさせていただくことがございますので、",
-    "　　あらかじめご了承のほど、よろしくお願いいたします。",
+    "ご注文を以下の内容で承りました。",
     "",
-    "■ 商品：" + productLabel(data),
-    "■ お引き取りご希望：" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime),
+    "◆ご注文内容",
   ].concat(orderDetailLines(data));
-  if (data.priceNeedsConsult) lines.push("■ お見積もり：この組み合わせは、パティシエより個別にご案内します");
-  else if (data.subtotal) lines.push("■ お見積もり：¥" + Number(data.subtotal).toLocaleString() + "〜（税込）");
-  lines.push("", "内容のご変更・ご相談は、このトークまたはお電話（070-9158-0641）でお気軽にお知らせください。", "当日、お会いできるのを楽しみにしております🍓");
+  lines.push("", "◆お引き取り");
+  lines.push("◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
+  lines.push("", "◆お見積もり");
+  if (data.priceNeedsConsult) lines.push("◇個別にご案内します");
+  else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", "※概算です。確定金額はお電話でご案内します");
+  else lines.push("◇お電話でご案内します");
+  lines.push(
+    "",
+    "◆このあとの流れ",
+    "◇パティシエが内容確認のお電話をします",
+    "　（070-9158-0641から発信）",
+    "◇連絡が取れない場合、ご予約をキャンセルさせていただくことがあります",
+    "",
+    "◆ご変更・ご相談",
+    "◇このトーク、またはお電話（070-9158-0641）へ",
+    "",
+    "当日お会いできるのを楽しみにしております🍓"
+  );
   return lines.join("\n");
 }
 
@@ -613,14 +656,22 @@ function buildConfirmMessage(data) {
   const pd = data.finalPickupDate || data.pickupDate, pt = data.finalPickupTime || data.pickupTime;
   const lines = [
     name + "様、お電話でのご確認ありがとうございました🎂",
-    "ご注文内容が、以下の内容で確定いたしました。",
+    "ご注文が以下の内容で確定いたしました。",
     "",
-    "■ 商品：" + productLabel(data),
-    "■ お引き取り日時（確定）：" + formatPickupDateTimeJp(pd, pt),
-  ].concat(orderDetailLines(data, true));
-  if (data.finalPrice) lines.push("■ ご確定金額：¥" + Number(data.finalPrice).toLocaleString() + "（税込）");
-  else if (data.subtotal && !data.priceNeedsConsult) lines.push("■ お見積もり：¥" + Number(data.subtotal).toLocaleString() + "〜（税込・概算）");
-  lines.push("", "内容のご変更・ご相談は、このトークまたはお電話（070-9158-0641）でお気軽にお知らせください。", "当日、お会いできるのを楽しみにしております🍓");
+    "◆ご注文内容",
+  ].concat(orderDetailLines(data));
+  lines.push("", "◆お引き取り（確定）", "◇" + formatPickupDateTimeJp(pd, pt));
+  lines.push("", "◆お支払い金額");
+  if (data.finalPrice) lines.push("◇¥" + Number(data.finalPrice).toLocaleString() + "（税込）");
+  else if (data.subtotal && !data.priceNeedsConsult) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込・概算）");
+  else lines.push("◇お電話でご案内した金額です");
+  lines.push(
+    "",
+    "◆ご変更・ご相談",
+    "◇このトーク、またはお電話（070-9158-0641）へ",
+    "",
+    "当日お会いできるのを楽しみにしております🍓"
+  );
   return lines.join("\n");
 }
 

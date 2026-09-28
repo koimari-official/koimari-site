@@ -563,3 +563,4 @@ Lシンク（外部AI活用支援サービス、月額3万円）の代替とし�
 - `koimari2026` → 管理画面パスワード
 - `DEFAULT_SPOTLIGHT` → スポットライトのデフォルトデータ
 - `_koimari_` → Instagramハンドル
+- **予約直後のLINE通知は1通に統合し◆◇形式に**（2026-09-28オーナー指示）：以前は「お客様側からの自動投稿（`member.html`の`liff.sendMessages`、【ご予約を送信しました】＋項目羅列）」と「サーバーからのpush（`buildReceivedMessage`）」の長文2通が届き、LINEの折り返しで箇条書きが読みづらく、お客様投稿はAIの自動返信も誘発していた。`member.html`のsendMessagesは一日店長体験（サーバー確認メッセージが無い種別）のみに限定し、ケーキ/ロール/焼き菓子は`functions/index.js`の`buildReceivedMessage`1通のみに。文面は◆見出し（ご注文内容/お引き取り/お見積もり/このあとの流れ/ご変更・ご相談）＋◇項目、`diamondLine()`が18文字超の項目を「◇項目」+次行に全角スペース付きで内容、と折り返しを考慮して整形する。確定連絡（`buildConfirmMessage`）も同じ書き方（`orderDetailLines`共通）。デプロイは`functions:sendReservationReceivedMessage,functions:sendReservationConfirmedMessage`を明示指定

@@ -2077,10 +2077,13 @@ function setupReserveForm(uid, displayName) {
     try { localStorage.removeItem(DRAFT_LS_KEY); localStorage.removeItem(AUTOSAVE_LS_KEY); } catch (e) {}
     { const f = document.getElementById("reserveFloat"); if (f) f.style.display = "none"; }
 
-    // LINEチャットに予約内容を投稿する（お客様の履歴・スタッフの受信箱の両方に残すため）。
+    // 一日店長体験のみ、LINEチャットに予約内容を投稿する（サーバーからの確認メッセージが無い種別のため）。
+    // ケーキ・ロール・焼き菓子は、サーバー側（functions/index.js の buildReceivedMessage）が1通にまとめた
+    // 確認メッセージを送るので、ここで重ねて投稿しない（2026-09-28オーナー指示：長文2通を1通に統合。
+    // お客様が投稿する形のメッセージはAIの自動返信も誘発していた）。
     // 外部ブラウザから開かれた場合はsendMessagesが使えないため、失敗しても予約自体は成立させる。
     try {
-      if (liff.isInClient()) {
+      if (data.category === "kidsManager" && liff.isInClient()) {
         await liff.sendMessages([{ type: "text", text: buildReserveSummaryText(data) }]);
       }
     } catch (err) {

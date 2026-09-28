@@ -252,4 +252,22 @@ assertEqual(
 );
 console.log("OK: buildCouponReplyText");
 
+// --- 予約直後・確定時のLINEメッセージ（2026-09-28: 1通に統合し◆◇形式に） ---
+{
+  const { buildReceivedMessage, buildConfirmMessage, diamondLine } = require("./index.js")._internal;
+  const rec = buildReceivedMessage({
+    name: "山田", items: [{ category: "デコレーションケーキ", size: "5号(約15cm/4-6名)", message: "おめでとう" }],
+    pickupDate: "2026-10-10", pickupTime: "15:00", creamType: "生クリーム", decoration: "フルーツ",
+    candleNeeded: true, candleType: "普通のろうそく", candleBags: 1, subtotal: 6200,
+  });
+  assert.ok(["◆ご注文内容", "◆お引き取り", "◆お見積もり", "◆このあとの流れ"].every((h) => rec.includes(h)), "受付メッセージに◆見出しが揃う");
+  assert.ok(rec.includes("◇サイズ：5号（直径約15cm）"), "サイズ行が◇形式");
+  assert.ok(rec.includes("◇¥6,200〜（税込）"), "見積もり金額が入る");
+  assert.ok(!rec.includes("■"), "旧■記号は使わない");
+  const conf = buildConfirmMessage({ name: "山田", items: [{ category: "ロールケーキ", size: "ホール", flavor: "こいまりロール" }], pickupDate: "2026-10-10", pickupTime: "15:00", finalPrice: 3500 });
+  assert.ok(conf.includes("◆お支払い金額") && conf.includes("◇¥3,500（税込）"), "確定メッセージに確定金額");
+  assertEqual(diamondLine("備考", "あ"), "◇備考：あ", "短い項目は1行");
+  assertEqual(diamondLine("備考", "あ".repeat(30)), "◇備考\n　" + "あ".repeat(30), "長い項目は次行に全角スペース付きで置く");
+}
+
 console.log("\nすべてのローカルテストに合格しました。");
