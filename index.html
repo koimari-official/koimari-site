@@ -604,6 +604,15 @@ body:not(.chrome-visible) .fab{display:none!important}
 #globalNav .nav-link:hover,.sub-nav .nav-link:hover,#globalNav .nav-link:focus-visible,.sub-nav .nav-link:focus-visible{background:none;box-shadow:none;transform:none;color:var(--color-accent-dark,#a88a52)}
 #globalNav .nav-link:hover::after,.sub-nav .nav-link:hover::after,#globalNav .nav-link:focus-visible::after,.sub-nav .nav-link:focus-visible::after{transform:scaleX(1)}
 @media(max-width:700px){#globalNav ul,.sub-nav ul{gap:8px 22px;padding:16px 12px}#globalNav li+li::before,.sub-nav li+li::before{display:none}#globalNav .nav-link,.sub-nav .nav-link{font-size:17px;letter-spacing:.08em}}
+.news-row--insta{grid-template-columns:130px 110px 1fr auto}
+.news-row__title--insta{display:flex;align-items:center;gap:16px}
+.news-row__thumb{width:76px;height:76px;object-fit:cover;flex-shrink:0;border:1px solid var(--color-line)}
+.ig-follow{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 28px;height:100%;gap:8px}
+.ig-follow__handle{font-family:var(--font-en);font-size:30px;letter-spacing:.14em;color:var(--color-accent-dark);font-weight:600}
+.ig-follow__id{font-family:var(--font-sans);font-size:20px;font-weight:700;color:var(--color-text)}
+.ig-follow__desc{font-size:19px;line-height:1.9;color:var(--color-text-soft);margin:6px 0 14px}
+.ig-follow__btn{display:inline-block;padding:12px 30px;border:2px solid var(--color-accent-dark);color:var(--color-accent-dark);font-family:var(--font-sans);font-weight:800;font-size:18px}
+@media(max-width:700px){.news-row--insta{grid-template-columns:1fr}.news-row__thumb{width:64px;height:64px}}
 </style>
 <style id="philosophy-css">
 /* こいまりのこだわり：4つの細切れセクションを2x2のカードに統合（2026-09-28、Gemini案を採用しサイトの配色・書体に合わせて実装） */
@@ -718,7 +727,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <ul>
         <li><strong>定番ケーキ</strong>は、<strong>3営業日以降</strong>のお引き取りです。</li>
         <li>2営業日を切る<strong>お急ぎ</strong>の場合は、<strong>お電話</strong>ください。<br><a class="quick-reserve__tel" href="tel:07091580641">070-9158-0641</a></li>
-        <li>お引き渡し日は<strong>資材の在庫状況</strong>によります。お早めのご相談をおすすめいたします。（オーダーメイド・特殊な仕様は2週間程度かかる場合があります）</li>
+        <li><strong>オーダーケーキの場合</strong>、お引き渡し日は<strong>資材の在庫状況</strong>によります。お早めのご相談をおすすめいたします。（オーダーメイド・特殊な仕様は2週間程度かかる場合があります）</li>
       </ul>
     </div>
 
@@ -1068,15 +1077,7 @@ const DEFAULT_VOICES = [
   { stars:5, text:"職場へのお礼の品として焼き菓子の詰め合わせをお願いしました。包装も上品で、皆さんからとても好評でした。リピートさせていただきます。", textEn:"I ordered a box of assorted baked sweets as a thank-you gift for my colleagues. The elegant packaging was greatly appreciated by everyone. I will definitely order again.", name:"K.T.様", attr:"贈答品", attrEn:"Corporate Gift" },
   { stars:5, text:"母の傘寿のお祝いに、特別なケーキをご相談しました。希望をしっかり聞いてくださり、想像以上の出来栄えに感激しました。", textEn:"I consulted on a special cake for my mother's 80th birthday. They listened carefully to all my wishes, and the result far exceeded my expectations. I was truly moved.", name:"H.K.様", attr:"記念日のお祝い", attrEn:"Special Anniversary" }
 ];
-const DEFAULT_INSTA = {
-  img: "insta-tart.jpg",
-  imgCount: 3,
-  likes: 25,
-  date: "4月17日",
-  caption: "こいまり城東です！\n\nフルーツがキラキラしていて宝石箱のようなタルトのデコレーションケーキです♪\n\nこちらは6号サイズでございます\nタルトの上にカスタードを絞り、色々なフルーツを飾りました\n\n色々なフルーツでカラフルな見た目なのでパーティーを彩ってくれること間違いなし🏻",
-  hashtags: "#こいまり #城東区スイーツ #大阪スイーツ #大阪ケーキ屋 #フルーツタルト",
-  url: "https://www.instagram.com/_koimari_"
-};
+const DEFAULT_INSTA = { visible: false }; // 管理画面で最新投稿を登録するまで表示しない（見本を「最新」と誤って出さないため）
 
 // 2026-09-11判明：初回表示時（またはlocalStorageに何もキャッシュが無い時）、コード内に
 // 埋め込まれたDEFAULT_IMAGES（開発時点の仮の写真）がFirebaseからの実データ到着前に一瞬
@@ -1212,14 +1213,28 @@ function renderExperiences(){
   });
 }
 
+function instaNewsRow(){
+  // 管理画面「Instagram投稿」で登録した最新投稿を、お知らせと同じ見た目の1行として先頭に出す（2026-09-29オーナー指示）。
+  const ig=loadInsta();
+  if(!ig||ig.visible===false||!ig.url||!(ig.caption||ig.img)) return null;
+  const a=document.createElement("a");
+  a.className="news-row news-row--insta";
+  a.href=ig.url; a.target="_blank"; a.rel="noopener";
+  const text=String(ig.caption||"").split(/\r?\n|<br\s*\/?>/i).map(l=>l.trim()).filter(Boolean).join(" ");
+  const short=text.length>70?text.slice(0,70)+"…":text;
+  a.innerHTML=`<span class="news-row__date">${escape(ig.date||"")}</span><span class="news-row__tag news-row__tag--insta">Instagram</span><span class="news-row__title news-row__title--insta">${ig.img?`<img class="news-row__thumb" src="${escape(ig.img)}" alt="" loading="lazy" onerror="this.remove()">`:""}<span>${escape(short||"最新の投稿を見る")}</span></span><span class="news-row__arrow">→</span>`;
+  return a;
+}
 function renderNews(){
   newsList.innerHTML='';
   const en=I18nCtrl.isEn();
   const newsItems=loadNews();
-  if(!newsItems.length){
+  const igRow=instaNewsRow();
+  if(igRow) newsList.appendChild(igRow);
+  if(!newsItems.length&&!igRow){
     newsList.innerHTML=`<div class="pickup__empty">${en?'No announcements at this time.':'お知らせは現在ありません。'}</div>`;
   }else{
-    newsItems.filter(n=>n.visible!==false).slice(0,5).forEach(n=>{
+    newsItems.filter(n=>n.visible!==false).slice(0,igRow?4:5).forEach(n=>{
       const a=document.createElement("a");
       a.className="news-row";
       a.href=escape(n.url||"#");
@@ -1374,37 +1389,11 @@ setInterval(updateStatus,60000);
 /* ========= Instagram投稿風カード ========= */
 const igCard=document.getElementById("igCard");
 function renderInstaCard(){
-  const ig=loadInsta();
+  // 以前は投稿風のカード（画像・いいね数など）を出していたが、いいね数などが手入力の偽の数字になるため廃止し、
+  // 最新投稿は「お知らせ」欄の先頭行に出す。ここはフォロー案内のみ（2026-09-29）。
   if(!igCard) return;
-  if(ig.visible===false){ igCard.style.display="none"; return; }
-  igCard.style.display="";
-  const captionLines=String(ig.caption||"").replace(/<\s*br\s*\/?\s*>/gi,"\n").split("\n").filter(l=>l).map(l=>escape(l)).join("<br>");
-  const hashtags=(ig.hashtags||"").split(/\s+/).filter(t=>t.startsWith("#")).map(t=>escape(t)).join(" ");
-  igCard.href=ig.url||"https://www.instagram.com/_koimari_";
-  igCard.innerHTML=`
-    <div class="ig-card__header">
-      <div class="ig-card__avatar"><div class="ig-card__avatar-inner">こ</div></div>
-      <div class="ig-card__user">
-        <div class="ig-card__handle">_koimari_</div>
-        <div class="ig-card__location">こいまり城東</div>
-      </div>
-      <div class="ig-card__menu">⋯</div>
-    </div>
-    <div class="ig-card__media">
-      <img src="${escape(ig.img)}" alt="こいまりの最新投稿" loading="lazy" onerror="this.style.background='var(--color-bg-soft)';this.alt='画像読み込み中'">
-      ${ig.imgCount>1?`<span class="ig-card__media-count">1/${ig.imgCount}</span>`:""}
-    </div>
-    <div class="ig-card__actions">
-      <span class="ig-card__action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-      <span class="ig-card__action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-      <span class="ig-card__action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span>
-      <span class="ig-card__action-icon ig-card__bookmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
-    </div>
-    <div class="ig-card__likes">${ig.likes||0}件のいいね</div>
-    <div class="ig-card__caption"><strong>_koimari_</strong>${captionLines}<div class="ig-card__caption-fade"></div></div>
-    ${hashtags?`<div class="ig-card__hashtags">${hashtags}</div>`:""}
-    <div class="ig-card__date">${escape(ig.date||"")}</div>
-    <div class="ig-card__cta">Instagramで見る ↗</div>`;
+  igCard.href="https://www.instagram.com/_koimari_";
+  igCard.innerHTML=`<div class="ig-follow"><div class="ig-follow__handle">Instagram</div><div class="ig-follow__id">@_koimari_</div><p class="ig-follow__desc">ケーキの新作や店内の様子を、毎日の投稿でお届けしています。</p><span class="ig-follow__btn">Instagramを見る ↗</span></div>`;
 }
 window.renderInstaCard=renderInstaCard;
 renderInstaCard();
@@ -1520,6 +1509,7 @@ Object.entries(CONTENT_KEY_TO_LS).forEach(([contentKey, lsKey]) => {
     if (typeof window.renderDynamic === "function") window.renderDynamic();
     if (typeof window.renderBcal === "function") window.renderBcal();
     if (typeof window.renderInstaCard === "function") window.renderInstaCard();
+    if (typeof window.renderNews === "function") window.renderNews(); // 最新Instagram投稿はお知らせの先頭行に出すため
   });
 });
 // 2026-09-23、カテゴリー画像が「オーダーメイド」の作品と連動している場合に解決できるよう、

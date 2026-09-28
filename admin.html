@@ -4457,27 +4457,18 @@ function renderSpotlightAdmin() {
 
 /* ============ Instagram投稿 管理 ============ */
 const INSTA_KEY = "koimari_insta";
-const DEFAULT_INSTA = {
-  img: "assets/insta-tart.png",
-  imgCount: 3,
-  likes: 25,
-  date: "4月17日",
-  caption: "こいまり城東です！\n\nフルーツがキラキラしていて宝石箱のようなタルトのデコレーションケーキです♪\n\nこちらは6号サイズでございます🌼\nタルトの上にカスタードを絞り、色々なフルーツを飾りました☺️",
-  hashtags: "#こいまり #城東区スイーツ #大阪スイーツ #大阪ケーキ屋 #フルーツタルト",
-  url: "https://www.instagram.com/_koimari_"
-};
+const DEFAULT_INSTA = { img: "", date: "", caption: "", url: "", visible: true };
 let instaData = null;
 function renderInstaAdmin() {
   if (!instaData) instaData = loadByKey(INSTA_KEY, DEFAULT_INSTA);
   const wrap = document.getElementById("instaForm");
+  // 最新のInstagram投稿を、トップページの「お知らせ」の先頭行に表示する（2026-09-29オーナー指示）。
+  // Instagram APIとは連携していないため、投稿のたびにここへ貼り付ける（URL・写真・本文だけの簡単入力）。
   const fields = [
-    { k: "img", l: "投稿画像URL（または下のボタンからアップロード）", t: "input" },
-    { k: "imgCount", l: "画像枚数（1枚なら1、複数枚投稿なら 2, 3, 4 など）", t: "input" },
-    { k: "likes", l: "いいね数", t: "input" },
-    { k: "date", l: "投稿日（例: 4月17日）", t: "input" },
-    { k: "caption", l: "本文（改行可・絵文字可）", t: "textarea" },
-    { k: "hashtags", l: "ハッシュタグ（スペース区切り）", t: "input" },
-    { k: "url", l: "Instagram投稿のリンク先URL", t: "input" }
+    { k: "url", l: "① Instagram投稿のURL（投稿を開いて「リンクをコピー」したもの）", t: "input" },
+    { k: "img", l: "② 投稿の写真（下の「画像をファイルから選択」でアップロード、または画像URL）", t: "input" },
+    { k: "date", l: "③ 投稿日（例: 9月29日）※空欄のまま保存すると今日の日付が入ります", t: "input" },
+    { k: "caption", l: "④ 本文（お知らせには最初の70文字ほどが表示されます）", t: "textarea" }
   ];
   if (instaData.visible === undefined) instaData.visible = true;
   const iv = instaData.visible;
@@ -4514,6 +4505,7 @@ function renderInstaAdmin() {
     } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
   });
   document.getElementById("saveInsta").addEventListener("click", async () => {
+    if (!instaData.date) { const d = new Date(); instaData.date = (d.getMonth() + 1) + "月" + d.getDate() + "日"; }
     afterSave(await saveByKey(INSTA_KEY, instaData), merged => { instaData = merged; renderInstaAdmin(); }, "Instagram投稿を保存しました（サイトに反映されます）");
   });
 }
