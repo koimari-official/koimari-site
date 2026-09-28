@@ -112,13 +112,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 <main>
   <div id="loadingBox" class="notice-box">
-    <div class="notice-box__icon">🎀</div>
     <div class="notice-box__title">読み込み中です…</div>
     <div class="notice-box__desc">LINEアプリでこのページを開くと、自動的に会員登録されます。</div>
   </div>
 
   <div id="externalBrowserNotice" class="notice-box" style="display:none;">
-    <div class="notice-box__icon">📱</div>
     <div class="notice-box__title">ご予約はLINEアプリからお願いします</div>
     <div class="notice-box__desc" style="margin-bottom:20px;">
       恐れ入りますが、ご予約フォームはLINE公式アカウントのトーク画面からのみご利用いただけます。<br>
@@ -140,7 +138,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="section" id="reserveSection">
       <div class="section__title">ご予約</div>
       <div style="text-align:center;margin-bottom:20px;">
-        <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">📷 過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
+        <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
       </div>
 
       <div id="reserveFormWrap">
@@ -229,7 +227,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
           <label class="field__label">カラークリーム（ケーキ全体で最大3色まで）</label>
-          <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。色をタップして選んでね🎨</div>
+          <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。色をタップして選んでね</div>
           <div id="reserveColorChips"></div>
           <div id="reserveColorSummary" class="field__hint">色を選ぶと、色数に応じた金額が加算されます</div>
           <select id="reserveColorCream" style="display:none;"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
@@ -275,7 +273,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveAddOnsField" style="display:none;">
           <label class="field__label">砂糖菓子・オーナメント・クッキー（写真から選べます）</label>
-          <div class="field__hint">かわいい飾りを、写真を見ながらお好きなだけ追加できます。＋ーで個数をえらんでね🎂</div>
+          <div class="field__hint">かわいい飾りを、写真を見ながらお好きなだけ追加できます。＋ーで個数をえらんでね</div>
           <div id="reserveAddOnsGrid"></div>
         </div>
         <div class="field" id="reserveOnsiteField" style="display:none;">
@@ -437,7 +435,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
 
       <div id="reserveThanksWrap" class="notice-box" style="display:none;padding:0;border:none;text-align:left;">
-        <div class="notice-box__icon">🎂</div>
         <div class="notice-box__title">ご予約ありがとうございました</div>
         <div class="notice-box__desc">予約完了をメールでお送りしますのでご確認ください。後ほど担当より確認のお電話も差し上げます。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
         <div class="confirm-box" id="reserveThanksSummary" style="margin-top:20px;"></div>
@@ -461,7 +458,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 
   <div id="errorBox" class="notice-box" style="display:none;">
-    <div class="notice-box__icon">🙏</div>
     <div class="notice-box__title">読み込みに失敗しました</div>
     <div class="notice-box__desc">お手数ですが、LINEのチャット画面から再度お試しください。</div>
     <div id="errorDetail" style="margin-top:14px;font-size:11px;color:var(--color-text-soft);opacity:.6;word-break:break-all;"></div>
@@ -649,7 +645,7 @@ function renderAddOns() {
   grid.innerHTML = addOnCatalog.map((it, i) => {
     const q = addOnQty[addOnKey(it)] || 0;
     return `<div class="addon-card" data-i="${i}" style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;${q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : ""}">
-      ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">` : `<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;">🍬</div>`}
+      ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">` : `<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;"></div>`}
       <div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">${esc(it.name)}</div>
       <div style="font-size:12px;color:#a88a52;">${it.priceNum ? "¥" + it.priceNum.toLocaleString() : "料金は別途"}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">
@@ -1063,9 +1059,9 @@ function updateChocoPreview() {
   txt.style.fontSize = (t.length > 11 ? 12 : t.length > 7 ? 14 : 17) + "px";
 }
 const PRESETS = [
-  { label: "🎂 お誕生日（5号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["5号(約15cm/5-6名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1", msgText: "Happy Birthday" } },
-  { label: "👨‍👩‍👧 みんなで（7号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["7号(約21cm/9-10名)"], specs: [{ cream: "生クリーム", colors: [] }], occasion: "バースデー", msgCount: "1" } },
-  { label: "🎀 2段ケーキ（6号＋4号）", spec: { type: "デコレーションケーキ", tiers: 2, sizes: ["6号(約18cm/7-8名)", "4号(約12cm/3-4名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }, { cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1" } }
+  { label: "お誕生日（5号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["5号(約15cm/5-6名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1", msgText: "Happy Birthday" } },
+  { label: "みんなで（7号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["7号(約21cm/9-10名)"], specs: [{ cream: "生クリーム", colors: [] }], occasion: "バースデー", msgCount: "1" } },
+  { label: "2段ケーキ（6号＋4号）", spec: { type: "デコレーションケーキ", tiers: 2, sizes: ["6号(約18cm/7-8名)", "4号(約12cm/3-4名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }, { cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1" } }
 ];
 function renderPresets() {
   const el = document.getElementById("reservePresets");
@@ -1886,7 +1882,7 @@ function updateReservePhoneNotice() {
     '<div style="color:#4a3a2a;">お電話でこちらの内容をお伝えください：</div>' +
     '<ul style="margin:4px 0 10px 1.2em;padding:0;color:#2e2118;"><li>引き取り希望日：' + esc(v) + '</li><li>商品：' + esc(productLine) + '</li>' + (priceLine ? '<li>' + esc(priceLine) + '</li>' : '') + '</ul>' +
     '<div style="color:#4a3a2a;margin-bottom:10px;">ギャラリーで選んだ仕様をお伝えいただくと、お見積もり・お引き取り日をスムーズにご案内できます。オーダー内容によっては、取り寄せが必要な材料・資材がある場合は別途ご相談させていただきます。</div>' +
-    '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">📞 070-9158-0641 に電話する</a></div>';
+    '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">070-9158-0641 に電話する</a></div>';
 }
 
 // ===== 友だち未登録の方への案内（2026-09-24）=====
@@ -2026,7 +2022,7 @@ function setupReserveForm(uid, displayName) {
     const banner = document.getElementById("reserveFormErrorBanner");
     if (!validateReserve(data)) {
       const messages = Array.from(document.querySelectorAll("#reserveFormWrap .error")).map(el => el.textContent).filter(Boolean);
-      banner.innerHTML = "⚠️ 入力内容をご確認ください<br>" + messages.map(m => "・" + escape(m)).join("<br>");
+      banner.innerHTML = "入力内容をご確認ください<br>" + messages.map(m => "・" + escape(m)).join("<br>");
       banner.style.display = "block";
       banner.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
