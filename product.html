@@ -331,7 +331,7 @@ function renderProductPage(){
     const box = document.createElement('div');
     box.id = 'productReserve';
     box.className = 'product-reserve';
-    box.innerHTML = '<button type="button" class="product-reserve__btn">この商品でご予約に進む →</button><p class="product-reserve__note">選んだ商品を予約フォームに引き継げます（LINEでのご予約）。</p>';
+    box.innerHTML = '<button type="button" class="product-reserve__btn">この商品でご予約に進む →</button><p class="product-reserve__note">選んだ商品を予約フォームに引き継げます（LINEでのご予約）。LINEをお持ちでない方は、この仕様をお電話（<a href="tel:07091580641">070-9158-0641</a>）でお伝えください。</p>';
     document.getElementById('productDesc').insertAdjacentElement('afterend', box);
     box.querySelector('button').addEventListener('click', function(){
       const sizeMatch = String(item.desc || '').match(/^【([^】]+)】/);
