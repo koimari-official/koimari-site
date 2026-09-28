@@ -350,7 +350,8 @@ function renderProductPage(){
       const sizeMatch = String(item.desc || '').match(/^【([^】]+)】/);
       window.KoimariDraft.start({
         name: plainName, productType: productType, idx: productIdx,
-        img: item.img, price: item.price || '', size: sizeMatch ? sizeMatch[1] : ''
+        img: item.img, price: item.price || '', size: sizeMatch ? sizeMatch[1] : '',
+        spec: window.KoimariDraft.buildSpec(item.spec)
       }, this);
     });
   }

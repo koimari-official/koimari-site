@@ -25,12 +25,30 @@
     if (pick.img && String(pick.img).length <= 600 && /^https?:/.test(pick.img)) body.img = String(pick.img);
     if (pick.price) body.price = String(pick.price).slice(0, 60);
     if (pick.size) body.size = String(pick.size).slice(0, 40);
+    // 管理画面で設定した「予約フォームの自動選択」（spec）。DBルールはspecを文字列6000字以内に制限している。
+    if (pick.spec && String(pick.spec).length <= 6000) body.spec = String(pick.spec);
     for (var attempt = 0; attempt < 4; attempt++) {
       var code = genCode();
       var res = await fetch(DB + "/reservationDrafts/" + code + ".json", { method: "PUT", body: JSON.stringify(body) });
       if (res.ok) return code; // 既存コードと衝突した場合は上書き不可(401)なので別コードで再試行
     }
     throw new Error("保存に失敗しました");
+  }
+
+  // 管理画面（商品カードの「予約フォームの自動選択」）で設定した値 cfg = {tiers, size, cream, decoration, occasion} を、
+  // 予約フォーム(member.html)のapplyFormSpec()が受け取れる形式の文字列にする。未設定なら空文字（＝自動選択なし）。
+  // 選択肢の値はmember.htmlのラジオ・サイズの値と完全に一致させること（admin.htmlのSPEC_OPTIONSと同じ）。
+  function buildSpec(cfg) {
+    if (!cfg || typeof cfg !== "object") return "";
+    var tiers = Number(cfg.tiers) || 0, size = cfg.size || "", cream = cfg.cream || "", deco = cfg.decoration || "", occ = cfg.occasion || "";
+    if (!tiers && !size && !cream && !deco && !occ) return "";
+    tiers = tiers || 1;
+    var specs = [];
+    for (var i = 0; i < tiers; i++) specs.push({ cream: cream || "生クリーム", colors: [] });
+    var s = { v: 1, type: "デコレーションケーキ", tiers: tiers, activeTier: 0, sizes: size ? [size] : [], specs: specs };
+    if (deco) s.decoration = deco;
+    if (occ) s.occasion = occ;
+    return JSON.stringify(s);
   }
 
   function liffUrl(code) { return LIFF_URL + "?draft=" + encodeURIComponent(code) + "#reserve"; }
@@ -92,5 +110,5 @@
     }
   }
 
-  window.KoimariDraft = { start: start, liffUrl: liffUrl, LS_KEY: LS_KEY };
+  window.KoimariDraft = { start: start, liffUrl: liffUrl, buildSpec: buildSpec, LS_KEY: LS_KEY };
 })();

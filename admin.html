@@ -2398,6 +2398,52 @@ function appendExtraFlags(item, obj, onUpdate) {
   box.appendChild(mk("❄ 季節限定", "seasonal"));
   item.appendChild(box);
 }
+// 商品ごとの「予約フォームの自動選択」（2026-09-29オーナー指示）。ギャラリーでこのケーキを選んで予約に進んだとき、
+// LINE予約フォーム（member.html）のサイズ・クリーム・飾り付け・ご利用シーン・段数を自動で選ぶための設定を、
+// 商品カード（r.spec）に保存する。選択肢の値は member.html のラジオ／サイズの値、および
+// reserve-draft.js の buildSpec() と完全に一致させること。未設定の項目は自動選択しない。
+const SPEC_OPTIONS = {
+  tiers: [["1", "1段"], ["2", "2段"], ["3", "3段"]],
+  size: [["4号(約12cm/3-4名)", "4号（約12cm）"], ["5号(約15cm/5-6名)", "5号（約15cm）"], ["6号(約18cm/7-8名)", "6号（約18cm）"], ["7号(約21cm/9-10名)", "7号（約21cm）"]],
+  cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ"].map((v) => [v, v]),
+  decoration: ["いちごのみ", "バラエティフルーツ"].map((v) => [v, v]),
+  occasion: ["バースデー", "クリスマス"].map((v) => [v, v]),
+};
+function appendSpecEditor(item, r, onChange) {
+  const cur = r.spec && typeof r.spec === "object" ? r.spec : {};
+  const det = document.createElement("details");
+  det.style.cssText = "margin-top:14px;border:1px solid var(--color-line);border-radius:6px;padding:10px 12px;background:#fdfaf6;";
+  const sum = document.createElement("summary");
+  sum.style.cssText = "cursor:pointer;font-size:13px;font-weight:700;color:var(--color-text);";
+  const configured = () => Object.keys(cur).some((k) => cur[k]);
+  const refreshSum = () => { sum.textContent = "予約フォームの自動選択" + (configured() ? "（設定済み）" : "（未設定）"); };
+  refreshSum();
+  det.appendChild(sum);
+  const hint = document.createElement("div");
+  hint.style.cssText = "font-size:12px;color:var(--color-text-soft);margin:8px 0 10px;line-height:1.7;";
+  hint.textContent = "お客様がこのケーキを選んで「ご予約に進む」を押すと、LINE予約フォームの下の項目が自動で選ばれます（お客様はあとから変更できます）。空欄の項目は自動では選びません。2段・3段の上の段のサイズは、1段目のサイズに合わせてフォームが決めます。";
+  det.appendChild(hint);
+  const grid = document.createElement("div");
+  grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;";
+  [["tiers", "段数"], ["size", "1段目（一番下）のサイズ"], ["cream", "クリームの種類"], ["decoration", "飾り付け"], ["occasion", "ご利用シーン"]].forEach(([key, label]) => {
+    const box = document.createElement("div");
+    const lb = document.createElement("label");
+    lb.textContent = label; lb.style.cssText = "display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:4px;";
+    const sel = document.createElement("select");
+    sel.style.cssText = "width:100%;padding:8px 10px;border:1px solid var(--color-line);background:#fff;font-family:inherit;font-size:14px;";
+    const blank = document.createElement("option"); blank.value = ""; blank.textContent = "自動選択しない"; sel.appendChild(blank);
+    SPEC_OPTIONS[key].forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; if (String(cur[key] || "") === v) o.selected = true; sel.appendChild(o); });
+    sel.addEventListener("change", () => {
+      if (sel.value) cur[key] = sel.value; else delete cur[key];
+      if (configured()) r.spec = cur; else delete r.spec;
+      refreshSum(); onChange();
+    });
+    box.appendChild(lb); box.appendChild(sel); grid.appendChild(box);
+  });
+  det.appendChild(grid);
+  item.appendChild(det);
+}
+
 function renderDecorationCakes() {
   const grid = document.getElementById("decorationCakesGrid"); grid.innerHTML = "";
   workingData.decorationCakes.forEach((r, i) => {
@@ -2423,6 +2469,7 @@ function renderDecorationCakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderDecorationCakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.decorationCakes[i].visible, () => { workingData.decorationCakes[i].visible = !workingData.decorationCakes[i].visible; renderDecorationCakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    appendSpecEditor(item, r, () => updateSaveBar());
     appendReorderControls(item, workingData.decorationCakes, i, () => { renderDecorationCakes(); updateSaveBar(); }, "decorationCakes");
     grid.appendChild(item);
   });

@@ -1823,8 +1823,13 @@ function applyDraft(d) {
     const radio = Array.from(document.querySelectorAll('input[name="reserveType"]')).find(r => r.value === radioValue);
     if (radio && !radio.checked) { radio.checked = true; radio.dispatchEvent(new Event("change", { bubbles: true })); }
   }
+  // 管理画面で商品ごとに設定された仕様（サイズ・クリーム・飾り付け・ご利用シーン・段数）があれば、フォームに自動で選ぶ
+  // （2026-09-29）。お客様は内容をそのまま変更できる。不正な値は各選択肢に一致しないため無視される。
+  currentDraftSpecApplied = false;
+  if (d.spec) { try { applyFormSpec(JSON.parse(d.spec)); currentDraftSpecApplied = true; } catch (e) {} }
   renderDraftBanner();
 }
+let currentDraftSpecApplied = false;
 function renderDraftBanner() {
   const el = document.getElementById("draftBanner");
   if (!el) return;
@@ -1833,7 +1838,7 @@ function renderDraftBanner() {
   if (currentDraft) {
     el.innerHTML = `<div style="display:flex;gap:12px;align-items:center;background:#f3ece1;border:1px solid #d8baa4;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
       ${currentDraft.img ? `<img src="${esc(currentDraft.img)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ""}
-      <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div></div>
+      <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div>${currentDraftSpecApplied ? `<div style="font-size:12px;color:#4a3a2a;margin-top:2px;">この商品の仕様を自動で選びました。内容は下でご変更いただけます。</div>` : ""}</div>
       <button type="button" id="draftClear" style="font-size:12px;border:1px solid #c9a96e;background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;">解除</button></div>`;
     document.getElementById("draftClear").addEventListener("click", () => { currentDraft = null; try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {} renderDraftBanner(); });
   } else {
