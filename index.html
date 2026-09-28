@@ -825,28 +825,28 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="section__head"><span class="section__en">Our Philosophy</span><h2 class="section__title">こいまりのこだわり</h2></div>
     <div class="philosophy__grid">
       <article class="philosophy__card">
-        <img src="brand-story-community.jpg" alt="こいまり 店頭" loading="lazy">
+        <img id="img-philosophy-0" src="brand-story-community.jpg" alt="こいまり 店頭" loading="lazy">
         <div class="philosophy__body">
           <h3>地域に愛される店舗でありたい</h3>
           <p>地域に愛される店舗でありたいと考えています。地元中学校の職業体験では、毎年一番人気の職場としてご評価いただき、卒業後もアルバイトに来てくれるスタッフもいます。お子様からご年配の方まで、すべての世代のご家族に愛していただける、「実家みたい」と言っていただけるような安心できる存在を目指して日々お菓子を焼き上げております。この輪を、より広いエリアへと広げていきたいと考えています。</p>
         </div>
       </article>
       <article class="philosophy__card">
-        <img src="brand-story-anzen.jpg" alt="こいまり ストロベリーショートケーキ" loading="lazy">
+        <img id="img-philosophy-1" src="brand-story-anzen.jpg" alt="こいまり ストロベリーショートケーキ" loading="lazy">
         <div class="philosophy__body">
           <h3>小さなお子様からご年配の方まで安心して</h3>
           <p>お菓子に使用するお酒は、素材の風味を引き立てるためのごく少量にとどめ、焼き上げの加熱工程でアルコール分はしっかりと飛ばすことを基本としています。小さなお子様やご年配の方はもちろん、妊娠中の方やお酒が苦手な方にも、安心して召し上がっていただけるお菓子作りに努めています。</p>
         </div>
       </article>
       <article class="philosophy__card">
-        <img src="brand-story-osaka.jpg" alt="こいまり 城東区の街並み" loading="lazy">
+        <img id="img-philosophy-2" src="brand-story-osaka.jpg" alt="こいまり 城東区の街並み" loading="lazy">
         <div class="philosophy__body">
           <h3>大阪市城東区から、大阪の魅力を</h3>
           <p>私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。</p>
         </div>
       </article>
       <article class="philosophy__card">
-        <img src="brand-story-fruit.jpg" alt="こいまり フルーツロール" loading="lazy">
+        <img id="img-philosophy-3" src="brand-story-fruit.jpg" alt="こいまり フルーツロール" loading="lazy">
         <div class="philosophy__body">
           <h3>果実をたっぷりと、心まで満たす一切れに</h3>
           <p>旬のフルーツを惜しみなく使い、ひと切れでも満足感のある食べ応えにこだわっています。断面いっぱいに広がる果実の彩りと、しっかりとしたボリューム感。見た目の華やかさだけでなく、口いっぱいに広がる果実の美味しさをお楽しみいただけます。</p>
@@ -1039,6 +1039,15 @@ const DEFAULT_IMAGES = {
     {src:"https://images.unsplash.com/photo-1596567836640-3c13eb102106?w=2400&h=1350&fit=crop&q=80",titleEn:"Seasonal Sweets",titleJp:"旬の果実をたっぷりと。<br>素材の味わいを大切にした手作りのお菓子"}
   ],
   greeting:"brand-story-community.jpg",
+  // 「こいまりのこだわり」4カードの写真（2026-09-29、管理画面から1枚ずつ差し替えられるようにした）。
+  // 見出し・本文はコード側に固定（写真だけ差し替える運用）。順番はトップページの表示順と同じ。
+  philosophy: [
+    { title: "地域に愛される店舗でありたい", img: "brand-story-community.jpg" },
+    { title: "小さなお子様からご年配の方まで安心して", img: "brand-story-anzen.jpg" },
+    { title: "大阪市城東区から、大阪の魅力を", img: "brand-story-osaka.jpg" },
+    { title: "果実をたっぷりと、心まで満たす一切れに", img: "brand-story-fruit.jpg" }
+  ],
+
   categories:[
     {name:"デコレーションケーキ",en:"Decoration Cake",img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
     {name:"カットケーキ",en:"Cut Cake",img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
@@ -1493,6 +1502,7 @@ function subscribeSiteImagesKey(key, apply){
   });
 }
 subscribeSiteImagesKey("hero", (IMAGES, val) => { IMAGES.hero = val; if (typeof window.renderHeroSlides === "function") window.renderHeroSlides(); });
+subscribeSiteImagesKey("philosophy", (IMAGES, val) => { IMAGES.philosophy = val; if (typeof window.renderPhilosophyImages === "function") window.renderPhilosophyImages(); });
 subscribeSiteImagesKey("greeting", (IMAGES, val) => { IMAGES.greeting = val; if (typeof window.renderGreetingImage === "function") window.renderGreetingImage(); });
 subscribeSiteImagesKey("categories", (IMAGES, val) => { IMAGES.categories = val; if (typeof window.renderDynamic === "function") window.renderDynamic(); });
 subscribeSiteImagesKey("experiences", (IMAGES, val) => { IMAGES.experiences = val; if (typeof window.renderDynamic === "function") window.renderDynamic(); });
@@ -1554,6 +1564,18 @@ function renderQuickReserveStrip(){
   });
 }
 window.renderQuickReserveStrip=renderQuickReserveStrip;
+// こだわり4カードの写真を差し替える（管理画面「こだわり写真」タブ→siteImages/philosophy）。
+// 見出し・本文はHTMLに固定のままで、写真だけを入れ替える（2026-09-29）。
+function renderPhilosophyImages(){
+  const list=(IMAGES&&Array.isArray(IMAGES.philosophy))?IMAGES.philosophy:[];
+  for(let i=0;i<4;i++){
+    const el=document.getElementById("img-philosophy-"+i);
+    const src=list[i]&&list[i].img;
+    if(el&&src) el.src=src;
+  }
+}
+window.renderPhilosophyImages=renderPhilosophyImages;
+renderPhilosophyImages();
 onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
   const val = snapshot.val();
   galleryPortfolio = Array.isArray(val) ? val : [];

@@ -266,6 +266,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="statsTop">数字で見る</button>
       <button class="tab" data-panel="hero">ヒーロー画像</button>
       <button class="tab" data-panel="greeting">店舗紹介</button>
+      <button class="tab" data-panel="philosophy">こだわり写真</button>
       <button class="tab" data-panel="categories">カテゴリ画像</button>
       <button class="tab" data-panel="voicesAdmin">お客様の声</button>
       <!-- デコレーションケーキ/カットケーキ/ロールケーキ/焼き菓子/ギフトのタブは、2026-09-09に
@@ -606,6 +607,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="panel__head"><h2 class="panel__title">店舗紹介画像</h2></div>
       <p class="panel__desc">「こいまりについて」セクションの1枚です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅900px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
       <div class="img-grid" id="greetingGrid"></div>
+    </section>
+    <section class="panel" id="panel-philosophy">
+      <div class="panel__head"><h2 class="panel__title">こだわり写真</h2></div>
+      <p class="panel__desc">トップページ「こいまりのこだわり」4つのカードの写真です。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅900px程度。見出しと本文はサイト側に固定されているため、ここでは写真だけを差し替えます。</span></p>
+      <div class="img-grid" id="philosophyGrid"></div>
     </section>
     <section class="panel" id="panel-categories">
       <div class="panel__head"><h2 class="panel__title">カテゴリ画像</h2><button class="btn btn--small" id="addCategory">＋ カテゴリを追加</button></div>
@@ -1135,6 +1141,15 @@ const DEFAULT_IMAGES = {
     { src: "https://images.unsplash.com/photo-1596567836640-3c13eb102106?w=2400&h=1350&fit=crop&q=80", titleEn: "Seasonal Sweets", titleJp: "旬の果実をたっぷりと。<br>素材の味わいを大切にした手作りのお菓子" }
   ],
   greeting: "brand-story-community.jpg",
+  // 「こいまりのこだわり」4カードの写真（2026-09-29、管理画面から1枚ずつ差し替えられるようにした）。
+  // 見出し・本文はコード側に固定（写真だけ差し替える運用）。順番はトップページの表示順と同じ。
+  philosophy: [
+    { title: "地域に愛される店舗でありたい", img: "brand-story-community.jpg" },
+    { title: "小さなお子様からご年配の方まで安心して", img: "brand-story-anzen.jpg" },
+    { title: "大阪市城東区から、大阪の魅力を", img: "brand-story-osaka.jpg" },
+    { title: "果実をたっぷりと、心まで満たす一切れに", img: "brand-story-fruit.jpg" }
+  ],
+
   categories: [
     { name: "デコレーションケーキ", en: "Decoration Cake", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80", desc: "特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。", gallery: [] },
     { name: "カットケーキ", en: "Cut Cake",   img: "https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80", desc: "毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。", gallery: [] },
@@ -1425,6 +1440,7 @@ function mergeSiteImages(base, fresh, working) {
     // 実装のため、SITE_IMAGES_KEYSに足しただけでは自動的に拾われない）。greeting本体と同じ
     // scalarとして必ず一緒にマージする。
     greetingOriginal: mergeScalarSection(base.greetingOriginal, fresh.greetingOriginal, working.greetingOriginal, "店舗紹介画像（元画像）", conflicts),
+    philosophy: mergeArraySection(base.philosophy, fresh.philosophy, working.philosophy, "こだわり写真", conflicts),
     categories: mergeArraySection(base.categories, fresh.categories, working.categories, "商品カテゴリー", conflicts),
     decorationCakes: mergeArraySection(base.decorationCakes, fresh.decorationCakes, working.decorationCakes, "デコレーションケーキ", conflicts),
     cutcakes: mergeArraySection(base.cutcakes, fresh.cutcakes, working.cutcakes, "カットケーキ", conflicts),
@@ -1439,7 +1455,7 @@ function mergeSiteImages(base, fresh, working) {
 // Firebase RTDBは空配列を保存すると自動的にキー自体を削除する（読み出すとnullになる）ため、
 // 件数0の焼き菓子・ギフト等をそのまま画面に反映しようとすると`null.forEach`で描画が落ちる。
 // 配列であるべき項目はnull/undefinedを空配列に正規化しておく。
-const SITE_IMAGES_ARRAY_KEYS = ["hero", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns", "experiences"];
+const SITE_IMAGES_ARRAY_KEYS = ["hero", "philosophy", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns", "experiences"];
 function normalizeSiteImages(data) {
   data = data || {};
   SITE_IMAGES_ARRAY_KEYS.forEach(k => { if (!Array.isArray(data[k])) data[k] = []; });
@@ -1537,7 +1553,7 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 // 表示・非表示が決まっていたため、ここを編集したまま他のタブ（ギャラリー等）に
 // 移動しても画面下部に表示され続け、別パネルの保存ボタンと誤認される事故があった。
 // サイト画像系のタブにいる時だけ表示するようにする。
-const SITEIMAGES_PANELS = new Set(["hero", "greeting", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns", "experiences"]);
+const SITEIMAGES_PANELS = new Set(["hero", "greeting", "philosophy", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns", "experiences"]);
 document.querySelectorAll(".tab").forEach(t => {
   t.addEventListener("click", () => {
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
@@ -1762,7 +1778,7 @@ async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions, 
   return openCropModal(sourceDataUrl, aspectRatio, ratioOptions, file);
 }
 function renderAll() {
-  renderHero(); renderGreeting(); renderCategories(); renderDecorationCakes(); renderCutcakes(); renderRollcakes(); renderBaked(); renderGift(); renderCakeAddOns(); renderExperiences();
+  renderHero(); renderGreeting(); renderPhilosophy(); renderCategories(); renderDecorationCakes(); renderCutcakes(); renderRollcakes(); renderBaked(); renderGift(); renderCakeAddOns(); renderExperiences();
   updateSaveBar();
 }
 // ストック写真（Unsplash等）の疑いを検知し、プレビューに警告バッジを重ねる
@@ -2297,6 +2313,33 @@ function resolveCategoryImg(c) {
   }
   return c ? c.img : "";
 }
+function renderPhilosophy() {
+  const grid = document.getElementById("philosophyGrid"); grid.innerHTML = "";
+  if (!Array.isArray(workingData.philosophy)) workingData.philosophy = [];
+  workingData.philosophy.forEach((c, i) => {
+    const item = makeImageItem({
+      preview: c.img,
+      originalSrc: c.imgOriginal,
+      maxWidth: 1800,
+      aspectRatio: 4 / 3,
+      fields: [{ label: "画像URL", key: "img", value: c.img || "", type: "input" }],
+      onChange: (k, v) => { workingData.philosophy[i].img = v; refreshPreview(grid.children[i], v); updateSaveBar(); },
+      onFile: result => {
+        const { url, original } = applyCropResult(result);
+        workingData.philosophy[i].img = url;
+        if (original) workingData.philosophy[i].imgOriginal = original;
+        renderPhilosophy(); updateSaveBar();
+      },
+      onDelete: null
+    });
+    const cap = document.createElement("div");
+    cap.style.cssText = "margin-bottom:10px;font-family:var(--font-mincho);font-size:14px;font-weight:700;";
+    cap.textContent = (i + 1) + "枚目：" + (c.title || "");
+    item.insertBefore(cap, item.firstChild);
+    grid.appendChild(item);
+  });
+}
+
 function renderCategories() {
   const grid = document.getElementById("categoriesGrid"); grid.innerHTML = "";
   workingData.categories.forEach((c, i) => {
@@ -4957,7 +5000,7 @@ const siteImagesRef = ref(fbDb, "siteImages");
 // やcategories[].imgOriginal等）は既存の配列要素の中に持たせているため、配列自体を含む
 // hero/categories等のキーがあれば自動的に一緒に保存・読込される。greetingだけは単一の文字列
 // フィールドで配列に入っていないため、Original版も独立したキーとして追加する必要がある。
-const SITE_IMAGES_KEYS = ["hero", "greeting", "greetingOriginal", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns", "experiences"];
+const SITE_IMAGES_KEYS = ["hero", "greeting", "greetingOriginal", "philosophy", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns", "experiences"];
 // 2026-09-11判明：ES modulesのトップレベルconstは、同じファイル内の別のscriptタグ
 // （type=moduleを付けていない通常のスクリプト）からは参照できない。保存ボタンの
 // ハンドラ（通常のscript側）がこの配列を直接参照していたため「SITE_IMAGES_KEYS is not
