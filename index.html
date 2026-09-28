@@ -121,6 +121,14 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
    2026-09-10、「デコレーションケーキ」等の長いカテゴリ名が折り返すとの指摘を受け、
    タイトルの折り返し自体を許可せず、代わりにclamp()でカードの縮みに合わせて
    文字サイズを自動的に縮小することで1行を維持するようにした。 */
+@media(max-width:600px){
+  /* スマホ縦は2列表示。この形のときだけ、カットケーキ→デコレーション→ロール→ギフト→焼き菓子の順にする */
+  .cat-card[data-cat="cutcake"]{order:1}
+  .cat-card[data-cat="cake"]{order:2}
+  .cat-card[data-cat="roll"]{order:3}
+  .cat-card[data-cat="gift"]{order:4}
+  .cat-card[data-cat="baked"]{order:5}
+}
 @media(min-width:601px){
   /* 5枚を等分して画面幅いっぱいに。gapを差し引いた残りを均等割りするのでどの画面幅でも収まる */
   .categories__grid{flex-wrap:nowrap;gap:clamp(10px,1.6vw,30px);align-items:flex-start}
@@ -284,6 +292,12 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .quick-reserve__strip .qr-photo:hover{transform:rotate(0) scale(1.05);z-index:4;box-shadow:0 18px 40px rgba(58,42,35,.34)}
 .quick-reserve__strip .qr-photo img{width:100%;height:100%;object-fit:cover;display:block;background:#efe6da}
 .quick-reserve .nb{display:inline-block}
+/* スマホで写真をタップしたとき、画面中央に1.5倍で表示する（2026-09-29オーナー指示）。
+   もう一度タップすると閉じる。チェキの白枠ごと拡大して、見た目は一覧と同じにする。 */
+.qr-zoom{position:fixed;inset:0;z-index:3000;background:rgba(30,20,14,.82);display:flex;align-items:center;justify-content:center;padding:16px;animation:qrZoomIn .22s ease-out}
+@keyframes qrZoomIn{from{opacity:0}to{opacity:1}}
+.qr-zoom .qr-photo{margin:0!important;flex:none!important;max-width:none!important;transform:none!important;box-shadow:0 18px 40px rgba(0,0,0,.45)}
+.qr-zoom__hint{position:absolute;left:0;right:0;bottom:28px;text-align:center;color:#fff;font-size:15px;font-weight:600;letter-spacing:.06em}
 .quick-reserve__cta{display:inline-block;padding:22px 44px;font-family:var(--font-sans);font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:.05em;color:#fff;background:var(--color-accent-dark);border-radius:60px;text-decoration:none;box-shadow:0 8px 0 #7a6238,0 14px 26px rgba(58,42,35,.25);transition:transform .15s ease,box-shadow .15s ease}
 .quick-reserve__cta:hover{transform:translateY(4px);box-shadow:0 4px 0 #7a6238,0 8px 18px rgba(58,42,35,.25)}
 .quick-reserve__lead,.quick-reserve__line{margin:40px auto 0;padding:26px 28px;background:#fff;border:2px solid var(--color-line);text-align:left}
@@ -772,10 +786,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="quick-reserve quick-reserve--guide" id="reserveGuide">
   <div class="quick-reserve__inner">
     <div class="quick-reserve__lead">
-      <h3>お引き取りまでの日数</h3>
+      <h3>ご予約からお引き取りまでのお日にち</h3>
       <ul>
-        <li><strong>定番ケーキ</strong>は、<strong>3営業日以降</strong>のお引き取りです。</li>
-        <li>2営業日を切る<strong>お急ぎ</strong>の場合は、<strong>お電話</strong>ください。<br><a class="quick-reserve__tel" href="tel:07091580641">070-9158-0641</a></li>
+        <li><strong>定番ケーキ</strong>は、<strong>3営業日以降</strong>のお引き取りが目安です。</li>
+        <li>3営業日を切る<strong>お急ぎ</strong>の場合（当日を含む）は、直接<strong>お電話</strong>いただければ対応可否を確認いたします。<br><a class="quick-reserve__tel" href="tel:07091580641">070-9158-0641</a></li>
+        <li><strong>過去のケーキ集</strong>からご希望の仕様をお伝えいただくと、スムーズにご注文いただけます。</li>
         <li><strong>オーダーケーキの場合</strong>、お引き渡し日は<strong>資材の在庫状況</strong>によります。お早めのご相談をおすすめいたします。（オーダーメイド・特殊な仕様は2週間程度かかる場合があります）</li>
       </ul>
     </div>
@@ -1204,7 +1219,7 @@ function resolveCategoryImg(c){
 function renderCategories(){
   catGrid.innerHTML='';
   const en=I18nCtrl.isEn();
-  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");const galKey=CATEGORY_GALLERY_KEY[c.name];a.href=galKey?("gallery.html?cat="+galKey):("product.html?type=category&idx="+i);a.className="cat-card";const rawName=en?(c.en||c.name):c.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();const enCaption=(!en&&c.en)?`<div class="cat-card__en">${escape(c.en)}</div>`:"";a.innerHTML=`<div class="cat-card__img"><img src="${escape(resolveCategoryImg(c))}" alt="${escape(plainName)}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${safeName}</div>${enCaption}</div>`;catGrid.appendChild(a)});
+  IMAGES.categories.forEach((c,i)=>{if(c.visible===false)return;const a=document.createElement("a");const galKey=CATEGORY_GALLERY_KEY[c.name];a.href=galKey?("gallery.html?cat="+galKey):("product.html?type=category&idx="+i);a.className="cat-card";a.dataset.cat=galKey||"";const rawName=en?(c.en||c.name):c.name;const safeName=escape(String(rawName||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");const plainName=String(rawName||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();const enCaption=(!en&&c.en)?`<div class="cat-card__en">${escape(c.en)}</div>`:"";a.innerHTML=`<div class="cat-card__img"><img src="${escape(resolveCategoryImg(c))}" alt="${escape(plainName)}" loading="lazy"></div><div class="cat-card__body"><div class="cat-card__title">${safeName}</div>${enCaption}</div>`;catGrid.appendChild(a)});
 }
 
 // 2026-09-08、「おすすめ商品」専用のストック写真データは廃止。デコレーションケーキ・
@@ -1567,7 +1582,22 @@ function renderQuickReserveStrip(){
     const im=document.createElement("img"); im.loading="lazy"; im.alt=""; im.src=g.img;
     im.onerror=()=>box.remove();
     box.appendChild(im); el.appendChild(box);
+    // スマホ（縦2列で小さく並ぶ幅）では、タップで中央に1.5倍表示する
+    box.addEventListener("click",()=>{ if(window.innerWidth<=700) openQrZoom(box,g.img); });
   });
+}
+function openQrZoom(sourceBox,src){
+  const old=document.getElementById("qrZoom"); if(old) old.remove();
+  const rect=sourceBox.getBoundingClientRect();
+  const w=Math.min(rect.width*1.5, window.innerWidth-32);
+  const wrap=document.createElement("div"); wrap.className="qr-zoom"; wrap.id="qrZoom";
+  const box=document.createElement("span"); box.className="qr-photo"; box.style.width=w+"px";
+  const im=document.createElement("img"); im.alt=""; im.src=src; box.appendChild(im);
+  const hint=document.createElement("div"); hint.className="qr-zoom__hint"; hint.textContent="タップで閉じる";
+  wrap.appendChild(box); wrap.appendChild(hint);
+  wrap.addEventListener("click",()=>wrap.remove());
+  document.addEventListener("keydown",function esc(e){ if(e.key==="Escape"){ wrap.remove(); document.removeEventListener("keydown",esc); } });
+  document.body.appendChild(wrap);
 }
 window.renderQuickReserveStrip=renderQuickReserveStrip;
 // こだわり4カードの写真を差し替える（管理画面「こだわり写真」タブ→siteImages/philosophy）。
