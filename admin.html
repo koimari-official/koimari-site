@@ -2101,24 +2101,51 @@ function appendVisibleToggle(item, getVisible, onToggle) {
   }
 }
 
-// 配列内の項目の並び順を「↑ 上へ」「↓ 下へ」で入れ替えるUIを追加する（2026-09-10、
-// ヒーロースライドの表示順を管理画面から変更したいという要望を受けて追加）。
-function appendReorderControls(item, arr, i, onChange) {
+// 配列内の項目の並び順を「↑ 上へ」「↓ 下へ」「⤒ 先頭へ」で入れ替えるUIを追加する（2026-09-10、
+// ヒーロースライドの表示順を管理画面から変更したいという要望を受けて追加。2026-09-28、ギャラリー商品は
+// 件数が多く1つずつ動かすと大変なため「先頭へ」を追加し、TOP表示バッジ・画像なし警告も付けた）。
+// catKey（decorationCakes等）を渡すと、その商品が公開ギャラリーの何番目に出るか・画像なしで非表示かを表示する。
+function galleryDisplayOrder() {
+  // gallery.html の buildGallery() と同じ並び・同じ絞り込み（非表示・画像なしを除く）にすること。
+  const out = [];
+  ["custom", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift"].forEach((k) => {
+    getProductArray(k).forEach((it, idx) => { if (it && it.visible !== false && it.img) out.push({ k, idx }); });
+  });
+  return out;
+}
+function appendReorderControls(item, arr, i, onChange, catKey) {
+  if (catKey) {
+    const it = arr[i] || {};
+    const pos = galleryDisplayOrder().findIndex((o) => o.k === catKey && o.idx === i);
+    const note = document.createElement("div");
+    if (!it.img) {
+      note.textContent = "⚠ 画像が未設定のため、公開ページ（ギャラリー）には表示されません";
+      note.style.cssText = "margin-top:10px;padding:6px 10px;font-size:12px;color:#8a2d38;background:#fbeaec;border-radius:4px;";
+      item.appendChild(note);
+    } else if (it.visible === false) {
+      note.textContent = "非表示に設定中（公開ページには表示されません）";
+      note.style.cssText = "margin-top:10px;font-size:12px;color:var(--color-text-soft);";
+      item.appendChild(note);
+    } else if (pos >= 0) {
+      note.textContent = pos < 5 ? "★ ギャラリー " + (pos + 1) + "番目｜TOPページの写真に表示されます" : "ギャラリー " + (pos + 1) + "番目";
+      note.style.cssText = pos < 5
+        ? "margin-top:10px;padding:6px 10px;font-size:12.5px;font-weight:700;color:#5a4300;background:#fdf1cf;border-radius:4px;"
+        : "margin-top:10px;font-size:12px;color:var(--color-text-soft);";
+      item.appendChild(note);
+    }
+  }
   if (arr.length < 2) return;
   const box = document.createElement("div");
-  box.style.cssText = "display:flex;gap:8px;margin-top:10px;";
-  if (i > 0) {
-    const up = document.createElement("button");
-    up.type = "button"; up.textContent = "↑ 上へ"; up.className = "btn btn--small btn--ghost"; up.style.fontSize = "12px";
-    up.addEventListener("click", () => { const t = arr[i - 1]; arr[i - 1] = arr[i]; arr[i] = t; onChange(); });
-    box.appendChild(up);
-  }
-  if (i < arr.length - 1) {
-    const down = document.createElement("button");
-    down.type = "button"; down.textContent = "↓ 下へ"; down.className = "btn btn--small btn--ghost"; down.style.fontSize = "12px";
-    down.addEventListener("click", () => { const t = arr[i + 1]; arr[i + 1] = arr[i]; arr[i] = t; onChange(); });
-    box.appendChild(down);
-  }
+  box.style.cssText = "display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;";
+  const mk = (label, fn) => {
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.textContent = label; btn.className = "btn btn--small btn--ghost"; btn.style.fontSize = "12px";
+    btn.addEventListener("click", fn);
+    box.appendChild(btn);
+  };
+  if (i > 0) mk("⤒ 先頭へ", () => { const [t] = arr.splice(i, 1); arr.unshift(t); onChange(); });
+  if (i > 0) mk("↑ 上へ", () => { const t = arr[i - 1]; arr[i - 1] = arr[i]; arr[i] = t; onChange(); });
+  if (i < arr.length - 1) mk("↓ 下へ", () => { const t = arr[i + 1]; arr[i + 1] = arr[i]; arr[i] = t; onChange(); });
   item.appendChild(box);
 }
 
@@ -2396,7 +2423,7 @@ function renderDecorationCakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderDecorationCakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.decorationCakes[i].visible, () => { workingData.decorationCakes[i].visible = !workingData.decorationCakes[i].visible; renderDecorationCakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
-    appendReorderControls(item, workingData.decorationCakes, i, () => { renderDecorationCakes(); updateSaveBar(); });
+    appendReorderControls(item, workingData.decorationCakes, i, () => { renderDecorationCakes(); updateSaveBar(); }, "decorationCakes");
     grid.appendChild(item);
   });
 }
@@ -2425,7 +2452,7 @@ function renderCutcakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderCutcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.cutcakes[i].visible, () => { workingData.cutcakes[i].visible = !workingData.cutcakes[i].visible; renderCutcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
-    appendReorderControls(item, workingData.cutcakes, i, () => { renderCutcakes(); updateSaveBar(); });
+    appendReorderControls(item, workingData.cutcakes, i, () => { renderCutcakes(); updateSaveBar(); }, "cutcakes");
     grid.appendChild(item);
   });
 }
@@ -2454,7 +2481,7 @@ function renderRollcakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderRollcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.rollcakes[i].visible, () => { workingData.rollcakes[i].visible = !workingData.rollcakes[i].visible; renderRollcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
-    appendReorderControls(item, workingData.rollcakes, i, () => { renderRollcakes(); updateSaveBar(); });
+    appendReorderControls(item, workingData.rollcakes, i, () => { renderRollcakes(); updateSaveBar(); }, "rollcakes");
     grid.appendChild(item);
   });
 }
@@ -2483,7 +2510,7 @@ function renderBaked() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderBaked(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.baked[i].visible, () => { workingData.baked[i].visible = !workingData.baked[i].visible; renderBaked(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
-    appendReorderControls(item, workingData.baked, i, () => { renderBaked(); updateSaveBar(); });
+    appendReorderControls(item, workingData.baked, i, () => { renderBaked(); updateSaveBar(); }, "baked");
     grid.appendChild(item);
   });
 }
@@ -2512,7 +2539,7 @@ function renderGift() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderGift(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.gift[i].visible, () => { workingData.gift[i].visible = !workingData.gift[i].visible; renderGift(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
-    appendReorderControls(item, workingData.gift, i, () => { renderGift(); updateSaveBar(); });
+    appendReorderControls(item, workingData.gift, i, () => { renderGift(); updateSaveBar(); }, "gift");
     grid.appendChild(item);
   });
 }
@@ -4681,6 +4708,8 @@ function renderGalleryAdmin() {
     const firstField = item.querySelector(".img-item__field");
     item.insertBefore(catBox, firstField);
     item.appendChild(makeGalleryEditor(g, "img", { maxWidth: 2400, max: 6, onChange: () => renderGalleryAdmin() }));
+    // 並べ替え（2026-09-28）。このパネルの作品は公開ギャラリーの最初に並ぶ（他カテゴリーより前）。
+    appendReorderControls(item, galleryData, i, () => renderGalleryAdmin(), "custom");
     grid.appendChild(item);
   });
   const sb = document.createElement("div"); sb.style.cssText = "grid-column:1/-1; margin-top:10px;";

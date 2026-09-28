@@ -329,28 +329,32 @@ let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
 function menuItemToCard(item, catKey, idx, productType){
   return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured };
 }
+// 画像が未設定の商品は、公開ページではエラーのように見えてしまうため一覧に出さない（2026-09-28オーナー指示）。
+// 並び順は「作品ポートフォリオ→デコレーション→カット→ロール→焼き菓子→ギフト」で、各カテゴリー内は管理画面の並び順。
+// TOPページの写真帯（index.html renderQuickReserveStrip）と管理画面の「TOP表示n番目」バッジ（admin.html galleryDisplayOrder）は
+// この並び・この絞り込みと必ず同じにすること。
 function buildGallery(){
   const decorationCards = menuDecorationCakes
     .map((c, idx) => ({ c, idx }))
-    .filter(({c}) => c && c.visible !== false)
+    .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "cake", idx, "decorationCake"));
   const cutcakeCards = menuCutcakes
     .map((c, idx) => ({ c, idx }))
-    .filter(({c}) => c && c.visible !== false)
+    .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "cutcake", idx, "cutcake"));
   const rollCards = menuRollcakes
     .map((c, idx) => ({ c, idx }))
-    .filter(({c}) => c && c.visible !== false)
+    .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "roll", idx, "rollcake"));
   const bakedCards = menuBaked
     .map((c, idx) => ({ c, idx }))
-    .filter(({c}) => c && c.visible !== false)
+    .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "baked", idx, "baked"));
   const giftCards = menuGift
     .map((c, idx) => ({ c, idx }))
-    .filter(({c}) => c && c.visible !== false)
+    .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "gift", idx, "gift"));
-  gallery = assignGalleryNumbers([...galleryPortfolio, ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
+  gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
 }
 buildGallery();
 
