@@ -258,23 +258,36 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 
 /* ===== 法人向けバナー ===== */
 /* 2026-09-22、ファーストビュー直下の「2つの予約導線」新設(CRO改修指示書) */
-.quick-reserve{background:var(--color-bg-soft);padding:56px 24px 40px}
-.quick-reserve__kicker{max-width:var(--max-w);margin:0 auto 22px;text-align:center;font-family:var(--font-mincho);font-size:15px;letter-spacing:.06em;color:var(--color-accent-dark);font-weight:600}
-.quick-reserve__inner{max-width:var(--max-w);margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:22px}
-.quick-reserve__card{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:30px 30px 26px;background:#fff;border:1px solid var(--color-line);transition:transform .25s ease,box-shadow .25s ease;text-decoration:none}
-.quick-reserve__card:hover{transform:translateY(-4px);box-shadow:0 14px 32px rgba(58,42,35,.14)}
-.quick-reserve__card--urgent{border-top:4px solid #06c755}
-.quick-reserve__card--custom{border-top:4px solid var(--color-accent)}
-.quick-reserve__tag{font-family:var(--font-mincho);font-size:13px;letter-spacing:.1em;color:var(--color-accent-dark);font-weight:600}
-.quick-reserve__title{font-family:var(--font-mincho);font-size:clamp(17px,2.1vw,21px);letter-spacing:.04em;font-weight:700;line-height:1.5;color:var(--color-text)}
-.quick-reserve__sub{font-size:13px;color:var(--color-text-soft)}
-.quick-reserve__btn{margin-top:10px;display:inline-flex;align-items:center;gap:6px;padding:11px 24px;font-family:var(--font-mincho);font-size:14px;letter-spacing:.08em;font-weight:600;color:#fff;background:var(--color-accent-dark);transition:background .2s}
-.quick-reserve__card--urgent .quick-reserve__btn{background:#06c755}
-.quick-reserve__card:hover .quick-reserve__btn{background:var(--color-accent);}
-.quick-reserve__card--urgent:hover .quick-reserve__btn{background:#05b34c}
-.quick-reserve__note{max-width:var(--max-w);margin:22px auto 0;font-size:13px;line-height:1.9;color:var(--color-text-soft);text-align:center}
-.quick-reserve__note a{color:var(--color-accent-dark);font-weight:600;text-decoration:underline;text-underline-offset:2px}
-@media(max-width:700px){.quick-reserve__inner{grid-template-columns:1fr}}
+.quick-reserve{background:var(--color-bg-soft);padding:64px 20px 56px}
+.quick-reserve__inner{max-width:900px;margin:0 auto;text-align:center}
+.quick-reserve__kicker{font-family:var(--font-sans);font-size:clamp(20px,2.6vw,24px);letter-spacing:.04em;color:var(--color-accent-dark);font-weight:700;margin-bottom:6px}
+.quick-reserve__headline{font-family:var(--font-mincho);font-size:clamp(27px,4.2vw,40px);line-height:1.5;letter-spacing:.03em;font-weight:800;color:var(--color-text);margin-bottom:26px}
+.quick-reserve__strip{display:flex;justify-content:center;gap:14px;margin:0 auto 30px;flex-wrap:nowrap}
+.quick-reserve__strip:empty{display:none}
+.quick-reserve__strip .qr-photo{flex:0 1 150px;aspect-ratio:1/1;background:#fff;padding:7px;box-shadow:0 8px 20px rgba(58,42,35,.22);transform:rotate(-3deg);transition:transform .3s ease}
+.quick-reserve__strip .qr-photo:nth-child(even){transform:rotate(2.5deg) translateY(8px)}
+.quick-reserve__strip .qr-photo:hover{transform:rotate(0) scale(1.06)}
+.quick-reserve__strip .qr-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.quick-reserve .nb{display:inline-block}
+.quick-reserve__cta{display:inline-block;padding:22px 44px;font-family:var(--font-sans);font-size:clamp(22px,3vw,28px);font-weight:800;letter-spacing:.05em;color:#fff;background:var(--color-accent-dark);border-radius:60px;text-decoration:none;box-shadow:0 8px 0 #7a6238,0 14px 26px rgba(58,42,35,.25);transition:transform .15s ease,box-shadow .15s ease}
+.quick-reserve__cta:hover{transform:translateY(4px);box-shadow:0 4px 0 #7a6238,0 8px 18px rgba(58,42,35,.25)}
+.quick-reserve__lead,.quick-reserve__line{margin:40px auto 0;padding:26px 28px;background:#fff;border:2px solid var(--color-line);text-align:left}
+.quick-reserve__lead h3,.quick-reserve__line h3{font-family:var(--font-sans);font-size:clamp(22px,2.8vw,26px);font-weight:800;color:var(--color-text);margin-bottom:14px;line-height:1.5}
+.quick-reserve__lead ul{list-style:none;padding:0;margin:0}
+.quick-reserve__lead li{position:relative;padding-left:1.6em;font-size:20px;line-height:1.9;margin-bottom:10px;font-weight:600}
+.quick-reserve__lead li::before{content:"◆";position:absolute;left:0;color:var(--color-accent-dark)}
+.quick-reserve__lead strong{font-weight:800;background:linear-gradient(transparent 62%,#f6dd9a 62%)}
+.quick-reserve__tel{display:inline-block;margin-top:6px;padding:8px 22px;font-family:var(--font-sans);font-size:clamp(26px,3.6vw,32px);font-weight:800;letter-spacing:.02em;color:var(--color-text);border:3px solid var(--color-text);border-radius:12px;text-decoration:none;white-space:nowrap}
+.quick-reserve__line{border-color:#06c755;text-align:center}
+.quick-reserve__line p{font-size:20px;line-height:1.9;margin-bottom:16px;font-weight:600}
+.quick-reserve__line strong{font-weight:800;background:linear-gradient(transparent 62%,#b6f0cb 62%)}
+.quick-reserve__line-btn{display:inline-block;line-height:0;text-decoration:none}
+.quick-reserve__line-btn img{height:60px;width:auto;display:block}
+.quick-reserve__line-btn.is-fallback{line-height:1.4;padding:16px 36px;background:#06c755;color:#fff;font-family:var(--font-sans);font-size:24px;font-weight:800;border-radius:60px}
+.quick-reserve__steps{list-style:none;counter-reset:qr;display:flex;gap:14px;justify-content:center;padding:0;margin:24px 0 0;flex-wrap:wrap}
+.quick-reserve__steps li{counter-increment:qr;flex:1 1 200px;max-width:260px;padding:16px 14px;background:#f0fbf4;border-radius:12px;font-size:19px;line-height:1.6;font-weight:700;text-align:center}
+.quick-reserve__steps li::before{content:counter(qr);display:block;width:38px;height:38px;line-height:38px;margin:0 auto 8px;border-radius:50%;background:#06c755;color:#fff;font-family:var(--font-sans);font-size:22px;font-weight:800}
+@media(max-width:700px){.quick-reserve{padding:48px 16px 44px}.quick-reserve__headline{font-size:24px}.quick-reserve__strip .qr-photo:nth-child(n+4){display:none}.quick-reserve__strip .qr-photo{flex-basis:30%}.quick-reserve__lead,.quick-reserve__line{padding:22px 18px}.quick-reserve__cta{padding:20px 28px}}
 
 /* 2026-09-22、法人案内・体験プログラムを説明文なしのコンパクトなリンクバーに変更(CRO改修指示書) */
 .mini-banner{background:var(--color-bg-soft);padding:34px 24px}
@@ -699,26 +712,36 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </ul>
 </nav>
 
-<!-- ===== 予約導線(2026-09-22新設・CRO改修指示書)。ファーストビュー直下に、目的別の
-     2つの予約導線を並べる。「定番ホールケーキ」はLINEへ直行、「オーダーケーキ」は仕様・
-     ギャラリー確認ページ(reservation.html)へ。直前予約(受取2日未満)は電話誘導を明記。 -->
+<!-- ===== 予約導線(2026-09-22新設・CRO改修指示書、2026-09-28再設計)。高齢者・お子様にも読みやすい大きな文字で、
+     ①過去のケーキ集(gallery.html)へ ②お引き取りの目安(3営業日以降・お急ぎは電話) ③LINE友だち追加が必要な旨、を1か所にまとめる。
+     写真帯(#quickReserveStrip)はkoimariContent/galleryの新しい作品から自動で表示する。 -->
 <section class="quick-reserve" id="quickReserve">
-  <p class="quick-reserve__kicker">「こんなケーキできる？」を叶える。LINEでかんたん予約・ご相談</p>
   <div class="quick-reserve__inner">
-    <a href="gallery.html?cat=cake" class="quick-reserve__card quick-reserve__card--urgent">
-      <span class="quick-reserve__tag">お急ぎの方へ</span>
-      <span class="quick-reserve__title">定番ホールケーキを選んでご予約</span>
-      <span class="quick-reserve__sub">選んだ仕様はそのままLINE予約へ自動で引き継ぎ</span>
-      <span class="quick-reserve__btn">ギャラリーから選ぶ →</span>
-    </a>
-    <a href="gallery.html" class="quick-reserve__card quick-reserve__card--custom">
-      <span class="quick-reserve__tag">こだわりたい方へ</span>
-      <span class="quick-reserve__title">ギャラリー・ケーキの仕様を見る</span>
-      <span class="quick-reserve__sub">サイズ・価格の目安をじっくり確認して、そのままご予約へ</span>
-      <span class="quick-reserve__btn">ギャラリーを見る →</span>
-    </a>
+    <p class="quick-reserve__kicker">「こんなケーキ、できる？」</p>
+    <h2 class="quick-reserve__headline"><span class="nb">過去につくった</span><span class="nb">ケーキ集から、</span><br><span class="nb">お好みを見つけてください</span></h2>
+    <div class="quick-reserve__strip" id="quickReserveStrip" aria-hidden="true"></div>
+    <a href="gallery.html" class="quick-reserve__cta">🎂 過去のケーキ集を見る →</a>
+
+    <div class="quick-reserve__lead">
+      <h3>お引き取りまでの日数</h3>
+      <ul>
+        <li><strong>定番ケーキ</strong>は、<strong>3営業日以降</strong>のお引き取りです。</li>
+        <li>2営業日を切る<strong>お急ぎ</strong>の場合は、<strong>お電話</strong>ください。<br><a class="quick-reserve__tel" href="tel:07091580641">📞 070-9158-0641</a></li>
+        <li>お引き渡し日は<strong>資材の在庫状況</strong>によります。お早めのご相談をおすすめいたします。（オーダーメイド・特殊な仕様は2週間程度かかる場合があります）</li>
+      </ul>
+    </div>
+
+    <div class="quick-reserve__line">
+      <h3><span class="nb">ご予約は</span><span class="nb">「LINE公式アカウント」から</span></h3>
+      <p>ご予約には、<strong>スマートフォンのLINEで友だち追加</strong>が必要です。</p>
+      <a href="https://lin.ee/tgXqHoK" class="quick-reserve__line-btn" target="_blank" rel="noopener" id="quickLineBtn"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="LINEで友だち追加" onerror="var a=document.getElementById('quickLineBtn');a.classList.add('is-fallback');a.textContent='LINEで友だち追加';"></a>
+      <ol class="quick-reserve__steps">
+        <li>LINEで<br>友だち追加</li>
+        <li>トーク画面の下の<br>「ご予約」を押す</li>
+        <li>ご希望を選んで<br>送信</li>
+      </ol>
+    </div>
   </div>
-  <p class="quick-reserve__note">※オーダーメイド・特殊な仕様は材料の仕入れに2週間程度かかる場合がございます。</p>
 </section>
 
 <section class="categories" id="categories">
@@ -1529,10 +1552,23 @@ Object.entries(CONTENT_KEY_TO_LS).forEach(([contentKey, lsKey]) => {
 // 2026-09-23、カテゴリー画像が「オーダーメイド」の作品と連動している場合に解決できるよう、
 // koimariContent/gallery（1点物ポートフォリオ）も購読する（他のkoimariContentキーと違い
 // localStorageミラーは不要なため、CONTENT_KEY_TO_LSとは別に直接galleryPortfolioへ入れる）。
+// 予約導線の写真帯：ギャラリー（1点物ポートフォリオ）の新しい作品から最大5枚を並べ、「どんなケーキがあるのかな？」と
+// 見たくなるようにする（2026-09-28）。画像が1枚も無ければ帯ごと非表示（CSSの:empty）。
+function renderQuickReserveStrip(){
+  const el=document.getElementById("quickReserveStrip"); if(!el) return;
+  el.innerHTML="";
+  galleryPortfolio.filter(g=>g&&g.img).slice(0,5).forEach(g=>{
+    const box=document.createElement("span"); box.className="qr-photo";
+    const im=document.createElement("img"); im.loading="lazy"; im.alt=""; im.src=g.img;
+    im.onerror=()=>box.remove();
+    box.appendChild(im); el.appendChild(box);
+  });
+}
 onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
   const val = snapshot.val();
   galleryPortfolio = Array.isArray(val) ? val : [];
   renderCategories();
+  renderQuickReserveStrip();
 });
 </script>
 </body>
