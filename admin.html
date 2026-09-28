@@ -2373,6 +2373,7 @@ function renderCategories() {
     appendImageHistoryUI(item, c, "img", () => { renderCategories(); updateSaveBar(); });
     item.appendChild(makeGalleryEditor(c, "img", { maxWidth: 2400, max: 6, onChange: () => { renderCategories(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.categories[i].visible, () => { workingData.categories[i].visible = !workingData.categories[i].visible; renderCategories(); updateSaveBar(); });
+    appendReorderControls(item, workingData.categories, i, () => { renderCategories(); updateSaveBar(); });
     grid.appendChild(item);
   });
 }
