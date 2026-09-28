@@ -66,6 +66,15 @@ main{max-width:880px;margin:0 auto;padding:80px 24px 100px}
 </style>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
+<style id="nav-large">
+/* ナビゲーションを大きく見やすく（2026-09-28オーナー指示）：小さな文字だけの並びをやめ、20px弱の太字・ピル型ボタンに。
+   ホバー/フォーカスで濃い金色に反転。ナビ項目が増えても折り返して収まるようにする */
+#globalNav ul,.sub-nav ul{flex-wrap:wrap;overflow:visible;gap:12px 14px;padding:18px 14px;justify-content:center}
+#globalNav .nav-link,.sub-nav .nav-link{font-family:var(--font-sans,"Noto Sans JP",sans-serif);font-size:19px;font-weight:800;letter-spacing:.04em;padding:11px 26px;border-radius:999px;background:#fff;border:2px solid var(--color-line,#d8baa4);color:var(--color-text,#2e2118);box-shadow:0 3px 0 rgba(58,42,35,.10);transition:background .2s,color .2s,transform .2s,box-shadow .2s,border-color .2s}
+#globalNav .nav-link::after,.sub-nav .nav-link::after{display:none}
+#globalNav .nav-link:hover,.sub-nav .nav-link:hover,#globalNav .nav-link:focus-visible,.sub-nav .nav-link:focus-visible{background:var(--color-accent-dark,#a88a52);border-color:var(--color-accent-dark,#a88a52);color:#fff;transform:translateY(-2px);box-shadow:0 8px 16px rgba(58,42,35,.20)}
+@media(max-width:700px){#globalNav .nav-link,.sub-nav .nav-link{font-size:17px;padding:10px 18px}.sub-nav ul{gap:10px}}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
