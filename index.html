@@ -417,24 +417,9 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
    下げる狙い（オーナー指示のCRO案）。アレルギー相談は現在受け付けていないため文言には
    入れない（2026-09-23オーナー指摘）。QRコードは設置しない（LINE公式リンク先ページ自体が
    PC訪問時に自動でQRコードを表示するため、独自に用意する必要はないと既に確認済み）。 */
-.line-reserve{background:var(--color-bg-soft);padding:70px 24px}
-.line-reserve__card{max-width:760px;margin:0 auto;background:var(--color-bg,#fff);border:1px solid var(--color-line);border-radius:16px;box-shadow:0 16px 36px rgba(58,42,35,.08);padding:44px 44px;display:flex;flex-wrap:wrap;align-items:center;gap:34px}
-.line-reserve__info{flex:1;min-width:260px}
-.line-reserve__title{font-family:var(--font-mincho);font-size:20px;letter-spacing:.08em;color:#06c755;margin-bottom:14px;font-weight:700}
-.line-reserve__desc{font-size:14px;line-height:1.9;color:var(--color-text-soft);margin-bottom:22px}
-.line-reserve__steps{list-style:none;padding:0;margin:0}
-.line-reserve__steps li{display:flex;align-items:center;gap:10px;font-size:13.5px;color:var(--color-text);margin-bottom:10px}
-.line-reserve__steps li:last-child{margin-bottom:0}
-.line-reserve__steps li span{flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--color-accent);color:#fff;font-size:12px;font-weight:700}
 /* 2026-09-23追加：文言過多で読み飛ばされないよう、補足情報（ギャラリー確認のコツ・PC訪問者
    向けの次ページ案内）は本文より控えめなトーン・小さめの文字・箱囲みにして視覚的な優先度を
    下げる（オーナー指示のCRO案・情報の重み付け）。 */
-.line-reserve__tip{margin-top:18px;padding:12px 16px;background:var(--color-bg-soft);border-radius:10px;font-size:12.5px;line-height:1.7;color:var(--color-text-soft)}
-.line-reserve__tip a{color:var(--color-accent-dark);font-weight:600;text-decoration:underline;text-underline-offset:2px}
-.line-reserve__cta{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:10px}
-.line-reserve__btn{flex-shrink:0;display:inline-flex;align-items:center;gap:8px;padding:17px 36px;border-radius:999px;background:#06c755;color:#fff;font-family:var(--font-mincho);font-size:15px;font-weight:600;letter-spacing:.08em;text-decoration:none;box-shadow:0 6px 18px rgba(6,199,85,.28);transition:transform .3s,box-shadow .3s}
-.line-reserve__btn:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(6,199,85,.38)}
-.line-reserve__pcnote{font-size:11px;line-height:1.6;color:var(--color-text-soft);text-align:center;max-width:210px}
 .shop{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0}
 .shop__map{min-height:420px;background:var(--color-bg-soft)}
 .shop__map iframe{width:100%;height:100%;border:0;display:block}
@@ -508,29 +493,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
    左右セパレートレイアウト）。2026-09-08、ページに直接貼り付いたような
    「べったり」感を無くすため、余白を取って浮かせ、深い陰影と金の縁取りで
    1枚のカードとして見せるビジュアルに変更（動きのあるギミックは付けない）。 ===== */
-.story-split{
-  position:relative;
-  display:grid;grid-template-columns:1fr 1fr;height:440px;
-  width:calc(100% - 48px);max-width:1180px;margin:0 auto 44px;
-  padding:0!important;
-  box-shadow:0 30px 64px rgba(58,42,35,.2),0 10px 24px rgba(58,42,35,.1);
-  animation:fadeInUp .8s ease-out forwards;opacity:0;
-}
-.story-split::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--color-gold),transparent);z-index:2}
-.story-split__img{overflow:hidden;height:100%}
-.story-split__img img{width:100%;height:100%;object-fit:cover;display:block}
-.story-split__panel{background:linear-gradient(135deg,var(--color-dark,#1f1612) 0%,#3d2c25 100%);color:#fff;display:flex;flex-direction:column;justify-content:center;padding:48px 56px}
-.story-split__tag{font-family:var(--font-en);font-style:italic;color:#f5d6a8;letter-spacing:.2em;font-size:14px;margin-bottom:16px;font-weight:500}
-.story-split__title{font-family:var(--font-mincho);font-size:clamp(22px,2.4vw,27px);letter-spacing:.08em;font-weight:600;margin-bottom:22px;line-height:1.6}
-.story-split__body{font-size:16px;line-height:2;color:#e3d5c2;font-family:var(--font-mincho);letter-spacing:.02em}
-.story-split--reverse .story-split__img{order:2}
-.story-split--reverse .story-split__panel{order:1}
 @media(max-width:900px){
-  .story-split{grid-template-columns:1fr;height:auto;width:calc(100% - 32px);margin:0 auto 28px;box-shadow:0 18px 36px rgba(58,42,35,.18),0 6px 14px rgba(58,42,35,.1)}
-  .story-split__img{order:1!important;height:220px}
-  .story-split__panel{order:2!important;padding:40px 24px}
-  .story-split__title{font-size:20px;margin-bottom:16px}
-  .story-split__body{font-size:14px;line-height:1.85}
 }
 
 /* ===== RETROゴールド：アクセント背景上のテキストを濃茶に ===== */
@@ -637,6 +600,19 @@ body:not(.chrome-visible) .fab{display:none!important}
 #globalNav .nav-link::after,.sub-nav .nav-link::after{display:none}
 #globalNav .nav-link:hover,.sub-nav .nav-link:hover,#globalNav .nav-link:focus-visible,.sub-nav .nav-link:focus-visible{background:var(--color-accent-dark,#a88a52);border-color:var(--color-accent-dark,#a88a52);color:#fff;transform:translateY(-2px);box-shadow:0 8px 16px rgba(58,42,35,.20)}
 @media(max-width:700px){#globalNav .nav-link,.sub-nav .nav-link{font-size:17px;padding:10px 18px}.sub-nav ul{gap:10px}}
+</style>
+<style id="philosophy-css">
+/* こいまりのこだわり：4つの細切れセクションを2x2のカードに統合（2026-09-28、Gemini案を採用しサイトの配色・書体に合わせて実装） */
+.philosophy{background:var(--color-bg-soft);padding:96px 24px}
+.philosophy__grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:1080px;margin:0 auto}
+.philosophy__card{background:#fff;border:1px solid var(--color-line-soft);border-radius:10px;overflow:hidden;box-shadow:0 12px 30px rgba(58,42,35,.08);display:flex;flex-direction:column}
+.philosophy__card img{width:100%;height:260px;object-fit:cover;display:block}
+.philosophy__body{padding:30px 32px 36px}
+.philosophy__body h3{word-break:auto-phrase;text-wrap:balance;font-family:var(--font-mincho);font-size:clamp(21px,2.2vw,25px);line-height:1.6;letter-spacing:.05em;font-weight:700;margin-bottom:14px;color:var(--color-text)}
+.philosophy__body p{font-family:var(--font-sans);font-size:17px;line-height:2;color:var(--color-text-soft);font-weight:500}
+.quick-reserve__nolinenote{margin-top:22px;font-size:18px;line-height:1.9;font-weight:600;color:var(--color-text-soft)}
+@media(min-width:901px){.categories,.recommended,.stories,.greeting,.pickup,.bcal,.social{padding-top:88px;padding-bottom:88px}}
+@media(max-width:800px){.philosophy{padding:64px 16px}.philosophy__grid{grid-template-columns:1fr;gap:24px}.philosophy__card img{height:220px}.philosophy__body{padding:24px 22px 28px}}
 </style>
 </head>
 <body>
@@ -751,6 +727,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li>トーク画面の下の<br>「ご予約」を押す</li>
         <li>ご希望を選んで<br>送信</li>
       </ol>
+      <p class="quick-reserve__nolinenote">LINEをお持ちでない方は、ギャラリーで仕様をお選びのうえ、お電話でご予約を承ります。<br>パソコンでご覧の方は、ボタンを押した先の画面のQRコードを、スマートフォンのカメラで読み取ってください。</p>
     </div>
   </div>
 </section>
@@ -766,26 +743,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="section__inner">
     <div class="section__head"><span class="section__en">Recommended</span><h2 class="section__title">おすすめ商品</h2></div>
     <div class="recommended__grid" id="recommendedGrid"></div>
-  </div>
-</section>
-
-<section class="line-reserve" id="lineReserve">
-  <div class="line-reserve__card">
-    <div class="line-reserve__info">
-      <h3 class="line-reserve__title">スマホで簡単！LINEご予約・ご相談</h3>
-      <p class="line-reserve__desc">パティシエと直接やり取りができるので、<br>「こんなデザインにできる？」といった細かいご相談も安心です。</p>
-      <ol class="line-reserve__steps">
-        <li><span>1</span>「こいまり公式LINE」を友だち追加</li>
-        <li><span>2</span>トーク画面下部のメニューボタンをタップ</li>
-        <li><span>3</span>「ご予約」または「ギャラリー」を選択</li>
-        <li><span>4</span>項目を入力して送信</li>
-      </ol>
-      <p class="line-reserve__tip">特殊仕様の場合は、パティシエよりチャットまたはお電話で仕様の詳細を確認のうえ、価格・お渡し可能日をお見積もりしてご回答します。<br>LINEをお持ちでない方は、ギャラリーで仕様をお選びいただいたうえで、お電話（<a href="tel:07091580641">070-9158-0641</a>）にてご予約を承ります。</p>
-    </div>
-    <div class="line-reserve__cta">
-      <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="line-reserve__btn">友だち追加してご予約 <span>→</span></a>
-      <p class="line-reserve__pcnote">PCでご覧の方は、次のページでスマホのカメラを使って読み取ってください</p>
-    </div>
   </div>
 </section>
 
@@ -828,39 +785,39 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </section>
 
-<section class="story-split">
-  <div class="story-split__img"><img src="brand-story-community.jpg" alt="こいまり 店頭" loading="lazy"></div>
-  <div class="story-split__panel">
-    <span class="story-split__tag">Our Philosophy</span>
-    <h2 class="story-split__title">地域に愛される店舗でありたい</h2>
-    <p class="story-split__body">地域に愛される店舗でありたいと考えています。地元中学校の職業体験では、毎年一番人気の職場としてご評価いただき、卒業後もアルバイトに来てくれるスタッフもいます。お子様からご年配の方まで、すべての世代のご家族に愛していただける、「実家みたい」と言っていただけるような安心できる存在を目指して日々お菓子を焼き上げております。この輪を、より広いエリアへと広げていきたいと考えています。</p>
-  </div>
-</section>
-
-<section class="story-split story-split--reverse">
-  <div class="story-split__img"><img src="brand-story-anzen.jpg" alt="こいまり ストロベリーショートケーキ" loading="lazy"></div>
-  <div class="story-split__panel">
-    <span class="story-split__tag">For Every Generation</span>
-    <h2 class="story-split__title">小さなお子様からご年配の方まで安心して</h2>
-    <p class="story-split__body">お菓子に使用するお酒は、素材の風味を引き立てるためのごく少量にとどめ、焼き上げの加熱工程でアルコール分はしっかりと飛ばすことを基本としています。小さなお子様やご年配の方はもちろん、妊娠中の方やお酒が苦手な方にも、安心して召し上がっていただけるお菓子作りに努めています。</p>
-  </div>
-</section>
-
-<section class="story-split">
-  <div class="story-split__img"><img src="brand-story-osaka.jpg" alt="こいまり 城東区の街並み" loading="lazy"></div>
-  <div class="story-split__panel">
-    <span class="story-split__tag">From Joto, Osaka</span>
-    <h2 class="story-split__title">大阪市城東区から、大阪の魅力を</h2>
-    <p class="story-split__body">私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。</p>
-  </div>
-</section>
-
-<section class="story-split story-split--reverse">
-  <div class="story-split__img"><img src="brand-story-fruit.jpg" alt="こいまり フルーツロール" loading="lazy"></div>
-  <div class="story-split__panel">
-    <span class="story-split__tag">Rich in Fruit</span>
-    <h2 class="story-split__title">果実をたっぷりと、<br>心まで満たす一切れに</h2>
-    <p class="story-split__body">旬のフルーツを惜しみなく使い、ひと切れでも満足感のある食べ応えにこだわっています。断面いっぱいに広がる果実の彩りと、しっかりとしたボリューム感。見た目の華やかさだけでなく、口いっぱいに広がる果実の美味しさをお楽しみいただけます。</p>
+<section class="philosophy" id="philosophy">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">Our Philosophy</span><h2 class="section__title">こいまりのこだわり</h2></div>
+    <div class="philosophy__grid">
+      <article class="philosophy__card">
+        <img src="brand-story-community.jpg" alt="こいまり 店頭" loading="lazy">
+        <div class="philosophy__body">
+          <h3>地域に愛される店舗でありたい</h3>
+          <p>地域に愛される店舗でありたいと考えています。地元中学校の職業体験では、毎年一番人気の職場としてご評価いただき、卒業後もアルバイトに来てくれるスタッフもいます。お子様からご年配の方まで、すべての世代のご家族に愛していただける、「実家みたい」と言っていただけるような安心できる存在を目指して日々お菓子を焼き上げております。この輪を、より広いエリアへと広げていきたいと考えています。</p>
+        </div>
+      </article>
+      <article class="philosophy__card">
+        <img src="brand-story-anzen.jpg" alt="こいまり ストロベリーショートケーキ" loading="lazy">
+        <div class="philosophy__body">
+          <h3>小さなお子様からご年配の方まで安心して</h3>
+          <p>お菓子に使用するお酒は、素材の風味を引き立てるためのごく少量にとどめ、焼き上げの加熱工程でアルコール分はしっかりと飛ばすことを基本としています。小さなお子様やご年配の方はもちろん、妊娠中の方やお酒が苦手な方にも、安心して召し上がっていただけるお菓子作りに努めています。</p>
+        </div>
+      </article>
+      <article class="philosophy__card">
+        <img src="brand-story-osaka.jpg" alt="こいまり 城東区の街並み" loading="lazy">
+        <div class="philosophy__body">
+          <h3>大阪市城東区から、大阪の魅力を</h3>
+          <p>私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。</p>
+        </div>
+      </article>
+      <article class="philosophy__card">
+        <img src="brand-story-fruit.jpg" alt="こいまり フルーツロール" loading="lazy">
+        <div class="philosophy__body">
+          <h3>果実をたっぷりと、心まで満たす一切れに</h3>
+          <p>旬のフルーツを惜しみなく使い、ひと切れでも満足感のある食べ応えにこだわっています。断面いっぱいに広がる果実の彩りと、しっかりとしたボリューム感。見た目の華やかさだけでなく、口いっぱいに広がる果実の美味しさをお楽しみいただけます。</p>
+        </div>
+      </article>
+    </div>
   </div>
 </section>
 
