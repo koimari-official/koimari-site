@@ -80,6 +80,10 @@
           }
         }
       }
+    },
+    "sweetsLab": {
+      ".read": "auth != null && auth.token.regular === true",
+      ".write": "auth != null && auth.token.regular === true"
     }
   }
 }
