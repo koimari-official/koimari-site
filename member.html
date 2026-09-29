@@ -165,7 +165,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div id="lastOrderBanner" style="display:none;"></div>
         <div id="pastOrders" style="display:none;"></div>
         <div id="cakeFieldsWrap">
-        <div id="reservePresets" style="margin-bottom:18px;"></div>
         <div class="field">
           <label class="field__label">商品<span class="req-mark">必須</span></label>
           <div class="radio-list">
@@ -225,8 +224,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </label>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
-          <label class="field__label">カラークリーム（ケーキ全体で最大3色まで）</label>
-          <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。色をタップして選んでね</div>
+          <label class="field__label">カラークリーム（1段につき1色）</label>
+          <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。1つの段は1色までです（段ごとに違う色をお選びいただけます）。色をタップしてお選びください。</div>
           <div id="reserveColorChips"></div>
           <div id="reserveColorSummary" class="field__hint">色を選ぶと、色数に応じた金額が加算されます</div>
           <select id="reserveColorCream" style="display:none;"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
@@ -685,9 +684,11 @@ function renderColorChips() {
   }).join("");
   wrap.querySelectorAll(".color-chip").forEach((btn) => btn.addEventListener("click", () => {
     const name = btn.dataset.color;
-    const i = selectedCreamColors.indexOf(name);
-    if (i >= 0) selectedCreamColors.splice(i, 1);
-    else if (totalColors() < CREAM_COLOR_MAX) selectedCreamColors.push(name);
+    // 1つの段に塗れるのは1色だけ（同じ色をもう一度押すと解除）。段ごとに違う色は選べる。
+    const already = selectedCreamColors.includes(name);
+    const othersTotal = totalColors() - selectedCreamColors.length; // 他の段で使っている色数
+    if (already) selectedCreamColors = [];
+    else if (othersTotal < CREAM_COLOR_MAX) selectedCreamColors = [name];
     else { showColorLimitHint(); return; }
     renderColorChips();
     syncColorSelect();
@@ -696,12 +697,12 @@ function renderColorChips() {
   if (hint) {
     const tot = (typeof totalColors === "function") ? totalColors() : selectedCreamColors.length;
     const price = (typeof colorPriceFor === "function") ? colorPriceFor(tot) : 0;
-    hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.map(colorLabelOf).join("・") + "（" + selectedCreamColors.length + "色）" : "この段の色：未選択") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込・概算）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
+    hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.map(colorLabelOf).join("・") : "この段の色：未選択（白のままです）") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込・概算）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
   }
 }
 function showColorLimitHint() {
   const hint = document.getElementById("reserveColorSummary");
-  if (hint) { hint.textContent = "選べるのはケーキ全体で最大" + CREAM_COLOR_MAX + "色までです（1〜3色の料金に含まれます）。ほかの色にしたい場合は、先に選んだ色をもう一度タップして外してください。"; hint.style.color = "#b03b48"; setTimeout(() => { hint.style.color = ""; renderColorChips(); }, 3500); }
+  if (hint) { hint.textContent = "色はケーキ全体で最大" + CREAM_COLOR_MAX + "色までです。ほかの色にしたい場合は、先に選んだ色をもう一度タップして外してください。"; hint.style.color = "#b03b48"; setTimeout(() => { hint.style.color = ""; renderColorChips(); }, 3500); }
 }
 function syncColorSelect() {
   const sel = document.getElementById("reserveColorCream");
@@ -1056,17 +1057,6 @@ function updateChocoPreview() {
   txt.textContent = t || "ここに文字が入ります";
   txt.style.opacity = t ? "1" : ".55";
   txt.style.fontSize = (t.length > 11 ? 12 : t.length > 7 ? 14 : 17) + "px";
-}
-const PRESETS = [
-  { label: "お誕生日（5号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["5号(約15cm/5-6名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1", msgText: "Happy Birthday" } },
-  { label: "みんなで（7号）", spec: { type: "デコレーションケーキ", tiers: 1, sizes: ["7号(約21cm/9-10名)"], specs: [{ cream: "生クリーム", colors: [] }], occasion: "バースデー", msgCount: "1" } },
-  { label: "2段ケーキ（6号＋4号）", spec: { type: "デコレーションケーキ", tiers: 2, sizes: ["6号(約18cm/7-8名)", "4号(約12cm/3-4名)"], specs: [{ cream: "生クリーム", colors: ["ピンク"] }, { cream: "生クリーム", colors: ["ピンク"] }], occasion: "バースデー", msgCount: "1" } }
-];
-function renderPresets() {
-  const el = document.getElementById("reservePresets");
-  if (!el) return;
-  el.innerHTML = '<div style="font-weight:700;font-size:13.5px;margin-bottom:6px;">まよったら、おすすめから選んで、あとで変更できます</div><div style="display:flex;flex-wrap:wrap;gap:8px;">' + PRESETS.map((p, i) => '<button type="button" class="preset-btn" data-i="' + i + '" style="padding:9px 14px;border:1px solid #c9a96e;background:#fff;border-radius:999px;font-size:13px;cursor:pointer;">' + p.label + '</button>').join("") + '</div>';
-  el.querySelectorAll(".preset-btn").forEach(b => b.addEventListener("click", () => { applyFormSpec(PRESETS[Number(b.dataset.i)].spec); updateReserveFloat(); }));
 }
 // ===== 過去のご注文（2026-09-26）：LINE会員ごとに、予約確定時の内容を lineMembers/{uid}/orders に保存し、一覧から同じ内容で注文し直せる =====
 function initPastOrders(uid) {
@@ -1910,7 +1900,7 @@ async function checkFriendship() {
 function setupReserveForm(uid, displayName) {
   initDraftFeature();
   renderColorChips();
-  renderPresets(); initLastOrderBanner(); initPastOrders(uid); createReserveFloat(); updateChocoPreview();
+  initLastOrderBanner(); initPastOrders(uid); createReserveFloat(); updateChocoPreview();
   populateReserveSelects();
   updateReserveFieldVisibility();
   updateReserveCategoryVisibility();
