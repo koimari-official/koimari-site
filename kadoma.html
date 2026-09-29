@@ -121,14 +121,14 @@ section{padding:90px 24px}
 /* ナビゲーション（2026-09-28）：ピル型ボタンは安っぽく見えるため、上質な和菓子店のような「金の細線で挟んだ、
    明朝体の文字リンク＋小さな金のひし形の区切り」に変更。文字は20pxで大きく、ホバー/フォーカスで金の下線が伸びる */
 #globalNav,.sub-nav{background:var(--color-bg-soft,#ede3d4);border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}
-#globalNav ul,.sub-nav ul{flex-wrap:wrap;overflow:visible;gap:8px 0;padding:22px 14px;justify-content:center;align-items:center}
+#globalNav ul,.sub-nav ul{flex-wrap:wrap;overflow:visible;gap:6px 0;padding:12px 14px;justify-content:center;align-items:center}
 #globalNav li,.sub-nav li{display:flex;align-items:center}
-#globalNav li+li::before,.sub-nav li+li::before{content:"";flex-shrink:0;width:6px;height:6px;background:var(--color-gold,#c9a96e);transform:rotate(45deg);margin:0 clamp(16px,2.6vw,38px)}
-#globalNav .nav-link,.sub-nav .nav-link{font-family:var(--font-mincho,"Shippori Mincho","Yu Mincho",serif);font-size:20px;font-weight:700;letter-spacing:.14em;padding:6px 2px;border:none;border-radius:0;background:none;box-shadow:none;transform:none;color:var(--color-text,#2e2118);position:relative;transition:color .25s}
+#globalNav li+li::before,.sub-nav li+li::before{content:"";flex-shrink:0;width:6px;height:6px;background:var(--color-gold,#c9a96e);transform:rotate(45deg);margin:0 clamp(10px,1.7vw,24px)}
+#globalNav .nav-link,.sub-nav .nav-link{font-family:var(--font-mincho,"Shippori Mincho","Yu Mincho",serif);font-size:20px;font-weight:700;letter-spacing:.08em;padding:4px 2px;border:none;border-radius:0;background:none;box-shadow:none;transform:none;color:var(--color-text,#2e2118);position:relative;transition:color .25s}
 #globalNav .nav-link::after,.sub-nav .nav-link::after{content:"";display:block;position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--color-gold,#c9a96e);transform:scaleX(0);transform-origin:center;transition:transform .3s ease}
 #globalNav .nav-link:hover,.sub-nav .nav-link:hover,#globalNav .nav-link:focus-visible,.sub-nav .nav-link:focus-visible{background:none;box-shadow:none;transform:none;color:var(--color-accent-dark,#a88a52)}
 #globalNav .nav-link:hover::after,.sub-nav .nav-link:hover::after,#globalNav .nav-link:focus-visible::after,.sub-nav .nav-link:focus-visible::after{transform:scaleX(1)}
-@media(max-width:700px){#globalNav ul,.sub-nav ul{gap:8px 22px;padding:16px 12px}#globalNav li+li::before,.sub-nav li+li::before{display:none}#globalNav .nav-link,.sub-nav .nav-link{font-size:17px;letter-spacing:.08em}}
+@media(max-width:700px){#globalNav ul,.sub-nav ul{gap:6px 20px;padding:10px 12px}#globalNav li+li::before,.sub-nav li+li::before{display:none}#globalNav .nav-link,.sub-nav .nav-link{font-size:17px;letter-spacing:.08em}}
 </style>
 </head>
 <body>
