@@ -434,6 +434,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="reserveThanksWrap" class="notice-box" style="display:none;padding:0;border:none;text-align:left;">
         <div class="notice-box__title">ご予約ありがとうございました</div>
+        <div id="reserveThanksNo" style="display:none;font-size:14px;font-weight:700;color:#a88a52;margin-bottom:8px;"></div>
         <div class="notice-box__desc" id="reserveThanksDesc">ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
         <div class="confirm-box" id="reserveThanksSummary" style="margin-top:20px;"></div>
       </div>
@@ -1146,6 +1147,23 @@ function computeCakeSubtotal() {
 // 特殊仕様が無ければ確定金額、積算しきれない場合は「〇〇円〜」、まったく積算できない場合はお電話案内。
 // 確定金額のときの表記（CakePricing.fromYen は必ず「〜」が付くため、確定用は別に用意する）。
 function yenFixed(n) { return "¥" + Number(n || 0).toLocaleString(); }
+// 1234 → "No.1234"（4桁未満は0埋め）。functions/index.js・admin.htmlと表記をそろえること。
+function formatReservationNo(n) { return n ? "No." + String(n).padStart(4, "0") : ""; }
+// 予約保存の直後は、まだCloud Functions側の採番（assignReservationNo）が終わっていないことがあるため、
+// 数秒おきに数回だけ確認する。見つかれば完了画面に表示、見つからなくても静かに諦める。
+async function pollReservationNo(pushKey, attempt) {
+  attempt = attempt || 0;
+  try {
+    const snap = await get(ref(db, "reservations/" + pushKey + "/reservationNo"));
+    const no = snap.val();
+    if (no) {
+      const el = document.getElementById("reserveThanksNo");
+      if (el) { el.textContent = "予約番号：" + formatReservationNo(no); el.style.display = "block"; }
+      return;
+    }
+  } catch (e) { console.warn("予約番号の取得に失敗:", e); return; }
+  if (attempt < 4) setTimeout(() => pollReservationNo(pushKey, attempt + 1), 1500);
+}
 function estimateIsFixed(data) {
   if (data.priceNeedsConsult) return false;
   if ((data.estimateNotes || []).length) return false;
@@ -2101,8 +2119,9 @@ function setupReserveForm(uid, displayName) {
     const emailSent = await withTimeout(sendReserveToFormspree(data), 8000, "メール通知").catch(() => false);
     data.emailSent = !!emailSent;
 
+    let savedRef;
     try {
-      const savedRef = await withTimeout(push(reservationsRef, data), 12000, "予約保存");
+      savedRef = await withTimeout(push(reservationsRef, data), 12000, "予約保存");
       // 過去のご注文として会員に紐づけて保存（失敗しても予約自体には影響させない）
       try {
         const sp = (data.category === "cake") ? collectFormSpec() : null;
@@ -2140,6 +2159,10 @@ function setupReserveForm(uid, displayName) {
         + "ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。";
     }
     renderReserveConfirm(data, "reserveThanksSummary");
+    // 予約番号はCloud Functions側で予約保存の直後に採番されるため、この時点ではまだ付いていないことがある。
+    // 数秒おきに数回だけ様子を見て、取得できたら完了画面の上部に表示する（取得できなくてもエラーにはしない。
+    // LINEのトークに届く控えにも予約番号が載るため、ここで出せなくても支障はない）。
+    if (savedRef && savedRef.key) pollReservationNo(savedRef.key);
     document.getElementById("reserveConfirmWrap").style.display = "none";
     document.getElementById("reserveThanksWrap").style.display = "block";
     document.getElementById("reserveSection").scrollIntoView({ behavior: "smooth", block: "start" });

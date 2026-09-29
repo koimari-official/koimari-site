@@ -25,7 +25,8 @@
     "reservations": {
       ".read": "auth != null",
       "$id": {
-        ".write": "auth != null || !data.exists()"
+        ".write": "auth != null || !data.exists()",
+        "reservationNo": { ".read": true }
       }
     },
     "reservationDrafts": {

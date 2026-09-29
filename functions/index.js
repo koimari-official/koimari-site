@@ -221,7 +221,7 @@ function buildReminderMessage(stage, data, now) {
       ...paymentLines(data, "reminder").slice(1),
       "",
       "◆ご変更・ご相談",
-      "◇このトーク、またはお電話（070-9158-0641）へ",
+      "◇お電話（070-9158-0641）へ",
       "",
       getSeasonCareLine(now),
       "お会いできる日を、スタッフ一同楽しみにお待ちしております。",
@@ -371,6 +371,7 @@ exports._internal = {
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
+  assignReservationNo, formatReservationNo,
 };
 
 exports.lineWebhook = onRequest(
@@ -547,6 +548,7 @@ function buildStaffNotifyText(data) {
   const channel = data.channel === "LINE" ? "LINE公式アカウント" : "こいまりHP";
   const lines = [
     "📋 新しいご予約が入りました",
+    ...(data.reservationNo ? [`予約番号: ${formatReservationNo(data.reservationNo)}`] : []),
     `受付経路: ${channel}`,
     `お名前: ${data.name || ""}`,
     `商品: ${product}`,
@@ -607,8 +609,10 @@ exports.notifyStaffOnNewReservation = onValueCreated(
     secrets: [LINE_CHANNEL_ACCESS_TOKEN],
   },
   async (event) => {
-    const data = event.data.val();
-    if (!data) return;
+    const raw = event.data.val();
+    if (!raw) return;
+    const reservationNo = await assignReservationNo(event.params.pushId);
+    const data = Object.assign({}, raw, { reservationNo });
     const groupIdSnap = await admin.database().ref("koimariOps/staffNotifyGroupId").once("value");
     const groupId = groupIdSnap.val();
     if (!groupId) {
@@ -650,6 +654,29 @@ function estimateReasonLines(data) {
     return ["　※ご要望の内容を確認のうえ、", "　　お電話で価格・納期を", "　　ご案内いたします"];
   }
   return ["　※最低金額の目安です。", "　　確定金額はお電話でご案内します"];
+}
+
+// 予約番号（受付順の通し番号）。koimariOps/reservationCounterを唯一の採番元とし、
+// reservations/{pushId}/reservationNoに一度だけ書き込む（早い者勝ち・番号の欠番は許容、重複は禁止）。
+async function assignReservationNo(pushId) {
+  try {
+    const nodeRef = admin.database().ref("reservations/" + pushId + "/reservationNo");
+    const existing = (await nodeRef.once("value")).val();
+    if (existing) return existing;
+    const counterRef = admin.database().ref("koimariOps/reservationCounter");
+    const inc = await counterRef.transaction((cur) => (cur || 0) + 1);
+    const n = inc.committed ? inc.snapshot.val() : null;
+    if (!n) return existing || null;
+    const claim = await nodeRef.transaction((cur) => (cur == null ? n : undefined));
+    return claim.committed ? n : (claim.snapshot.val() || n);
+  } catch (err) {
+    console.error("予約番号の採番に失敗:", err);
+    return null;
+  }
+}
+// 1234 → "No.1234"（4桁未満は0埋め）。member.html・admin.htmlと表記をそろえること。
+function formatReservationNo(n) {
+  return n ? "No." + String(n).padStart(4, "0") : "";
 }
 
 // ◇項目の1行を作る。LINEのトーク画面は1行あたり全角18文字前後で折り返され、箇条書きが長いと
@@ -711,9 +738,10 @@ function buildReceivedMessage(data) {
   const lines = [
     name + "様、ご予約ありがとうございます🎂",
     "ご注文を以下の内容で承りました。",
-    "",
-    "◆ご注文内容",
-  ].concat(orderDetailLines(data));
+  ];
+  if (data.reservationNo) lines.push("", "◆予約番号", "◇" + formatReservationNo(data.reservationNo));
+  lines.push("", "◆ご注文内容");
+  lines.push(...orderDetailLines(data));
   lines.push("", "◆お引き取り");
   lines.push("◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
   lines.push("", "◆お見積もり");
@@ -732,7 +760,7 @@ function buildReceivedMessage(data) {
     "　いただくことがあります",
     "",
     "◆ご変更・ご相談",
-    "◇このトーク、またはお電話（070-9158-0641）へ",
+    "◇お電話（070-9158-0641）へ",
     "",
     "当日お会いできるのを楽しみにしております🍓"
   );
@@ -746,9 +774,10 @@ function buildConfirmMessage(data) {
   const lines = [
     name + "様、お電話でのご確認ありがとうございました🎂",
     "ご注文が以下の内容で確定いたしました。",
-    "",
-    "◆ご注文内容",
-  ].concat(orderDetailLines(data));
+  ];
+  if (data.reservationNo) lines.push("", "◆予約番号", "◇" + formatReservationNo(data.reservationNo));
+  lines.push("", "◆ご注文内容");
+  lines.push(...orderDetailLines(data));
   lines.push("", "◆お引き取り（確定）", "◇" + formatPickupDateTimeJp(pd, pt));
   lines.push("", "◆お支払い金額");
   if (data.finalPrice) lines.push("◇¥" + Number(data.finalPrice).toLocaleString() + "（税込）");
@@ -759,7 +788,7 @@ function buildConfirmMessage(data) {
   lines.push(
     "",
     "◆ご変更・ご相談",
-    "◇このトーク、またはお電話（070-9158-0641）へ",
+    "◇お電話（070-9158-0641）へ",
     "",
     "当日お会いできるのを楽しみにしております🍓"
   );
@@ -774,8 +803,10 @@ exports.sendReservationReceivedMessage = onValueCreated(
     secrets: [LINE_CHANNEL_ACCESS_TOKEN],
   },
   async (event) => {
-    const data = event.data.val();
-    if (!data || data.channel !== "LINE" || !data.lineUserId || data.category === "kidsManager") return;
+    const raw = event.data.val();
+    if (!raw || raw.channel !== "LINE" || !raw.lineUserId || raw.category === "kidsManager") return;
+    const reservationNo = await assignReservationNo(event.params.pushId);
+    const data = Object.assign({}, raw, { reservationNo });
     await pushLineMessage(data.lineUserId, buildReceivedMessage(data), LINE_CHANNEL_ACCESS_TOKEN.value());
   }
 );
