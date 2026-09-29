@@ -434,7 +434,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="reserveThanksWrap" class="notice-box" style="display:none;padding:0;border:none;text-align:left;">
         <div class="notice-box__title">ご予約ありがとうございました</div>
-        <div class="notice-box__desc">予約完了をメールでお送りしますのでご確認ください。後ほど担当より確認のお電話も差し上げます。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
+        <div class="notice-box__desc">ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。お支払いは当日、店頭でのお引き渡し時にお願いいたします。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
         <div class="confirm-box" id="reserveThanksSummary" style="margin-top:20px;"></div>
       </div>
     </div>
@@ -707,7 +707,7 @@ function renderColorChips() {
   if (hint) {
     const tot = (typeof totalColors === "function") ? totalColors() : selectedCreamColors.length;
     const price = (typeof colorPriceFor === "function") ? colorPriceFor(tot) : 0;
-    hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.map(colorLabelOf).join("・") : "この段の色：未選択（白のままです）") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込・概算）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
+    hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.map(colorLabelOf).join("・") : "この段の色：未選択（白のままです）") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
   }
 }
 function showColorLimitHint() {
@@ -1052,7 +1052,7 @@ function updateReserveFloat() {
   const TOTAL = 8;
   const pct = Math.round(((TOTAL - Math.min(TOTAL, miss.length)) / TOTAL) * 100);
   const r = computeCakeSubtotal();
-  const price = !r.applicable || r.incomplete ? "" : r.priceNeedsConsult ? "料金はお電話でご案内" : CakePricing.fromYen(r.subtotal) + "（税込・概算）";
+  const price = !r.applicable || r.incomplete ? "" : r.priceNeedsConsult ? "料金はお電話でご案内" : (r.priceIsFixed ? yenFixed(r.subtotal) : CakePricing.fromYen(r.subtotal)) + "（税込）";
   el.style.display = "block";
   el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;"><span style="color:#6b5a48;">' + (miss.length ? "あと" + miss.length + "項目で確認画面へ" : "入力OK！確認画面へ進めます") + '</span><b style="color:#a88a52;font-size:16px;">' + price + '</b></div>' +
     '<div style="height:5px;background:#eee3d3;border-radius:3px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (miss.length ? "#e0a13a" : "#3aa76d") + ';transition:width .3s;"></div></div>';
@@ -1081,7 +1081,7 @@ function initPastOrders(uid) {
       list.map((o, i) => {
         const d = new Date(o.savedAt || 0);
         const when = isNaN(d) ? "" : d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
-        const price = o.subtotal ? " ／ 概算 " + CakePricing.fromYen(o.subtotal) : "";
+        const price = o.subtotal ? " ／ " + (o.priceIsFixed ? yenFixed(o.subtotal) : CakePricing.fromYen(o.subtotal)) : "";
         return '<div style="border-top:1px dashed #e3d2ba;margin-top:10px;padding-top:10px;"><div style="font-size:12px;color:#8a7a68;">ご注文日 ' + escape(when) + (o.pickupDate ? "　お受取日 " + escape(o.pickupDate) : "") + escape(price) + '</div><div style="font-size:13px;margin:4px 0 8px;line-height:1.6;white-space:pre-line;">' + escape(o.headline || "") + '</div>' + (o.spec ? '<button type="button" class="past-order-btn" data-i="' + i + '" style="padding:8px 16px;border:1px solid #3aa76d;color:#0b7a37;background:#fff;border-radius:999px;cursor:pointer;font-size:13px;">この内容で注文する</button>' : "") + '</div>';
       }).join("") + '</details>';
     el.querySelectorAll(".past-order-btn").forEach(b => b.addEventListener("click", () => {
@@ -1137,14 +1137,29 @@ function computeCakeSubtotal() {
     sizePrices: currentSizePrices, typePrices: currentTypePrices, cutContainerFee: currentCutContainerFee, creamToppingPrice: currentCreamToppingPrice, chocoCream: currentChocoCreamSurcharge,
     candlePlain: currentCandleBagPricePlain, candleNumber: currentCandleBagPriceNumber, messagePlate: currentMessagePlatePrice
   });
-  return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, applicable: true, lines: r.lines, notes: r.notes };
+  // 金額を「確定」で出せるのは、①個別案内が不要 ②「別途ご案内」の注記が無い ③1段（多段は組み合わせ次第で変動しうる）の3つを満たす場合のみ。
+  const fixed = !r.needsConsult && (r.notes || []).length === 0 && input.tiers.length === 1;
+  return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, priceIsFixed: fixed, applicable: true, lines: r.lines, notes: r.notes };
 }
-// 確認画面・完了画面・LINEサマリーで共通の概算見積もり文言（税込・必ず「〜」表記）。
+// 確認画面・完了画面・LINEサマリーで共通のお見積もり文言（2026-09-29オーナー指示）。
+// 特殊仕様が無ければ確定金額、積算しきれない場合は「〇〇円〜」、まったく積算できない場合はお電話案内。
+// 確定金額のときの表記（CakePricing.fromYen は必ず「〜」が付くため、確定用は別に用意する）。
+function yenFixed(n) { return "¥" + Number(n || 0).toLocaleString(); }
+function estimateIsFixed(data) {
+  if (data.priceNeedsConsult) return false;
+  if ((data.estimateNotes || []).length) return false;
+  return (data.items || []).length === 1;
+}
 function estimateHeadline(data) {
   if (data.priceNeedsConsult) return "この組み合わせは、料金をお電話で個別にご案内します";
-  return CakePricing.fromYen(data.subtotal) + "（税込・概算）";
+  if (estimateIsFixed(data)) return yenFixed(data.subtotal) + "（税込）";
+  return CakePricing.fromYen(data.subtotal) + "（税込）";
 }
-function estimateDisclaimer() { return "あくまで概算です。確定金額・お渡し日時は、ご予約内容の確認後にスタッフよりご案内します。"; }
+function estimateDisclaimer(data) {
+  const pay = "お支払いは当日、店頭でのお引き渡し時にお願いいたします。";
+  if (data && estimateIsFixed(data)) return "この内容での金額です（ご要望の追加があった場合は変わることがあります）。" + pay;
+  return "上記は最低金額の目安です。確定金額とお渡し日時は、スタッフよりお電話でご案内します。" + pay;
+}
 function updateLivePriceDisplay() {
   const bar = document.getElementById("liveTotalBar");
   if (!bar) return;
@@ -1159,11 +1174,13 @@ function updateLivePriceDisplay() {
   }
   bar.style.display = "flex";
   if (result.incomplete) {
-    bar.innerHTML = `<span class="live-total-bar__label">概算お見積もり</span><span class="live-total-bar__consult">サイズを選ぶと、ここに表示されます</span>`;
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">サイズを選ぶと、ここに表示されます</span>`;
   } else if (result.priceNeedsConsult) {
-    bar.innerHTML = `<span class="live-total-bar__label">概算お見積もり</span><span class="live-total-bar__consult">この組み合わせは、料金をお電話で個別にご案内します</span>`;
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">この組み合わせは、料金をお電話で個別にご案内します</span>`;
+  } else if (result.priceIsFixed) {
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__amount">${yenFixed(result.subtotal)}<small>（税込）</small></span>`;
   } else {
-    bar.innerHTML = `<span class="live-total-bar__label">概算お見積もり</span><span class="live-total-bar__amount">${CakePricing.fromYen(result.subtotal)}<small>（税込・概算）</small></span>`;
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__amount">${CakePricing.fromYen(result.subtotal)}<small>（税込）</small></span>`;
   }
 }
 
@@ -1517,7 +1534,7 @@ async function sendReserveToFormspree(data) {
         生クリームたっぷり乗せ: data.creamTopping ? "あり" : "なし",
         ...((isCakeBody || isRoll) ? { ろうそく: candleLine, メッセージプレート: messageLine } : {}),
         "メッセージプレートの文字（1枚目）": item.message || "",
-        概算お見積もり: data.priceNeedsConsult ? "要電話案内（組み合わせにより個別にご案内）" : (data.subtotal ? CakePricing.fromYen(data.subtotal) + "（税込・概算）" : ""),
+        お見積もり: data.priceNeedsConsult ? "要電話案内（組み合わせにより個別にご案内）" : (data.subtotal ? estimateHeadline(data) + (estimateIsFixed(data) ? "（確定金額として案内済み）" : "（最低金額の目安）") : ""),
         領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
         備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
       };
@@ -1654,7 +1671,7 @@ function validateReserve(data) {
 
   if (!data.furigana.trim()) { setReserveError("reserveFuriganaError", "お名前（ふりがな）をご入力ください"); ok = false; }
   if (!data.name.trim()) { setReserveError("reserveNameError", "お名前をご入力ください"); ok = false; }
-  else if (!/^[\p{Script=Hiragana}\p{Script=Han}\s]+$/u.test(data.name.trim())) { setReserveError("reserveNameError", "お名前はひらがな・漢字でご入力ください"); ok = false; }
+  else if (!NAME_INPUT_RE.test(data.name.trim())) { setReserveError("reserveNameError", "お名前はひらがな・漢字でご入力ください"); ok = false; }
   if (!data.tel.trim()) { setReserveError("reserveTelError", "電話番号をご入力ください"); ok = false; }
   else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setReserveError("reserveTelError", "正しい電話番号をご入力ください"); ok = false; }
   if (!data.email.trim()) { setReserveError("reserveEmailError", "メールアドレスをご入力ください"); ok = false; }
@@ -1708,7 +1725,7 @@ function renderReserveConfirm(data, targetId) {
     ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料+交通費）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${data.christmasOrder ? "無料でお付けします" : candleLine}</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>メッセージプレート</dt><dd>${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}</dd>` : ""}
-    ${(isCake && (data.subtotal || data.priceNeedsConsult)) ? `<dt>概算お見積もり</dt><dd><strong>${estimateHeadline(data)}</strong>${(data.estimateLines || []).length ? `<div style="font-size:12px;margin-top:6px;line-height:1.7;">${data.estimateLines.map(l => `${escape(l.label)}　${CakePricing.yen(l.amount)}`).join("<br>")}</div>` : ""}${(data.estimateNotes || []).length ? `<div style="font-size:12px;margin-top:4px;">※${data.estimateNotes.map(n => escape(n)).join("／")}</div>` : ""}<div style="font-size:11.5px;color:#856e58;margin-top:6px;">${estimateDisclaimer()}</div></dd>` : ""}
+    ${(isCake && (data.subtotal || data.priceNeedsConsult)) ? `<dt>お見積もり</dt><dd><strong>${estimateHeadline(data)}</strong>${(data.estimateLines || []).length ? `<div style="font-size:12px;margin-top:6px;line-height:1.7;">${data.estimateLines.map(l => `${escape(l.label)}　${CakePricing.yen(l.amount)}`).join("<br>")}</div>` : ""}${(data.estimateNotes || []).length ? `<div style="font-size:12px;margin-top:4px;">※${data.estimateNotes.map(n => escape(n)).join("／")}</div>` : ""}<div style="font-size:11.5px;color:#856e58;margin-top:6px;">${estimateDisclaimer(data)}</div></dd>` : ""}
 
 
     ${item.message ? `<dt>メッセージプレートの文字（1枚目）</dt><dd>${escape(item.message)}</dd>` : ""}
@@ -1768,10 +1785,10 @@ function buildReserveSummaryText(data) {
   if (isCake || isRoll) lines.push(`ろうそく: ${data.christmasOrder ? "無料でお付けします" : candleLine}`);
   if (isCake || isRoll) lines.push(`メッセージプレート: ${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}`);
   if (isCake && (data.subtotal || data.priceNeedsConsult)) {
-    lines.push(`概算お見積もり: ${estimateHeadline(data)}`);
+    lines.push(`お見積もり: ${estimateHeadline(data)}`);
     (data.estimateLines || []).forEach(l => lines.push(`　・${l.label} ${CakePricing.yen(l.amount)}`));
     (data.estimateNotes || []).forEach(n => lines.push(`　※${n}`));
-    lines.push(`※${estimateDisclaimer()}`);
+    lines.push(`※${estimateDisclaimer(data)}`);
   }
 
 
@@ -1878,7 +1895,7 @@ function updateReservePhoneNotice() {
   const productLine = currentDraft ? currentDraft.name + (currentDraft.size ? "（" + currentDraft.size + "）" : "") : typeVal;
   const price = computeCakeSubtotal();
   let priceLine = "";
-  if (price.applicable && !price.incomplete) priceLine = price.priceNeedsConsult ? "費用：お電話で個別にご案内します" : "概算お見積もり：" + CakePricing.fromYen(price.subtotal) + "（税込）";
+  if (price.applicable && !price.incomplete) priceLine = price.priceNeedsConsult ? "費用：お電話で個別にご案内します" : (price.priceIsFixed ? "お見積もり：" + yenFixed(price.subtotal) + "（税込）" : "お見積もり：" + CakePricing.fromYen(price.subtotal) + "（税込）");
   const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   el.style.display = "block";
   el.innerHTML = '<div style="margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.8;">' +
@@ -1907,6 +1924,8 @@ async function checkFriendship() {
   } catch (e) { /* 判定できない場合は何も表示しない */ }
 }
 
+// お名前欄で受け付ける文字（ひらがな・漢字・空白）。入力チェックとLINE表示名の引用の両方でこれを使う。
+const NAME_INPUT_RE = /^[\p{Script=Hiragana}\p{Script=Han}\s]+$/u;
 function setupReserveForm(uid, displayName) {
   initDraftFeature();
   renderColorChips();
@@ -1914,7 +1933,10 @@ function setupReserveForm(uid, displayName) {
   populateReserveSelects();
   updateReserveFieldVisibility();
   updateReserveCategoryVisibility();
-  document.getElementById("reserveName").value = displayName || "";
+  // LINEの表示名が日本語の氏名として通る形（ひらがな・漢字）のときだけ引用する。
+  // ニックネームや英字・絵文字入りの場合は空欄にして、お客様にご本名を入力していただく。
+  const lineName = String(displayName || "").trim();
+  document.getElementById("reserveName").value = NAME_INPUT_RE.test(lineName) ? lineName : "";
 
   let pendingData = null;
 
@@ -2007,7 +2029,7 @@ function setupReserveForm(uid, displayName) {
         items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
         candleNeeded, candleType, candleBags, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
-        estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [],
+        estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [], priceIsFixed: !!priceResult.priceIsFixed,
         ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: specsNow.reduce((a, s) => a.concat(s.colors), []), note: colorCreamNote } } : {}),
         ...(isCake && specsNow.length > 1 ? { tierSpecs: specsNow.map((s, i) => ({ tier: tierName(i, specsNow.length), size: (items[i] || {}).size || "", cream: s.cream, colors: s.colors })).reverse() } : {}),
         ...(strawberryAdd ? { strawberryAdd: true } : {}),

@@ -170,6 +170,9 @@ const summerNow = new Date(2026, 7, 17);
 assert.ok(buildReminderMessage("threeDay", reminderData, summerNow).includes("あと3日"), "3日前メッセージに「あと3日」を含む");
 assert.ok(buildReminderMessage("oneDay", reminderData, summerNow).includes("明日"), "24時間前メッセージに「明日」を含む");
 assert.ok(buildReminderMessage("oneHour", reminderData, summerNow).includes("まもなく"), "1時間前メッセージに「まもなく」を含む");
+["threeDay", "oneDay", "oneHour"].forEach((stage) => {
+  assert.ok(buildReminderMessage(stage, reminderData, summerNow).includes("◆"), stage + "メッセージも◆◇形式（LINEの折り返し対策）");
+});
 console.log("OK: 予約引き取りリマインダー関連の関数");
 
 // --- スタッフ通知メッセージ ---
@@ -232,7 +235,7 @@ console.log("OK: formatPickupDateTimeJp");
 
 assertEqual(
   buildCouponReplyText([{ discount: "3%OFF", memo: "店頭購入限定", expiry: "" }], "2026-09-06"),
-  "ただいま開催中のクーポンはこちらです🎫\n\n3%OFF（店頭購入限定）",
+  "ただいま開催中のクーポンはこちらです🎫\n\n◆ご利用いただけるクーポン\n◇3%OFF（店頭購入限定）",
   "expiry未設定のクーポンは期限表記なしで常に有効"
 );
 assertEqual(
@@ -242,12 +245,12 @@ assertEqual(
 );
 assertEqual(
   buildCouponReplyText([{ discount: "10%OFF", expiry: "2026-09-30" }], "2026-09-06"),
-  "ただいま開催中のクーポンはこちらです🎫\n\n10%OFF ※2026-09-30まで",
+  "ただいま開催中のクーポンはこちらです🎫\n\n◆ご利用いただけるクーポン\n◇10%OFF\n　※2026年9月30日まで",
   "期限内のクーポンは期限表記つきで表示する"
 );
 assertEqual(
   buildCouponReplyText([{ discount: "5%OFF", expiry: "" }], "2026-09-06", "山田太郎"),
-  "山田太郎様への友だち限定クーポンのご案内です🎫\n恐れ入りますが、画面のスクリーンショットのSNS等への投稿・転載はご遠慮ください。\n\n5%OFF",
+  "山田太郎様への友だち限定クーポンのご案内です🎫\n\n◆ご利用いただけるクーポン\n◇5%OFF\n\n恐れ入りますが、画面のスクリーンショットの\nSNS等への投稿・転載はご遠慮ください。",
   "displayName指定時は宛名とSNS転載注意書きを添える"
 );
 console.log("OK: buildCouponReplyText");

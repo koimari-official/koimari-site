@@ -645,7 +645,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     </section>
     <section class="panel" id="panel-cakeAddOns">
       <div class="panel__head"><h2 class="panel__title">デコレーション追加商品（砂糖菓子・オーナメント）</h2><button class="btn btn--small" id="addCakeAddOn">＋ 商品を追加</button></div>
-      <p class="panel__desc">予約フォームで、お客様が<strong>写真を見ながら追加できる商品</strong>です（砂糖菓子・オーナメントなど）。お子様と一緒に選んでワクワクできるよう、かわいい写真を登録してください。価格は<strong>1個あたり（税込）</strong>で、選ばれた個数分が概算お見積もりに加算されます。表示ON/OFF・並び替えもできます。登録が1件も無い間は、予約フォームにこの欄は出ません。</p>
+      <p class="panel__desc">予約フォームで、お客様が<strong>写真を見ながら追加できる商品</strong>です（砂糖菓子・オーナメントなど）。お子様と一緒に選んでワクワクできるよう、かわいい写真を登録してください。価格は<strong>1個あたり（税込）</strong>で、選ばれた個数分がお見積もりに加算されます。表示ON/OFF・並び替えもできます。登録が1件も無い間は、予約フォームにこの欄は出ません。</p>
       <div class="img-grid" id="cakeAddOnsGrid"></div>
     </section>
     <section class="panel" id="panel-experiences">
@@ -1021,7 +1021,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         </div>
         <div style="margin:6px 0 18px;padding-top:14px;border-top:1px solid var(--color-line);">
           <h4 style="font-family:var(--font-mincho);font-size:14px;margin-bottom:4px;">ケーキの種類ごとの単段の価格（税込）</h4>
-          <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:10px;">上の「サイズ別基本料金」は<strong>生クリーム系</strong>（生チョコクリームは＋「生チョコ追加料金」）の価格です。下の種類は、種類ごとに価格が異なるため、ここで入力します。<strong>空欄のサイズは「取り扱いなし・お電話で個別案内」</strong>として、予約フォームの概算では金額を出しません。価格改定のときは、ここを書き換えて「保存して反映」を押してください。</p>
+          <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:10px;">上の「サイズ別基本料金」は<strong>生クリーム系</strong>（生チョコクリームは＋「生チョコ追加料金」）の価格です。下の種類は、種類ごとに価格が異なるため、ここで入力します。<strong>空欄のサイズは「取り扱いなし・お電話で個別案内」</strong>として、予約フォームのお見積もりでは金額を出しません。価格改定のときは、ここを書き換えて「保存して反映」を押してください。</p>
           <div style="overflow-x:auto;"><table style="border-collapse:collapse;">
             <thead><tr><th></th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">4号</th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">5号</th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">6号</th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">7号</th></tr></thead>
             <tbody>
@@ -1265,7 +1265,9 @@ function reservationPriceHtmlBody(r) {
   return special + reservationPriceHtmlBody2(r);
 }
 function reservationPriceHtmlBody2(r) {
-  // 2026-09-24：お客様には必ず「¥○○○〜」の概算（税込）を案内している。内訳（estimateLines）も併せて表示する。
+  // 2026-09-24：お客様への案内金額（税込）をそのまま表示する。内訳（estimateLines）も併せて表示する。
+  // 2026-09-29：特殊仕様が無い注文は「確定金額」として案内済み（r.priceIsFixed）。確認電話で金額を
+  // 言い直さないよう、管理画面でも確定/目安を区別して表示する。
   if (r.priceNeedsConsult) {
     return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#a98554;">💰 お客様への案内: この組み合わせは料金をお電話で個別にご案内</div>`;
   }
@@ -1273,7 +1275,10 @@ function reservationPriceHtmlBody2(r) {
     const lines = Array.isArray(r.estimateLines) && r.estimateLines.length
       ? `<div style="font-size:10.5px;font-weight:500;color:#6b5a48;line-height:1.6;margin-top:2px;">${r.estimateLines.map(l => escapeHtml(l.label) + " ¥" + Number(l.amount).toLocaleString()).join("<br>")}</div>` : "";
     const notes = Array.isArray(r.estimateNotes) && r.estimateNotes.length ? `<div style="font-size:10.5px;color:#a98554;">※${r.estimateNotes.map(escapeHtml).join("／")}</div>` : "";
-    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#5d8a4e;">💰 お客様への案内: 概算 ¥${Number(r.subtotal).toLocaleString()}〜（税込）</div>${lines}${notes}`;
+    const amount = r.priceIsFixed
+      ? "確定 ¥" + Number(r.subtotal).toLocaleString() + "（税込）"
+      : "目安 ¥" + Number(r.subtotal).toLocaleString() + "〜（税込）";
+    return `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#5d8a4e;">💰 お客様への案内: ${amount}</div>${lines}${notes}`;
   }
   return "";
 }
@@ -1554,8 +1559,9 @@ document.getElementById("logoutBtn").addEventListener("click", () => {
 // 移動しても画面下部に表示され続け、別パネルの保存ボタンと誤認される事故があった。
 // サイト画像系のタブにいる時だけ表示するようにする。
 const SITEIMAGES_PANELS = new Set(["hero", "greeting", "philosophy", "categories", "decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns", "experiences"]);
-document.querySelectorAll(".tab").forEach(t => {
-  t.addEventListener("click", () => {
+function activateTab(t, updateHash) {
+  if (!t) return;
+  {
     document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
     document.querySelectorAll(".panel").forEach(x => x.classList.remove("active"));
     t.classList.add("active");
@@ -1585,8 +1591,21 @@ document.querySelectorAll(".tab").forEach(t => {
     if (t.dataset.panel === "hero") renderHeroPromptPresets();
     if (t.dataset.panel === "voicesAdmin") renderVoicesAdmin();
     if (t.dataset.panel === "blogAdmin") { blogData = null; renderBlogAdmin(); }
-  });
-});
+    if (updateHash !== false) { try { history.replaceState(null, "", "#" + t.dataset.panel); } catch (e) {} }
+  }
+}
+document.querySelectorAll(".tab").forEach(t => { t.addEventListener("click", () => activateTab(t)); });
+// URLの#で開くタブを指定する（例: admin.html#reservations で予約一覧をそのまま開く）。
+// ログイン直後にも呼ぶ（onAuthStateChangedの中でopenTabFromHash()を実行）。
+function openTabFromHash() {
+  const key = (location.hash || "").replace("#", "").trim();
+  if (!key) return false;
+  const tab = document.querySelector('.tab[data-panel="' + key + '"]');
+  if (!tab) return false;
+  activateTab(tab, false);
+  return true;
+}
+window.openTabFromHash = openTabFromHash;
 
 /* ============================================================
    画像管理
@@ -2635,7 +2654,7 @@ function renderGift() {
   });
 }
 // 2026-09-24：予約フォームの「デコレーション追加」（砂糖菓子・オーナメント）の商品。写真と1個あたりの
-// 金額を登録すると、お客様が画像を見ながら個数を選び、概算お見積もりに加算される（member.html）。
+// 金額を登録すると、お客様が画像を見ながら個数を選び、お見積もりに加算される（member.html）。
 function renderCakeAddOns() {
   const grid = document.getElementById("cakeAddOnsGrid"); if (!grid) return; grid.innerHTML = "";
   if (!Array.isArray(workingData.cakeAddOns)) workingData.cakeAddOns = [];
@@ -3889,7 +3908,7 @@ function updateResConfirmed(idx, checked) {
   if (checked) {
     // パティシエの確認電話で決まった、確定のお引き取り日時・税込金額を入力（お客様へ送る確定連絡LINEに載る）。
     const cur = list[idx];
-    const priceIn = prompt("確定金額（税込・数字のみ）を入力してください" + (cur.subtotal ? "\n（概算：¥" + Number(cur.subtotal).toLocaleString() + "〜）" : "") + "\n\n※キャンセルすると「予約確定」になりません", cur.finalPrice || cur.subtotal || "");
+    const priceIn = prompt("確定金額（税込・数字のみ）を入力してください" + (cur.subtotal ? "\n（お客様への案内：¥" + Number(cur.subtotal).toLocaleString() + (cur.priceIsFixed ? "＝確定金額" : "〜＝目安") + "）" : "") + "\n\n※キャンセルすると「予約確定」になりません", cur.finalPrice || cur.subtotal || "");
     if (priceIn === null) { renderReservations(); return; }
     const price = Number(String(priceIn).replace(/[^0-9]/g, ""));
     if (!price) { showToast("金額は数字で入力してください", "error"); renderReservations(); return; }
@@ -5857,6 +5876,8 @@ onAuthStateChanged(fbAuth, (user) => {
     initCakeFlavorsPanel();
     initQuoteBuilder();
     if (typeof window.showAdmin === "function") window.showAdmin();
+    // URLの#で指定されたタブ（例: admin.html#reservations）をログイン直後に開く
+    if (typeof window.openTabFromHash === "function") window.openTabFromHash();
   } else {
     if (typeof window.showLogin === "function") window.showLogin();
   }

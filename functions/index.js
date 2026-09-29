@@ -34,13 +34,31 @@ const RESERVE_CARD_REPLY_TEXT = `ご予約はこちらからどうぞ🎂
 
 ${RESERVE_LIFF_URL}
 
-デコレーションケーキ・ロールケーキ・焼き菓子/ギフトのご予約ができます。引き取り希望日の3営業日前までは、こちらからネット予約いただけます。2営業日前以降はお電話（070-9158-0641）にてご予約ください（ホームページのギャラリーで選んだ仕様をお伝えいただくとスムーズです）。`;
+◆ご予約できる商品
+◇デコレーションケーキ
+◇ロールケーキ
+◇焼き菓子・ギフト
+
+◆ネット予約の締切
+◇お引き取り希望日の3営業日前まで
+
+◆2営業日前以降・お急ぎの場合
+◇お電話（070-9158-0641）へ
+
+ホームページのギャラリーで選んだ仕様をお伝えいただくと、よりスムーズにご案内できます🍓`;
 
 // リッチメニュー「スタンプカード」タップ時の送信テキスト・返信（2026-09-08、旧「よくある質問」タイルを差し替え）。
 // LINE公式アカウント自体のショップカード機能への一本化を予定しているが、公開URLが未確定のため、
 // 準備中の案内を返すのみにしている。URLが決まり次第、RICHMENU_AREASのactionをuri型に切り替える。
 const STAMP_CARD_TRIGGER_TEXT = "スタンプカードについて教えてください";
-const STAMP_CARD_REPLY_TEXT = "スタンプカードは近日公開予定です🎁\nもうしばらくお待ちくださいませ。ご予約・クーポン・ギャラリーは引き続きこちらのメニューからご利用いただけます。";
+const STAMP_CARD_REPLY_TEXT = [
+  "スタンプカードは近日公開予定です🎁",
+  "もうしばらくお待ちくださいませ。",
+  "",
+  "ご予約・クーポン・ギャラリーは、",
+  "引き続きこちらのメニューから",
+  "ご利用いただけます。",
+].join("\n");
 
 // 「予約」「注文」という言葉が自由入力メッセージ内に含まれていた場合、AIの返信に必ずこのボタンを
 // 添付する。リッチメニューを一度折りたたんだお客様にも、毎回確実に予約フォームへの導線を出すため
@@ -193,14 +211,44 @@ function buildReminderMessage(stage, data, now) {
   const name = data.name || "お客様";
   const product = productLabel(data);
   if (stage === "threeDay") {
-    const careLine = getSeasonCareLine(now);
-    return `${name}様、ご予約いただいた「${product}」のお引き取りまであと3日となりました🍓\n内容の変更がございましたらLINE公式アカウント上、もしくはお気軽に店舗までご連絡くださいませ🎵\n${careLine}${name}様にお会いできる日を、スタッフ一同楽しみにお待ちしております。`;
+    return [
+      name + "様、お引き取りまであと3日となりました🍓",
+      "",
+      "◆ご注文",
+      diamondLine("商品", product),
+      diamondLine("お引き取り", formatPickupDateTimeJp(data.pickupDate, data.pickupTime)),
+      "",
+      "◆ご変更・ご相談",
+      "◇このトーク、またはお電話（070-9158-0641）へ",
+      "",
+      getSeasonCareLine(now),
+      "お会いできる日を、スタッフ一同楽しみにお待ちしております。",
+    ].join("\n");
   }
   if (stage === "oneDay") {
-    return `${name}様、明日 ${formatPickupDateTimeJp(data.pickupDate, data.pickupTime)}に「${product}」のお引き取りをご予約いただいております。お会いできるのを楽しみにしております🍓 道中お気をつけてお越しくださいね。`;
+    return [
+      name + "様、いよいよ明日お引き取りの日です🍓",
+      "",
+      "◆お引き取り",
+      "◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime),
+      "",
+      "◆ご注文",
+      diamondLine("商品", product),
+      "",
+      "道中お気をつけてお越しくださいね。",
+      "お会いできるのを楽しみにしております。",
+    ].join("\n");
   }
   const comfort = getStoreComfortLine(now);
-  return `${name}様、まもなくお引き取りのお時間です（${data.pickupTime}〜）。${comfort.text}ゆっくりいらしてくださいね${comfort.emoji}`;
+  return [
+    name + "様、まもなくお引き取りのお時間です" + comfort.emoji,
+    "",
+    "◆お引き取り",
+    "◇本日 " + data.pickupTime + "〜",
+    "",
+    comfort.text,
+    "ゆっくりいらしてくださいね。",
+  ].join("\n");
 }
 
 async function pushLineMessage(userId, text, accessToken) {
@@ -528,12 +576,16 @@ function buildStaffNotifyText(data) {
     lines.push("⚠ 特殊仕様: " + data.specialSpec + "（納期は通常と異なります・要確認）");
   }
   if (data.priceNeedsConsult) {
-    lines.push("概算お見積もり: この組み合わせは料金を個別に電話案内（お客様には「お電話で個別にご案内」と表示済み）");
+    lines.push("お見積もり: この組み合わせは料金を個別に電話案内（お客様には「お電話で個別にご案内」と表示済み）");
   } else if (data.subtotal) {
     const detail = Array.isArray(data.estimateLines) && data.estimateLines.length
       ? ["", ...data.estimateLines.map((l) => "　" + l.label + " ¥" + Number(l.amount).toLocaleString())].join("\n")
       : "";
-    lines.push(`概算お見積もり（お客様への表示）: ¥${Number(data.subtotal).toLocaleString()}〜（税込）` + detail);
+    // priceIsFixed（member.htmlが保存）がtrueなら、お客様には確定金額として案内済み。
+    const shown = data.priceIsFixed
+      ? `確定金額として案内済み: ¥${Number(data.subtotal).toLocaleString()}（税込）`
+      : `お見積もり（お客様への表示）: ¥${Number(data.subtotal).toLocaleString()}〜（最低金額の目安・税込）`;
+    lines.push(shown + detail);
   }
   if (data.note) lines.push(`ご要望・備考: ${data.note}`);
   lines.push("", "確認電話・予約確定のチェックは管理画面から↓", ADMIN_RESERVATIONS_URL);
@@ -633,14 +685,18 @@ function buildReceivedMessage(data) {
   lines.push("◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
   lines.push("", "◆お見積もり");
   if (data.priceNeedsConsult) lines.push("◇個別にご案内します");
-  else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", "※概算です。確定金額はお電話でご案内します");
+  else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
+  else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", "　※最低金額の目安です。", "　　確定金額はお電話でご案内します");
   else lines.push("◇お電話でご案内します");
+  lines.push("", "◆お支払い", "◇当日、店頭でのお引き渡し時に", "　お願いいたします");
   lines.push(
     "",
     "◆このあとの流れ",
     "◇パティシエが内容確認のお電話をします",
     "　（070-9158-0641から発信）",
-    "◇連絡が取れない場合、ご予約をキャンセルさせていただくことがあります",
+    "◇お電話がつながらない場合は、",
+    "　ご予約をキャンセルさせて",
+    "　いただくことがあります",
     "",
     "◆ご変更・ご相談",
     "◇このトーク、またはお電話（070-9158-0641）へ",
@@ -663,7 +719,8 @@ function buildConfirmMessage(data) {
   lines.push("", "◆お引き取り（確定）", "◇" + formatPickupDateTimeJp(pd, pt));
   lines.push("", "◆お支払い金額");
   if (data.finalPrice) lines.push("◇¥" + Number(data.finalPrice).toLocaleString() + "（税込）");
-  else if (data.subtotal && !data.priceNeedsConsult) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込・概算）");
+  else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
+  else if (data.subtotal && !data.priceNeedsConsult) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", "　※確定金額はお電話でご案内した金額です");
   else lines.push("◇お電話でご案内した金額です");
   lines.push(
     "",
@@ -901,17 +958,25 @@ function todayDateKeyJST(now) {
 // （店頭購入時の3%OFF等、キャンペーンではなく恒久的な会員特典に対応するため。2026-09-06）。
 // displayNameを渡すと、案内文に宛名を入れてSNS等への転載を控えるよう一言添える
 // （スクリーンショットが無断で拡散された場合に誰から漏れたか分かるようにする抑止策。2026-09-06）。
+// "2026-09-30" → "2026年9月30日"（お客様向けの表記。ハイフン区切りのままだと日付として読みにくい）。
+function formatCouponExpiry(expiry) {
+  const m = String(expiry || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? Number(m[1]) + "年" + Number(m[2]) + "月" + Number(m[3]) + "日" : String(expiry || "");
+}
 function buildCouponReplyText(coupons, todayKey, displayName) {
   const active = (Array.isArray(coupons) ? coupons : []).filter((c) => c && (!c.expiry || c.expiry >= todayKey));
   if (!active.length) {
     return "現在開催中のクーポンはございません🙏\n新しいクーポンが出た際は、あいさつメッセージ等でご案内いたしますので、またチェックしてみてくださいね🎂";
   }
   const lines = displayName
-    ? [`${displayName}様への友だち限定クーポンのご案内です🎫`, "恐れ入りますが、画面のスクリーンショットのSNS等への投稿・転載はご遠慮ください。", ""]
-    : ["ただいま開催中のクーポンはこちらです🎫", ""];
+    ? [`${displayName}様への友だち限定クーポンのご案内です🎫`, "", "◆ご利用いただけるクーポン"]
+    : ["ただいま開催中のクーポンはこちらです🎫", "", "◆ご利用いただけるクーポン"];
   active.forEach((c) => {
-    const expiryText = c.expiry ? ` ※${c.expiry}まで` : "";
-    lines.push(`${c.discount || ""}${c.memo ? "（" + c.memo + "）" : ""}${expiryText}`);
+    lines.push("◇" + (c.discount || "") + (c.memo ? "（" + c.memo + "）" : ""));
+    if (c.expiry) lines.push("　※" + formatCouponExpiry(c.expiry) + "まで");
   });
+  if (displayName) {
+    lines.push("", "恐れ入りますが、画面のスクリーンショットの", "SNS等への投稿・転載はご遠慮ください。");
+  }
   return lines.join("\n");
 }
