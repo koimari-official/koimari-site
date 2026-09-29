@@ -294,7 +294,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
               <label class="radio-list__opt"><input type="radio" name="reserveCandleType" value="ナンバーろうそく" checked> ナンバーろうそく</label>
               <label class="radio-list__opt"><input type="radio" name="reserveCandleType" value="普通のろうそく"> 普通のろうそく</label>
             </div>
-            <label class="field__label" for="reserveCandleBags" style="font-size:12px;">袋数（1袋5本入）</label>
+            <label class="field__label" for="reserveCandleBags" id="reserveCandleBagsLabel" style="font-size:12px;">袋数（1袋5本入）</label>
             <select id="reserveCandleBags" class="input select">
               <option value="1">1袋</option>
               <option value="2">2袋</option>
@@ -579,13 +579,20 @@ function occasionCategoryName(baseCategory, occasion, occasionOther) {
   if (occasion === "その他" && occasionOther) return isRoll ? `${occasionOther}ロールケーキ` : `${occasionOther}ケーキ`;
   return baseCategory;
 }
-// ろうそく：ナンバーろうそくは1袋目から有料、普通のろうそくは1袋目無料・2袋目以降が有料（2026-09-04確定）。
+// ろうそくの数量表示。ナンバーろうそくは1文字180円なので単位は「文字」、普通のろうそくは「袋」（2026-09-29）。
+function candleQtyText(data, forStaff) {
+  if (!data.candleNeeded) return "なし";
+  const n = Number(data.candleBags) || 1;
+  if (data.candleType === "ナンバーろうそく") return data.candleType + " " + n + "文字";
+  return data.candleType + " " + n + "袋" + (n > 1 ? (forStaff ? "（2袋目以降有料）" : "（2袋目以降は追加料金）") : "");
+}
+// ろうそく：ナンバーろうそくは1文字180円、普通のろうそくは1袋目無料・2袋目以降が有料（2026-09-29更新）。
 // メッセージプレートは1枚目まで無料、2枚目以降は追加料金。金額はadmin.htmlで設定（普通ろうそくの初期値60円は確定分）。
 const DEFAULT_CANDLE_BAG_PRICE_PLAIN = 60;
-let currentCandleBagPriceNumber = 200; // ナンバーろうそく1袋200円（2026-09-26オーナー確定）
+let currentCandleBagPriceNumber = 180; // ナンバーろうそく1文字180円（2026-09-29オーナー確定。旧: 1袋200円）
 let currentCandleBagPricePlain = DEFAULT_CANDLE_BAG_PRICE_PLAIN;
 let currentMessagePlatePrice = 0;
-onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() != null ? snap.val() : 200; if (typeof updateCandleBagsUI === "function") { updateCandleBagsUI(); updateLivePriceDisplay(); } });
+onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() != null ? snap.val() : 180; if (typeof updateCandleBagsUI === "function") { updateCandleBagsUI(); updateLivePriceDisplay(); } });
 onValue(ref(db, "koimariContent/cakeCandleBagPricePlain"), (snap) => { currentCandleBagPricePlain = snap.val() || DEFAULT_CANDLE_BAG_PRICE_PLAIN; });
 function candleCostFor(candleType, bags) {
   if (!bags) return 0;
@@ -596,13 +603,16 @@ function candleCostFor(candleType, bags) {
 function updateCandleBagsUI() {
   const isNumber = ((document.querySelector('input[name="reserveCandleType"]:checked') || {}).value) === "ナンバーろうそく";
   const bagsSelect = document.getElementById("reserveCandleBags");
+  const bagsLabel = document.getElementById("reserveCandleBagsLabel");
   const opt1 = bagsSelect.querySelector('option[value="1"]');
   const hint = document.getElementById("reserveCandleHint");
   if (isNumber) {
-    bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "袋（+¥" + (Number(o.value) * currentCandleBagPriceNumber).toLocaleString() + "）"; });
-    hint.textContent = `ナンバーろうそくは1袋${currentCandleBagPriceNumber.toLocaleString()}円（税込）です。`;
+    bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "文字（+¥" + (Number(o.value) * currentCandleBagPriceNumber).toLocaleString() + "）"; });
+    if (bagsLabel) bagsLabel.textContent = "文字数（例：8歳なら1文字、25歳なら2文字）";
+    hint.textContent = `ナンバーろうそくは1文字${currentCandleBagPriceNumber.toLocaleString()}円（税込）です。`;
   } else {
     bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "袋"; });
+    if (bagsLabel) bagsLabel.textContent = "袋数（1袋5本入）";
     opt1.textContent = "1袋（無料）";
     hint.textContent = `普通のろうそくは1袋目無料、2袋目以降は1袋${currentCandleBagPricePlain.toLocaleString()}円+税かかります。`;
   }
@@ -1495,7 +1505,7 @@ async function sendReserveToFormspree(data) {
         const label = data.items.length > 1 ? `${TIER_LABELS[i] || (i + 1) + "段目"}: ` : "";
         return `${label}${it.category}${it.size ? " / " + it.size : ""}`;
       }).join("\n");
-      const candleLine = data.candleNeeded ? `${data.candleType} ${data.candleBags}袋${data.candleBags > 1 ? "（2袋目以降有料）" : ""}` : "なし";
+      const candleLine = candleQtyText(data, true);
       const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降有料）" : ""}` : "なし";
       body = {
         _subject: `【こいまり】LINE新規ご予約: ${data.name} 様 (${data.type})`,
@@ -1679,7 +1689,7 @@ function renderReserveConfirm(data, targetId) {
   const sizesLine = data.items.length > 1
     ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
     : (item.size || "");
-  const candleLine = data.candleNeeded ? `${escape(data.candleType)} ${data.candleBags}袋${data.candleBags > 1 ? "（2袋目以降は追加料金）" : ""}` : "なし";
+  const candleLine = escape(candleQtyText(data));
   const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降は追加料金）" : ""}` : "なし";
   el.innerHTML = `
     <dt>商品</dt><dd>${escape(productName)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
@@ -1738,7 +1748,7 @@ function buildReserveSummaryText(data) {
   const sizesLine = data.items.length > 1
     ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
     : (item.size || "");
-  const candleLine = data.candleNeeded ? `${data.candleType} ${data.candleBags}袋${data.candleBags > 1 ? "（2袋目以降は追加料金）" : ""}` : "なし";
+  const candleLine = candleQtyText(data);
   const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降は追加料金）" : ""}` : "なし";
   const lines = ["【ご予約を送信しました】", `商品: ${productName}${data.items.length > 1 ? `（${data.items.length}段）` : ""}`];
   if (data.galleryPick) lines.push(`ギャラリーで選んだ商品: ${data.galleryPick.name}${data.galleryPick.size ? `（${data.galleryPick.size}）` : ""}`);

@@ -497,7 +497,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
               <option value="普通のろうそく">普通のろうそく</option>
             </select>
             <select id="qbCandleBags" class="input select" style="max-width:120px;">
-              <option value="1">1袋</option><option value="2">2袋</option><option value="3">3袋</option>
+              <option value="1">1</option><option value="2">2</option><option value="3">3</option>
             </select>
           </div>
         </div>
@@ -1049,8 +1049,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;padding-top:14px;border-top:1px solid var(--color-line);">
           <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">ナンバーろうそく（1袋あたり・1袋目から有料）</label>
-            <input type="number" id="cfCandleBagPriceNumber" class="input" placeholder="未設定">
+            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">ナンバーろうそく（1文字あたり）</label>
+            <input type="number" id="cfCandleBagPriceNumber" class="input" placeholder="180">
           </div>
           <div>
             <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">普通のろうそく（2袋目以降・1袋あたり・税別）</label>
@@ -5136,7 +5136,7 @@ function renderKitchen() {
     if (r.topCut) extra.push("カットケーキ載せ" + (r.topCut.note ? "：" + kEsc(r.topCut.note) : ""));
     if (r.onsiteAssembly) extra.push("⚠ 出張組み立て希望");
     if (r.creamTopping) extra.push("生クリームたっぷり乗せ");
-    if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + "袋");
+    if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
     if (r.christmasOrder) extra.push("クリスマス（メリークリスマスプレート）");
     if (Array.isArray(r.toppings) && r.toppings.length) extra.push("トッピング：" + r.toppings.map(kEsc).join("・") + "（要連絡）");
     if (Array.isArray(r.addOns) && r.addOns.length) extra.push("追加商品：" + r.addOns.map(a => kEsc(a.name) + "×" + a.qty).join("、"));
@@ -5716,7 +5716,7 @@ function initQuoteBuilder() {
     document.getElementById("qbCreamToppingPriceLabel").textContent = qbCreamToppingPrice.toLocaleString();
     recomputeQuote();
   });
-  onValue(cakeCandleBagPriceNumberRef, (snap) => { qbCandleBagPriceNumber = snap.val() != null ? snap.val() : 200; recomputeQuote(); });
+  onValue(cakeCandleBagPriceNumberRef, (snap) => { qbCandleBagPriceNumber = snap.val() != null ? snap.val() : 180; recomputeQuote(); });
   onValue(cakeCandleBagPricePlainRef, (snap) => { qbCandleBagPricePlain = snap.val() || 0; recomputeQuote(); });
   onValue(cakeMessagePlatePriceRef, (snap) => { qbMessagePlatePrice = snap.val() || 0; recomputeQuote(); });
 
@@ -5781,7 +5781,7 @@ function initQuoteBuilder() {
     const lines = [`商品: ${q.category}${q.sizeValues.length > 1 ? `（${q.sizeValues.length}段）` : ""}`];
     if (q.sizeValues.length) lines.push(`サイズ: ${q.sizeValues.join("、")}（¥${q.sizeSubtotal.toLocaleString()}）`);
     if (q.creamToppingCost) lines.push(`生クリームたっぷり乗せ: +¥${q.creamToppingCost.toLocaleString()}`);
-    if (q.candleNeeded) lines.push(`ろうそく: ${q.candleType} ${q.candleBags}袋${q.candleCost ? `（+¥${q.candleCost.toLocaleString()}）` : ""}`);
+    if (q.candleNeeded) lines.push(`ろうそく: ${q.candleType} ${q.candleBags}${q.candleType === "ナンバーろうそく" ? "文字" : "袋"}${q.candleCost ? `（+¥${q.candleCost.toLocaleString()}）` : ""}`);
     if (q.messageCount > 0) lines.push(`メッセージプレート: ${q.messageCount}枚${q.messageCost ? `（+¥${q.messageCost.toLocaleString()}）` : ""}`);
     if (q.note) lines.push(`仕様外のご要望・備考: ${q.note}`);
     if (q.extraLabor) lines.push(`仕様外の小計: +¥${q.extraLabor.toLocaleString()}`);

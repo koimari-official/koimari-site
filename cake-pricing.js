@@ -112,6 +112,7 @@
 
     if (!isXmas && input.candleNeeded) {
       var bags = Number(input.candleBags) || 1;
+      // ナンバーろうそくは1文字あたりの単価（2026-09-29、旧: 1袋あたり）。bagsは文字数として渡ってくる。
       var candle = input.candleType === "ナンバーろうそく" ? bags * (base.candleNumber || 0) : Math.max(0, bags - 1) * (base.candlePlain || 0);
       if (candle) lines.push({ label: "ろうそく（追加分）", amount: candle });
     }
