@@ -172,6 +172,9 @@ assert.ok(buildReminderMessage("oneDay", reminderData, summerNow).includes("明�
 assert.ok(buildReminderMessage("oneHour", reminderData, summerNow).includes("まもなく"), "1時間前メッセージに「まもなく」を含む");
 ["threeDay", "oneDay", "oneHour"].forEach((stage) => {
   assert.ok(buildReminderMessage(stage, reminderData, summerNow).includes("◆"), stage + "メッセージも◆◇形式（LINEの折り返し対策）");
+  assert.ok(buildReminderMessage(stage, reminderData, summerNow).includes("◆お支払い"), stage + "メッセージにお支払いの案内を含む");
+  const xmas = buildReminderMessage(stage, Object.assign({}, reminderData, { christmasOrder: true }), summerNow);
+  assert.ok(xmas.includes("お会計を") && xmas.includes("12月20日"), stage + "：クリスマスケーキは当日会計なし・12月20日までのお支払いを案内する");
 });
 console.log("OK: 予約引き取りリマインダー関連の関数");
 

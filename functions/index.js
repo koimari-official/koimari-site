@@ -218,6 +218,8 @@ function buildReminderMessage(stage, data, now) {
       diamondLine("商品", product),
       diamondLine("お引き取り", formatPickupDateTimeJp(data.pickupDate, data.pickupTime)),
       "",
+      ...paymentLines(data, "reminder").slice(1),
+      "",
       "◆ご変更・ご相談",
       "◇このトーク、またはお電話（070-9158-0641）へ",
       "",
@@ -234,6 +236,7 @@ function buildReminderMessage(stage, data, now) {
       "",
       "◆ご注文",
       diamondLine("商品", product),
+      ...paymentLines(data, "reminder"),
       "",
       "道中お気をつけてお越しくださいね。",
       "お会いできるのを楽しみにしております。",
@@ -245,6 +248,7 @@ function buildReminderMessage(stage, data, now) {
     "",
     "◆お引き取り",
     "◇本日 " + data.pickupTime + "〜",
+    ...paymentLines(data, "reminder"),
     "",
     comfort.text,
     "ゆっくりいらしてくださいね。",
@@ -575,6 +579,9 @@ function buildStaffNotifyText(data) {
   if (data.specialSpec) {
     lines.push("⚠ 特殊仕様: " + data.specialSpec + "（納期は通常と異なります・要確認）");
   }
+  if (data.christmasOrder) {
+    lines.push("🎄 クリスマスケーキ: 当日のお会計なし（" + XMAS_PAYMENT_DEADLINE + "までに店頭でお支払いいただく案内済み）");
+  }
   if (data.priceNeedsConsult) {
     lines.push("お見積もり: この組み合わせは料金を個別に電話案内（お客様には「お電話で個別にご案内」と表示済み）");
   } else if (data.subtotal) {
@@ -619,6 +626,32 @@ function sizeWithDiameter(size) {
   const m = String(size || "").match(/^(\d号)\((約\d+cm)/);
   return m ? m[1] + "（直径" + m[2] + "）" : String(size || "").replace(/\(.*$/, "");
 }
+// クリスマスケーキは引き渡し当日が大変混雑するため、当日のお会計を行わず、
+// 12月20日までに店頭でお支払いいただく（2026-09-29オーナー指示）。それ以外は当日店頭でご精算。
+// member.html の paymentNoticeText()・XMAS_PAYMENT_DEADLINE と内容をそろえること。
+const XMAS_PAYMENT_DEADLINE = "12月20日";
+// stage: "received"（予約直後）/ "confirmed"（確定連絡）/ "reminder"（リマインド）
+function paymentLines(data, stage) {
+  const lines = ["", "◆お支払い"];
+  if (data && data.christmasOrder) {
+    lines.push("◇" + XMAS_PAYMENT_DEADLINE + "までに店頭で", "　お願いしております");
+    if (stage === "reminder") lines.push("◇お済みでない場合は、", "　お早めにご来店ください");
+    lines.push("◇お引き渡し当日はお会計を", "　承っておりません");
+    return lines;
+  }
+  if (stage === "reminder") lines.push("◇当日、店頭でご精算を", "　お願いいたします");
+  else lines.push("◇お引き取り日当日、", "　店頭でご精算をお願いいたします");
+  return lines;
+}
+
+// 「¥◯◯〜」で案内する理由の注記。備考にご希望がある場合は、内容確認のうえ電話で価格・納期を回答する。
+function estimateReasonLines(data) {
+  if (data && String(data.note || "").trim()) {
+    return ["　※ご要望の内容を確認のうえ、", "　　お電話で価格・納期を", "　　ご案内いたします"];
+  }
+  return ["　※最低金額の目安です。", "　　確定金額はお電話でご案内します"];
+}
+
 // ◇項目の1行を作る。LINEのトーク画面は1行あたり全角18文字前後で折り返され、箇条書きが長いと
 // 折り返し行の頭がそろわず読みにくくなる。短ければ「◇項目：内容」の1行、長ければ「◇項目」の次の行に
 // 全角スペース付きで内容を置く（2026-09-28オーナー指示：長文の箇条書きは折り返しで見づらい）。
@@ -686,9 +719,9 @@ function buildReceivedMessage(data) {
   lines.push("", "◆お見積もり");
   if (data.priceNeedsConsult) lines.push("◇個別にご案内します");
   else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
-  else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", "　※最低金額の目安です。", "　　確定金額はお電話でご案内します");
+  else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", ...estimateReasonLines(data));
   else lines.push("◇お電話でご案内します");
-  lines.push("", "◆お支払い", "◇当日、店頭でのお引き渡し時に", "　お願いいたします");
+  lines.push(...paymentLines(data, "received"));
   lines.push(
     "",
     "◆このあとの流れ",
@@ -722,6 +755,7 @@ function buildConfirmMessage(data) {
   else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
   else if (data.subtotal && !data.priceNeedsConsult) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", "　※確定金額はお電話でご案内した金額です");
   else lines.push("◇お電話でご案内した金額です");
+  lines.push(...paymentLines(data, "confirmed"));
   lines.push(
     "",
     "◆ご変更・ご相談",
