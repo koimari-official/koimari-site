@@ -5940,6 +5940,17 @@ function initQuoteBuilder() {
   recomputeQuote();
 }
 
+const STORE_ACCOUNTS = ["sankyu00002@gmail.com"];
+function applyStoreMode() {
+  document.body.classList.add("store-mode");
+  if (!document.getElementById("storeModeCss")) {
+    const st = document.createElement("style"); st.id = "storeModeCss";
+    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
+    document.head.appendChild(st);
+  }
+  const active = document.querySelector(".tab.active");
+  if (!active || !["reservations", "kitchen"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
+}
 onAuthStateChanged(fbAuth, (user) => {
   if (user) {
     syncReservationsFromFirebase();
@@ -5953,6 +5964,9 @@ onAuthStateChanged(fbAuth, (user) => {
     initCakeFlavorsPanel();
     initQuoteBuilder();
     if (typeof window.showAdmin === "function") window.showAdmin();
+    // 店舗用アカウント（お店のタブレット等）は、予約一覧・製造シートだけを表示する（2026-09-30オーナー指示・B案）。
+    // ※画面の表示制限。データベース側の権限制限は別途（オーナー承認待ち）。
+    if (STORE_ACCOUNTS.includes(String(user.email || "").toLowerCase())) applyStoreMode();
     // URLの#で指定されたタブ（例: admin.html#reservations）をログイン直後に開く
     if (typeof window.openTabFromHash === "function") window.openTabFromHash();
   } else {
