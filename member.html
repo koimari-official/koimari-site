@@ -1377,8 +1377,14 @@ function renderTierSizeSelects(tierCount) {
     if (bKey === "4号") {
       const topVal = SPECIAL_TOP_OPTIONS.some(o => o.value === prevSizes[1]) ? prevSizes[1] : "";
       html += tierFieldHtml(1, 2, "（セルクルまたはカットケーキからお選びください）", editableSizeSelectHtml(1, SPECIAL_TOP_OPTIONS, topVal, 0));
+    } else if (TIER_PARTNER_2[bKey]) {
+      // 5〜7号：一番上はホールケーキ（組み合わせで決まる号数）かカットケーキを選べる（2026-09-30）
+      const partner = SIZE_OPTIONS.concat([SIZE_3]).find(o => o.value === TIER_PARTNER_2[bKey]) || { value: TIER_PARTNER_2[bKey], label: TIER_PARTNER_2[bKey] };
+      const opts = [partner, SPECIAL_TOP_OPTIONS[2]];
+      const topVal = opts.some(o => o.value === prevSizes[1]) ? prevSizes[1] : partner.value;
+      html += tierFieldHtml(1, 2, "（" + partner.label.replace(/（.*$/, "") + "のホールケーキ、またはカットケーキ）", editableSizeSelectHtml(1, opts, topVal, 0));
     } else {
-      html += tierFieldHtml(1, 2, "（一番下の段に合わせて自動で決まります）", lockedSizeSelectHtml(1, TIER_PARTNER_2[bKey] || ""));
+      html += tierFieldHtml(1, 2, "", lockedSizeSelectHtml(1, ""));
     }
   } else {
     html += tierFieldHtml(1, 3, "（一番下の段に合わせて自動で決まります）", lockedSizeSelectHtml(1, TIER_MIDDLE_3[bKey] || ""));

@@ -27,15 +27,18 @@
     // 2段・3段は「段ごとの合計」ではなく組み合わせごとの固定価格。lead＝箱・資材調達のため、
     // お受取日の何日前までに要予約か（min＝これを切ったらネット予約不可、soft＝これを切ったら調達状況次第）。
     // 3段のリードタイムは取り決めが無いため、土台となる2段の組み合わせと同じにしている（assumed）。
+    // 一番上をカットケーキにした場合（オーナー決定 2026-09-30）：一番上をホールケーキ（セルクル・3〜5号）にした
+    // 同じ組み合わせのセット価格から、一番下の段の号数に応じた金額を引き、選んだカットケーキの代金を足す。
+    cutTopDeduction: { "4号": 500, "5号": 700, "6号": 1000, "7号": 1200 },
+    // 一番上をカットケーキにしたときに、価格の基準にする「ホールケーキの一番上」
+    cutTopBase: { "4号": "セルクル", "5号": "3号", "6号": "4号", "7号": "5号", "6号+4号": "セルクル", "7号+5号": "3号" },
     multiTier: {
       "4号+セルクル": { price: 5500 },
       "5号+3号": { price: 8200, lead: { min: 7, soft: 10 } },
       "6号+4号": { price: 11600, lead: { min: 7, soft: 10 } },
       "7号+5号": { price: 16800, lead: { min: 14, soft: 14 } },
       "6号+4号+セルクル": { price: 17000, lead: { min: 7, soft: 10, assumed: true } },
-      "6号+4号+カットケーキ": { price: 17000, lead: { min: 7, soft: 10, assumed: true } },
-      "7号+5号+3号": { price: 22000, lead: { min: 14, soft: 14, assumed: true } },
-      "7号+5号+カットケーキ": { price: 22000, lead: { min: 14, soft: 14, assumed: true } }
+      "7号+5号+3号": { price: 22000, lead: { min: 14, soft: 14, assumed: true } }
     }
   };
 
@@ -45,6 +48,18 @@
     return v.split("(")[0];
   }
   function comboKey(values) { return values.map(tierKey).join("+"); }
+  // 段の組み合わせのセット価格・納期。一番上がカットケーキなら、ホールケーキの組み合わせを基準に差し引く。
+  function resolveCombo(tiers) {
+    var keys = (tiers || []).filter(Boolean).map(tierKey);
+    if (keys.length < 2) return null;
+    if (keys[keys.length - 1] !== "カットケーキ") return SPEC.multiTier[keys.join("+")] || null;
+    var lower = keys.slice(0, -1).join("+");
+    var baseTop = SPEC.cutTopBase[lower];
+    var baseCombo = baseTop && SPEC.multiTier[lower + "+" + baseTop];
+    var ded = SPEC.cutTopDeduction[keys[0]];
+    if (!baseCombo || ded == null) return null;
+    return { price: baseCombo.price - ded, lead: baseCombo.lead, cutTop: true, basePrice: baseCombo.price, deduction: ded };
+  }
   function yen(n) { return "¥" + Number(n).toLocaleString(); }
   function fromYen(n) { return yen(n) + "〜"; }
 
@@ -74,7 +89,7 @@
       else if (!cream || SPEC.plainCreams.indexOf(cream) >= 0) p = base.sizePrices && base.sizePrices[k];
       if (p) lines.push({ label: (cream && SPEC.plainCreams.indexOf(cream) < 0 ? cream + " " : "") + k + "ケーキ", amount: p }); else consult = true;
     } else {
-      var combo = SPEC.multiTier[comboKey(tiers)];
+      var combo = resolveCombo(tiers);
       if (combo) lines.push({ label: tiers.length + "段ケーキ（" + comboKey(tiers).replace(/\+/g, "＋") + "）", amount: combo.price });
       else consult = true;
       // セット価格は生クリームの価格。段ごとに別の種類を選んだ場合は、その段の単品価格との差額を加減算する（暫定ルール・パティシエ相談中）。
@@ -160,7 +175,7 @@
 
   // 箱・資材の調達リードタイム。today/pickupは日付(時刻は無視)。
   function checkLead(tiers, pickup, today) {
-    var combo = SPEC.multiTier[comboKey((tiers || []).filter(Boolean))];
+    var combo = resolveCombo(tiers);
     if (!combo || !combo.lead || !pickup) return { level: "ok" };
     var p = new Date(pickup); p.setHours(0, 0, 0, 0);
     var t = new Date(today || new Date()); t.setHours(0, 0, 0, 0);
@@ -200,6 +215,7 @@
     [1, 2, 3].forEach(function (n) { v = num(o.colorCream && o.colorCream[n]); if (v) SPEC.colorCream[n] = v; });
     v = num(o.strawberryPrice); if (v) SPEC.strawberryAdd.price = v;
     v = num(o.onsiteAssemblyFee); if (v) SPEC.onsiteAssemblyFee = v;
+    Object.keys(SPEC.cutTopDeduction).forEach(function (k) { v = num(o.cutTopDeduction && o.cutTopDeduction[k]); if (v) SPEC.cutTopDeduction[k] = v; });
     Object.keys(o.multiTier || {}).forEach(function (k) {
       var t = SPEC.multiTier[k], s = o.multiTier[k];
       if (!t || !s) return;
@@ -208,7 +224,7 @@
     });
   }
 
-  var api = { applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  var api = { applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);
