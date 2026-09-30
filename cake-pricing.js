@@ -135,10 +135,20 @@
 
     // タルトにカットケーキを載せる（オーナー確認 2026-09-26）：入れ物代がかかる。納期は通常どおり（2段のような資材の長い調達は不要）。
     // カットケーキ自体の代金は選ぶケーキにより異なるため別途案内。入れ物代はadminで設定した値（未設定なら別途案内）。
+    // 載せるカットケーキ（写真から1〜4個。input.cutCakes=[{name, price, qty}]、価格は原価計算アプリの販売価格）
+    var cuts = (input.cutCakes || []).filter(function (c) { return (Number(c.qty) || 0) > 0; });
+    var cutUnpriced = false;
+    cuts.forEach(function (c) {
+      var q = Number(c.qty) || 0, pr = Number(c.price) || 0;
+      if (pr > 0) lines.push({ label: "カットケーキ（" + c.name + "）× " + q, amount: pr * q });
+      else cutUnpriced = true;
+    });
+    if (cutUnpriced) notes.push("一部のカットケーキの料金は別途ご案内します");
     if (input.topCut && SPEC.tartTypes.indexOf(cream) >= 0) {
       var fee = base.cutContainerFee || 0;
       if (fee > 0) lines.push({ label: "カットケーキ用の入れ物代", amount: fee });
-      notes.push("カットケーキ代" + (fee > 0 ? "" : "・入れ物代") + "は別途ご案内します（納期は通常どおりです）");
+      if (!cuts.length) notes.push("カットケーキ代" + (fee > 0 ? "" : "・入れ物代") + "は別途ご案内します（納期は通常どおりです）");
+      else if (!(fee > 0)) notes.push("カットケーキ用の入れ物代は別途ご案内します");
     }
     var specialFound = "";
     for (var si = 0; si < tiers.length; si++) if (SPEC.specialTypes[creamOf(si)]) { specialFound = creamOf(si); break; }

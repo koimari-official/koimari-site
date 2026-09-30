@@ -2446,6 +2446,38 @@ function renderCategories() {
 // デコレーションケーキ/カットケーキ/ロールケーキの実商品に付けるチェックで表示を決める
 // （2026-09-08、旧「おすすめ商品」パネルはストック写真の別データで二重管理になっていた
 // ため廃止し、実商品からの選択制に変更。季節限定は既存カテゴリを横断するタグとして追加）。
+// カットケーキ：ホールケーキの上に載せられるか（予約フォームの写真選択に出す）と、原価計算アプリの商品との紐づけ（価格の元）。2026-09-30
+function normJa(s) { return String(s || "").replace(/[\s　（）()「」]/g, "").replace(/苺/g, "いちご").replace(/イチジク|いちぢく/g, "いちじく"); }
+function guessCostName(name) {
+  const list = (window.costPublicPrices || []).filter(p => p.category === "カットケーキ");
+  const n = normJa(name);
+  const hit = list.find(p => normJa(p.name) === n) || list.find(p => normJa(p.name).replace(/の/g, "") === n.replace(/の/g, "")) || list.find(p => n.includes(normJa(p.name)) || normJa(p.name).includes(n));
+  return hit ? hit.name : "";
+}
+function appendTopperControls(item, obj, onUpdate) {
+  const box = document.createElement("div");
+  box.style.cssText = "padding:10px 14px;margin-top:8px;background:rgba(240,166,58,0.10);border-left:3px solid #e0a13a;display:flex;flex-direction:column;gap:8px;";
+  const lab = document.createElement("label");
+  lab.style.cssText = "display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;";
+  const cb = document.createElement("input"); cb.type = "checkbox"; cb.checked = !!obj.topperOk;
+  cb.addEventListener("change", () => { obj.topperOk = cb.checked; onUpdate(); });
+  lab.appendChild(cb); lab.appendChild(document.createTextNode("🎂 ホールケーキの上に載せられる（予約フォームの写真選択に出す）"));
+  box.appendChild(lab);
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap;";
+  row.appendChild(document.createTextNode("価格の元（原価計算アプリの商品）："));
+  const sel = document.createElement("select");
+  sel.style.cssText = "padding:6px 8px;border:1px solid var(--color-line);font-size:13px;max-width:100%;";
+  const list = (window.costPublicPrices || []).slice().sort((a, b) => (a.category === "カットケーキ" ? 0 : 1) - (b.category === "カットケーキ" ? 0 : 1) || a.name.localeCompare(b.name, "ja"));
+  const cur = obj.costName || guessCostName(obj.name);
+  sel.innerHTML = '<option value="">（未設定：上の「価格」欄を使用）</option>' + list.map(p => '<option value="' + escapeHtml(p.name) + '"' + (p.name === cur ? " selected" : "") + '>' + escapeHtml(p.name) + '（¥' + Number(p.salePrice || 0).toLocaleString() + '）</option>').join("");
+  if (cur && !obj.costName) { obj.costName = cur; }
+  sel.addEventListener("change", () => { obj.costName = sel.value; onUpdate(); });
+  row.appendChild(sel);
+  if (!list.length) { const w = document.createElement("span"); w.style.color = "var(--color-text-soft)"; w.textContent = "（原価計算アプリの商品一覧を一度開くと、ここに表示されます）"; row.appendChild(w); }
+  box.appendChild(row);
+  item.appendChild(box);
+}
 function appendExtraFlags(item, obj, onUpdate) {
   const box = document.createElement("div");
   box.style.cssText = "padding:10px 14px;margin-top:8px;background:rgba(201,169,110,0.08);border-left:3px solid var(--color-accent);display:flex;gap:18px;flex-wrap:wrap;align-items:center;";
@@ -2565,6 +2597,7 @@ function renderCutcakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderCutcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.cutcakes[i].visible, () => { workingData.cutcakes[i].visible = !workingData.cutcakes[i].visible; renderCutcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    appendTopperControls(item, r, () => updateSaveBar());
     appendReorderControls(item, workingData.cutcakes, i, () => { renderCutcakes(); updateSaveBar(); }, "cutcakes");
     grid.appendChild(item);
   });
@@ -5192,6 +5225,7 @@ function renderKitchen() {
     if (r.decoration) extra.push("飾り：" + kEsc(r.decoration));
     if (r.strawberryAdd) extra.push("いちごトッピング");
     if (r.topCut) extra.push("カットケーキ載せ" + (r.topCut.note ? "：" + kEsc(r.topCut.note) : ""));
+    if (Array.isArray(r.cutCakes) && r.cutCakes.length) extra.push("<b>上に載せるカットケーキ：" + r.cutCakes.map(c => kEsc(c.name) + "×" + c.qty).join("、") + "</b>");
     if (r.onsiteAssembly) extra.push("⚠ 出張組み立て希望");
     if (r.creamTopping) extra.push("生クリームたっぷり乗せ");
     if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
@@ -5614,6 +5648,7 @@ const rollFlavorsEditor = createFlavorListEditor({
 });
 const cakeSizePricesRef = ref(fbDb, "koimariContent/cakeSizePrices");
 const cakeTypePricesRef = ref(fbDb, "koimariContent/cakeTypePrices");
+onValue(ref(fbDb, "koimariContent/costPublicPrices"), (snap) => { const v = snap.val() || {}; window.costPublicPrices = v.list || []; });
 const cakeCutContainerFeeRef = ref(fbDb, "koimariContent/cakeCutContainerFee");
 // member.htmlの種類別価格表（CakePricing.estimateのtypePrices）。種類名はフォームのクリームの種類の値と揃える。
 const CAKE_TYPE_PRICE_ROWS = ["フルーツタルトBOX","ストロベリータルトBOX","ミッシェルBOX","ガトーショコラBOX","ブルーベリーケーキ"];

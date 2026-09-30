@@ -254,6 +254,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__label" id="reserveSizeFieldLabel">サイズ<span class="req-mark">必須</span></label>
           <div id="reserveTierSizesWrap"></div>
           <div class="error" id="reserveSizeError"></div>
+          <div id="reserveCutPickerField" style="display:none;margin-top:14px;">
+            <label class="field__label">上に載せるカットケーキ（合計1〜4個）<span class="req-mark">必須</span></label>
+            <div class="field__hint" style="margin-bottom:8px;">写真を見ながら、＋−で個数をえらんでください。カットケーキの代金が加算されます。</div>
+            <div id="reserveCutGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;"></div>
+            <div id="reserveCutStatus" class="field__hint" style="margin-top:8px;"></div>
+            <div class="error" id="reserveCutError"></div>
+          </div>
         </div>
         <div class="field" id="reserveCreamToppingField" style="display:none;">
           <label class="field__check">
@@ -530,7 +537,7 @@ const SIZE_3 = { value: "3号(約9cm)", label: "3号（約9cm）" };
 const SPECIAL_TOP_OPTIONS = [
   { value: "", label: "選択してください" },
   { value: "セルクル", label: "セルクル" },
-  { value: "カットケーキ(たぬきち含む・内容はご予約後にご相談)", label: "カットケーキ（たぬきち含む・内容はご予約後にご相談）" }
+  { value: "カットケーキ(たぬきち含む・内容はご予約後にご相談)", label: "カットケーキ（写真から1〜4個選べます）" }
 ];
 function isSpecialTierValue(v) {
   return SPECIAL_TOP_OPTIONS.some(o => o.value && o.value === v);
@@ -898,6 +905,7 @@ function collectFormSpec() {
     occasionOther: (g("reserveOccasionOther") || {}).value || "",
     creamTopping: !!(g("reserveCreamTopping") || {}).checked, strawberry: !!(g("reserveStrawberryAdd") || {}).checked,
     topCut: !!(g("reserveTopCut") || {}).checked, topCutNote: (g("reserveTopCutNote") || {}).value || "",
+    cutQty: Object.assign({}, cutQty),
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
     candle: !!(g("reserveCandleNeeded") || {}).checked, candleType: cv("reserveCandleType"), candleBags: (g("reserveCandleBags") || {}).value || "1",
     msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
@@ -967,6 +975,7 @@ function applyFormSpec(s) {
     setRadio("reserveCreamTypeSub", s.creamSub); setRadio("reserveDecoration", s.decoration); setRadio("reserveOccasion", s.occasion);
     setVal("reserveOccasionOther", s.occasionOther || "");
     setChk("reserveCreamTopping", s.creamTopping); setChk("reserveStrawberryAdd", s.strawberry); setChk("reserveTopCut", s.topCut); setVal("reserveTopCutNote", s.topCutNote || "");
+    Object.keys(cutQty).forEach(k => delete cutQty[k]); Object.assign(cutQty, s.cutQty || {}); renderCutPicker();
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
     setChk("reserveCandleNeeded", s.candle); setRadio("reserveCandleType", s.candleType); setVal("reserveCandleBags", s.candleBags || "1");
     setVal("reserveMessageCount", s.msgCount || "0"); setVal("reserveChocoText", s.msgText || "");
@@ -1106,6 +1115,57 @@ function initLastOrderBanner() {
 document.addEventListener("input", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { updateChocoPreview(); updateReserveFloat(); } });
 document.addEventListener("change", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { setTimeout(() => { updateChocoPreview(); updateReserveFloat(); }, 0); } });
 
+// ===== ホールケーキの上に載せるカットケーキ（2026-09-30オーナー指示）=====
+// 2段・3段の一番上に「カットケーキ」を選んだとき、またはタルトBOXに「カットケーキを載せる」にしたときに、
+// ギャラリーのカットケーキ（管理画面で「ケーキの上に載せられる」にチェックした商品）を写真つきで表示し、合計1〜4個まで選ぶ。
+// 価格は原価計算アプリの商品一覧の販売価格（koimariContent/costPublicPrices、管理画面で紐づけた商品名）を使う。
+const CUT_MAX = 4;
+let cutCatalog = [], cutPriceMap = {}, cutRaw = [];
+const cutQty = {};
+function rebuildCutCatalog() {
+  cutCatalog = cutRaw.filter(it => it && it.name && it.visible !== false && it.topperOk).map(it => {
+    const p = cutPriceMap[it.costName || ""] || cutPriceMap[it.name] || 0;
+    return { name: String(it.name), img: it.img || "", price: p || parseYenNumber(it.price) };
+  });
+  renderCutPicker(); updateCakeOptionUI(); updateLivePriceDisplay();
+}
+onValue(ref(db, "siteImages/cutcakes"), (snap) => { const v = snap.val(); cutRaw = Array.isArray(v) ? v : (v ? Object.values(v) : []); rebuildCutCatalog(); });
+onValue(ref(db, "koimariContent/costPublicPrices"), (snap) => {
+  const v = snap.val() || {}; cutPriceMap = {};
+  (v.list || []).forEach(p => { if (p && p.name) cutPriceMap[p.name] = Number(p.salePrice) || 0; });
+  rebuildCutCatalog();
+});
+function cutTotal() { return Object.values(cutQty).reduce((s, n) => s + (n || 0), 0); }
+function cutPickerNeeded() {
+  const topIsCut = Array.from(document.querySelectorAll(".tier-size-select")).some(s => String(s.value).indexOf("カットケーキ") === 0);
+  const tartCut = !!(document.getElementById("reserveTopCut") || {}).checked && CakePricing.SPEC.tartTypes.includes(bottomCream());
+  return topIsCut || tartCut;
+}
+function selectedCutCakes() {
+  if (!cutPickerNeeded()) return [];
+  return cutCatalog.filter(c => cutQty[c.name] > 0).map(c => ({ name: c.name, price: c.price, qty: cutQty[c.name] }));
+}
+function renderCutPicker() {
+  const grid = document.getElementById("reserveCutGrid");
+  if (!grid) return;
+  const total = cutTotal();
+  grid.innerHTML = cutCatalog.map((c, i) => {
+    const q = cutQty[c.name] || 0;
+    return '<div style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;' + (q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : "") + '">' +
+      (c.img ? '<img src="' + escape(c.img) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">' : '<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;"></div>') +
+      '<div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(c.name) + '</div>' +
+      '<div style="font-size:12px;color:#a88a52;">' + (c.price ? "¥" + c.price.toLocaleString() : "料金は別途") + '</div>' +
+      '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">' +
+      '<button type="button" class="cut-minus" data-i="' + i + '" style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;">−</button>' +
+      '<span style="min-width:18px;font-weight:700;">' + q + '</span>' +
+      '<button type="button" class="cut-plus" data-i="' + i + '" ' + (total >= CUT_MAX ? "disabled" : "") + ' style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;' + (total >= CUT_MAX ? "opacity:.35;" : "") + '">＋</button></div></div>';
+  }).join("");
+  const st = document.getElementById("reserveCutStatus");
+  if (st) st.textContent = total ? "選んだカットケーキ：" + total + "個（あと" + (CUT_MAX - total) + "個まで選べます）" : "1〜" + CUT_MAX + "個までお選びください";
+  grid.querySelectorAll(".cut-plus").forEach(b => b.addEventListener("click", () => { if (cutTotal() >= CUT_MAX) return; const c = cutCatalog[Number(b.dataset.i)]; cutQty[c.name] = (cutQty[c.name] || 0) + 1; renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave(); }));
+  grid.querySelectorAll(".cut-minus").forEach(b => b.addEventListener("click", () => { const c = cutCatalog[Number(b.dataset.i)]; cutQty[c.name] = Math.max(0, (cutQty[c.name] || 0) - 1); renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave(); }));
+}
+
 function gatherEstimateInput() {
   const g = id => document.getElementById(id);
   const checkedVal = name => (document.querySelector('input[name="' + name + '"]:checked') || {}).value || "";
@@ -1126,7 +1186,8 @@ function gatherEstimateInput() {
     addOns: selectedAddOns(),
     toppings: selectedToppings(),
     onsiteAssembly: currentTierCount() === 3 && !!(g("reserveOnsite") && g("reserveOnsite").checked),
-    topCut: !!(g("reserveTopCut") && g("reserveTopCut").checked)
+    topCut: !!(g("reserveTopCut") && g("reserveTopCut").checked),
+    cutCakes: selectedCutCakes()
   };
 }
 function computeCakeSubtotal() {
@@ -1371,7 +1432,8 @@ function updateCakeOptionUI() {
   const tartOk = CakePricing.SPEC.tartTypes.includes(creamType);
   g("reserveTopCutField").style.display = tartOk ? "" : "none";
   if (!tartOk) g("reserveTopCut").checked = false;
-  g("reserveTopCutNote").style.display = (tartOk && g("reserveTopCut").checked) ? "" : "none";
+  g("reserveTopCutNote").style.display = "none"; // 写真から選ぶ方式に変更（2026-09-30）。自由記入欄は使わない
+  { const need = cutPickerNeeded() && cutCatalog.length > 0; g("reserveCutPickerField").style.display = need ? "" : "none"; if (need) renderCutPicker(); }
   { // 特別仕様（ブルーベリー・段ごとに種類が異なる・金粉/金箔/アラザン）が含まれる場合の案内
     const sr = specialReasons();
     const sn = g("reserveSpecialNotice");
@@ -1685,6 +1747,8 @@ function validateReserve(data) {
     const isBaked = data.type === "焼き菓子予約";
     const isRoll = data.items[0] && data.items[0].category === "ロールケーキ";
     if (!isBaked && !isRoll && data.items.some(it => !it.size)) { setReserveError("reserveSizeError", "サイズをお選びください"); ok = false; }
+    setReserveError("reserveCutError", "");
+    if (!isBaked && !isRoll && cutPickerNeeded() && cutCatalog.length && !(data.cutCakes || []).length) { setReserveError("reserveCutError", "上に載せるカットケーキを1個以上お選びください"); ok = false; }
     if (isRoll && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
     if (!isBaked && !data.occasion) { setReserveError("reserveOccasionError", "ご利用シーンをお選びください"); ok = false; }
     else if (data.occasion === "その他" && !data.occasionOther.trim()) { setReserveError("reserveOccasionError", "ご利用シーンをご記入ください"); ok = false; }
@@ -1758,6 +1822,7 @@ function renderReserveConfirm(data, targetId) {
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
     ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
+    ${(data.cutCakes || []).length ? `<dt>上に載せるカットケーキ</dt><dd>${data.cutCakes.map(c => `${escape(c.name)} × ${c.qty}`).join("<br>")}</dd>` : ""}
     ${data.topCut ? `<dt>カットケーキ載せ</dt><dd>載せる（入れ物代あり）${data.topCut.note ? `：${escape(data.topCut.note)}` : ""}</dd>` : ""}
     ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料+交通費）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${data.christmasOrder ? "無料でお付けします" : candleLine}</dd>` : ""}
@@ -1817,6 +1882,7 @@ function buildReserveSummaryText(data) {
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
   if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
   (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
+  if ((data.cutCakes || []).length) lines.push(`上に載せるカットケーキ: ${data.cutCakes.map(c => c.name + "×" + c.qty).join("、")}`);
   if (data.topCut) lines.push(`カットケーキ載せ: 載せる（入れ物代あり）${data.topCut.note ? "：" + data.topCut.note : ""}`);
   if (data.onsiteAssembly) lines.push("3段ケーキの組み立て: 出張組み立てを希望（出張料+交通費）");
   if (isCake || isRoll) lines.push(`ろうそく: ${data.christmasOrder ? "無料でお付けします" : candleLine}`);
@@ -2074,6 +2140,7 @@ function setupReserveForm(uid, displayName) {
         ...(strawberryAdd ? { strawberryAdd: true } : {}),
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
+        ...(isCake && selectedCutCakes().length ? { cutCakes: selectedCutCakes() } : {}),
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isCake && selectedToppings().length ? { toppings: selectedToppings() } : {}),
         ...(isCake && laterList().length ? { decideLater: laterList() } : {}),

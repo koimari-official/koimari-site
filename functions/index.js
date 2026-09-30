@@ -572,6 +572,9 @@ function buildStaffNotifyText(data) {
   if (data.colorCream && !(Array.isArray(data.tierSpecs) && data.tierSpecs.length)) {
     lines.push("カラークリーム: " + data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : "") + (data.colorCream.note ? "（" + data.colorCream.note + "）" : ""));
   }
+  if (Array.isArray(data.cutCakes) && data.cutCakes.length) {
+    lines.push("上に載せるカットケーキ: " + data.cutCakes.map((c) => c.name + "×" + c.qty).join("、"));
+  }
   if (data.topCut) {
     lines.push("カットケーキ載せ: 載せる（入れ物代あり）" + (data.topCut.note ? "：" + data.topCut.note : ""));
   }
@@ -719,7 +722,8 @@ function orderDetailLines(data) {
   const extras = [];
   if (data.creamTopping) extras.push("生クリームたっぷり");
   if (data.strawberryAdd) extras.push("いちごトッピング");
-  if (data.topCut) extras.push("カットケーキ載せ" + (data.topCut.note ? "（" + data.topCut.note + "）" : ""));
+  if (data.topCut && !(data.cutCakes || []).length) extras.push("カットケーキ載せ" + (data.topCut.note ? "（" + data.topCut.note + "）" : ""));
+  if (Array.isArray(data.cutCakes) && data.cutCakes.length) lines.push(diamondLine("カットケーキ", data.cutCakes.map((c) => c.name + "×" + c.qty).join("、")));
   if (data.onsiteAssembly) extras.push("出張組み立て");
   (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
   (data.toppings || []).forEach((t) => extras.push(t));
