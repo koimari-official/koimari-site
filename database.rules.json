@@ -1,8 +1,8 @@
 {
   "rules": {
     "dashboardTasks": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "auth != null && auth.token.store !== true",
+      ".write": "auth != null && auth.token.store !== true"
     },
     "sessions": {
       ".read": true,
@@ -13,20 +13,22 @@
       ".write": true
     },
     "trash": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null && auth.token.store !== true",
+      ".write": "auth != null && auth.token.store !== true"
     },
     "staffRequests": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.token.store !== true",
       "$id": {
-        ".write": "auth != null || (!data.exists() && newData.child('status').val() === 'pending')"
+        ".write": "(auth != null && auth.token.store !== true) || (!data.exists() && newData.child('status').val() === 'pending')"
       }
     },
     "reservations": {
       ".read": "auth != null",
       "$id": {
-        ".write": "auth != null || !data.exists()",
-        "reservationNo": { ".read": true }
+        ".write": "(auth != null && (auth.token.store !== true || newData.exists())) || !data.exists()",
+        "reservationNo": {
+          ".read": true
+        }
       }
     },
     "reservationDrafts": {
@@ -37,40 +39,40 @@
       }
     },
     "experiences": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.token.store !== true",
       "$id": {
-        ".write": "auth != null || !data.exists()"
+        ".write": "(auth != null && auth.token.store !== true) || !data.exists()"
       }
     },
     "siteConfig": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.store !== true"
     },
     "meishiDesigns": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "auth != null && auth.token.store !== true",
+      ".write": "auth != null && auth.token.store !== true"
     },
     "koimariContent": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.store !== true"
     },
     "noritate": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.store !== true"
     },
     "siteImages": {
       ".read": true,
-      ".write": "auth != null"
+      ".write": "auth != null && auth.token.store !== true"
     },
     "koimariOps": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      ".read": "auth != null && auth.token.store !== true",
+      ".write": "auth != null && auth.token.store !== true"
     },
     "lineMembers": {
-      ".read": "auth != null",
+      ".read": "auth != null && auth.token.store !== true",
       "$uid": {
         ".read": true,
-        ".write": "auth != null || !data.exists()",
+        ".write": "(auth != null && auth.token.store !== true) || !data.exists()",
         "profile": {
           ".write": true
         },
