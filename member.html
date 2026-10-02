@@ -1188,6 +1188,7 @@ function gatherEstimateInput() {
     creamType: bottomCream(),
     tierSpecs: activeSpecs().map(s => ({ cream: s.cream })),
     decoration: checkedVal("reserveDecoration"),
+    includedDecoration: includedDecorationNow(),
     creamTopping: g("reserveCreamTopping") ? g("reserveCreamTopping").checked : false,
     colorCreamCount: totalColors(),
     strawberryAdd: g("reserveStrawberryAdd") ? g("reserveStrawberryAdd").checked : false,
@@ -1239,6 +1240,13 @@ async function pollReservationNo(pushKey, attempt) {
 }
 // ギャラリーで選んだ商品の写真の仕様を、予約フォームの選択肢だけでは表せない場合（管理画面で「予約フォームの自動選択」が
 // 未設定の商品）は、お見積もり・納期をパティシエが別途ご回答する。写真と同じ仕様をプルダウンで再現できる商品は通常どおり確定。
+// ギャラリーで選んだデフォルトのケーキの標準の飾り付け（そのケーキの基本料金に含まれる。フルーツトッピング代を足さない）
+function includedDecorationNow() {
+  try {
+    if (!currentDraft || !currentDraftSpecApplied || currentDraft.orderMode === "custom" || !currentDraft.spec) return "";
+    return (JSON.parse(currentDraft.spec) || {}).decoration || "";
+  } catch (e) { return ""; }
+}
 function quoteSeparatelyNow() { try { return !!(currentDraft && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
 // 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ）
 function isPhotoChristmas(data) { return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img); }
@@ -1486,7 +1494,7 @@ function updateCakeOptionUI() {
     let text = "";
     if (tierCount === 1 && tiers[0]) {
       const fp = CakePricing.SPEC.fruitTopping[CakePricing.tierKey(tiers[0])];
-      text = fp ? `（+¥${fp.toLocaleString()}）` : "（料金は別途ご案内）";
+      text = includedDecorationNow() === "バラエティフルーツ" ? "（このケーキに含まれています）" : fp ? `（+¥${fp.toLocaleString()}）` : "（料金は別途ご案内）";
     } else if (tierCount > 1) {
       text = "（料金は別途ご案内）";
     }
@@ -2086,7 +2094,7 @@ function refSizeNote(photoSize, chosenSize) {
 function renderDraftBanner() {
   const el = document.getElementById("draftBanner");
   if (!el) return;
-  setTimeout(() => { updateRefImage(); try { updateLivePriceDisplay(); } catch (e) {} }, 0);
+  setTimeout(() => { try { updateCakeOptionUI(); } catch (e) {} updateRefImage(); try { updateLivePriceDisplay(); } catch (e) {} }, 0);
   el.style.display = "block";
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   if (currentDraft) {
@@ -2285,6 +2293,7 @@ function setupReserveForm(uid, displayName) {
         ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "", img: currentDraft.img || "", ...(Number(currentDraft.no) > 0 ? { no: Number(currentDraft.no) } : {}) } } : {}),
         ...(quoteSeparatelyNow() ? { quoteSeparately: true } : {}),
+        ...(includedDecorationNow() ? { includedDecoration: includedDecorationNow() } : {}),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
       };
     }

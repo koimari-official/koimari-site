@@ -69,7 +69,7 @@
     // 2026-10-02オーナー指摘：飾り付け（バラエティフルーツ＝フルーツトッピング）などの料金が入っていなかった。
     // 予約フォームと同じ計算（cake-pricing.js の estimate）で、サイズ・クリーム・飾り付け・シーンを含めた金額を出す。
     if (root.CakePricing && root.CakePricing.estimate) {
-      var est = root.CakePricing.estimate({ tiers: [size], creamType: cream, tierSpecs: [{ cream: cream }], decoration: spec.decoration || "", occasion: spec.occasion || "" },
+      var est = root.CakePricing.estimate({ tiers: [size], creamType: cream, tierSpecs: [{ cream: cream }], decoration: spec.decoration || "", includedDecoration: spec.decoration || "", occasion: spec.occasion || "" },
         { sizePrices: prices.sizePrices, typePrices: prices.typePrices, chocoCream: prices.choco || undefined });
       return est && !est.needsConsult && est.subtotal ? yen(est.subtotal) + "〜" : "";
     }

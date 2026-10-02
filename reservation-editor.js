@@ -127,7 +127,7 @@
       tiers: s.tiers.map(function (t) { return t.size; }),
       creamType: (s.tiers[0] || {}).cream || "",
       tierSpecs: s.tiers.map(function (t) { return { cream: t.cream }; }),
-      decoration: s.decoration, occasion: s.occasion,
+      decoration: s.decoration, occasion: s.occasion, includedDecoration: r.includedDecoration || "",
       creamTopping: s.creamTopping, strawberryAdd: s.strawberryAdd, onsiteAssembly: s.onsiteAssembly,
       colorCreamCount: s.tiers.filter(function (t) { return t.color; }).length,
       candleNeeded: !!s.candleType, candleType: s.candleType, candleBags: s.candleCount,

@@ -119,7 +119,8 @@
     if (input.strawberryAdd && SPEC.strawberryAdd.creamTypes.indexOf(cream) >= 0) {
       lines.push({ label: "いちごトッピング（目安）", amount: SPEC.strawberryAdd.price });
     }
-    if (input.decoration === "バラエティフルーツ") {
+    // フルーツトッピングは、デフォルトより増量する場合だけ（ギャラリーのデフォルトのケーキの標準の飾り付け＝includedDecoration は基本料金に含む）
+    if (input.decoration === "バラエティフルーツ" && input.includedDecoration !== "バラエティフルーツ") {
       var fp = !multi ? SPEC.fruitTopping[tierKey(tiers[0])] : undefined;
       if (fp) lines.push({ label: "フルーツトッピング", amount: fp });
       else notes.push("フルーツトッピングの料金は別途ご案内します");
