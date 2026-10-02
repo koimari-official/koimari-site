@@ -1073,7 +1073,7 @@ function updateReserveFloat() {
   const TOTAL = 8;
   const pct = Math.round(((TOTAL - Math.min(TOTAL, miss.length)) / TOTAL) * 100);
   const r = computeCakeSubtotal();
-  const price = !r.applicable || r.incomplete ? "" : r.priceNeedsConsult ? "料金はお電話でご案内" : (r.priceIsFixed ? yenFixed(r.subtotal) : CakePricing.fromYen(r.subtotal)) + "（税込）";
+  const price = !r.applicable || r.incomplete ? "" : quoteSeparatelyNow() ? "お見積もりは別途ご回答" : r.priceNeedsConsult ? "料金はお電話でご案内" : (r.priceIsFixed ? yenFixed(r.subtotal) : CakePricing.fromYen(r.subtotal)) + "（税込）";
   el.style.display = "block";
   el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;"><span style="color:#6b5a48;">' + (miss.length ? "あと" + miss.length + "項目で確認画面へ" : "入力OK！確認画面へ進めます") + '</span><b style="color:#a88a52;font-size:16px;">' + price + '</b></div>' +
     '<div style="height:5px;background:#eee3d3;border-radius:3px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (miss.length ? "#e0a13a" : "#3aa76d") + ';transition:width .3s;"></div></div>';
@@ -1212,7 +1212,7 @@ function computeCakeSubtotal() {
   });
   // 金額を「確定」で出せるのは、①個別案内が不要 ②「別途ご案内」の注記が無い ③1段（多段は組み合わせ次第で変動しうる）の3つを満たす場合のみ。
   const noteFilled = !!(document.getElementById("reserveNote") || {}).value && !!document.getElementById("reserveNote").value.trim();
-  const fixed = !r.needsConsult && (r.notes || []).length === 0 && input.tiers.length === 1 && !noteFilled;
+  const fixed = !r.needsConsult && (r.notes || []).length === 0 && input.tiers.length === 1 && !noteFilled && !quoteSeparatelyNow();
   return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, priceIsFixed: fixed, applicable: true, lines: r.lines, notes: r.notes };
 }
 // 確認画面・完了画面・LINEサマリーで共通のお見積もり文言（2026-09-29オーナー指示）。
@@ -1236,7 +1236,13 @@ async function pollReservationNo(pushKey, attempt) {
   } catch (e) { console.warn("予約番号の取得に失敗:", e); return; }
   if (attempt < 4) setTimeout(() => pollReservationNo(pushKey, attempt + 1), 1500);
 }
+// ギャラリーで選んだ商品の写真の仕様を、予約フォームの選択肢だけでは表せない場合（管理画面で「予約フォームの自動選択」が
+// 未設定の商品）は、お見積もり・納期をパティシエが別途ご回答する。写真と同じ仕様をプルダウンで再現できる商品は通常どおり確定。
+function quoteSeparatelyNow() { try { return !!(currentDraft && !currentDraftSpecApplied); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
+// 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ）
+function isPhotoChristmas(data) { return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img); }
 function estimateIsFixed(data) {
+  if (data.quoteSeparately) return false;
   if (data.priceNeedsConsult) return false;
   if ((data.estimateNotes || []).length) return false;
   // 備考にご希望が書かれている場合は、内容を確認してから価格・納期を回答する（確定金額にしない）。
@@ -1244,6 +1250,7 @@ function estimateIsFixed(data) {
   return (data.items || []).length === 1;
 }
 function estimateHeadline(data) {
+  if (data.quoteSeparately) return "別途、パティシエよりお見積もり・納期をご回答いたします";
   if (data.priceNeedsConsult) return "この組み合わせは、料金をお電話で個別にご案内します";
   if (estimateIsFixed(data)) return yenFixed(data.subtotal) + "（税込）";
   return CakePricing.fromYen(data.subtotal) + "（税込）";
@@ -1258,6 +1265,7 @@ function paymentNoticeText(data) {
 }
 function estimateDisclaimer(data) {
   const pay = paymentNoticeText(data);
+  if (data && data.quoteSeparately) return "ギャラリーで選んだ写真の仕様は、内容を確認のうえパティシエよりお電話でお見積もり・納期をご回答いたします。" + pay;
   if (data && String(data.note || "").trim() && !estimateIsFixed(data)) {
     return "備考にご記入いただいた内容を確認のうえ、お電話にて価格・納期をご案内いたします。" + pay;
   }
@@ -1277,7 +1285,9 @@ function updateLivePriceDisplay() {
     return;
   }
   bar.style.display = "flex";
-  if (result.incomplete) {
+  if (quoteSeparatelyNow()) {
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">ギャラリーの写真の仕様のため、お見積もり・納期は別途ご回答いたします</span>`;
+  } else if (result.incomplete) {
     bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">サイズを選ぶと、ここに表示されます</span>`;
   } else if (result.priceNeedsConsult) {
     bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">この組み合わせは、料金をお電話で個別にご案内します</span>`;
@@ -1966,6 +1976,34 @@ function applyDraft(d) {
   renderDraftBanner();
 }
 let currentDraftSpecApplied = false;
+// 前回のご予約の連絡先を入れる（2026-10-02オーナー指示：LINE友だち登録済みの方は入力を省けるように）。
+// 電話番号等は誰でも読める場所には置かず、LIFFのアクセストークンでLINEに本人確認したうえで、本人の直近の予約から返す
+// （functions/index.js の lookupMyContact）。空欄の項目だけ埋め、すでに入力されている内容は上書きしない。
+const LOOKUP_CONTACT_URL = "https://lookupmycontact-hez3iczhia-an.a.run.app";
+async function prefillFromLastReservation(lineName) {
+  try {
+    if (typeof liff === "undefined" || !liff.getAccessToken) return;
+    const token = liff.getAccessToken();
+    if (!token) return;
+    const res = await fetch(LOOKUP_CONTACT_URL, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ accessToken: token }) });
+    if (!res.ok) return;
+    const d = await res.json();
+    if (!d || !d.found) return;
+    let filled = 0;
+    const fill = (id, v, replaceIf) => { const el = document.getElementById(id); if (!el || !v) return; const cur = el.value.trim(); if (!cur || (replaceIf && cur === replaceIf)) { el.value = v; filled++; } };
+    if (NAME_INPUT_RE.test(String(d.name || "").trim())) fill("reserveName", d.name, lineName);
+    fill("reserveFurigana", d.furigana); fill("reserveTel", d.tel); fill("reserveEmail", d.email);
+    if (filled) {
+      const tel = document.getElementById("reserveTel");
+      const note = document.createElement("p");
+      note.className = "prefill-note";
+      note.style.cssText = "font-size:13px;color:#0b7a37;font-weight:700;margin:4px 0 14px;";
+      note.textContent = "前回のご予約で入力いただいたお名前・ご連絡先を入れています。変更がある場合は書き換えてください。";
+      const field = document.getElementById("reserveFurigana").closest(".field");
+      if (field && !document.querySelector(".prefill-note")) field.parentNode.insertBefore(note, field);
+    }
+  } catch (e) { console.warn("前回のご予約の読み込みに失敗:", e); }
+}
 // 予約仕様を選ぶ画面に、選んでいるクリームの種類に近いケーキの写真を「参考イメージ」として出す（2026-10-02オーナー指示：
 // ギャラリーから来なかった場合も、参考のケーキ画像が出るようにする）。写真は管理画面「デコレーションケーキ」の商品データ
 // （siteImages/decorationCakes）を使う。選び方：①管理画面の「予約フォームの自動選択」でクリームが一致する商品
@@ -2028,7 +2066,7 @@ function updateRefImage() {
 function renderDraftBanner() {
   const el = document.getElementById("draftBanner");
   if (!el) return;
-  setTimeout(updateRefImage, 0);
+  setTimeout(() => { updateRefImage(); try { updateLivePriceDisplay(); } catch (e) {} }, 0);
   el.style.display = "block";
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   if (currentDraft) {
@@ -2119,6 +2157,7 @@ function setupReserveForm(uid, displayName) {
   // ニックネームや英字・絵文字入りの場合は空欄にして、お客様にご本名を入力していただく。
   const lineName = String(displayName || "").trim();
   document.getElementById("reserveName").value = NAME_INPUT_RE.test(lineName) ? lineName : "";
+  prefillFromLastReservation(lineName);
 
   let pendingData = null;
 
@@ -2224,7 +2263,8 @@ function setupReserveForm(uid, displayName) {
         ...(isCake && specialReasons().length ? { specialReasons: specialReasons() } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),
         ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
-        ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "" } } : {}),
+        ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "", img: currentDraft.img || "" } } : {}),
+        ...(quoteSeparatelyNow() ? { quoteSeparately: true } : {}),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
       };
     }
@@ -2298,7 +2338,11 @@ function setupReserveForm(uid, displayName) {
 
     const thanksDesc = document.getElementById("reserveThanksDesc");
     if (thanksDesc) {
-      thanksDesc.textContent = "ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。"
+      thanksDesc.textContent = (isPhotoChristmas(data)
+          ? "ご予約内容の控えと、お選びいただいたケーキの写真を、この後LINEのトークにお送りします。写真は昨年のケーキのため、砂糖菓子や一部の仕様が異なる場合がございます。仕様が確定しましたら、確定のケーキ画像をLINEでお送りします。"
+          : data.quoteSeparately
+            ? "ご予約内容の控えを、この後LINEのトークにお送りします。ギャラリーで選んだ写真の仕様を確認のうえ、パティシエよりお電話でお見積もり・納期をご回答いたします。"
+            : "ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。")
         + paymentNoticeText(data)
         + "ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。";
     }

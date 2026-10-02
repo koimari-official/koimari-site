@@ -255,6 +255,23 @@ function buildReminderMessage(stage, data, now) {
   ].join("\n");
 }
 
+// LINEの画像メッセージ（originalContentUrl・previewImageUrlはHTTPSのJPEG/PNG。Firebase StorageのURLを使う）
+function imageMessage(url) {
+  return { type: "image", originalContentUrl: url, previewImageUrl: url };
+}
+// 1回のpushで最大5通まで送れる（画像＋文章をまとめて送る用）
+async function pushLineMessages(userId, messages, accessToken) {
+  const res = await fetch("https://api.line.me/v2/bot/message/push", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ to: userId, messages: messages.slice(0, 5) }),
+  });
+  if (!res.ok) {
+    console.error("LINE push failed:", res.status, await res.text());
+    return false;
+  }
+  return true;
+}
 async function pushLineMessage(userId, text, accessToken) {
   const res = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
@@ -371,7 +388,7 @@ exports._internal = {
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
-  assignReservationNo, formatReservationNo,
+  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas,
 };
 
 exports.lineWebhook = onRequest(
@@ -584,6 +601,8 @@ function buildStaffNotifyText(data) {
   if (data.specialSpec) {
     lines.push("⚠ 特殊仕様: " + data.specialSpec + "（納期は通常と異なります・要確認）");
   }
+  if (data.quoteSeparately) lines.push("⚠ ギャラリーの写真の仕様で注文（プルダウンで表せない仕様）：お見積もり・納期を電話で回答してください");
+  if (isPhotoChristmas(data)) lines.push("📷 写真で選んだクリスマスケーキ：確認電話なし（LINE自動送信のみ）。仕様確定後に確定画像を送ってください");
   if (data.christmasOrder) {
     lines.push("🎄 クリスマスケーキ: 当日のお会計なし（" + XMAS_PAYMENT_DEADLINE + "までに店頭でお支払いいただく案内済み）");
   }
@@ -746,28 +765,66 @@ function buildReceivedMessage(data) {
   if (data.reservationNo) lines.push("", "◆予約番号", "◇" + formatReservationNo(data.reservationNo));
   lines.push("", "◆ご注文内容");
   lines.push(...orderDetailLines(data));
-  lines.push("", "◆お引き取り");
+  const photoXmas = isPhotoChristmas(data);
+  if (photoXmas) lines.push("", "◆お写真について", "◇写真は昨年のケーキです。", "　砂糖菓子や一部の仕様が", "　異なる場合がございます");
+  lines.push("", data.quoteSeparately ? "◆お引き取り（ご希望）" : data.priceIsFixed ? "◆お引き取り（確定）" : "◆お引き取り");
   lines.push("◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
-  lines.push("", "◆お見積もり");
-  if (data.priceNeedsConsult) lines.push("◇個別にご案内します");
+  if (data.quoteSeparately) lines.push("　※納期は別途ご回答いたします");
+  lines.push("", data.priceIsFixed && !data.quoteSeparately ? "◆お支払い金額（確定）" : "◆お見積もり");
+  if (data.quoteSeparately) lines.push("◇別途、パティシエより", "　お見積もりをご回答いたします");
+  else if (data.priceNeedsConsult) lines.push("◇個別にご案内します");
   else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
   else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", ...estimateReasonLines(data));
   else lines.push("◇お電話でご案内します");
   lines.push(...paymentLines(data, "received"));
+  if (photoXmas) {
+    lines.push("", "◆このあとの流れ", "◇仕様が確定しましたら、", "　確定のケーキ画像を", "　このトークでお送りします");
+  } else {
+    lines.push(
+      "",
+      "◆このあとの流れ",
+      data.quoteSeparately ? "◇パティシエがお見積もり・納期を" : "◇パティシエが内容確認のお電話をします",
+      data.quoteSeparately ? "　お電話でご回答します" : "　（070-9158-0641から発信）",
+      "◇お電話がつながらない場合は、",
+      "　ご予約をキャンセルさせて",
+      "　いただくことがあります"
+    );
+  }
   lines.push(
-    "",
-    "◆このあとの流れ",
-    "◇パティシエが内容確認のお電話をします",
-    "　（070-9158-0641から発信）",
-    "◇お電話がつながらない場合は、",
-    "　ご予約をキャンセルさせて",
-    "　いただくことがあります",
     "",
     "◆ご変更・ご相談",
     "◇お電話（070-9158-0641）へ",
     "",
     "当日お会いできるのを楽しみにしております🍓"
   );
+  return lines.join("\n");
+}
+// 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ。2026-10-02オーナー指示）
+function isPhotoChristmas(data) {
+  return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img);
+}
+
+// ③ 管理画面で「修正n」として変更を確定した時に送る文面（2026-10-02オーナー指示）。
+// 変更点（変更前→変更後）と、変更後のご注文内容・お引き取り日時・金額をまとめて送る。
+function buildRevisionMessage(data, rev) {
+  const name = data.name || "お客様";
+  const label = (rev && rev.label) || "修正";
+  const lines = [name + "様", "ご予約内容を変更いたしました（" + label + "）。"];
+  if (data.reservationNo) lines.push("", "◆予約番号", "◇" + formatReservationNo(data.reservationNo));
+  const changes = (rev && Array.isArray(rev.changes)) ? rev.changes : [];
+  if (changes.length) {
+    lines.push("", "◆変更した内容");
+    changes.forEach((c) => { lines.push("◇" + c.label, "　変更前：" + c.from, "　変更後：" + c.to); });
+  }
+  lines.push("", "◆変更後のご注文内容");
+  lines.push(...orderDetailLines(data));
+  const pd = data.finalPickupDate || data.pickupDate, pt = data.finalPickupTime || data.pickupTime;
+  lines.push("", "◆お引き取り（確定）", "◇" + formatPickupDateTimeJp(pd, pt));
+  lines.push("", "◆お支払い金額");
+  if (data.finalPrice) lines.push("◇¥" + Number(data.finalPrice).toLocaleString() + "（税込）");
+  else lines.push("◇お電話でご案内した金額です");
+  lines.push(...paymentLines(data, "confirmed"));
+  lines.push("", "◆ご変更・ご相談", "◇お電話（070-9158-0641）へ", "", "当日お会いできるのを楽しみにしております🍓");
   return lines.join("\n");
 }
 
@@ -811,7 +868,94 @@ exports.sendReservationReceivedMessage = onValueCreated(
     if (!raw || raw.channel !== "LINE" || !raw.lineUserId || raw.category === "kidsManager") return;
     const reservationNo = await assignReservationNo(event.params.pushId);
     const data = Object.assign({}, raw, { reservationNo });
-    await pushLineMessage(data.lineUserId, buildReceivedMessage(data), LINE_CHANNEL_ACCESS_TOKEN.value());
+    const messages = [];
+    if (isPhotoChristmas(data)) messages.push(imageMessage(data.galleryPick.img));
+    messages.push({ type: "text", text: buildReceivedMessage(data) });
+    await pushLineMessages(data.lineUserId, messages, LINE_CHANNEL_ACCESS_TOKEN.value());
+  }
+);
+
+// 管理画面で「修正n」を確定 → お客様のLINEに変更後の内容を送る（初回予約＝revisions/0 は送らない）
+exports.sendReservationRevisionMessage = onValueCreated(
+  {
+    ref: "/reservations/{pushId}/revisions/{n}",
+    instance: "koimari-tasting-default-rtdb",
+    region: "asia-southeast1",
+    secrets: [LINE_CHANNEL_ACCESS_TOKEN],
+  },
+  async (event) => {
+    const n = Number(event.params.n);
+    const rev = event.data.val();
+    if (!rev || !(n >= 1)) return;
+    const snap = await admin.database().ref(`reservations/${event.params.pushId}`).once("value");
+    const data = snap.val();
+    if (!data || data.channel !== "LINE" || !data.lineUserId || data.status === "キャンセル") return;
+    const ok = await pushLineMessage(data.lineUserId, buildRevisionMessage(data, rev), LINE_CHANNEL_ACCESS_TOKEN.value());
+    if (ok) await admin.database().ref(`reservations/${event.params.pushId}/revisions/${n}/notified`).set(true);
+  }
+);
+
+// 管理画面から「確定のケーキ画像」を送る（reservations/{id}/sentImages に登録 → お客様のLINEへ画像＋ひとこと）
+exports.sendReservationImage = onValueCreated(
+  {
+    ref: "/reservations/{pushId}/sentImages/{imgId}",
+    instance: "koimari-tasting-default-rtdb",
+    region: "asia-southeast1",
+    secrets: [LINE_CHANNEL_ACCESS_TOKEN],
+  },
+  async (event) => {
+    const img = event.data.val();
+    if (!img || !img.url || img.deliveredAt) return;
+    const snap = await admin.database().ref(`reservations/${event.params.pushId}`).once("value");
+    const data = snap.val();
+    if (!data || !data.lineUserId) return;
+    const text = [
+      (data.name || "お客様") + "様",
+      "ご予約のケーキの仕様が確定しましたので、",
+      "確定のケーキ画像をお送りします。",
+      ...(data.reservationNo ? ["", "◆予約番号", "◇" + formatReservationNo(data.reservationNo)] : []),
+      "",
+      "◆お引き取り",
+      "◇" + formatPickupDateTimeJp(data.finalPickupDate || data.pickupDate, data.finalPickupTime || data.pickupTime),
+      "",
+      "当日お会いできるのを楽しみにしております🍓",
+    ].join("\n");
+    const ok = await pushLineMessages(data.lineUserId, [imageMessage(img.url), { type: "text", text }], LINE_CHANNEL_ACCESS_TOKEN.value());
+    if (ok) await admin.database().ref(`reservations/${event.params.pushId}/sentImages/${event.params.imgId}/deliveredAt`).set(new Date().toISOString());
+  }
+);
+
+// LINE会員の予約フォームに、前回のご予約で入力したお名前・ふりがな・電話番号・メールを自動で入れる（2026-10-02オーナー指示）。
+// 電話番号等を誰でも読める場所に置かないよう、LIFFのアクセストークンをLINEに問い合わせて本人確認できた場合だけ、
+// その本人の直近の予約から連絡先を返す（他人のLINE IDを指定して読み出すことはできない）。
+const LIFF_CHANNEL_ID = "2011059940";
+exports.lookupMyContact = onRequest(
+  { region: "asia-northeast1", cors: ["https://koimari-official.github.io"] },
+  async (req, res) => {
+    if (req.method !== "POST") { res.status(405).json({}); return; }
+    const token = String((req.body && req.body.accessToken) || "");
+    if (!token) { res.status(400).json({}); return; }
+    try {
+      const v = await fetch("https://api.line.me/oauth2/v2.1/verify?access_token=" + encodeURIComponent(token));
+      if (!v.ok) { res.status(401).json({}); return; }
+      const vj = await v.json();
+      if (String(vj.client_id) !== LIFF_CHANNEL_ID || !(Number(vj.expires_in) > 0)) { res.status(401).json({}); return; }
+      const pr = await fetch("https://api.line.me/v2/profile", { headers: { Authorization: "Bearer " + token } });
+      if (!pr.ok) { res.status(401).json({}); return; }
+      const userId = (await pr.json()).userId;
+      if (!userId) { res.status(401).json({}); return; }
+      const snap = await admin.database().ref("reservations").orderByChild("lineUserId").equalTo(userId).limitToLast(20).once("value");
+      let latest = null;
+      snap.forEach((c) => {
+        const d = c.val();
+        if (d && d.category !== "kidsManager" && d.tel && (!latest || String(d.submittedAt || "") > String(latest.submittedAt || ""))) latest = d;
+      });
+      if (!latest) { res.json({ found: false }); return; }
+      res.json({ found: true, name: latest.name || "", furigana: latest.furigana || "", tel: latest.tel || "", email: latest.email || "", receiptName: latest.receiptName || "" });
+    } catch (err) {
+      console.error("lookupMyContact failed:", err);
+      res.status(500).json({});
+    }
   }
 );
 
@@ -827,6 +971,7 @@ exports.sendReservationConfirmedMessage = onValueUpdated(
     const after = event.data.after.val() || {};
     if (!after.reservationConfirmed || before.reservationConfirmed) return;
     if (after.channel !== "LINE" || !after.lineUserId || after.confirmMessageSentAt || after.status === "キャンセル") return;
+    if (isPhotoChristmas(after)) return;
     const ok = await pushLineMessage(after.lineUserId, buildConfirmMessage(after), LINE_CHANNEL_ACCESS_TOKEN.value());
     if (ok) await admin.database().ref(`reservations/${event.params.pushId}/confirmMessageSentAt`).set(new Date().toISOString());
   }
