@@ -90,6 +90,8 @@ a.gal-card .gal-card__img{cursor:pointer}
 .gal-card:focus-visible .gal-card__custom,.gal-card:focus-visible .gal-card__standard{transform:scale(1.22) translateY(-4px);box-shadow:0 10px 22px rgba(58,42,35,.35)}
 .gal-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
 .gal-card__no{font-family:var(--font-sans);font-size:19px;letter-spacing:.04em;color:#6b4a2a;font-weight:700;margin-bottom:6px}
+.gal-card__reserve{width:100%;cursor:pointer;font-family:var(--font-mincho)}
+.lightbox__info-btn.gal-card__reserve{width:auto;border:none}
 .gal-card__line-note{font-size:14px;line-height:1.7;color:var(--color-text-soft);margin-top:8px;font-weight:600}
 .gal-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:8px;font-weight:600;line-height:1.5}
 .gal-card__desc{font-size:16px;font-weight:600;color:var(--color-text-soft);line-height:1.85;margin-bottom:14px;flex:1}
@@ -357,10 +359,18 @@ function titleWithWrap(s){
 // 言う番号と食い違わないようにするため（2026-10-02）。固定番号の無い古いデータだけ並び順で番号を振る。
 // 管理画面で作品を追加した時の仮タイトル「新規作品」は表示しない（番号「作品 No.01」だけを出す。2026-10-02オーナー指示）
 function isPlaceholderTitle(t){ return !String(t||"").trim() || String(t).trim() === "新規作品"; }
+function reservePortfolio(btn) {
+  const no = Number(btn.dataset.reserveNo);
+  const g = gallery.find(x => !x.isMenuItem && x.__no === no);
+  if (!g || !window.KoimariDraft) { alert("読み込み中です。少し待ってからもう一度お試しください。"); return; }
+  const label = "オーダーメイド作品 No." + String(no).padStart(2, "0") + (g.title ? "（" + g.title + "）" : "");
+  window.KoimariDraft.start({ name: label, productType: "decorationCake", img: g.img, size: g.size || "", orderMode: "custom" }, btn);
+}
 document.addEventListener("click", (e) => {
-  const a = e.target.closest && e.target.closest("a[data-copy]");
-  if (!a) return;
-  try { if (navigator.clipboard) navigator.clipboard.writeText(a.dataset.copy); } catch (err) {}
+  const btn = e.target.closest && e.target.closest("[data-reserve-no]");
+  if (!btn) return;
+  e.preventDefault(); e.stopPropagation();
+  reservePortfolio(btn);
 });
 function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = Number(g.no) > 0 ? Number(g.no) : i+1; }); return arr; }
 
@@ -496,8 +506,8 @@ function renderGrid(){
           ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
-        <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="gal-card__cta" data-copy="作品No.${String(g.__no).padStart(2,"0")}">LINEで相談する（作品No.${String(g.__no).padStart(2,"0")}）</a>
-        <p class="gal-card__line-note">LINEのトークで「作品No.${String(g.__no).padStart(2,"0")}」とお送りください（ボタンを押すと番号がコピーされます）</p>`;
+        <button type="button" class="gal-card__cta gal-card__reserve" data-reserve-no="${g.__no}">この内容で予約する</button>
+        <p class="gal-card__line-note">オーダーメイドのため、ご予約後にパティシエがお見積もり・納期をお電話でご回答します</p>`;
     card.innerHTML = `
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
@@ -609,9 +619,9 @@ function openLightbox(photos, title, g) {
   if (info) {
     if (g && g.__no) {
       const no = String(g.__no).padStart(2, "0");
-      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><a class="lightbox__info-btn" target="_blank" rel="noopener" href="https://lin.ee/tgXqHoK" data-copy="作品No.${no}">LINEで相談する（作品No.${no}）</a><div class="lightbox__info-note">LINEのトークで「作品No.${no}」とお送りください</div>`;
+      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><button type="button" class="lightbox__info-btn gal-card__reserve" data-reserve-no="${g.__no}">この内容で予約する</button><div class="lightbox__info-note">ご予約後にパティシエがお見積もり・納期をお電話でご回答します</div>`;
       info.classList.add("show");
-      info.onclick = e => e.stopPropagation();
+      info.onclick = e => { e.stopPropagation(); const b = e.target.closest("[data-reserve-no]"); if (b) reservePortfolio(b); };
     } else { info.classList.remove("show"); info.innerHTML = ""; }
   }
   renderLightboxPhoto();
@@ -634,6 +644,7 @@ document.addEventListener("keydown", e => {
 </script>
 
 <script src="cake-pricing.js"></script>
+<script src="reserve-draft.js"></script>
 <script src="price-hint.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";

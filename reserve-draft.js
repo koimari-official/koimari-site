@@ -67,18 +67,18 @@
     wrap.style.cssText = "position:fixed;inset:0;z-index:4000;background:rgba(30,20,14,.6);display:flex;align-items:center;justify-content:center;padding:20px;";
     wrap.innerHTML =
       '<div style="background:#fdfaf6;max-width:440px;width:100%;border-radius:14px;padding:28px 24px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.3);max-height:90vh;overflow-y:auto;">' +
-      '<div style="font-size:13px;color:#a88a52;letter-spacing:.1em;margin-bottom:6px;">ご希望の商品を保存しました</div>' +
+      '<div style="font-size:15px;color:#a88a52;letter-spacing:.1em;margin-bottom:6px;">ご希望の商品を保存しました</div>' +
       '<div style="font-size:17px;font-weight:700;margin-bottom:16px;line-height:1.5;">' + esc(pick.name) + '</div>' +
       '<div style="background:#f3ece1;border-radius:10px;padding:14px;margin-bottom:16px;">' +
-      '<div style="font-size:12px;color:#6b5a48;margin-bottom:4px;">仕様コード</div>' +
+      '<div style="font-size:14px;color:#6b5a48;margin-bottom:4px;">仕様コード</div>' +
       '<div id="draftCode" style="font-size:26px;font-weight:700;letter-spacing:.2em;color:#2e2118;">' + esc(code) + '</div>' +
       '<button type="button" id="draftCopy" style="margin-top:8px;font-size:12px;padding:6px 14px;border:1px solid #c9a96e;background:#fff;border-radius:999px;cursor:pointer;">コードをコピー</button></div>' +
-      '<ol style="text-align:left;font-size:13.5px;line-height:1.9;margin:0 0 18px 1.2em;padding:0;color:#3a2c20;">' +
+      '<ol style="text-align:left;font-size:16px;line-height:1.9;margin:0 0 18px 1.2em;padding:0;color:#3a2c20;">' +
       '<li>下のボタンで「こいまり公式LINE」を友だち追加</li>' +
       '<li>トーク画面下部メニューの「ご予約」をタップ</li>' +
       '<li>予約フォームにご希望の商品が自動で反映されます（うまく反映されない場合は、上のコードをフォームに入力してください）</li></ol>' +
       '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:999px;background:#06c755;color:#fff;font-weight:700;text-decoration:none;margin-bottom:10px;">LINEで友だち追加して進む</a>' +
-      '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;font-size:14px;color:#4a3a2a;margin-bottom:14px;line-height:1.7;">すでに友だちの方：LINEを開き、メニューの「ご予約」から進んでください（上のコードを入力すると商品が反映されます）</a>' +
+      '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;font-size:15px;color:#4a3a2a;margin-bottom:14px;line-height:1.7;">すでに友だちの方：LINEを開き、メニューの「ご予約」から進んでください（上のコードを入力すると商品が反映されます）</a>' +
       '<button type="button" id="draftClose" style="font-size:13px;padding:8px 18px;border:none;background:none;color:#888;cursor:pointer;">閉じる</button></div>';
     document.body.appendChild(wrap);
     wrap.addEventListener("click", function (e) { if (e.target === wrap) wrap.remove(); });
