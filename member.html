@@ -53,6 +53,16 @@ main{max-width:640px;margin:0 auto;padding:50px 24px 100px}
 .input{width:100%;padding:12px 14px;border:1px solid var(--color-line);background:#fff;font-family:var(--font-sans);font-size:15px;font-weight:600;}
 .btn{display:inline-block;padding:14px 32px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.14em;color:#fff;background:var(--color-accent);font-weight:500;transition:background .2s;border:none;cursor:pointer;}
 .btn:hover{background:#a88a52}
+.ref-image{margin:0 0 22px;background:#fdfaf6;border:1px solid #ecd9c4;border-radius:14px;overflow:hidden;}
+.ref-image__main{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#f3ece1;}
+.ref-image__body{padding:12px 14px 14px;}
+.ref-image__label{font-size:12px;color:#a88a52;font-weight:700;letter-spacing:.06em;}
+.ref-image__name{font-size:15px;font-weight:700;margin-top:2px;line-height:1.5;}
+.ref-image__note{font-size:12px;color:#856e58;margin-top:4px;line-height:1.6;}
+.ref-image__thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;}
+.ref-image__thumbs button{flex:0 0 auto;padding:0;border:2px solid transparent;border-radius:8px;background:none;cursor:pointer;line-height:0;}
+.ref-image__thumbs button.is-active{border-color:#c9a96e;}
+.ref-image__thumbs img{width:56px;height:56px;object-fit:cover;border-radius:6px;}
 .gallery-teaser{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
 .gallery-teaser img{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--color-line);}
 .link-more{font-size:14px;color:var(--color-accent-dark);text-decoration:underline;}
@@ -187,6 +197,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <select id="reserveFlavor" class="input select"></select>
           <div class="error" id="reserveFlavorError"></div>
         </div>
+        <div id="refImageBox" class="ref-image" style="display:none;"></div>
         <div class="field" id="reserveCreamTypeField" style="display:none;">
           <label class="field__label"><span id="reserveActiveTierLabel"></span>ケーキ・クリームの種類<span class="req-mark">必須</span></label>
           <div class="radio-list">
@@ -1728,7 +1739,7 @@ document.addEventListener("change", (e) => {
   if (e.target && e.target.id === "reserveDate") populateReserveTimeOptions(e.target.value);
   // 2026-09-22、価格に影響しうるあらゆる変更(サイズ・クリーム・ろうそく・メッセージプレート等)を
   // 個別に判定せず、変更のたびに毎回再計算する(安全側・計算漏れ防止)。
-  if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { updateCakeOptionUI(); updateLivePriceDisplay(); updateReservePhoneNotice(); updateReserveDateNotices(); }
+  if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { updateCakeOptionUI(); updateLivePriceDisplay(); updateReservePhoneNotice(); updateReserveDateNotices(); updateRefImage(); }
 });
 // 2026-09-29オーナー指示：備考にご希望が書かれている場合は確定金額にしない（内容を確認して電話で回答）。
 // textareaのchangeイベントはフォーカスを外すまで発火しないため、入力中も金額表示が切り替わるようにする。
@@ -1955,9 +1966,69 @@ function applyDraft(d) {
   renderDraftBanner();
 }
 let currentDraftSpecApplied = false;
+// 予約仕様を選ぶ画面に、選んでいるクリームの種類に近いケーキの写真を「参考イメージ」として出す（2026-10-02オーナー指示：
+// ギャラリーから来なかった場合も、参考のケーキ画像が出るようにする）。写真は管理画面「デコレーションケーキ」の商品データ
+// （siteImages/decorationCakes）を使う。選び方：①管理画面の「予約フォームの自動選択」でクリームが一致する商品
+// ②商品名がそのクリーム名で始まる商品 ③商品名にそのクリーム名を含む商品（「〜なし」「〜あり」は除く） ④どれも無ければ先頭の商品。
+// ギャラリーで商品を選んで来た場合は、その商品の写真を優先する。
+let refCakes = null; // null=未取得
+let refPickIndex = 0;
+let refLastKey = "";
+(async () => {
+  try {
+    const res = await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/decorationCakes.json");
+    const data = res.ok ? await res.json() : null;
+    const arr = Array.isArray(data) ? data : Object.values(data || {});
+    refCakes = arr.filter(it => it && it.img && it.visible !== false).map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "" }));
+  } catch (e) { refCakes = []; }
+  updateRefImage();
+})();
+function refCandidates(cream) {
+  if (!refCakes || !refCakes.length) return [];
+  if (!cream) return refCakes.slice();
+  const bySpec = refCakes.filter(c => c.cream === cream);
+  if (bySpec.length) return bySpec;
+  const byStart = refCakes.filter(c => c.name.indexOf(cream) === 0);
+  if (byStart.length) return byStart;
+  const byName = refCakes.filter(c => c.name.indexOf(cream) >= 0 && c.name.indexOf(cream + "なし") < 0 && c.name.indexOf(cream + "あり") < 0);
+  return byName;
+}
+function updateRefImage() {
+  const box = document.getElementById("refImageBox");
+  const field = document.getElementById("reserveCreamTypeField");
+  if (!box) return;
+  if (!field || field.style.display === "none") { box.style.display = "none"; return; }
+  const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  let label, list;
+  if (currentDraft && currentDraft.img) {
+    label = "ギャラリーで選んだケーキ";
+    list = [{ name: currentDraft.name || "", img: currentDraft.img }];
+  } else {
+    const checked = document.querySelector('input[name="reserveCreamType"]:checked');
+    const cream = checked ? checked.value : "";
+    list = refCandidates(cream);
+    label = "参考イメージ" + (cream ? "（" + cream + "）" : "");
+    if (!list.length && refCakes && refCakes.length) { list = refCakes.slice(0, 6); label = "ケーキの例"; }
+  }
+  if (!list.length) { box.style.display = "none"; return; }
+  const key = label + "|" + list.map(c => c.img).join(",");
+  if (key !== refLastKey) { refLastKey = key; refPickIndex = 0; }
+  const cur = list[Math.min(refPickIndex, list.length - 1)];
+  const rk = key + "#" + refPickIndex;
+  if (box.dataset.rk === rk && box.style.display === "block") return;
+  box.dataset.rk = rk;
+  box.innerHTML = '<img class="ref-image__main" src="' + esc(cur.img) + '" alt="' + esc(cur.name) + '">' +
+    '<div class="ref-image__body"><div class="ref-image__label">' + esc(label) + '</div><div class="ref-image__name">' + esc(cur.name) + '</div>' +
+    '<div class="ref-image__note">写真はイメージです。フルーツの種類・飾り付けは季節やご注文内容により変わります。</div>' +
+    (list.length > 1 ? '<div class="ref-image__thumbs">' + list.map((c, i) => '<button type="button" data-ref="' + i + '" class="' + (i === refPickIndex ? "is-active" : "") + '"><img src="' + esc(c.img) + '" alt="" loading="lazy"></button>').join("") + "</div>" : "") +
+    "</div>";
+  box.querySelectorAll("[data-ref]").forEach(b => b.addEventListener("click", () => { refPickIndex = Number(b.dataset.ref) || 0; updateRefImage(); }));
+  box.style.display = "block";
+}
 function renderDraftBanner() {
   const el = document.getElementById("draftBanner");
   if (!el) return;
+  setTimeout(updateRefImage, 0);
   el.style.display = "block";
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   if (currentDraft) {
