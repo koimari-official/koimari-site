@@ -388,7 +388,7 @@ exports._internal = {
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
-  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas,
+  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage,
 };
 
 exports.lineWebhook = onRequest(
@@ -420,6 +420,15 @@ exports.lineWebhook = onRequest(
         }
       }
 
+      if (event.type === "follow" && event.replyToken && event.source && event.source.type === "user") {
+        try {
+          const pick = await pendingPickFor(event.source.userId);
+          await replyToLine(event.replyToken, buildFollowMessage(pick), LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
+        } catch (err) {
+          console.error("友だち登録への返信に失敗:", err);
+        }
+        continue;
+      }
       if (event.type !== "message" || !event.message || event.message.type !== "text") continue;
       // グループ・複数人トークではAIの自動応答をしない（お客様向けのFAQ回答がスタッフの
       // 雑談に混ざってしまうのを防ぐ。1対1のトークのみ応答する）。
@@ -707,6 +716,64 @@ function formatReservationNo(n) {
 function galleryPickLabel(pick) {
   const no = Number(pick && pick.no) > 0 ? "No.D" + String(pick.no).padStart(2, "0") + " " : "";
   return no + ((pick && pick.name) || "");
+}
+
+// 友だち登録した直後にトークへ送る案内（2026-10-02オーナー指示：登録後に予約ページへのリンクと簡単な案内があれば離脱が減る）。
+// ギャラリーでケーキを選んでから登録した方（予約フォームで読み込んだ仕様を lineMembers/{uid}/profile/pendingDraft に保存済み）には、
+// そのケーキが入った予約フォームのリンクを送る。それ以外の方には、通常の予約フォームとギャラリーのリンクを送る。
+function buildFollowMessage(pick) {
+  const lines = ["友だち追加ありがとうございます🎂", ""];
+  if (pick && pick.code) {
+    lines.push(
+      "さきほどギャラリーで選んだケーキで、",
+      "このままご予約いただけます。",
+      "",
+      "◆選んだケーキ",
+      "◇" + (pick.name || "ギャラリーで選んだケーキ"),
+      "",
+      "▼ご予約はこちら",
+      "（選んだケーキが入っています）",
+      "https://liff.line.me/2011059940-hMTBZaUz?draft=" + encodeURIComponent(pick.code) + "#reserve"
+    );
+  } else {
+    lines.push(
+      "ケーキのご予約は、こちらの",
+      "フォームから承っております。",
+      "",
+      "▼ご予約はこちら",
+      RESERVE_LIFF_URL,
+      "",
+      "▼ケーキの写真から選ぶ方はこちら",
+      GALLERY_URL
+    );
+  }
+  lines.push(
+    "",
+    "◆ご予約の流れ",
+    "◇予約フォームで日時・お名前を入力",
+    "◇送信後、パティシエより",
+    "　お電話で内容を確認いたします",
+    "",
+    "◆ご予約の締切",
+    "◇お引き取りの3営業日前まで",
+    "◇お急ぎの方はお電話へ",
+    "　（070-9158-0641）"
+  );
+  return lines.join("\n");
+}
+// 予約フォームで読み込んだギャラリーの仕様（30日以内）。予約フォーム（member.html）の PENDING_DRAFT_DAYS と同じ期間
+async function pendingPickFor(userId) {
+  try {
+    const snap = await admin.database().ref("lineMembers/" + userId + "/profile").once("value");
+    const p = snap.val() || {};
+    if (!p.pendingDraft || !p.pendingDraftAt || Date.now() - p.pendingDraftAt > 30 * 86400000) return null;
+    const code = String(p.pendingDraft).toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8);
+    const d = (await admin.database().ref("reservationDrafts/" + code).once("value")).val();
+    return d && d.productType !== "autosave" ? { code, name: d.name || "" } : null;
+  } catch (err) {
+    console.warn("pendingDraftの取得に失敗:", err);
+    return null;
+  }
 }
 
 // ◇項目の1行を作る。LINEのトーク画面は1行あたり全角18文字前後で折り返され、箇条書きが長いと
