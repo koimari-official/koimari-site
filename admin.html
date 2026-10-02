@@ -215,6 +215,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 </style>
 <script src="cake-pricing.js"></script>
 <script src="reservation-editor.js"></script>
+<script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
 <style id="price-table-css">
@@ -296,6 +297,23 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .re-actions{grid-column:1/-1;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
 .re-link{background:none;border:none;color:#4a6f9c;text-decoration:underline;cursor:pointer;font-size:12px;padding:0}
 @media(max-width:760px){.re-dialog{padding:20px 14px}.re-grid{grid-template-columns:1fr}.re-photo img{aspect-ratio:4/3}.re-actions .re-btn{flex:1}}
+</style>
+<style id="order-mode-css">
+.om-box{margin-top:14px;border:2px solid var(--color-line);border-radius:10px;padding:12px 14px;background:#fdfaf6}
+.om-title{font-size:13.5px;font-weight:700;margin-bottom:8px}
+.om-modes{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.om-mode{display:flex;gap:8px;align-items:flex-start;border:1px solid var(--color-line);border-radius:8px;padding:8px 10px;background:#fff;cursor:pointer}
+.om-mode input{margin-top:3px}
+.om-mode b{display:block;font-size:13.5px}
+.om-mode small{display:block;font-size:11.5px;color:var(--color-text-soft);line-height:1.5}
+.om-mode:has(input:checked){border-color:var(--color-accent);background:#fff7ec}
+.om-hint{font-size:12px;color:var(--color-text-soft);line-height:1.7;margin-bottom:8px}
+.om-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.om-grid label{display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:4px}
+.om-grid select{width:100%;padding:8px 10px;border:1px solid var(--color-line);background:#fff;font-family:inherit;font-size:14px}
+.om-status{margin-top:10px;font-size:12.5px;font-weight:700;color:#0b7a37}
+.om-status--warn{color:#b03b48}
+@media(max-width:600px){.om-modes,.om-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -2545,39 +2563,85 @@ const SPEC_OPTIONS = {
   decoration: ["いちごのみ", "バラエティフルーツ"].map((v) => [v, v]),
   occasion: ["バースデー", "クリスマス"].map((v) => [v, v]),
 };
+// デコレーションケーキごとの「ご注文の受け方」（2026-10-02オーナー指示）。
+//  standard＝プルダウンで選べるケーキ：下の「予約フォームで選ぶ内容」がお客様の予約フォームに自動で入り、
+//            その範囲（お客様がプルダウンで変更した場合も含む）なら確定金額・確定納期を予約完了時にご案内する。
+//  custom  ＝フルオーダー：お見積もり・納期は別途ご回答（スタッフがお電話で確定）。
+//  未設定の商品は定番（standard）として表示する。ただしサイズ・クリームが未選択なら予約時は「別途ご回答」になる（警告を表示）。
+function orderModeOf(r) {
+  if (r.orderMode === "custom" || r.orderMode === "standard") return r.orderMode;
+  return "standard"; // 未設定は従来どおり定番扱い（サイズ・クリームが未選択なら下に警告を出す）
+}
 function appendSpecEditor(item, r, onChange) {
   const cur = r.spec && typeof r.spec === "object" ? r.spec : {};
-  const det = document.createElement("details");
-  det.style.cssText = "margin-top:14px;border:1px solid var(--color-line);border-radius:6px;padding:10px 12px;background:#fdfaf6;";
-  const sum = document.createElement("summary");
-  sum.style.cssText = "cursor:pointer;font-size:13px;font-weight:700;color:var(--color-text);";
-  const configured = () => Object.keys(cur).some((k) => cur[k]);
-  const refreshSum = () => { sum.textContent = "予約フォームの自動選択" + (configured() ? "（設定済み）" : "（未設定）"); };
-  refreshSum();
-  det.appendChild(sum);
-  const hint = document.createElement("div");
-  hint.style.cssText = "font-size:12px;color:var(--color-text-soft);margin:8px 0 10px;line-height:1.7;";
-  hint.textContent = "お客様がこのケーキを選んで「ご予約に進む」を押すと、LINE予約フォームの下の項目が自動で選ばれます（お客様はあとから変更できます）。空欄の項目は自動では選びません。2段・3段の上の段のサイズは、1段目のサイズに合わせてフォームが決めます。";
-  det.appendChild(hint);
-  const grid = document.createElement("div");
-  grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:10px;";
-  [["tiers", "段数"], ["size", "1段目（一番下）のサイズ"], ["cream", "クリームの種類"], ["decoration", "飾り付け"], ["occasion", "ご利用シーン"]].forEach(([key, label]) => {
-    const box = document.createElement("div");
+  const box = document.createElement("div");
+  box.className = "om-box";
+  const title = document.createElement("div");
+  title.className = "om-title";
+  title.textContent = "ご注文の受け方";
+  box.appendChild(title);
+  const modes = document.createElement("div");
+  modes.className = "om-modes";
+  const name = "om_" + Math.random().toString(36).slice(2);
+  [["standard", "プルダウンで選べるケーキ", "予約完了時に確定金額・確定納期をご案内"], ["custom", "フルオーダー", "お見積もり・納期は別途ご回答（お電話で確定）"]].forEach(([v, t, d]) => {
     const lb = document.createElement("label");
-    lb.textContent = label; lb.style.cssText = "display:block;font-size:12px;color:var(--color-text-soft);margin-bottom:4px;";
+    lb.className = "om-mode";
+    lb.innerHTML = `<input type="radio" name="${name}" value="${v}"><span><b>${t}</b><small>${d}</small></span>`;
+    const inp = lb.querySelector("input");
+    inp.checked = orderModeOf(r) === v;
+    inp.addEventListener("change", () => { r.orderMode = v; refresh(); onChange(); });
+    modes.appendChild(lb);
+  });
+  box.appendChild(modes);
+  const specWrap = document.createElement("div");
+  specWrap.className = "om-spec";
+  const hint = document.createElement("div");
+  hint.className = "om-hint";
+  hint.textContent = "このケーキを選んだお客様の予約フォームに、下の内容が最初から選ばれた状態で入ります（お客様はプルダウンの範囲で変更できます）。サイズとクリームの種類は必ず選んでください。";
+  specWrap.appendChild(hint);
+  const grid = document.createElement("div");
+  grid.className = "om-grid";
+  [["tiers", "段数"], ["size", "1段目（一番下）のサイズ"], ["cream", "クリームの種類"], ["decoration", "飾り付け"], ["occasion", "ご利用シーン"]].forEach(([key, label]) => {
+    const fbox = document.createElement("div");
+    const lb = document.createElement("label");
+    lb.textContent = label + (key === "size" || key === "cream" ? "（必須）" : "");
     const sel = document.createElement("select");
-    sel.style.cssText = "width:100%;padding:8px 10px;border:1px solid var(--color-line);background:#fff;font-family:inherit;font-size:14px;";
-    const blank = document.createElement("option"); blank.value = ""; blank.textContent = "自動選択しない"; sel.appendChild(blank);
+    const blank = document.createElement("option"); blank.value = ""; blank.textContent = key === "size" || key === "cream" ? "選んでください" : "指定しない"; sel.appendChild(blank);
     SPEC_OPTIONS[key].forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; if (String(cur[key] || "") === v) o.selected = true; sel.appendChild(o); });
     sel.addEventListener("change", () => {
       if (sel.value) cur[key] = sel.value; else delete cur[key];
-      if (configured()) r.spec = cur; else delete r.spec;
-      refreshSum(); onChange();
+      if (Object.keys(cur).some((k) => cur[k])) r.spec = cur; else delete r.spec;
+      refresh(); onChange();
     });
-    box.appendChild(lb); box.appendChild(sel); grid.appendChild(box);
+    fbox.appendChild(lb); fbox.appendChild(sel); grid.appendChild(fbox);
   });
-  det.appendChild(grid);
-  item.appendChild(det);
+  specWrap.appendChild(grid);
+  const status = document.createElement("div");
+  status.className = "om-status";
+  specWrap.appendChild(status);
+  box.appendChild(specWrap);
+  const customNote = document.createElement("div");
+  customNote.className = "om-hint";
+  customNote.textContent = "フルオーダーのケーキは、ギャラリーでは「フルオーダー」と表示し、価格の目安は出しません。お客様が予約すると「お見積もり・納期は別途ご回答」とご案内し、スタッフ通知にも表示されます。";
+  box.appendChild(customNote);
+  function refresh() {
+    const mode = orderModeOf(r);
+    specWrap.style.display = mode === "standard" ? "" : "none";
+    customNote.style.display = mode === "custom" ? "" : "none";
+    if (mode !== "standard") return;
+    if (!cur.size || !cur.cream) { status.className = "om-status om-status--warn"; status.textContent = "サイズとクリームの種類が未選択です。このままではお客様に確定金額を出せず「別途ご回答」になります。"; return; }
+    let price = "";
+    try {
+      if (window.KoimariPriceHint) window.KoimariPriceHint.load().then((pr) => {
+        const t = window.KoimariPriceHint.priceText({ name: r.name, desc: r.desc, spec: cur }, "decorationCake", pr);
+        status.textContent = "設定済み：" + [cur.tiers ? cur.tiers + "段" : "", cur.size.split("(")[0], cur.cream, cur.decoration || "", cur.occasion || ""].filter(Boolean).join("・") + (t ? "　（料金表の金額：" + t.replace("〜", "") + "）" : "　（料金表に金額がありません。料金表タブで設定してください）");
+      });
+    } catch (e) {}
+    status.className = "om-status";
+    status.textContent = "設定済み";
+  }
+  refresh();
+  item.appendChild(box);
 }
 
 function renderDecorationCakes() {

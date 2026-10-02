@@ -1238,7 +1238,7 @@ async function pollReservationNo(pushKey, attempt) {
 }
 // ギャラリーで選んだ商品の写真の仕様を、予約フォームの選択肢だけでは表せない場合（管理画面で「予約フォームの自動選択」が
 // 未設定の商品）は、お見積もり・納期をパティシエが別途ご回答する。写真と同じ仕様をプルダウンで再現できる商品は通常どおり確定。
-function quoteSeparatelyNow() { try { return !!(currentDraft && !currentDraftSpecApplied); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
+function quoteSeparatelyNow() { try { return !!(currentDraft && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
 // 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ）
 function isPhotoChristmas(data) { return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img); }
 function estimateIsFixed(data) {
@@ -1979,7 +1979,7 @@ let currentDraftSpecApplied = false;
 // 前回のご予約の連絡先を入れる（2026-10-02オーナー指示：LINE友だち登録済みの方は入力を省けるように）。
 // 電話番号等は誰でも読める場所には置かず、LIFFのアクセストークンでLINEに本人確認したうえで、本人の直近の予約から返す
 // （functions/index.js の lookupMyContact）。空欄の項目だけ埋め、すでに入力されている内容は上書きしない。
-const LOOKUP_CONTACT_URL = "https://lookupmycontact-hez3iczhia-an.a.run.app";
+const LOOKUP_CONTACT_URL = "https://asia-northeast1-koimari-tasting.cloudfunctions.net/lookupMyContact";
 async function prefillFromLastReservation(lineName) {
   try {
     if (typeof liff === "undefined" || !liff.getAccessToken) return;

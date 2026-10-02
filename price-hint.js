@@ -44,11 +44,17 @@
     for (var i = 0; i < names.length; i++) if (name.indexOf(names[i]) === 0) return names[i];
     return "";
   }
+  // ご注文の受け方（admin.html の orderModeOf と同じ判定）。未設定は定番（standard）扱い
+  function orderModeOf(item) {
+    if (item && (item.orderMode === "custom" || item.orderMode === "standard")) return item.orderMode;
+    return "standard"; // 未設定は従来どおり定番扱い（管理画面で警告を出す）
+  }
   function yen(n) { return "¥" + Number(n).toLocaleString(); }
   // 表示用の価格テキスト（例：「¥3,630〜」）。出せない場合は空文字
   function priceText(item, productType, prices) {
     if (item && item.price) return String(item.price);
     if (productType !== "decorationCake" || !prices) return "";
+    if (orderModeOf(item) === "custom") return "";
     var size = (item.spec && item.spec.size ? String(item.spec.size).split("(")[0] : "") || sizeOf(item);
     var cream = creamOf(item, prices);
     if (!size || !cream) return "";
@@ -58,5 +64,5 @@
     else p = Number(prices.typePrices[cream] && prices.typePrices[cream][size]) || 0;
     return p ? yen(p) + "〜" : "";
   }
-  root.KoimariPriceHint = { load: load, sizeOf: sizeOf, sizeLabel: sizeLabel, descBody: descBody, priceText: priceText };
+  root.KoimariPriceHint = { orderModeOf: orderModeOf, load: load, sizeOf: sizeOf, sizeLabel: sizeLabel, descBody: descBody, priceText: priceText };
 })(typeof window !== "undefined" ? window : this);

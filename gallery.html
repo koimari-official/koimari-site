@@ -376,7 +376,8 @@ const urlCat = new URLSearchParams(location.search).get("cat");
 let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
 
 function menuItemToCard(item, catKey, idx, productType){
-  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured };
+  const custom = productType === "decorationCake" && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === "custom";
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured, custom };
 }
 // 画像が未設定の商品は、公開ページではエラーのように見えてしまうため一覧に出さない（2026-09-28オーナー指示）。
 // 並び順は「作品ポートフォリオ→デコレーション→カット→ロール→焼き菓子→ギフト」で、各カテゴリー内は管理画面の並び順。
@@ -488,7 +489,7 @@ function renderGrid(){
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
         ${g.seasonal ? `<span class="gal-card__seasonal">季節限定</span>` : ""}
         ${g.featured ? `<span class="gal-card__popular">★ 人気</span>` : ""}
-        ${!g.isMenuItem ? `<span class="gal-card__custom">オーダーメイド</span>` : (g.category === "cake" ? `<span class="gal-card__standard">定番</span>` : "")}
+        ${!g.isMenuItem ? `<span class="gal-card__custom">オーダーメイド</span>` : (g.category === "cake" ? (g.custom ? `<span class="gal-card__custom">フルオーダー</span>` : `<span class="gal-card__standard">定番</span>`) : "")}
         <img src="${escape(g.img)}" alt="${escape(g.title)}">
       </div>
       ${subPhotos.length ? `<div class="gal-card__thumbs">${subPhotos.map((p,i) => `<img class="gal-card__thumb" src="${escape(p)}" data-idx="${i+1}" alt="">`).join("")}</div>` : ""}

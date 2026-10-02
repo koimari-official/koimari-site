@@ -27,6 +27,8 @@
     if (pick.size) body.size = String(pick.size).slice(0, 40);
     // 管理画面で設定した「予約フォームの自動選択」（spec）。DBルールはspecを文字列6000字以内に制限している。
     if (pick.spec && String(pick.spec).length <= 6000) body.spec = String(pick.spec);
+    // ご注文の受け方（standard＝プルダウンで選べる／custom＝フルオーダー。2026-10-02）
+    if (pick.orderMode === "standard" || pick.orderMode === "custom") body.orderMode = pick.orderMode;
     for (var attempt = 0; attempt < 4; attempt++) {
       var code = genCode();
       var res = await fetch(DB + "/reservationDrafts/" + code + ".json", { method: "PUT", body: JSON.stringify(body) });
