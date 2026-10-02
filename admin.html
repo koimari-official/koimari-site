@@ -325,7 +325,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <div class="login__logo-en">KOIMARI</div>
     <div class="login__logo-jp">こ い ま り</div>
     <div class="login__title">管理ページ ログイン</div>
-    <input type="email" id="loginEmail" class="input" placeholder="メールアドレス" autocomplete="username" style="margin-bottom:10px;">
+    <input type="email" id="loginEmail" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" class="input" placeholder="メールアドレス" autocomplete="username" style="margin-bottom:10px;">
     <input type="password" id="loginPass" class="input" placeholder="パスワード" autocomplete="current-password">
     <button class="btn" id="loginBtn" style="width:100%;">ログイン</button>
     <div class="login__error" id="loginError"></div>
@@ -1160,6 +1160,17 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 </div>
 
 <script>
+// 2026-10-03：スマホのブラウザは保存容量の上限が小さく、このサイトの他のページの控えで一杯になっていると、
+// localStorage.setItem がエラーになり、管理画面の処理が途中で止まる原因になる。控えの保存に失敗しても処理を続ける。
+(function () {
+  try {
+    const orig = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k, v) {
+      try { return orig.call(this, k, v); }
+      catch (e) { console.warn("ブラウザへの控えの保存に失敗（処理は続けます）:", k, e && e.name); window.__storageWriteFailed = (window.__storageWriteFailed || 0) + 1; }
+    };
+  } catch (e) {}
+})();
 /* ============================================================
    設定
    ============================================================ */
@@ -1259,7 +1270,10 @@ function loadData() {
   return JSON.parse(JSON.stringify(DEFAULT_IMAGES));
 }
 function loadList(key) { try { return JSON.parse(localStorage.getItem(key) || "[]"); } catch (e) { return []; } }
-function isDirty() { return JSON.stringify(workingData) !== JSON.stringify(savedData); }
+// 空の配列（例：追加写真が0枚の gallery: []）はデータベースに保存されないため、画面側で補った空配列と保存済みデータの
+// 「欄なし」を同じものとして比べる。以前は何も編集していなくても「変更を保存」バーが出ていた（2026-10-03）。
+function dirtyJson(v) { return JSON.stringify(v, (k, x) => (Array.isArray(x) && x.length === 0 ? undefined : x)); }
+function isDirty() { return dirtyJson(workingData) !== dirtyJson(savedData); }
 function updateSaveBar() { document.getElementById("saveBar").style.display = isDirty() ? "flex" : "none"; }
 // 「保存する」を押し忘れたままタブを閉じる／再読み込みすると、画像・テキストの変更が
 // 何も保存されずに消えてしまう（本人には「作業が無かったことになった」ように見える）。
@@ -1598,9 +1612,24 @@ function login() {
   const errEl = document.getElementById("loginError");
   errEl.textContent = "";
   if (typeof window.firebaseLogin !== "function") { errEl.textContent = "認証システムの読み込み中です。少し待って再度お試しください。"; return; }
-  window.firebaseLogin(email, pass).catch(() => {
-    errEl.textContent = "メールアドレスまたはパスワードが正しくありません";
-  });
+  const btn = document.getElementById("loginBtn");
+  const btnLabel = btn.textContent;
+  btn.disabled = true; btn.textContent = "ログインしています…";
+  const slow = setTimeout(() => { errEl.textContent = "ログインに時間がかかっています。電波の良い場所で、そのままお待ちください。"; }, 12000);
+  window.firebaseLogin(email, pass).then(() => { clearTimeout(slow); }).catch((err) => {
+    clearTimeout(slow);
+    const code = (err && err.code) || "";
+    const msg = {
+      "auth/invalid-credential": "メールアドレスまたはパスワードが正しくありません",
+      "auth/wrong-password": "メールアドレスまたはパスワードが正しくありません",
+      "auth/user-not-found": "メールアドレスまたはパスワードが正しくありません",
+      "auth/invalid-email": "メールアドレスの形式が正しくありません（前後の空白や全角文字をご確認ください）",
+      "auth/too-many-requests": "ログインの失敗が続いたため、一時的にロックされています。しばらく待ってからお試しください",
+      "auth/network-request-failed": "通信できませんでした。電波の良い場所で、もう一度お試しください",
+      "auth/user-disabled": "このアカウントは停止されています。オーナーにお問い合わせください"
+    }[code];
+    errEl.textContent = (msg || "ログインできませんでした") + (code ? "（" + code + "）" : "");
+  }).finally(() => { btn.disabled = false; btn.textContent = btnLabel; });
 }
 document.getElementById("loginBtn").addEventListener("click", login);
 document.getElementById("loginPass").addEventListener("keypress", e => { if (e.key === "Enter") login(); });
@@ -6163,19 +6192,43 @@ function applyStoreMode() {
   const active = document.querySelector(".tab.active");
   if (!active || !["reservations", "kitchen"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
 }
+// ログイン後の準備で失敗した処理を、管理画面の上部に表示する（スクリーンショットを送ってもらえば原因が分かるように）
+function showStartupWarning(list) {
+  let box = document.getElementById("startupWarning");
+  if (!box) {
+    box = document.createElement("div");
+    box.id = "startupWarning";
+    box.style.cssText = "background:#fff4e5;border:2px solid #e0a13a;color:#5a3a10;padding:12px 16px;margin:12px;border-radius:10px;font-size:14px;line-height:1.7;";
+    const scr = document.getElementById("adminScreen");
+    scr.insertBefore(box, scr.firstChild);
+  }
+  box.innerHTML = "<b>一部の機能の読み込みに失敗しました。</b>ほかの機能はそのまま使えます。この画面のスクリーンショットをお送りください。<br>" + list.map(t => "・" + String(t).replace(/[<>&]/g, "")).join("<br>");
+}
 onAuthStateChanged(fbAuth, (user) => {
   if (user) {
-    syncReservationsFromFirebase();
-    syncExperiencesFromFirebase();
-    syncCorporateFromFirebase();
-    syncLineMembersFromFirebase();
-    syncAiReviewFromFirebase();
-    initEventConfigPanel();
-    initExpDatesPanel();
-    initStatsSectionToggle();
-    initCakeFlavorsPanel();
-    initQuoteBuilder();
-    if (typeof window.showAdmin === "function") window.showAdmin();
+    // 2026-10-03：スマホでログインボタンを押してもログイン画面から動かない不具合。ログイン自体は成功していても、
+    // 以下の準備処理のどれか1つでエラーが起きると管理画面への切り替え（showAdmin）まで進まず、エラーも出ていなかった。
+    // 1つずつ失敗を受け止め、必ず管理画面を表示する。失敗した処理は画面上部に表示して原因が分かるようにする。
+    const failed = [];
+    const step = (name, fn) => { try { fn(); } catch (e) { console.error("ログイン後の準備に失敗:", name, e); failed.push(name + "（" + ((e && (e.name + ": " + e.message)) || e) + "）"); } };
+    step("予約一覧", syncReservationsFromFirebase);
+    step("応募一覧", syncExperiencesFromFirebase);
+    step("法人ご相談", syncCorporateFromFirebase);
+    step("LINE会員", syncLineMembersFromFirebase);
+    step("AI要確認", syncAiReviewFromFirebase);
+    step("季節イベント設定", initEventConfigPanel);
+    step("体験プログラム候補日", initExpDatesPanel);
+    step("統計", initStatsSectionToggle);
+    step("料金表・ケーキの種類", initCakeFlavorsPanel);
+    step("個別見積もり", initQuoteBuilder);
+    try { if (typeof window.showAdmin === "function") window.showAdmin(); }
+    catch (e) {
+      console.error("管理画面の表示に失敗:", e);
+      failed.push("画面の表示（" + ((e && (e.name + ": " + e.message)) || e) + "）");
+      document.getElementById("loginScreen").style.display = "none";
+      document.getElementById("adminScreen").style.display = "block";
+    }
+    if (failed.length) showStartupWarning(failed);
     // 店舗用アカウント（お店のタブレット等）は、予約一覧・製造シートだけを表示する（2026-09-30オーナー指示・B案）。
     // ※画面の表示制限。データベース側の権限制限は別途（オーナー承認待ち）。
     if (STORE_ACCOUNTS.includes(String(user.email || "").toLowerCase())) applyStoreMode();
