@@ -15,6 +15,7 @@
   var CREAMS = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ"];
   var COLORS = ["黒", "グレー", "赤", "青", "紺", "黄色", "ピンク", "緑", "黄緑", "茶色", "水色"];
   var DECORATIONS = ["いちごのみ", "バラエティフルーツ"];
+  var TARTS = ["フルーツタルトBOX", "ストロベリータルトBOX"];
   var OCCASIONS = ["", "バースデー", "クリスマス", "その他"];
   var DEFAULT_STAFF = ["オーナー", "お母さん", "楠田", "永山"];
   var TIMES = (function () { var a = []; for (var m = 600; m <= 1170; m += 30) a.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0")); return a; })();
@@ -34,7 +35,7 @@
     if (refCakes) return Promise.resolve(refCakes);
     return getJson("siteImages/decorationCakes").then(function (d) {
       var arr = Array.isArray(d) ? d : Object.values(d || {});
-      refCakes = arr.filter(function (it) { return it && it.img && it.visible !== false; }).map(function (it) { return { name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "" }; });
+      refCakes = arr.filter(function (it) { return it && it.img && it.visible !== false && it.orderMode !== "custom"; }).map(function (it) { return { name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【([^】]+)】/) || [])[1] || "")) }; });
       return refCakes;
     });
   }
@@ -68,6 +69,7 @@
       category: (items[0] || {}).category || r.type || "",
       flavor: (items[0] || {}).flavor || "",
       tiers: tiers,
+      creamSub: r.creamTypeSub || "",
       decoration: r.decoration || "",
       occasion: r.occasion || "",
       occasionOther: r.occasionOther || "",
@@ -93,7 +95,7 @@
       rows.push(["段数", s.tiers.length + "段"]);
       s.tiers.forEach(function (t, i) {
         var label = s.tiers.length > 1 ? tierName(i, s.tiers.length) : "サイズ・種類";
-        rows.push([label, [t.size, t.cream, t.color ? "カラー：" + t.color : ""].filter(Boolean).join("　")]);
+        rows.push([label, [t.size, t.cream + (i === 0 && s.creamSub && TARTS.indexOf(t.cream) >= 0 ? "（" + s.creamSub + "）" : ""), t.color ? "カラー：" + t.color : ""].filter(Boolean).join("　")]);
       });
     }
     if (s.decoration) rows.push(["飾り付け", s.decoration]);
@@ -109,6 +111,8 @@
     rows.push(["金額（税込）", s.price ? yen(s.price) + (s.priceIsRange ? "〜" : "") : (s.subtotal ? yen(s.subtotal) + "〜（目安）" : "お電話でご案内")]);
     return rows;
   }
+  // 金額・日時以外の仕様だけを並べた文字列（仕様が変わったかどうかの判定用）
+  function specKeyOf(s) { var c = JSON.parse(JSON.stringify(s)); delete c.price; delete c.priceIsRange; delete c.subtotal; delete c.pickupDate; delete c.pickupTime; delete c._priceManual; return JSON.stringify(c); }
   function diffRows(a, b) {
     var ra = rowsOf(a), rb = rowsOf(b), out = [], map = {};
     ra.forEach(function (r) { map[r[0]] = r[1]; });
@@ -137,6 +141,7 @@
     var p = {
       items: n ? s.tiers.map(function (t, i) { return { category: s.category || "デコレーションケーキ", image: "", size: SIZE_FULL[t.size] || t.size, flavor: s.flavor || "", message: i === 0 ? s.message : "" }; }) : (r.items || null),
       creamType: n ? (s.tiers[0].cream || null) : (r.creamType || null),
+      creamTypeSub: n && TARTS.indexOf(s.tiers[0].cream) >= 0 ? (s.creamSub || "生クリームあり") : null,
       tierSpecs: n > 1 ? s.tiers.map(function (t, i) { return { tier: tierName(i, n), size: SIZE_FULL[t.size] || t.size, cream: t.cream || "", colors: t.color ? [t.color] : [] }; }).reverse() : null,
       decoration: s.decoration || null,
       occasion: s.occasion || null,
@@ -191,7 +196,7 @@
     var name = pick.name || "";
     if (!img) {
       var ref = refImageFor((s.tiers[0] || {}).cream || r.creamType || "");
-      if (ref) { img = ref.img; name = ref.name; label = "参考イメージ（予約フォームと同じ写真）"; }
+      if (ref) { img = ref.img; name = ref.name + (ref.size ? "（写真は" + ref.size + "）" : ""); label = "参考イメージ（予約フォームと同じ写真）"; }
     }
     var sent = r.sentImages ? Object.values(r.sentImages) : [];
     var html = "";
@@ -234,9 +239,10 @@
   function field(label, inner) { return '<div class="re-field"><label>' + esc(label) + "</label>" + inner + "</div>"; }
   function startEdit() {
     state.edit = JSON.parse(JSON.stringify(state.snap));
-    // 金額は、手入力しない限り自動計算に追従させる（今の金額が自動計算と違う＝以前に手入力した金額なら、そのまま残す）
-    var est0 = estimateOf(state.edit, state.r);
-    state.edit._priceManual = !!(state.edit.price && !(est0 && !est0.needsConsult && est0.subtotal === state.edit.price));
+    // 金額：仕様（サイズ・クリーム等）を変えたら自動計算に追従させる。この画面で金額を手入力した場合だけ、その金額で固定する。
+    // 仕様を変えない限り、予約時の金額はそのまま（料金表が後から改定されていても勝手に変えない）。
+    state.edit._priceManual = false;
+    state.specKey = specKeyOf(state.edit);
     renderEdit();
   }
   function renderEdit() {
@@ -250,7 +256,8 @@
         html += '<div class="re-tier"><div class="re-tier__title">' + esc(n > 1 ? tierName(i, n) : "ケーキ") + "</div>" +
           field("サイズ", sel("reSize" + i, i === 0 ? BOTTOM_SIZES : UPPER_SIZES, t.size, function (o) { return o; })) +
           (t.size === "セルクル" || t.size === "カットケーキ" ? "" : field("クリーム・種類", sel("reCream" + i, CREAMS, t.cream || "生クリーム", function (o) { return o; })) +
-          (t.cream === "生クリーム" || !t.cream ? field("カラー（1段1色）", sel("reColor" + i, [""].concat(COLORS), t.color)) : "")) + "</div>";
+          (t.cream === "生クリーム" || !t.cream ? field("カラー（1段1色）", sel("reColor" + i, [""].concat(COLORS), t.color)) : "") +
+          (i === 0 && TARTS.indexOf(t.cream) >= 0 ? field("タルトの生クリーム", sel("reCreamSub", ["生クリームあり", "生クリームなし"], e.creamSub || "生クリームあり", function (o) { return o; })) : "")) + "</div>";
       });
       html += field("飾り付け", sel("reDeco", [""].concat(DECORATIONS), e.decoration, function (o) { return o || "指定なし"; }));
       html += field("ご利用シーン", sel("reOcc", OCCASIONS, e.occasion, function (o) { return o || "指定なし"; }) + (e.occasion === "その他" ? '<input class="input re-in" id="reOccOther" value="' + esc(e.occasionOther) + '" placeholder="例：結婚記念日">' : ""));
@@ -263,7 +270,8 @@
     html += field("お引き取り日", '<input type="date" class="input re-in" id="reDate" value="' + esc(e.pickupDate) + '">');
     html += field("お引き取り時間", sel("reTime", [""].concat(TIMES), e.pickupTime, function (o) { return o || "選択"; }));
     var est = cake ? estimateOf(e, r) : null;
-    if (!e._priceManual && est && !est.needsConsult) e.price = est.subtotal;
+    var sk = specKeyOf(e);
+    if (sk !== state.specKey) { if (!e._priceManual && est && !est.needsConsult) e.price = est.subtotal; state.specKey = sk; }
     html += '<div class="re-price"><div class="re-price__auto">' + (est ? (est.needsConsult ? "自動計算：この組み合わせは料金表にありません（金額を入力してください）" : "自動計算：<b>" + yen(est.subtotal) + "</b>（税込）") : "") +
       (est && est.lines && est.lines.length ? '<div class="re-lines">' + est.lines.map(function (l) { return esc(l.label) + "　" + yen(l.amount); }).join("<br>") + "</div>" : "") +
       (est && est.notes && est.notes.length ? '<div class="re-lines">※' + est.notes.map(esc).join("<br>※") + "</div>" : "") + "</div>" +
@@ -302,6 +310,7 @@
       });
       while (e.tiers.length < n) e.tiers.push({ size: UPPER_SIZES[0], cream: "生クリーム", color: "" });
       e.tiers = e.tiers.slice(0, n);
+      e.creamSub = g("reCreamSub") ? g("reCreamSub").value : "";
       e.decoration = g("reDeco").value; e.occasion = g("reOcc").value; e.occasionOther = g("reOccOther") ? g("reOccOther").value : e.occasionOther;
       e.candleType = g("reCandle").value; e.candleCount = g("reCandleN") ? Number(g("reCandleN").value) : (e.candleType ? 1 : 0);
       e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;

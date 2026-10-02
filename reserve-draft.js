@@ -49,6 +49,7 @@
     for (var i = 0; i < tiers; i++) specs.push({ cream: cream || "生クリーム", colors: [] });
     var s = { v: 1, type: "デコレーションケーキ", tiers: tiers, activeTier: 0, sizes: size ? [size] : [], specs: specs };
     if (deco) s.decoration = deco;
+    if (cfg.creamSub) s.creamSub = cfg.creamSub; // タルトの「生クリームあり／なし」
     if (occ) s.occasion = occ;
     return JSON.stringify(s);
   }

@@ -58,6 +58,7 @@ main{max-width:640px;margin:0 auto;padding:50px 24px 100px}
 .ref-image__body{padding:12px 14px 14px;}
 .ref-image__label{font-size:12px;color:#a88a52;font-weight:700;letter-spacing:.06em;}
 .ref-image__name{font-size:15px;font-weight:700;margin-top:2px;line-height:1.5;}
+.ref-image__size{font-size:13.5px;font-weight:700;color:#8a3a2a;margin-top:6px;line-height:1.6;}
 .ref-image__note{font-size:12px;color:#856e58;margin-top:4px;line-height:1.6;}
 .ref-image__thumbs{display:flex;gap:8px;margin-top:10px;overflow-x:auto;}
 .ref-image__thumbs button{flex:0 0 auto;padding:0;border:2px solid transparent;border-radius:8px;background:none;cursor:pointer;line-height:0;}
@@ -2007,7 +2008,10 @@ async function prefillFromLastReservation(lineName) {
 // 予約仕様を選ぶ画面に、選んでいるクリームの種類に近いケーキの写真を「参考イメージ」として出す（2026-10-02オーナー指示：
 // ギャラリーから来なかった場合も、参考のケーキ画像が出るようにする）。写真は管理画面「デコレーションケーキ」の商品データ
 // （siteImages/decorationCakes）を使う。選び方：①管理画面の「予約フォームの自動選択」でクリームが一致する商品
-// ②商品名がそのクリーム名で始まる商品 ③商品名にそのクリーム名を含む商品（「〜なし」「〜あり」は除く） ④どれも無ければ先頭の商品。
+// ②商品名がそのクリーム名で始まる商品 ③商品名にそのクリーム名を含む商品（「〜なし」「〜あり」は除く）。
+// 2026-10-02オーナー指示：デフォルトのケーキは号数が決まっているため、仕様（クリーム・飾り付け）が合うケーキの写真だけを出し、
+// 「写真は○号のケーキです」と明記する（選んだサイズと違えば「ご選択の○号とは大きさが異なります」）。サイズ感の思い違いによる
+// クレームを防ぐため。合うケーキが無いときは写真を出さない（以前の「ケーキの例」は廃止）。
 // ギャラリーで商品を選んで来た場合は、その商品の写真を優先する。
 let refCakes = null; // null=未取得
 let refPickIndex = 0;
@@ -2017,13 +2021,19 @@ let refLastKey = "";
     const res = await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/decorationCakes.json");
     const data = res.ok ? await res.json() : null;
     const arr = Array.isArray(data) ? data : Object.values(data || {});
-    refCakes = arr.filter(it => it && it.img && it.visible !== false).map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "" }));
+    refCakes = arr.filter(it => it && it.img && it.visible !== false && it.orderMode !== "custom").map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【([^】]+)】/) || [])[1] || "")) }));
   } catch (e) { refCakes = []; }
   updateRefImage();
 })();
-function refCandidates(cream) {
+function refCandidates(cream, deco) {
+  const all = refCandidatesByCream(cream);
+  // 飾り付けを選んでいて、ケーキ側にも飾り付けが設定されている場合は、一致するものだけにする
+  const sub = ["フルーツタルトBOX", "ストロベリータルトBOX"].includes(cream) ? ((document.querySelector('input[name="reserveCreamTypeSub"]:checked') || {}).value || "") : "";
+  return all.filter(c => (!deco || !c.decoration || c.decoration === deco) && (!sub || !c.creamSub || c.creamSub === sub));
+}
+function refCandidatesByCream(cream) {
   if (!refCakes || !refCakes.length) return [];
-  if (!cream) return refCakes.slice();
+  if (!cream) return [];
   const bySpec = refCakes.filter(c => c.cream === cream);
   if (bySpec.length) return bySpec;
   const byStart = refCakes.filter(c => c.name.indexOf(cream) === 0);
@@ -2040,28 +2050,38 @@ function updateRefImage() {
   let label, list;
   if (currentDraft && currentDraft.img) {
     label = "ギャラリーで選んだケーキ";
-    list = [{ name: currentDraft.name || "", img: currentDraft.img }];
+    list = [{ name: currentDraft.name || "", img: currentDraft.img, size: String(currentDraft.size || "").split("(")[0] }];
   } else {
     const checked = document.querySelector('input[name="reserveCreamType"]:checked');
     const cream = checked ? checked.value : "";
-    list = refCandidates(cream);
+    const deco = (document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "";
+    list = refCandidates(cream, deco);
     label = "参考イメージ" + (cream ? "（" + cream + "）" : "");
-    if (!list.length && refCakes && refCakes.length) { list = refCakes.slice(0, 6); label = "ケーキの例"; }
   }
   if (!list.length) { box.style.display = "none"; return; }
   const key = label + "|" + list.map(c => c.img).join(",");
   if (key !== refLastKey) { refLastKey = key; refPickIndex = 0; }
   const cur = list[Math.min(refPickIndex, list.length - 1)];
-  const rk = key + "#" + refPickIndex;
+  const chosenSize = String((document.querySelector(".tier-size-select") || {}).value || "").split("(")[0];
+  const rk = key + "#" + refPickIndex + "#" + chosenSize;
   if (box.dataset.rk === rk && box.style.display === "block") return;
   box.dataset.rk = rk;
   box.innerHTML = '<img class="ref-image__main" src="' + esc(cur.img) + '" alt="' + esc(cur.name) + '">' +
     '<div class="ref-image__body"><div class="ref-image__label">' + esc(label) + '</div><div class="ref-image__name">' + esc(cur.name) + '</div>' +
+    refSizeNote(cur.size, chosenSize) +
     '<div class="ref-image__note">写真はイメージです。フルーツの種類・飾り付けは季節やご注文内容により変わります。</div>' +
     (list.length > 1 ? '<div class="ref-image__thumbs">' + list.map((c, i) => '<button type="button" data-ref="' + i + '" class="' + (i === refPickIndex ? "is-active" : "") + '"><img src="' + esc(c.img) + '" alt="" loading="lazy"></button>').join("") + "</div>" : "") +
     "</div>";
   box.querySelectorAll("[data-ref]").forEach(b => b.addEventListener("click", () => { refPickIndex = Number(b.dataset.ref) || 0; updateRefImage(); }));
   box.style.display = "block";
+}
+// 「写真は4号（直径約12cm）のケーキです。ご選択の5号とは大きさが異なります。」
+function refSizeNote(photoSize, chosenSize) {
+  if (!photoSize) return "";
+  const S = (window.CakePricing && CakePricing.SPEC && CakePricing.SPEC.sizes) || {};
+  const cm = S[photoSize] && S[photoSize].cm ? "（直径" + S[photoSize].cm + "）" : "";
+  const diff = chosenSize && /号$/.test(chosenSize) && chosenSize !== photoSize ? "ご選択の" + chosenSize + "とは大きさが異なります。" : "";
+  return '<div class="ref-image__size">写真は' + photoSize + cm + "のケーキです。" + diff + "</div>";
 }
 function renderDraftBanner() {
   const el = document.getElementById("draftBanner");

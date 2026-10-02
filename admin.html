@@ -2562,7 +2562,9 @@ const SPEC_OPTIONS = {
   cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ"].map((v) => [v, v]),
   decoration: ["いちごのみ", "バラエティフルーツ"].map((v) => [v, v]),
   occasion: ["バースデー", "クリスマス"].map((v) => [v, v]),
+  creamSub: ["生クリームあり", "生クリームなし"].map((v) => [v, v]),
 };
+const TART_CREAMS = ["フルーツタルトBOX", "ストロベリータルトBOX"];
 // デコレーションケーキごとの「ご注文の受け方」（2026-10-02オーナー指示）。
 //  standard＝プルダウンで選べるケーキ：下の「予約フォームで選ぶ内容」がお客様の予約フォームに自動で入り、
 //            その範囲（お客様がプルダウンで変更した場合も含む）なら確定金額・確定納期を予約完了時にご案内する。
@@ -2601,8 +2603,9 @@ function appendSpecEditor(item, r, onChange) {
   specWrap.appendChild(hint);
   const grid = document.createElement("div");
   grid.className = "om-grid";
-  [["tiers", "段数"], ["size", "1段目（一番下）のサイズ"], ["cream", "クリームの種類"], ["decoration", "飾り付け"], ["occasion", "ご利用シーン"]].forEach(([key, label]) => {
+  [["tiers", "段数"], ["size", "1段目（一番下）のサイズ"], ["cream", "クリームの種類"], ["creamSub", "タルトの生クリーム"], ["decoration", "飾り付け"], ["occasion", "ご利用シーン"]].forEach(([key, label]) => {
     const fbox = document.createElement("div");
+    fbox.dataset.key = key;
     const lb = document.createElement("label");
     lb.textContent = label + (key === "size" || key === "cream" ? "（必須）" : "");
     const sel = document.createElement("select");
@@ -2610,6 +2613,7 @@ function appendSpecEditor(item, r, onChange) {
     SPEC_OPTIONS[key].forEach(([v, t]) => { const o = document.createElement("option"); o.value = v; o.textContent = t; if (String(cur[key] || "") === v) o.selected = true; sel.appendChild(o); });
     sel.addEventListener("change", () => {
       if (sel.value) cur[key] = sel.value; else delete cur[key];
+      if (key === "cream" && !TART_CREAMS.includes(cur.cream)) delete cur.creamSub;
       if (Object.keys(cur).some((k) => cur[k])) r.spec = cur; else delete r.spec;
       refresh(); onChange();
     });
@@ -2627,6 +2631,8 @@ function appendSpecEditor(item, r, onChange) {
   function refresh() {
     const mode = orderModeOf(r);
     specWrap.style.display = mode === "standard" ? "" : "none";
+    const subBox = grid.querySelector('[data-key="creamSub"]');
+    if (subBox) { subBox.style.display = TART_CREAMS.includes(cur.cream) ? "" : "none"; if (!TART_CREAMS.includes(cur.cream)) subBox.querySelector("select").value = ""; }
     customNote.style.display = mode === "custom" ? "" : "none";
     if (mode !== "standard") return;
     if (!cur.size || !cur.cream) { status.className = "om-status om-status--warn"; status.textContent = "サイズとクリームの種類が未選択です。このままではお客様に確定金額を出せず「別途ご回答」になります。"; return; }
@@ -2634,7 +2640,7 @@ function appendSpecEditor(item, r, onChange) {
     try {
       if (window.KoimariPriceHint) window.KoimariPriceHint.load().then((pr) => {
         const t = window.KoimariPriceHint.priceText({ name: r.name, desc: r.desc, spec: cur }, "decorationCake", pr);
-        status.textContent = "設定済み：" + [cur.tiers ? cur.tiers + "段" : "", cur.size.split("(")[0], cur.cream, cur.decoration || "", cur.occasion || ""].filter(Boolean).join("・") + (t ? "　（料金表の金額：" + t.replace("〜", "") + "）" : "　（料金表に金額がありません。料金表タブで設定してください）");
+        status.textContent = "設定済み：" + [cur.tiers ? cur.tiers + "段" : "", cur.size.split("(")[0], cur.cream + (cur.creamSub ? "（" + cur.creamSub + "）" : ""), cur.decoration || "", cur.occasion || ""].filter(Boolean).join("・") + (t ? "　（料金表の金額：" + t.replace("〜", "") + "）" : "　（料金表に金額がありません。料金表タブで設定してください）");
       });
     } catch (e) {}
     status.className = "om-status";
