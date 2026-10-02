@@ -1615,7 +1615,7 @@ function login() {
   const btn = document.getElementById("loginBtn");
   const btnLabel = btn.textContent;
   btn.disabled = true; btn.textContent = "ログインしています…";
-  const slow = setTimeout(() => { errEl.textContent = "ログインに時間がかかっています。電波の良い場所で、そのままお待ちください。"; }, 12000);
+  const slow = setTimeout(() => { errEl.textContent = "ログインに時間がかかっています。電波のいい場所で、そのままお待ちください。"; }, 12000);
   window.firebaseLogin(email, pass).then(() => { clearTimeout(slow); }).catch((err) => {
     clearTimeout(slow);
     const code = (err && err.code) || "";
