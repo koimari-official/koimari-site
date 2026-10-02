@@ -58,6 +58,20 @@
   function liffUrl(code) { return LIFF_URL + "?draft=" + encodeURIComponent(code) + "#reserve"; }
   // ※ line.me/R/oaMessage/ 形式はPC等でLINE社のトップページに飛ぶため使わない（2026-10-02）。案内は LINE_ADD_URL に統一。
   function isLineBrowser() { return /Line\//i.test(navigator.userAgent); }
+  function isMobile() { return /iPhone|iPad|Android/i.test(navigator.userAgent); }
+  // PCで開いた場合：予約フォームURL（仕様コード付き）をQRコードにして、スマホで読み取ってもらう
+  function drawQr(el, text) {
+    if (!el) return;
+    var render = function () {
+      try { var qr = window.qrcode(0, "M"); qr.addData(text); qr.make(); el.innerHTML = qr.createImgTag(5, 8); var img = el.querySelector("img"); if (img) img.alt = "予約フォームのQRコード"; }
+      catch (e) { el.style.display = "none"; }
+    };
+    if (window.qrcode) return render();
+    var sc = document.createElement("script");
+    sc.src = "https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js";
+    sc.onload = render; sc.onerror = function () { el.style.display = "none"; };
+    document.head.appendChild(sc);
+  }
 
   function showModal(code, pick) {
     var old = document.getElementById("draftModal");
@@ -74,15 +88,18 @@
       '<div id="draftCode" style="font-size:26px;font-weight:700;letter-spacing:.2em;color:#2e2118;">' + esc(code) + '</div>' +
       '<button type="button" id="draftCopy" style="margin-top:8px;font-size:12px;padding:6px 14px;border:1px solid #c9a96e;background:#fff;border-radius:999px;cursor:pointer;">コードをコピー</button></div>' +
       '<ol style="text-align:left;font-size:16px;line-height:1.9;margin:0 0 18px 1.2em;padding:0;color:#3a2c20;">' +
-      '<li>下のボタンで「こいまり公式LINE」を友だち追加</li>' +
-      '<li>トーク画面下部メニューの「ご予約」をタップ</li>' +
-      '<li>予約フォームにご希望の商品が自動で反映されます（うまく反映されない場合は、上のコードをフォームに入力してください）</li></ol>' +
-      '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:999px;background:#06c755;color:#fff;font-weight:700;text-decoration:none;margin-bottom:10px;">LINEで友だち追加して進む</a>' +
+      (isMobile() ? '<li>下の緑のボタンで、LINEの予約フォームを開きます</li>' : '<li>スマートフォンのカメラで下のQRコードを読み取ると、LINEの予約フォームが開きます</li>') +
+      '<li>友だち追加がまだの方は、フォームの上の案内から追加してください</li>' +
+      '<li>選んだケーキが入った状態で、ご予約いただけます</li></ol>' +
+      (isMobile() ? '' : '<div id="draftQr" style="display:flex;justify-content:center;margin:0 0 14px;min-height:160px;"></div>') +
+      '<a href="' + liffUrl(code) + '" style="display:block;padding:14px;border-radius:999px;background:#06c755;color:#fff;font-weight:700;text-decoration:none;margin-bottom:10px;font-size:16px;">選んだケーキでLINEの予約フォームを開く</a>' +
+      '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;font-size:15px;color:#0b7a37;font-weight:700;margin-bottom:10px;">先に友だち追加だけする</a>' +
       '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;font-size:15px;color:#4a3a2a;margin-bottom:14px;line-height:1.7;">すでに友だちの方：LINEを開き、メニューの「ご予約」から進んでください（上のコードを入力すると商品が反映されます）</a>' +
       '<button type="button" id="draftClose" style="font-size:13px;padding:8px 18px;border:none;background:none;color:#888;cursor:pointer;">閉じる</button></div>';
     document.body.appendChild(wrap);
     wrap.addEventListener("click", function (e) { if (e.target === wrap) wrap.remove(); });
     document.getElementById("draftClose").addEventListener("click", function () { wrap.remove(); });
+    if (!isMobile()) drawQr(document.getElementById("draftQr"), liffUrl(code));
     document.getElementById("draftCopy").addEventListener("click", function () {
       var b = this;
       (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(function () { b.textContent = "コピーしました"; }, function () { b.textContent = "長押しでコピーしてください"; });
