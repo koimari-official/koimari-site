@@ -112,6 +112,74 @@ main{max-width:820px;margin:0 auto;padding:70px 24px 60px}
   .cta-banner__btn{padding:15px 26px;font-size:14px}
 }
 </style>
+<style id="product-v2">
+/* 商品紹介ページ（2026-10-02オーナー指示：写真はシズル感があるのに、ページ自体が購買意欲をそそらない）。
+   写真を大きく横スワイプ、その横（スマホは下）に商品名・目安価格・サイズ・説明・予約ボタン・こだわりをまとめ、
+   スマホは画面下に予約バーを固定、最後に同じカテゴリーのほかの商品を横スクロールで見せる。 */
+.pd-crumb{max-width:1120px;margin:0 auto;padding:16px 24px 0;font-size:14px;color:var(--color-text-soft);display:flex;gap:8px;flex-wrap:wrap;align-items:center;font-weight:600}
+.pd-crumb a{color:var(--color-accent-dark)}
+main.pd{max-width:1120px;padding:20px 24px 60px}
+.pd-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:48px;align-items:start;margin-bottom:56px}
+.pd-media{position:sticky;top:16px}
+.pd-slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:18px;background:var(--color-bg-soft);box-shadow:0 18px 40px rgba(58,42,35,.16)}
+.pd-slider::-webkit-scrollbar{display:none}
+.pd-slide{flex:0 0 100%;scroll-snap-align:center;aspect-ratio:1/1;cursor:zoom-in}
+.pd-slide img{width:100%;height:100%;object-fit:cover}
+.pd-dots{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.pd-dots button{width:9px;height:9px;border-radius:50%;border:none;background:#d8c7b3;padding:0;cursor:pointer}
+.pd-dots button.is-active{background:var(--color-accent-dark);width:22px;border-radius:5px}
+.pd-thumbs{display:flex;gap:10px;margin-top:12px;overflow-x:auto}
+.pd-thumbs button{flex:0 0 auto;width:76px;height:76px;padding:0;border:2px solid transparent;border-radius:10px;overflow:hidden;cursor:pointer;background:none;opacity:.75}
+.pd-thumbs button.is-active{border-color:var(--color-accent);opacity:1}
+.pd-thumbs img{width:100%;height:100%;object-fit:cover}
+.pd-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.pd-badge{font-family:var(--font-mincho);font-size:13px;font-weight:700;letter-spacing:.08em;padding:4px 14px;border-radius:999px;background:rgba(74,58,42,.9);color:#f5e4c6}
+.pd-badge--popular{background:#b03b48;color:#fff}
+.pd-badge--seasonal{background:#f5d6a8;color:#4a3a2a}
+.pd-en:empty{display:none}
+.pd-en{display:block;font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.2em;font-size:17px;margin-bottom:4px}
+.pd-title{font-family:var(--font-mincho);font-size:clamp(26px,3vw,36px);font-weight:700;letter-spacing:.06em;line-height:1.45;margin-bottom:14px}
+.pd-price{font-family:var(--font-sans);font-size:30px;font-weight:700;color:#8a3a2a;margin-bottom:6px;min-height:0}
+.pd-price small{font-size:14px;color:var(--color-text-soft);margin-left:6px;font-weight:600}
+.pd-price__note{display:block;font-size:13px;color:var(--color-text-soft);font-weight:600;margin-top:2px}
+.pd-chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
+.pd-chip{font-size:14px;font-weight:700;padding:6px 14px;border:1px solid var(--color-line);border-radius:999px;background:var(--color-paper)}
+.pd-info .product-desc{font-size:18px;padding:0;background:none;border:none;margin-bottom:22px;line-height:2}
+.pd-info .product-reserve{text-align:left;margin:0 0 22px}
+.pd-info .product-reserve__btn{width:100%;font-size:19px;padding:18px 24px}
+.pd-points{list-style:none;background:var(--color-paper);border:1px solid var(--color-line);border-radius:14px;padding:18px 20px}
+.pd-points:empty{display:none}
+.pd-points li{position:relative;padding-left:22px;font-size:15.5px;line-height:1.8;margin-bottom:8px}
+.pd-points li:last-child{margin-bottom:0}
+.pd-points li::before{content:"";position:absolute;left:4px;top:.75em;width:7px;height:7px;background:var(--color-gold);transform:rotate(45deg)}
+.pd-points__head{font-family:var(--font-mincho);font-size:15px;font-weight:700;color:var(--color-accent-dark);letter-spacing:.1em;margin-bottom:8px;padding-left:0!important}
+.pd-points__head::before{display:none}
+.pd-related{margin-bottom:40px}
+.pd-related__title{font-family:var(--font-mincho);font-size:22px;font-weight:700;letter-spacing:.08em;margin-bottom:16px}
+.pd-related__row{display:flex;gap:16px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+.pd-rel{flex:0 0 200px;scroll-snap-align:start;background:var(--color-paper);border:1px solid var(--color-line);border-radius:14px;overflow:hidden;transition:transform .25s,box-shadow .25s}
+.pd-rel:hover{transform:translateY(-3px);box-shadow:0 12px 26px rgba(58,42,35,.14)}
+.pd-rel img{width:100%;aspect-ratio:1/1;object-fit:cover}
+.pd-rel__body{padding:10px 12px 12px}
+.pd-rel__name{font-family:var(--font-mincho);font-size:15px;font-weight:700;line-height:1.5}
+.pd-rel__price{font-size:14px;font-weight:700;color:#8a3a2a;margin-top:2px}
+.pd-sticky{position:fixed;left:0;right:0;bottom:0;z-index:900;background:rgba(254,252,248,.97);border-top:1px solid var(--color-line);box-shadow:0 -6px 20px rgba(58,42,35,.12);padding:10px 14px calc(10px + env(safe-area-inset-bottom));align-items:center;gap:12px}
+.pd-sticky__price{font-size:18px;font-weight:700;color:#8a3a2a;white-space:nowrap}
+.pd-sticky__btn{flex:1;font-family:var(--font-mincho);font-size:17px;font-weight:700;letter-spacing:.06em;color:#fff;background:#06c755;border:none;border-radius:999px;padding:14px 16px;cursor:pointer}
+@media(max-width:860px){
+  .pd-grid{grid-template-columns:1fr;gap:22px;margin-bottom:40px}
+  .pd-media{position:static;margin:0 -16px}
+  .pd-slider{border-radius:0;box-shadow:none}
+  .pd-thumbs{display:none}
+  main.pd{padding:12px 16px 40px}
+  .pd-crumb{padding:12px 16px 0;font-size:13px}
+  .pd-title{font-size:26px}
+  .pd-price{font-size:26px}
+  .pd-rel{flex-basis:44%}
+  body.has-sticky{padding-bottom:84px}
+}
+@media(min-width:861px){.pd-sticky{display:none!important}}
+</style>
 <style id="nav-large">
 /* ナビゲーション（2026-09-28）：ピル型ボタンは安っぽく見えるため、上質な和菓子店のような「金の細線で挟んだ、
    明朝体の文字リンク＋小さな金のひし形の区切り」に変更。文字は20pxで大きく、ホバー/フォーカスで金の下線が伸びる */
@@ -150,15 +218,25 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <li><a href="reservation.html" class="nav-link">ご予約</a></li>
   </ul>
 </nav>
-<div class="page-head">
-  <div class="page-head__inner">
-    <span class="page-head__en" id="pageEn">Koimari</span>
-    <h1 class="page-head__title" id="pageTitle">読み込み中…</h1>
+<nav class="pd-crumb" aria-label="現在地"><a href="index.html">トップ</a><span>›</span><a id="pdCrumbCat" href="gallery.html">ギャラリー</a><span>›</span><span id="pdCrumbName"></span></nav>
+<main class="pd">
+  <div class="pd-grid">
+    <div class="pd-media" id="productPhotos"></div>
+    <div class="pd-info">
+      <div class="pd-badges" id="pdBadges"></div>
+      <span class="pd-en" id="pageEn"></span>
+      <h1 class="pd-title" id="pageTitle">読み込み中…</h1>
+      <div class="pd-price" id="pdPrice"></div>
+      <div class="pd-chips" id="pdChips"></div>
+      <div class="product-desc" id="productDesc"></div>
+      <div id="pdReserveSlot"></div>
+      <ul class="pd-points" id="pdPoints"></ul>
+    </div>
   </div>
-</div>
-<main>
-  <div id="productPhotos"></div>
-  <div class="product-desc" id="productDesc"></div>
+  <section class="pd-related" id="pdRelatedWrap" style="display:none;">
+    <h2 class="pd-related__title">ほかのケーキも見る</h2>
+    <div class="pd-related__row" id="pdRelated"></div>
+  </section>
   <div class="product-back">
     <a id="backToSection" href="index.html">← 一覧へ戻る</a>
   </div>
@@ -175,6 +253,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </section>
 </main>
 
+<div class="pd-sticky" id="pdSticky" style="display:none;">
+  <div class="pd-sticky__price" id="pdStickyPrice"></div>
+  <button type="button" class="pd-sticky__btn" id="pdStickyBtn">この商品で予約する</button>
+</div>
+
 <div class="lightbox" id="lightbox">
   <button class="lightbox__close" id="lightboxClose">×</button>
   <img id="lightboxImg" src="" alt="">
@@ -185,6 +268,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
+<script src="cake-pricing.js"></script>
+<script src="price-hint.js"></script>
 <script src="reserve-draft.js"></script>
 <script>
 const DEFAULT_CATEGORIES = [
@@ -280,59 +365,27 @@ function renderProductPage(){
 
   const displayName = item.name || '';
   const plainName = displayName.replace(/<\s*br\s*\/?\s*>/gi, ' ').trim();
-  document.getElementById('pageEn').textContent = item[config.enField] || 'Koimari';
+  document.getElementById('pageEn').textContent = item[config.enField] || '';
   document.getElementById('pageTitle').innerHTML = esc(displayName).replace(/&lt;\s*br\s*\/?\s*&gt;/gi, '<br>');
   document.title = plainName + '｜こいまり';
 
   const photos = [item.img].concat(Array.isArray(item.gallery) ? item.gallery : []).filter(Boolean);
-  const photosWrap = document.getElementById('productPhotos');
-  photosWrap.innerHTML = '';
-  if(photos.length){
-    const mainDiv = document.createElement('div');
-    mainDiv.className = 'product-main-img';
-    mainDiv.innerHTML = `<img src="${esc(photos[0])}" alt="${esc(plainName)}" loading="lazy">`;
-    mainDiv.addEventListener('click', () => openLightbox(photos[0], plainName));
-    photosWrap.appendChild(mainDiv);
-    if(photos.length > 1){
-      // カテゴリページ（デコレーションケーキ等）の追加写真ギャラリーは、LINE公式アカウントの
-      // 友だち追加（会員登録）を促す導線として、未解除の状態では隠しておく（2026-09-05オーナー指示）。
-      // 実際に友だち追加されたかどうかまでは判定できないため、「友だち追加済みの方はこちら」を
-      // 押した申告ベースで解除する（ブラウザごとにlocalStorageで記憶）。
-      const GATE_KEY = 'koimari_line_gallery_unlocked';
-      const needsGate = productType === 'category' && localStorage.getItem(GATE_KEY) !== '1';
-      function renderThumbs(){
-        const thumbWrap = document.createElement('div');
-        thumbWrap.className = 'product-thumbs';
-        photos.slice(1).forEach(src => {
-          const t = document.createElement('div');
-          t.className = 'product-thumb';
-          t.innerHTML = `<img src="${esc(src)}" alt="${esc(plainName)}" loading="lazy">`;
-          t.addEventListener('click', () => openLightbox(src, plainName));
-          thumbWrap.appendChild(t);
-        });
-        photosWrap.appendChild(thumbWrap);
-      }
-      if(needsGate){
-        const gate = document.createElement('div');
-        gate.className = 'gallery-gate';
-        gate.innerHTML = `
-          <p class="gallery-gate__text">こちらの商品ギャラリー（追加写真）は、LINE公式アカウントの友だち追加（会員登録）をされた方にご覧いただけます。</p>
-          <div class="gallery-gate__actions">
-            <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="gallery-gate__btn gallery-gate__btn--line">LINE公式アカウントを友だち追加する</a>
-            <button type="button" class="gallery-gate__btn gallery-gate__btn--enter" id="galleryGateEnter">友だち追加済みの方はこちら（ギャラリーを見る）</button>
-          </div>`;
-        photosWrap.appendChild(gate);
-        gate.querySelector('#galleryGateEnter').addEventListener('click', () => {
-          try { localStorage.setItem(GATE_KEY, '1'); } catch(e){}
-          gate.remove();
-          renderThumbs();
-        });
-      } else {
-        renderThumbs();
-      }
-    }
+  // カテゴリページ（デコレーションケーキ等）の追加写真は、LINE公式アカウントの友だち追加を促す導線として
+  // 未解除の状態では隠しておく（2026-09-05オーナー指示）。友だち追加済みの申告でブラウザごとに解除。
+  const GATE_KEY = 'koimari_line_gallery_unlocked';
+  const needsGate = productType === 'category' && photos.length > 1 && localStorage.getItem(GATE_KEY) !== '1';
+  renderMedia(photos, plainName, needsGate);
+  if (needsGate) {
+    const gate = document.createElement('div');
+    gate.className = 'gallery-gate';
+    gate.style.marginTop = '16px';
+    gate.innerHTML = '<p class="gallery-gate__text">こちらの商品ギャラリー（追加写真）は、LINE公式アカウントの友だち追加（会員登録）をされた方にご覧いただけます。</p><div class="gallery-gate__actions"><a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="gallery-gate__btn gallery-gate__btn--line">LINE公式アカウントを友だち追加する</a><button type="button" class="gallery-gate__btn gallery-gate__btn--enter">友だち追加済みの方はこちら（ギャラリーを見る）</button></div>';
+    document.getElementById('productPhotos').appendChild(gate);
+    gate.querySelector('button').addEventListener('click', () => { try { localStorage.setItem(GATE_KEY, '1'); } catch(e){} renderMedia(photos, plainName, false); });
   }
-  document.getElementById('productDesc').innerHTML = item.desc ? nl2p(item.desc) : '<p>詳しい説明は準備中です。</p>';
+  renderInfo(item, plainName, config);
+  const body = window.KoimariPriceHint ? window.KoimariPriceHint.descBody(item) : item.desc;
+  document.getElementById('productDesc').innerHTML = body ? nl2p(body) : '<p>詳しい説明は準備中です。</p>';
 
   // 2026-09-24：選んだ商品を予約フォームへ引き継ぐ（友だち追加の前後でも消えないよう、
   // 選択内容はサーバーにコード付きで保存する。詳細はreserve-draft.js参照）。
@@ -344,7 +397,7 @@ function renderProductPage(){
     box.id = 'productReserve';
     box.className = 'product-reserve';
     box.innerHTML = '<button type="button" class="product-reserve__btn">この商品でご予約に進む →</button><p class="product-reserve__note">選んだ商品を予約フォームに引き継げます（LINEでのご予約）。LINEをお持ちでない方は、この仕様をお電話（<a href="tel:07091580641">070-9158-0641</a>）でお伝えください。</p>';
-    document.getElementById('productDesc').insertAdjacentElement('afterend', box);
+    document.getElementById('pdReserveSlot').appendChild(box);
     box.querySelector('button').addEventListener('click', function(){
       const sizeMatch = String(item.desc || '').match(/^【([^】]+)】/);
       window.KoimariDraft.start({
@@ -354,6 +407,77 @@ function renderProductPage(){
       }, this);
     });
   }
+  setupSticky(item);
+  renderRelated(list, config);
+}
+
+const TYPE_LABELS = { decorationCake: 'デコレーションケーキ', cutcake: 'カットケーキ', rollcake: 'ロールケーキ', baked: '焼き菓子', gift: 'ギフト', category: '商品・ケーキ', recommended: 'おすすめ' };
+function priceHintFor(it, type) {
+  if (!window.KoimariPriceHint) return Promise.resolve('');
+  return window.KoimariPriceHint.load().then(pr => window.KoimariPriceHint.priceText(it, type, pr)).catch(() => '');
+}
+function renderMedia(photos, plainName, gated) {
+  const wrap = document.getElementById('productPhotos');
+  const slides = gated ? photos.slice(0, 1) : photos;
+  if (!slides.length) { wrap.innerHTML = ''; return; }
+  let html = '<div class="pd-slider" id="pdSlider">' + slides.map((src, i) => '<div class="pd-slide" data-i="' + i + '"><img src="' + esc(src) + '" alt="' + esc(plainName) + '"' + (i ? ' loading="lazy"' : '') + '></div>').join('') + '</div>';
+  if (slides.length > 1) {
+    html += '<div class="pd-dots">' + slides.map((_, i) => '<button type="button" aria-label="' + (i + 1) + '枚目の写真" data-i="' + i + '"' + (i ? '' : ' class="is-active"') + '></button>').join('') + '</div>';
+    html += '<div class="pd-thumbs">' + slides.map((src, i) => '<button type="button" data-i="' + i + '"' + (i ? '' : ' class="is-active"') + '><img src="' + esc(src) + '" alt="" loading="lazy"></button>').join('') + '</div>';
+  }
+  wrap.innerHTML = html;
+  const slider = document.getElementById('pdSlider');
+  const mark = (i) => wrap.querySelectorAll('.pd-dots button, .pd-thumbs button').forEach(b => b.classList.toggle('is-active', Number(b.dataset.i) === i));
+  slider.addEventListener('scroll', () => { mark(Math.round(slider.scrollLeft / Math.max(1, slider.clientWidth))); }, { passive: true });
+  wrap.querySelectorAll('.pd-dots button, .pd-thumbs button').forEach(b => b.addEventListener('click', () => { slider.scrollTo({ left: Number(b.dataset.i) * slider.clientWidth, behavior: 'smooth' }); mark(Number(b.dataset.i)); }));
+  slider.querySelectorAll('.pd-slide').forEach(sl => sl.addEventListener('click', () => openLightbox(slides[Number(sl.dataset.i)], plainName)));
+}
+function renderInfo(item, plainName, config) {
+  const label = TYPE_LABELS[productType] || '';
+  const crumbCat = document.getElementById('pdCrumbCat');
+  crumbCat.textContent = label || 'ギャラリー'; crumbCat.href = config.back;
+  document.getElementById('pdCrumbName').textContent = plainName;
+  const badges = [];
+  if (productType === 'decorationCake') badges.push('<span class="pd-badge">定番</span>');
+  if (item.featured) badges.push('<span class="pd-badge pd-badge--popular">人気</span>');
+  if (item.seasonal) badges.push('<span class="pd-badge pd-badge--seasonal">季節限定</span>');
+  document.getElementById('pdBadges').innerHTML = badges.join('');
+  const PH = window.KoimariPriceHint;
+  const size = PH ? PH.sizeOf(item) : '';
+  document.getElementById('pdChips').innerHTML = size ? '<span class="pd-chip">写真のサイズ：' + esc(PH.sizeLabel(size)) + '</span>' : '';
+  const priceEl = document.getElementById('pdPrice');
+  priceEl.innerHTML = '';
+  priceHintFor(item, productType).then(t => {
+    if (!t) return;
+    const isHint = !item.price;
+    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint ? '<span class="pd-price__note">' + (size ? esc(size) + 'の場合のお値段です。' : '') + 'サイズ・クリーム・飾りの変更でお値段が変わります</span>' : '');
+    const sp = document.getElementById('pdStickyPrice'); if (sp) sp.textContent = t;
+  });
+  const text = plainName + ' ' + String(item.desc || '');
+  const pts = [];
+  if (/フルーツ|いちご|苺|果実|ベリー|タルト/.test(text)) pts.push('季節のフルーツをたっぷり。見た目も味も華やかに仕上げます');
+  if (productType !== 'category' && productType !== 'recommended') pts.push('お店で一つひとつ手作りしています');
+  pts.push('お酒はごく少量で、焼き上げの時にしっかり加熱して飛ばしています。小さなお子様にも安心です');
+  document.getElementById('pdPoints').innerHTML = '<li class="pd-points__head">こいまりのこだわり</li>' + pts.map(t => '<li>' + esc(t) + '</li>').join('');
+}
+function setupSticky(item) {
+  const bar = document.getElementById('pdSticky');
+  const main = document.querySelector('#productReserve button');
+  if (!bar || !main) { if (bar) bar.style.display = 'none'; document.body.classList.remove('has-sticky'); return; }
+  bar.style.display = 'flex';
+  document.body.classList.add('has-sticky');
+  const btn = document.getElementById('pdStickyBtn');
+  if (!btn.dataset.bound) { btn.dataset.bound = '1'; btn.addEventListener('click', () => { const b = document.querySelector('#productReserve button'); if (b) b.click(); }); }
+}
+function renderRelated(list, config) {
+  const wrap = document.getElementById('pdRelatedWrap');
+  const row = document.getElementById('pdRelated');
+  if (!wrap || !row || productType === 'category' || productType === 'recommended' || !Array.isArray(list)) { if (wrap) wrap.style.display = 'none'; return; }
+  const items = list.map((it, idx) => ({ it, idx })).filter(o => o.it && o.it.img && o.it.visible !== false && o.idx !== productIdx).slice(0, 10);
+  if (!items.length) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+  row.innerHTML = items.map(o => '<a class="pd-rel" href="product.html?type=' + productType + '&idx=' + o.idx + '"><img src="' + esc(o.it.img) + '" alt="" loading="lazy"><div class="pd-rel__body"><div class="pd-rel__name">' + esc(String(o.it.name || '').replace(/<[^>]*>/g, ' ')) + '</div><div class="pd-rel__price" data-rel="' + o.idx + '"></div></div></a>').join('');
+  items.forEach(o => priceHintFor(o.it, productType).then(t => { const el = row.querySelector('[data-rel="' + o.idx + '"]'); if (el && t) el.textContent = t; }));
 }
 window.renderProductPage = renderProductPage;
 renderProductPage();
