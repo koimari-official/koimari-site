@@ -613,3 +613,5 @@ Lシンク（外部AI活用支援サービス、月額3万円）の代替とし�
 - **受付メッセージの出し分け**：priceIsFixed＝「お引き取り（確定）／お支払い金額（確定）」（確認電話は継続）、quoteSeparately＝「別途、お見積もり・納期をご回答」、写真で選ぶクリスマスケーキ（christmasOrder＋galleryPick.img）＝写真を添付・「昨年の写真のため砂糖菓子や一部の仕様が異なる場合あり」・確認電話なし・確定連絡も送らない
 - **デコレーションケーキの「ご注文の受け方」**（orderMode）：standard＝プルダウンで選べる（管理画面の「予約フォームで選ぶ内容」がフォームに入り、その範囲なら確定金額・確定納期）、custom＝フルオーダー（ギャラリーは「フルオーダー」バッジで価格を出さず、予約は quoteSeparately）。未設定は定番扱いで表示。サイズ・クリーム未選択の standard は予約時に別途ご回答になる（管理画面で赤字警告）。判定は price-hint.js の orderModeOf と admin.html の orderModeOf の2か所
 - **前回の連絡先の自動入力**：member.html が LIFF アクセストークンを lookupMyContact（https://asia-northeast1-koimari-tasting.cloudfunctions.net/lookupMyContact）に送り、LINEで本人確認できた場合だけ本人の直近の予約からお名前・ふりがな・電話・メールを返す。空欄だけ埋める。reservations に .indexOn lineUserId
+- **クリスマスケーキの予約の流れ**（2026-10-02オーナー確定）：LINEで予約 → 12月20日までに店頭で前払い → **お支払いの時点でご予約確定**。お引き渡し当日は会計なし。受付時のLINEでは「確定」と書かない（functions buildReceivedMessage の fixedNow）。FAQ（koimariContent/faq/0/items/5）も同内容に更新済み
+- **FAQの季節限定はハロウィン**（2026-10-02）：faq/4/items/0 を「ハロウィンの季節限定メニュー（かぼちゃタルト・かぼちゃプリンなど）」に変更。おすすめ欄の「夏限定」表記も修正。季節が変わったら同じ項目を差し替える

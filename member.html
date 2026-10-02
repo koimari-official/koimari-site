@@ -1259,7 +1259,7 @@ const XMAS_PAYMENT_DEADLINE = "12月20日";
 // お支払い方法の案内文。クリスマスケーキだけ「当日会計なし・12月20日までに店頭払い」になる。
 function paymentNoticeText(data) {
   if (data && data.christmasOrder) {
-    return "クリスマスケーキのお支払いは、" + XMAS_PAYMENT_DEADLINE + "までに店頭でお願いいたします。お引き渡し日当日は大変混雑するため、当日のお会計は承っておりません。";
+    return "クリスマスケーキのお支払いは、" + XMAS_PAYMENT_DEADLINE + "までに店頭でお願いいたします。お支払いの時点でご予約確定となります。お引き渡し日当日は大変混雑するため、当日のお会計は承っておりません。";
   }
   return "お支払いは、お引き取り日当日に店頭でご精算をお願いいたします。";
 }

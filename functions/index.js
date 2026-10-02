@@ -661,6 +661,8 @@ function paymentLines(data, stage) {
   const lines = ["", "◆お支払い"];
   if (data && data.christmasOrder) {
     lines.push("◇" + XMAS_PAYMENT_DEADLINE + "までに店頭で", "　お願いしております");
+    // 2026-10-02オーナー確認：LINEで予約 → 12/20までに店頭で前払い。お支払いの時点でご予約確定
+    lines.push("◇お支払いの時点で", "　ご予約確定となります");
     if (stage === "reminder") lines.push("◇お済みでない場合は、", "　お早めにご来店ください");
     lines.push("◇お引き渡し当日はお会計を", "　承っておりません");
     return lines;
@@ -767,10 +769,12 @@ function buildReceivedMessage(data) {
   lines.push(...orderDetailLines(data));
   const photoXmas = isPhotoChristmas(data);
   if (photoXmas) lines.push("", "◆お写真について", "◇写真は昨年のケーキです。", "　砂糖菓子や一部の仕様が", "　異なる場合がございます");
-  lines.push("", data.quoteSeparately ? "◆お引き取り（ご希望）" : data.priceIsFixed ? "◆お引き取り（確定）" : "◆お引き取り");
+  // クリスマスケーキは店頭での前払いをもってご予約確定のため、受付時点では「確定」と書かない
+  const fixedNow = data.priceIsFixed && !data.christmasOrder;
+  lines.push("", data.quoteSeparately ? "◆お引き取り（ご希望）" : fixedNow ? "◆お引き取り（確定）" : "◆お引き取り");
   lines.push("◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
   if (data.quoteSeparately) lines.push("　※納期は別途ご回答いたします");
-  lines.push("", data.priceIsFixed && !data.quoteSeparately ? "◆お支払い金額（確定）" : "◆お見積もり");
+  lines.push("", data.christmasOrder && data.priceIsFixed ? "◆お支払い金額" : fixedNow && !data.quoteSeparately ? "◆お支払い金額（確定）" : "◆お見積もり");
   if (data.quoteSeparately) lines.push("◇別途、パティシエより", "　お見積もりをご回答いたします");
   else if (data.priceNeedsConsult) lines.push("◇個別にご案内します");
   else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
