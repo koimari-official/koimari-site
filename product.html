@@ -135,6 +135,7 @@ main.pd{max-width:1120px;padding:20px 24px 60px}
 .pd-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .pd-badge{font-family:var(--font-mincho);font-size:13px;font-weight:700;letter-spacing:.08em;padding:4px 14px;border-radius:999px;background:rgba(74,58,42,.9);color:#f5e4c6}
 .pd-badge--popular{background:#b03b48;color:#fff}
+.pd-no{font-family:var(--font-sans);font-size:14px;font-weight:700;color:var(--color-accent-dark);letter-spacing:.04em;align-self:center;margin-left:4px}
 .pd-badge--custom{background:#c9a96e;color:#fff}
 .pd-price__custom{font-family:var(--font-mincho);font-size:24px;color:#4a3a2a}
 .pd-badge--seasonal{background:#f5d6a8;color:#4a3a2a}
@@ -406,7 +407,8 @@ function renderProductPage(){
         name: plainName, productType: productType, idx: productIdx,
         img: item.img, price: item.price || '', size: sizeMatch ? sizeMatch[1] : '',
         spec: window.KoimariDraft.buildSpec(item.spec),
-        orderMode: window.KoimariPriceHint ? window.KoimariPriceHint.orderModeOf(item) : ''
+        orderMode: window.KoimariPriceHint ? window.KoimariPriceHint.orderModeOf(item) : '',
+        no: productType === 'decorationCake' ? Number(item.no) || 0 : 0
       }, this);
     });
   }
@@ -446,6 +448,9 @@ function renderInfo(item, plainName, config) {
   if (item.featured) badges.push('<span class="pd-badge pd-badge--popular">人気</span>');
   if (item.seasonal) badges.push('<span class="pd-badge pd-badge--seasonal">季節限定</span>');
   document.getElementById('pdBadges').innerHTML = badges.join('');
+  // デコレーションケーキの固定番号（お電話でのお問い合わせ用。2026-10-02）
+  const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
+  if (no) document.getElementById('pdBadges').insertAdjacentHTML('beforeend', '<span class="pd-no">' + no + '</span>');
   const PH = window.KoimariPriceHint;
   const size = PH ? PH.sizeOf(item) : '';
   document.getElementById('pdChips').innerHTML = size ? '<span class="pd-chip">写真のサイズ：' + esc(PH.sizeLabel(size)) + '</span>' : '';

@@ -573,7 +573,7 @@ function buildStaffNotifyText(data) {
     `お電話番号: ${data.tel || ""}`,
   ];
   if (data.galleryPick && data.galleryPick.name) {
-    lines.push("ギャラリーで選択: " + data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
+    lines.push("ギャラリーで選択: " + galleryPickLabel(data.galleryPick) + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
   }
   if (Array.isArray(data.decideLater) && data.decideLater.length) {
     lines.push("あとで相談: " + data.decideLater.join("・"));
@@ -703,6 +703,12 @@ function formatReservationNo(n) {
   return n ? "No." + String(n).padStart(4, "0") : "";
 }
 
+// ギャラリーで選んだ商品の表示名。デコレーションケーキは固定番号「No.D01」を先頭に付ける（2026-10-02）
+function galleryPickLabel(pick) {
+  const no = Number(pick && pick.no) > 0 ? "No.D" + String(pick.no).padStart(2, "0") + " " : "";
+  return no + ((pick && pick.name) || "");
+}
+
 // ◇項目の1行を作る。LINEのトーク画面は1行あたり全角18文字前後で折り返され、箇条書きが長いと
 // 折り返し行の頭がそろわず読みにくくなる。短ければ「◇項目：内容」の1行、長ければ「◇項目」の次の行に
 // 全角スペース付きで内容を置く（2026-09-28オーナー指示：長文の箇条書きは折り返しで見づらい）。
@@ -720,7 +726,7 @@ function orderDetailLines(data) {
   const isCakeLike = it.category === "デコレーションケーキ" || it.category === "ロールケーキ";
   lines.push(diamondLine("商品", productLabel(data)));
   if (data.galleryPick && data.galleryPick.name) {
-    lines.push(diamondLine("ギャラリーで選択", data.galleryPick.name + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : "")));
+    lines.push(diamondLine("ギャラリーで選択", galleryPickLabel(data.galleryPick) + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : "")));
   }
   if (Array.isArray(data.tierSpecs) && data.tierSpecs.length) {
     data.tierSpecs.forEach((t) => {

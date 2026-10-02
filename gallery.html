@@ -351,7 +351,9 @@ function titleWithWrap(s){
 }
 // 各作品に通し番号を振る（カテゴリ絞り込みで並びが変わっても番号は一覧全体での並び順で固定）。
 // 金額はギャラリー上に出さず、この番号でお問合せいただいてから個別に見積もる運用にするため。
-function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = i+1; }); return arr; }
+// オーダーメイド作品の番号は、管理画面で振った固定番号（g.no）を使う。並び替え・削除で番号がずれて、お客様がお電話で
+// 言う番号と食い違わないようにするため（2026-10-02）。固定番号の無い古いデータだけ並び順で番号を振る。
+function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = Number(g.no) > 0 ? Number(g.no) : i+1; }); return arr; }
 
 // デコレーションケーキ等の「作品ポートフォリオ」（見積り制・カテゴリcake/roll）と、
 // カットケーキ・ロールケーキの「実商品メニュー」（siteImages.cutcakes/rollcakes、固定価格）
@@ -377,7 +379,7 @@ let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
 
 function menuItemToCard(item, catKey, idx, productType){
   const custom = productType === "decorationCake" && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === "custom";
-  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured, custom };
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured, custom, cakeNo: productType === "decorationCake" ? Number(item.no) || 0 : 0 };
 }
 // 画像が未設定の商品は、公開ページではエラーのように見えてしまうため一覧に出さない（2026-09-28オーナー指示）。
 // 並び順は「作品ポートフォリオ→デコレーション→カット→ロール→焼き菓子→ギフト」で、各カテゴリー内は管理画面の並び順。
@@ -468,7 +470,7 @@ function renderGrid(){
     const sizeMatch = g.isMenuItem ? String(g.desc || "").match(/^【([^】]+)】/) : null;
     const descBody = sizeMatch ? String(g.desc || "").slice(sizeMatch[0].length) : g.desc;
     const bodyHtml = g.isMenuItem
-      ? `<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
+      ? `${g.cakeNo ? `<div class="gal-card__no">No.D${String(g.cakeNo).padStart(2, "0")}</div>` : ""}<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(descBody||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${sizeMatch ? `<span class="gal-card__meta-item">写真のサイズ: <strong>${escape(sizeMatch[1])}</strong></span>` : ""}

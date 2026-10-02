@@ -193,7 +193,7 @@
   function imageHtml(r, s) {
     var pick = r.galleryPick || {};
     var img = pick.img, label = "ギャラリーで選んだ商品";
-    var name = pick.name || "";
+    var name = (Number(pick.no) > 0 ? "No.D" + String(pick.no).padStart(2, "0") + " " : "") + (pick.name || "");
     if (!img) {
       var ref = refImageFor((s.tiers[0] || {}).cream || r.creamType || "");
       if (ref) { img = ref.img; name = ref.name + (ref.size ? "（写真は" + ref.size + "）" : ""); label = "参考イメージ（予約フォームと同じ写真）"; }
@@ -201,7 +201,7 @@
     var sent = r.sentImages ? Object.values(r.sentImages) : [];
     var html = "";
     if (img) html += '<figure class="re-photo"><img src="' + esc(img) + '" alt=""><figcaption><span>' + esc(label) + "</span>" + esc(name) + "</figcaption></figure>";
-    else if (pick.name) html += '<div class="re-photo re-photo--none">ギャラリーで選択：' + esc(pick.name) + "（写真なし）</div>";
+    else if (pick.name) html += '<div class="re-photo re-photo--none">ギャラリーで選択：' + esc(name) + "（写真なし）</div>";
     sent.sort(function (a, b) { return String(a.sentAt).localeCompare(String(b.sentAt)); }).forEach(function (si) {
       html += '<figure class="re-photo re-photo--sent"><img src="' + esc(si.url) + '" alt=""><figcaption><span>お客様に送った確定画像</span>' + esc((si.sentAt || "").slice(0, 16).replace("T", " ")) + " " + esc(si.by || "") + "</figcaption></figure>";
     });
