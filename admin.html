@@ -2,6 +2,24 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
+<script>
+// 2026-10-03：スマホ（iPhoneのSafari等）でブラウザ内のデータベース（IndexedDB）が応答しなくなっていると、Firebaseのログインと
+// 通信の記録処理がいつまでも待ち続け、ログイン画面から動かなくなる不具合があった（オーナーのスマホで発生・PCで再現確認）。
+// 1.5秒以内に応答しなければ、このページではIndexedDBを「無いもの」として扱い、Firebaseが使わないようにする。
+// 正常な端末ではすぐに応答するため、動きは変わらない。Firebaseの初期化（モジュール側）はこの確認が終わるのを待つ。
+window.__idbReady = new Promise(function (resolve) {
+  var done = false;
+  function finish(state) { if (done) return; done = true; window.__idbState = state; resolve(state); }
+  function disable() { try { Object.defineProperty(window, "indexedDB", { value: undefined, configurable: true }); } catch (e) {} }
+  try {
+    if (!window.indexedDB || !window.indexedDB.open) return finish("none");
+    var timer = setTimeout(function () { disable(); finish("hang"); }, 1500);
+    var req = window.indexedDB.open("koimari-idb-check");
+    req.onsuccess = function () { clearTimeout(timer); try { req.result.close(); } catch (e) {} finish("ok"); };
+    req.onerror = function () { clearTimeout(timer); disable(); finish("error"); };
+  } catch (e) { disable(); finish("error"); }
+});
+</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>管理ページ｜こいまり</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -5215,7 +5233,7 @@ function applyFetchedOpsContent(all) {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue, update, remove, get, push, set, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, initializeAuth, browserLocalPersistence, inMemoryPersistence, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -5227,9 +5245,14 @@ const firebaseConfig = {
   messagingSenderId: "852851855633",
   appId: "1:852851855633:web:1bb5765680a137f20abcb0"
 };
+await (window.__idbReady || Promise.resolve());
 const fbApp = initializeApp(firebaseConfig);
 const fbDb = getDatabase(fbApp);
-const fbAuth = getAuth(fbApp);
+// 2026-10-03：スマホ（iPhoneのSafari等）で、ブラウザ内のデータベース（IndexedDB）が応答しなくなっていると、Firebaseのログインが
+// いつまでも終わらず、ログイン画面から動かなくなる不具合があった（オーナーのスマホで発生・PCで再現確認）。標準設定（getAuth）は
+// ログイン状態の保存先にIndexedDBを使うため、保存先を localStorage（使えなければ画面を開いている間だけ）に切り替える。
+// IndexedDBは一切使わない（候補に入れるだけでも、使えるかどうかの確認で止まるため）。
+const fbAuth = initializeAuth(fbApp, { persistence: [browserLocalPersistence, inMemoryPersistence] });
 const fbStorage = getStorage(fbApp);
 // 2026-09-11判明：写真をbase64文字列としてそのままRealtime Databaseのレコードに埋め込む
 // 方式は、高解像度・複雑な写真ほどレコードが肥大化し、保存の失敗を招いていた
