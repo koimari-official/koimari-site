@@ -216,6 +216,20 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <script src="cake-pricing.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
+<style id="price-table-css">
+.pt-group{background:#fff;border:1px solid var(--color-line);padding:18px 22px;margin-bottom:16px;max-width:860px;}
+.pt-group h3{font-family:var(--font-mincho);font-size:15px;font-weight:600;margin-bottom:4px;}
+.pt-group .pt-note{font-size:12px;color:var(--color-text-soft);margin-bottom:10px;line-height:1.7;}
+.pt-table{width:100%;border-collapse:collapse;}
+.pt-table th,.pt-table td{border-bottom:1px solid var(--color-line);padding:8px 6px;font-size:13px;text-align:left;vertical-align:middle;}
+.pt-table th{font-size:12px;color:var(--color-text-soft);font-weight:600;white-space:nowrap;}
+.pt-table td.pt-label{min-width:170px;}
+.pt-table td.pt-hint{font-size:11.5px;color:var(--color-text-soft);}
+.pt-yen{display:flex;align-items:center;gap:4px;white-space:nowrap;}
+.pt-yen input{width:110px;padding:7px 9px;font-size:14px;text-align:right;}
+.pt-matrix .pt-yen input{width:86px;}
+.pt-changed{background:#fff6c7!important;border-color:#e0b100!important;}
+</style>
 </head>
 <body>
 
@@ -285,6 +299,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="blogAdmin">ブログ</button>
       <button class="tab" data-panel="experiences">体験プログラム</button>
       <button class="tab" data-panel="expDates">体験プログラム候補日</button>
+      <button class="tab" data-panel="priceTable">料金表（単価）</button>
       <button class="tab" data-panel="cakeFlavors">ケーキの種類</button>
       <button class="tab" data-panel="holidays">営業日設定</button>
 
@@ -1013,60 +1028,15 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <div id="cfRollFlavorList" style="display:flex;flex-direction:column;gap:8px;"></div>
       </div>
 
-      <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:680px;margin-top:20px;">
-        <h3 style="font-family:var(--font-mincho);font-size:15px;margin-bottom:6px;">デコレーションケーキのサイズ別基本料金</h3>
-        <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:16px;">LINE予約フォームの各サイズの横に表示される価格です。フルーツ／いちごばっかりはいずれを選んでも同一料金（予約伝票の標準内容の範囲内のため）。生チョコクリーム（CF）のみ生クリーム（F）より下記の差額が段数に関わらず一律で加算されます（2026-09-05オーナー指示）。この範囲を超える個別のご要望（備考欄記載）があった場合は、金額を確定せず「スタッフがお電話でご案内」に切り替わります（2026-09-04、同業者に価格帯を把握されないための方針）。</p>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;">
-          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">4号（12cm）</label><input type="number" id="cfPrice4" class="input" placeholder="4500"></div>
-          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">5号（15cm）</label><input type="number" id="cfPrice5" class="input" placeholder="6200"></div>
-          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">6号（18cm）</label><input type="number" id="cfPrice6" class="input" placeholder="9600"></div>
-          <div><label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">7号（21cm）</label><input type="number" id="cfPrice7" class="input" placeholder="12800"></div>
-        </div>
-        <div style="margin:6px 0 18px;padding-top:14px;border-top:1px solid var(--color-line);">
-          <h4 style="font-family:var(--font-mincho);font-size:14px;margin-bottom:4px;">ケーキの種類ごとの単段の価格（税込）</h4>
-          <p style="font-size:12px;color:var(--color-text-soft);margin-bottom:10px;">上の「サイズ別基本料金」は<strong>生クリーム系</strong>（生チョコクリームは＋「生チョコ追加料金」）の価格です。下の種類は、種類ごとに価格が異なるため、ここで入力します。<strong>空欄のサイズは「取り扱いなし・お電話で個別案内」</strong>として、予約フォームのお見積もりでは金額を出しません。価格改定のときは、ここを書き換えて「保存して反映」を押してください。</p>
-          <div style="overflow-x:auto;"><table style="border-collapse:collapse;">
-            <thead><tr><th></th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">4号</th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">5号</th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">6号</th><th style="font-size:12px;font-weight:600;padding:0 4px 4px;">7号</th></tr></thead>
-            <tbody>
-            <tr><td style="padding:6px 8px 6px 0;font-size:13px;white-space:nowrap;">フルーツタルトBOX</td><td style="padding:4px;"><input type="number" id="ctp_0_4" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_0_5" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_0_6" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_0_7" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td></tr>
-            <tr><td style="padding:6px 8px 6px 0;font-size:13px;white-space:nowrap;">ストロベリータルトBOX</td><td style="padding:4px;"><input type="number" id="ctp_1_4" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_1_5" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_1_6" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_1_7" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td></tr>
-            <tr><td style="padding:6px 8px 6px 0;font-size:13px;white-space:nowrap;">ミッシェルBOX</td><td style="padding:4px;"><input type="number" id="ctp_2_4" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_2_5" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_2_6" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_2_7" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td></tr>
-            <tr><td style="padding:6px 8px 6px 0;font-size:13px;white-space:nowrap;">ガトーショコラBOX</td><td style="padding:4px;"><input type="number" id="ctp_3_4" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_3_5" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_3_6" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_3_7" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td></tr>
-            <tr><td style="padding:6px 8px 6px 0;font-size:13px;white-space:nowrap;">ブルーベリーケーキ</td><td style="padding:4px;"><input type="number" id="ctp_4_4" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_4_5" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_4_6" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td><td style="padding:4px;"><input type="number" id="ctp_4_7" class="input" placeholder="—" style="padding:8px 10px;font-size:13px;min-width:90px;"></td></tr>
-            </tbody>
-          </table></div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;padding-top:14px;border-top:1px solid var(--color-line);">
-          <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">生クリームたっぷり乗せ（追加オプション・税込）</label>
-            <input type="number" id="cfCreamToppingPrice" class="input" placeholder="540">
-          </div>
-          <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">生チョコクリーム（CF）の差額（段数に関わらず一律）</label>
-            <input type="number" id="cfChocoCreamSurcharge" class="input" placeholder="200">
-          </div>
-          <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">タルトにカットケーキを載せる場合の入れ物代（税込・未入力なら「別途ご案内」）</label>
-            <input type="number" id="cfCutContainerFee" class="input" placeholder="未設定">
-          </div>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px;padding-top:14px;border-top:1px solid var(--color-line);">
-          <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">ナンバーろうそく（1文字あたり）</label>
-            <input type="number" id="cfCandleBagPriceNumber" class="input" placeholder="180">
-          </div>
-          <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">普通のろうそく（2袋目以降・1袋あたり・税別）</label>
-            <input type="number" id="cfCandleBagPricePlain" class="input" placeholder="60">
-          </div>
-          <div>
-            <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">メッセージプレート追加料金（2枚目以降・1枚あたり）</label>
-            <input type="number" id="cfMessagePlatePrice" class="input" placeholder="未設定">
-          </div>
-        </div>
-        <h3 style="font-family:var(--font-mincho);font-size:16px;margin:26px 0 6px;font-weight:600;">オーダーケーキの詳細料金・納期（空欄＝既定値）</h3>
-        <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:12px;">2段・3段のセット価格や、フルーツトッピング・カラークリームなどの金額です。価格改定のときはここを書き換えて保存してください（税込）。</p>
-        <div id="cfSpecOverrides" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-bottom:22px;"></div>
+      <p style="margin-top:20px;font-size:13px;color:var(--color-text-soft);">料金（単価）の確認・変更は「<a href="#priceTable" onclick="var t=document.querySelector('.tab[data-panel=priceTable]');if(t){t.click();}return false;">料金表（単価）</a>」タブに移しました。</p>
+    </section>
+
+    <!-- ===== 料金表（単価）：2026-10-02オーナー指示。予約フォームの自動見積もりに使う単価を1ページで確認・変更する ===== -->
+    <section class="panel" id="panel-priceTable">
+      <div class="panel__head"><h2 class="panel__title">料金表（単価）</h2></div>
+      <p class="panel__desc">LINE予約フォームの自動見積もりに使っている<strong>現在の単価の一覧</strong>です（すべて税込）。数字を書き換えて「保存して反映」を押すと、予約フォームの見積もりに即時反映されます。書き換えた欄は黄色になり、保存前に変更内容を確認できます。</p>
+      <div id="ptTable"></div>
+      <div style="position:sticky;bottom:0;background:var(--color-bg,#fff);padding:14px 0;border-top:1px solid var(--color-line);margin-top:10px;">
         <button class="btn" id="cfSavePrices">保存して反映</button>
         <span id="cfPricesSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
       </div>
@@ -5661,7 +5631,65 @@ const cakeMessagePlatePriceRef = ref(fbDb, "koimariContent/cakeMessagePlatePrice
 // キーはmember.htmlのsizeKeyOf()と揃えて号数のみ（Firebaseのキーに"/"を含められないため、フルの値は使えない）。
 // サイズごとに単一の「基準価格（標準内容）」のみ持つ（2026-09-04、実際の予約伝票の内容に合わせた仕様）。
 const CAKE_SIZE_PRICE_KEYS = { cfPrice4: "4号", cfPrice5: "5号", cfPrice6: "6号", cfPrice7: "7号" };
+// 料金表（2026-10-02オーナー指示）。行のidは従来の入力欄IDと同じにして、読み込み・保存処理を共通化している。
+function buildPriceTable() {
+  const wrap = document.getElementById("ptTable");
+  if (!wrap || wrap.dataset.built) return;
+  wrap.dataset.built = "1";
+  const SO = (window.CakePricing && window.CakePricing.SPEC) || null;
+  window.ptDefaults = {};
+  const yenIn = (id, def, ph) => { if (def != null) window.ptDefaults[id] = def; return '<span class="pt-yen"><input type="number" min="0" id="' + id + '" class="input pt-input" placeholder="' + (ph || "") + '"> 円</span>'; };
+  const dayIn = (id, def) => { if (def != null) window.ptDefaults[id] = def; return '<span class="pt-yen"><input type="number" min="0" id="' + id + '" class="input pt-input" style="width:70px;"> 日前</span>'; };
+  const row = (label, input, hint) => '<tr><td class="pt-label">' + label + "</td><td>" + input + '</td><td class="pt-hint">' + (hint || "") + "</td></tr>";
+  const group = (title, note, inner) => '<div class="pt-group"><h3>' + title + "</h3>" + (note ? '<p class="pt-note">' + note + "</p>" : "") + inner + "</div>";
+  const table = (rows) => '<table class="pt-table"><thead><tr><th>項目</th><th>単価（税込）</th><th>補足</th></tr></thead><tbody>' + rows + "</tbody></table>";
+  let html = "";
+  html += group("1段ケーキの基本料金（生クリーム）", "LINE予約フォームのサイズの横に表示される価格です。生チョコクリームはこの金額＋「生チョコクリームへの変更」です。",
+    table(row("4号（直径12cm）", yenIn("cfPrice4")) + row("5号（直径15cm）", yenIn("cfPrice5")) + row("6号（直径18cm）", yenIn("cfPrice6")) + row("7号（直径21cm）", yenIn("cfPrice7"))));
+  let mx = '<div style="overflow-x:auto;"><table class="pt-table pt-matrix"><thead><tr><th>種類</th>' + CAKE_TYPE_PRICE_SIZES.map(n => "<th>" + n + "号</th>").join("") + "</tr></thead><tbody>";
+  CAKE_TYPE_PRICE_ROWS.forEach((name, i) => { mx += '<tr><td class="pt-label">' + name + "</td>" + CAKE_TYPE_PRICE_SIZES.map(n => "<td>" + yenIn("ctp_" + i + "_" + n, null, "取扱なし") + "</td>").join("") + "</tr>"; });
+  mx += "</tbody></table></div>";
+  html += group("種類ごとの1段の価格", "空欄のサイズは「取り扱いなし・お電話で個別にご案内」になり、予約フォームでは金額を出しません。", mx);
+  let cream = row("生チョコクリームへの変更", yenIn("cfChocoCreamSurcharge"), "段数に関わらず一律");
+  if (SO) [1, 2, 3].forEach(n => { cream += row("カラークリーム " + n + "色（合計）", yenIn("cso_color_" + n, SO.colorCream[n]), n === 3 ? "4色目以降は1色ごとに1色分を加算" : ""); });
+  html += group("クリーム・色", "", table(cream));
+  let top = row("生クリームたっぷり乗せ", yenIn("cfCreamToppingPrice"), "クリスマスケーキは対象外");
+  if (SO) ["4号", "5号", "6号"].forEach(k => { top += row("フルーツトッピング " + k, yenIn("cso_fruit_" + k, SO.fruitTopping[k]), k === "6号" ? "7号は別途ご案内" : ""); });
+  if (SO) top += row("いちごトッピング", yenIn("cso_straw", SO.strawberryAdd.price), "ミッシェルBOX・ガトーショコラBOX");
+  top += row("タルトにカットケーキを載せる入れ物代", yenIn("cfCutContainerFee", null, "未設定"), "空欄＝別途ご案内");
+  html += group("トッピング・追加", "", table(top));
+  const cp = row("ナンバーろうそく（1文字）", yenIn("cfCandleBagPriceNumber")) + row("普通のろうそく（2袋目以降・1袋）", yenIn("cfCandleBagPricePlain"), "1袋目は無料") + row("メッセージプレート（2枚目以降・1枚）", yenIn("cfMessagePlatePrice", null, "無料"), "空欄・0＝追加料金なし");
+  html += group("ろうそく・メッセージプレート", "", table(cp));
+  if (SO) {
+    let mt = '<div style="overflow-x:auto;"><table class="pt-table pt-multi"><thead><tr><th>組み合わせ（下段＋上段）</th><th>セット価格（税込）</th><th>ネット予約の締切</th><th>調達状況次第の目安</th></tr></thead><tbody>';
+    Object.keys(SO.multiTier).forEach((k, i) => { const t = SO.multiTier[k]; mt += '<tr><td class="pt-label">' + k.replace(/\+/g, "＋") + "</td><td>" + yenIn("cso_mt_" + i + "_price", t.price) + "</td><td>" + (t.lead ? dayIn("cso_mt_" + i + "_min", t.lead.min) : "—") + "</td><td>" + (t.lead ? dayIn("cso_mt_" + i + "_soft", t.lead.soft) : "—") + "</td></tr>"; });
+    mt += "</tbody></table></div>";
+    html += group("2段・3段のセット価格・納期", "2段・3段は段ごとの合計ではなく、組み合わせごとの固定価格です。お客様には「〇〇円〜」で案内し、最終金額はお電話でご案内します。", mt);
+    let cut = "";
+    ["4号", "5号", "6号", "7号"].forEach(k => { cut += row("一番下が " + k, yenIn("cso_cutded_" + k, SO.cutTopDeduction[k])); });
+    html += group("一番上をカットケーキにした時の値引き", "同じ組み合わせのホールケーキのセット価格からこの金額を引き、選んだカットケーキの代金を足します。", table(cut));
+    html += group("その他", "", table(row("3段の出張組み立て料", yenIn("cso_onsite", SO.onsiteAssemblyFee), "交通費は別途")));
+  }
+  html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・オーナメントなどの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
+  wrap.innerHTML = html;
+  // 書き換えた欄を黄色にする（最初にさわった時点の値と比べる）
+  wrap.addEventListener("focusin", (e) => { const el = e.target; if (el.classList.contains("pt-input") && el.dataset.orig === undefined) el.dataset.orig = el.value; });
+  wrap.addEventListener("input", (e) => { const el = e.target; if (el.classList.contains("pt-input")) el.classList.toggle("pt-changed", el.value !== (el.dataset.orig || "")); });
+}
+// 保存前に、書き換えた単価の一覧を確認してもらう（桁の打ち間違い防止）。
+function priceTableChangeSummary() {
+  const lines = [];
+  document.querySelectorAll("#ptTable .pt-input.pt-changed").forEach(el => {
+    const tr = el.closest("tr"), td = el.closest("td"), tbl = el.closest("table");
+    let label = tr && tr.querySelector(".pt-label") ? tr.querySelector(".pt-label").textContent : el.id;
+    if (tbl && (tbl.classList.contains("pt-matrix") || tbl.classList.contains("pt-multi"))) { const th = tbl.querySelectorAll("thead th")[Array.prototype.indexOf.call(tr.children, td)]; if (th) label += " " + th.textContent; }
+    const unit = el.closest(".pt-yen").textContent.indexOf("日前") >= 0 ? "日前" : "円";
+    lines.push("・" + label + "：" + (el.dataset.orig ? el.dataset.orig + unit : "空欄") + " → " + (el.value ? el.value + unit : "空欄"));
+  });
+  return lines;
+}
 function initCakeSizePricesPanel() {
+  buildPriceTable();
   let loadedOnce = false;
   onValue(cakeSizePricesRef, (snapshot) => {
     if (loadedOnce) return;
@@ -5711,26 +5739,13 @@ function initCakeSizePricesPanel() {
   });
   // --- 詳細料金・納期（cake-pricing.jsのSPECを既定値として表示）---
   const SO = window.CakePricing && window.CakePricing.SPEC;
-  const soWrap = document.getElementById("cfSpecOverrides");
-  const soIds = [];
-  if (SO && soWrap && !soWrap.dataset.built) {
-    soWrap.dataset.built = "1";
-    const field = (id, label, ph) => { soIds.push(id); return '<div><label style="display:block;font-size:12.5px;color:var(--color-text-soft);margin-bottom:5px;">' + label + '</label><input type="number" id="' + id + '" class="input" placeholder="' + ph + '"></div>'; };
-    let html = "";
-    ["4号", "5号", "6号"].forEach(k => { html += field("cso_fruit_" + k, "フルーツトッピング " + k, SO.fruitTopping[k]); });
-    [1, 2, 3].forEach(n => { html += field("cso_color_" + n, "カラークリーム " + n + "色（合計）", SO.colorCream[n]); });
-    html += field("cso_straw", "いちごトッピング（ミッシェル/ガトーショコラBOX）", SO.strawberryAdd.price);
-    html += field("cso_onsite", "3段の出張組み立て料", SO.onsiteAssemblyFee);
-    ["4号", "5号", "6号", "7号"].forEach(k => { html += field("cso_cutded_" + k, "一番上をカットケーキにした時の値引き（一番下" + k + "）", SO.cutTopDeduction[k]); });
-    Object.keys(SO.multiTier).forEach((k, i) => {
-      const t = SO.multiTier[k];
-      html += field("cso_mt_" + i + "_price", k.replace(/\+/g, "＋") + " セット価格", t.price);
-      if (t.lead) { html += field("cso_mt_" + i + "_min", k.replace(/\+/g, "＋") + " ネット予約の締切（日前）", t.lead.min); html += field("cso_mt_" + i + "_soft", k.replace(/\+/g, "＋") + " 調達状況次第の目安（日前）", t.lead.soft); }
-    });
-    soWrap.innerHTML = html;
+  // 詳細料金（cake-pricing.jsのSPEC）は、上書き値が無い項目も既定値をそのまま入力欄に表示する
+  // （以前は空欄＋薄い文字の既定値だったため、現在の単価が分かりにくかった。2026-10-02オーナー指摘）。
+  if (SO && !window.ptOverridesBound) {
+    window.ptOverridesBound = true;
     onValue(ref(fbDb, "koimariContent/cakeSpecOverrides"), (snap) => {
       const o = snap.val() || {};
-      const set = (id, v) => { const el = document.getElementById(id); if (el && v != null) el.value = v; };
+      const set = (id, v) => { const el = document.getElementById(id); if (!el || el.classList.contains("pt-changed")) return; const d = (window.ptDefaults || {})[id]; if (v != null) el.value = v; else if (d != null) el.value = d; };
       ["4号", "5号", "6号"].forEach(k => set("cso_fruit_" + k, o.fruitTopping && o.fruitTopping[k]));
       [1, 2, 3].forEach(n => set("cso_color_" + n, o.colorCream && o.colorCream[n]));
       set("cso_straw", o.strawberryPrice); set("cso_onsite", o.onsiteAssemblyFee);
@@ -5754,6 +5769,9 @@ function initCakeSizePricesPanel() {
   if (saveBtn && !saveBtn.dataset.bound) {
     saveBtn.dataset.bound = "1";
     saveBtn.addEventListener("click", () => {
+      const changes = priceTableChangeSummary();
+      if (!changes.length) { showToast("書き換えた単価はありません"); return; }
+      if (!confirm("次の単価を変更します。よろしいですか？\n\n" + changes.join("\n"))) return;
       const prices = {};
       Object.entries(CAKE_SIZE_PRICE_KEYS).forEach(([elId, key]) => {
         const val = Number(document.getElementById(elId).value);
@@ -5779,7 +5797,8 @@ function initCakeSizePricesPanel() {
         cakeSpecOverrides: collectSpecOverrides() || {}
       }).then(() => {
         const note = document.getElementById("cfPricesSavedNote");
-        if (note) { note.textContent = "保存しました"; setTimeout(() => { note.textContent = ""; }, 3000); }
+        if (note) { note.textContent = "保存しました（予約フォームに反映済み）"; setTimeout(() => { note.textContent = ""; }, 4000); }
+        document.querySelectorAll("#ptTable .pt-input").forEach(el => { el.classList.remove("pt-changed"); el.dataset.orig = el.value; });
       }).catch(err => {
         console.warn("料金の保存失敗:", err);
         showToast("保存に失敗しました: " + (err && err.message ? err.message : String(err)), "error");
