@@ -209,6 +209,25 @@ main{padding-top:26px!important}
 .lightbox__info-title{font-family:var(--font-mincho);font-size:20px;font-weight:700;color:#2e2118;line-height:1.5}
 .lightbox__info-btn{display:inline-block;margin-top:10px;background:#06c755;color:#fff;font-family:var(--font-mincho);font-size:15px;font-weight:700;padding:11px 24px;border-radius:999px}
 </style>
+<style id="cat-nav-css">
+/* カテゴリー間の移動（2026-10-03）。上部メニューと同じ「明朝体の文字＋金色の下線」でそろえる（ピル型ボタンは使わない） */
+.cat-sticky{position:fixed;left:0;right:0;top:0;z-index:800;background:rgba(247,243,238,.97);border-bottom:1px solid var(--color-gold);box-shadow:0 4px 14px rgba(58,42,35,.08);transform:translateY(-110%);transition:transform .25s ease}
+.cat-sticky.show{transform:none}
+.cat-sticky__inner{display:flex;gap:4px 22px;overflow-x:auto;white-space:nowrap;padding:12px 18px;justify-content:center;scrollbar-width:none}
+.cat-sticky__inner::-webkit-scrollbar{display:none}
+.cat-sticky a{font-family:var(--font-mincho);font-size:17px;font-weight:700;letter-spacing:.05em;color:var(--color-text-soft);padding:4px 0;border-bottom:2px solid transparent;flex:0 0 auto}
+.cat-sticky a.active{color:var(--color-accent-dark);border-bottom-color:var(--color-gold)}
+.cat-sticky a small{font-family:var(--font-sans);font-size:12px;margin-left:3px;font-weight:600}
+@media(max-width:700px){.cat-sticky__inner{justify-content:flex-start;gap:4px 18px;padding:10px 28px 10px 14px;-webkit-mask-image:linear-gradient(90deg,#000 82%,transparent);mask-image:linear-gradient(90deg,#000 82%,transparent)}.cat-sticky a{font-size:16px}}
+.cat-pager{display:flex;justify-content:space-between;align-items:stretch;gap:14px;margin:34px 0 10px;flex-wrap:wrap}
+.cat-pager:empty{display:none}
+.cat-pager a{flex:1 1 240px;display:flex;align-items:center;gap:14px;background:var(--color-paper);border:1px solid var(--color-line);border-radius:14px;padding:12px 16px;color:var(--color-text);transition:border-color .2s,transform .2s}
+.cat-pager a:hover{border-color:var(--color-accent-dark);transform:translateY(-2px)}
+.cat-pager a.next{flex-direction:row-reverse;text-align:right}
+.cat-pager img{width:64px;height:64px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.cat-pager span{display:block;font-size:13px;color:var(--color-text-soft);font-weight:600}
+.cat-pager b{display:block;font-family:var(--font-mincho);font-size:19px;letter-spacing:.04em}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -246,6 +265,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
   <!-- ギャラリーグリッド -->
   <div class="gallery-grid" id="galleryGrid"></div>
+  <nav class="cat-pager" id="catPager" aria-label="ほかのカテゴリー"></nav>
 
   <!-- ご注文の前に（2026-10-02：ページ上部から移動。最初の画面でケーキの写真が見えるようにするため） -->
   <div class="gal-notes">
@@ -298,6 +318,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 </main>
 
+<nav class="cat-sticky" id="catSticky" aria-label="カテゴリー"><div class="cat-sticky__inner" id="catStickyInner"></div></nav>
 <div class="lightbox" id="lightbox">
   <button class="lightbox__close" id="lightboxClose">×</button>
   <button class="lightbox__nav lightbox__nav--prev" id="lightboxPrev" style="display:none;">‹</button>
@@ -456,7 +477,7 @@ function renderTabs(){
     btn.className = "cat-tile" + (c.key === currentCat ? " active" : "");
     const cover = coverOf(c.key);
     btn.innerHTML = `<span class="cat-tile__img">${cover ? `<img src="${escape(cover)}" alt="">` : ""}</span><span class="cat-tile__name">${escape(c.name)}</span><span class="cat-tile__count">${count}品</span>`;
-    btn.addEventListener("click", () => { currentCat = c.key; renderTabs(); renderGrid(); fillCardPrices(); });
+    btn.addEventListener("click", () => selectCategory(c.key));
     wrap.appendChild(btn);
   });
 }
@@ -546,7 +567,52 @@ function fillCardPrices(){
 }
 // カテゴリタブを再度表示する（2026-09-08。全カテゴリの実商品を横断的に見られる
 // ページに拡張したため、タブでの絞り込みが必要になった）。
-function renderGalleryPage(){ renderTabs(); renderGrid(); fillCardPrices(); }
+function renderGalleryPage(){ renderTabs(); renderGrid(); fillCardPrices(); renderCatNav(); }
+// 表示中のカテゴリー（件数0のカテゴリーは出さない。renderTabs と同じ基準）
+function visibleCategories(){ return CATEGORIES.filter(c => !menuSynced || getCount(c.key) > 0 || c.key === currentCat); }
+function catHref(key){ return key === "all" ? "gallery.html" : "gallery.html?cat=" + encodeURIComponent(key); }
+function selectCategory(key, fromHistory){
+  if (!CATEGORIES.some(c => c.key === key)) key = "all";
+  currentCat = key;
+  if (!fromHistory) { try { history.pushState({ cat: key }, "", catHref(key)); } catch (e) {} }
+  renderTabs(); renderGrid(); fillCardPrices(); renderCatNav();
+  // 一覧の先頭（カテゴリーの丸い写真の下）へ戻す
+  const tabs = document.getElementById("catTabs");
+  if (tabs && !fromHistory) { const y = tabs.getBoundingClientRect().top + window.scrollY - 10; if (window.scrollY > y) window.scrollTo({ top: y, behavior: "smooth" }); }
+}
+window.addEventListener("popstate", (e) => {
+  const key = (e.state && e.state.cat) || new URLSearchParams(location.search).get("cat") || "all";
+  selectCategory(key, true);
+});
+function renderCatNav(){
+  const cats = visibleCategories();
+  const inner = document.getElementById("catStickyInner");
+  if (inner) {
+    inner.innerHTML = cats.map(c => `<a href="${catHref(c.key)}" data-cat="${c.key}" class="${c.key === currentCat ? "active" : ""}">${escape(c.name)}<small>${getCount(c.key)}</small></a>`).join("");
+    const act = inner.querySelector(".active"); if (act && act.scrollIntoView) { try { act.scrollIntoView({ block: "nearest", inline: "center" }); } catch (e) {} }
+  }
+  const pager = document.getElementById("catPager");
+  if (pager) {
+    const i = cats.findIndex(c => c.key === currentCat);
+    const prev = i > 0 ? cats[i - 1] : null, next = i >= 0 && i < cats.length - 1 ? cats[i + 1] : null;
+    const link = (c, cls, label) => { const img = coverOf(c.key); return `<a href="${catHref(c.key)}" data-cat="${c.key}" class="${cls}">${img ? `<img src="${escape(img)}" alt="" loading="lazy">` : ""}<div><span>${label}</span><b>${escape(c.name)}</b></div></a>`; };
+    pager.innerHTML = (prev ? link(prev, "prev", "← 前のカテゴリー") : "<i></i>") + (next ? link(next, "next", "次のカテゴリー →") : "");
+    if (!prev && !next) pager.innerHTML = "";
+  }
+}
+document.addEventListener("click", (e) => {
+  const a = e.target.closest && e.target.closest("#catStickyInner a[data-cat], #catPager a[data-cat]");
+  if (!a) return;
+  e.preventDefault();
+  selectCategory(a.dataset.cat);
+});
+// 上の写真付きカテゴリーが画面から外れたら、細いカテゴリーの帯を出す
+(function(){
+  const tabs = document.getElementById("catTabs"), bar = document.getElementById("catSticky");
+  if (!tabs || !bar || !("IntersectionObserver" in window)) return;
+  new IntersectionObserver((ents) => { ents.forEach(en => bar.classList.toggle("show", !en.isIntersecting && en.boundingClientRect.top < 0)); }).observe(tabs);
+})();
+try { history.replaceState({ cat: currentCat }, "", location.href); } catch (e) {}
 window.renderGalleryPage = renderGalleryPage;
 renderGalleryPage();
 
