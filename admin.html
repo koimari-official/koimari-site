@@ -214,6 +214,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .card__body { padding: 20px; }
 </style>
 <script src="cake-pricing.js"></script>
+<script src="reservation-editor.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
 <style id="price-table-css">
@@ -229,6 +230,72 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .pt-yen input{width:110px;padding:7px 9px;font-size:14px;text-align:right;}
 .pt-matrix .pt-yen input{width:86px;}
 .pt-changed{background:#fff6c7!important;border-color:#e0b100!important;}
+</style>
+<style id="res-editor-css">
+/* 予約の詳細・変更画面（reservation-editor.js、2026-10-02） */
+.res-search{display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap}
+.res-search input{flex:1;min-width:260px;font-size:15px;padding:10px 12px}
+.res-open{display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--color-accent,#c9a96e);border-radius:10px;padding:5px 10px 5px 5px;cursor:pointer;font-size:13px;font-weight:700;color:var(--color-accent-dark,#a88a52);margin-bottom:6px;white-space:nowrap}
+.res-open img,.res-open__noimg{width:44px;height:44px;border-radius:7px;object-fit:cover;flex-shrink:0}
+.res-open__noimg{display:flex;align-items:center;justify-content:center;background:#f3ece1;color:#a88a52;font-size:11px}
+.res-open:hover{background:#fdf7ec}
+.re-modal{position:fixed;inset:0;z-index:5000;background:rgba(30,20,14,.55);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px}
+.re-modal.show{display:flex}
+.re-dialog{position:relative;background:#fdfaf6;width:min(1000px,100%);border-radius:16px;padding:26px 28px 30px;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.re-close{position:absolute;top:10px;right:14px;font-size:30px;line-height:1;background:none;border:none;cursor:pointer;color:#4a3a2a}
+.re-head{border-bottom:1px solid #e3d2ba;padding-bottom:12px;margin-bottom:18px}
+.re-no{font-family:monospace;font-size:15px;font-weight:700;color:#a88a52;letter-spacing:.06em}
+.re-name{font-size:22px;font-weight:700;margin-top:2px}
+.re-contact{font-size:14px;margin-top:4px}
+.re-contact a{color:#0b7a37;font-weight:700;font-size:16px}
+.re-tag{display:inline-block;font-size:11px;font-weight:700;border:1px solid #06962c;color:#06962c;border-radius:4px;padding:1px 6px;vertical-align:middle}
+.re-tag--rev{border-color:#4a6f9c;color:#4a6f9c}
+.re-tag--edit{border-color:#b03b48;color:#b03b48}
+.re-grid{display:grid;grid-template-columns:300px 1fr;gap:24px;margin-bottom:22px}
+.re-photo{margin:0 0 12px;background:#fff;border:1px solid #ecd9c4;border-radius:12px;overflow:hidden}
+.re-photo img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block}
+.re-photo figcaption{padding:8px 10px;font-size:13px;font-weight:700;line-height:1.5}
+.re-photo figcaption span{display:block;font-size:11px;color:#a88a52}
+.re-photo--none{padding:16px;font-size:13px}
+.re-photo--sent{border-color:#06c755}
+.re-sec{font-size:15px;font-weight:700;color:#a88a52;letter-spacing:.08em;margin:0 0 10px}
+.re-table{width:100%;border-collapse:collapse;margin-bottom:14px}
+.re-table th,.re-table td{border-bottom:1px solid #eadcc8;padding:8px 6px;text-align:left;font-size:14.5px;vertical-align:top}
+.re-table th{width:150px;color:#6b5a48;font-weight:600;font-size:13px}
+.re-table--small th,.re-table--small td{font-size:12.5px;padding:5px 4px}
+.re-note{background:#fff7e0;border:1px solid #ecd28f;border-radius:10px;padding:10px 12px;font-size:13.5px;margin-bottom:14px;white-space:pre-wrap}
+.re-btn{display:inline-block;background:var(--color-accent,#c9a96e);color:#fff;border:none;border-radius:999px;padding:12px 22px;font-size:15px;font-weight:700;cursor:pointer;text-align:center}
+.re-btn--ghost{background:#fff;color:#a88a52;border:1px solid #c9a96e}
+.re-btn--small{padding:6px 12px;font-size:12px}
+.re-btn:disabled{opacity:.5;cursor:default}
+.re-upload{display:block;margin-top:4px}
+.re-hint{font-size:12px;color:#856e58;margin:6px 0 0;line-height:1.6}
+.re-history{list-style:none;padding:0;margin:0}
+.re-history>li{background:#fff;border:1px solid #eadcc8;border-left:4px solid #c9a96e;border-radius:8px;padding:10px 12px;margin-bottom:10px}
+.re-history>li:last-child{border-left-color:#9a9a9a}
+.re-history__head{font-size:13.5px}
+.re-changes{margin:6px 0 0 18px;font-size:13.5px}
+.re-changes s{color:#9a8a78}
+.re-memo{font-size:13px;margin-top:6px;background:#f7f1e8;padding:6px 8px;border-radius:6px;white-space:pre-wrap}
+.re-history details{margin-top:6px;font-size:12.5px}
+.re-form{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px 18px}
+.re-field label{display:block;font-size:12.5px;color:#6b5a48;font-weight:700;margin-bottom:4px}
+.re-field select,.re-field input,.re-field textarea{width:100%;font-size:16px;padding:9px 10px;margin-bottom:4px}
+.re-check{display:flex!important;align-items:center;gap:6px;font-size:14px!important;font-weight:600!important;color:#2e2118!important}
+.re-check input{width:auto!important;margin:0!important}
+.re-tier{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 14px;background:#fff;border:1px solid #eadcc8;border-radius:10px;padding:10px 12px}
+.re-tier__title{grid-column:1/-1;font-weight:700;font-size:13.5px;color:#a88a52}
+.re-price{grid-column:1/-1;background:#fff;border:2px solid #c9a96e;border-radius:12px;padding:12px 14px}
+.re-price__auto{font-size:14px;margin-bottom:8px}
+.re-lines{font-size:12.5px;color:#6b5a48;margin-top:4px;line-height:1.7}
+.re-yen{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.re-yen input{width:160px!important;font-size:20px!important;font-weight:700;text-align:right}
+.re-diff{grid-column:1/-1;background:#fff7e0;border:1px solid #ecd28f;border-radius:10px;padding:10px 14px;font-size:14px}
+.re-diff ul{margin:6px 0 0 18px}.re-diff p{margin:4px 0 0}
+.re-diff s{color:#9a8a78}
+.re-actions{grid-column:1/-1;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap}
+.re-link{background:none;border:none;color:#4a6f9c;text-decoration:underline;cursor:pointer;font-size:12px;padding:0}
+@media(max-width:760px){.re-dialog{padding:20px 14px}.re-grid{grid-template-columns:1fr}.re-photo img{aspect-ratio:4/3}.re-actions .re-btn{flex:1}}
 </style>
 </head>
 <body>
@@ -475,6 +542,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       </div>
       <div id="trashAreaRes" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
       <div class="confirm-call-warning" id="confirmCallWarning">⚠️ <span id="confirmCallWarningText"></span></div>
+      <div class="res-search"><input type="search" id="resSearch" class="input" placeholder="予約番号・お名前・ふりがな・電話番号で検索（例：142／山田／09012345678）" oninput="renderReservations()"><span id="resSearchCount" class="small"></span></div>
       <div id="reservationsArea"></div>
     </section>
 
@@ -3915,6 +3983,25 @@ function updateResPayment(idx, checked) {
   if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
   renderReservations();
 }
+// 予約の検索（2026-10-02オーナー指示：お客様から電話が来たら予約番号や会員情報で探せるように）。
+// 予約番号は「142」「0142」「No.0142」のどれでも当たる。電話番号はハイフン・空白を無視して比べる。
+function reservationMatches(r, q) {
+  const norm = v => String(v || "").replace(/[\s\-ー－()（）]/g, "").toLowerCase();
+  const nq = norm(q).replace(/^no\.?/, "");
+  if (!nq) return true;
+  if (/^\d+$/.test(nq) && r.reservationNo && Number(nq) === Number(r.reservationNo)) return true;
+  if (/^\d{4,}$/.test(nq) && norm(r.tel).includes(nq)) return true;
+  return [r.name, r.furigana, r.email, r.lineDisplayName].some(v => norm(v).includes(nq));
+}
+function reservationThumbHtml(r) {
+  const img = (r.galleryPick && r.galleryPick.img) || (r.sentImages && Object.values(r.sentImages).slice(-1)[0] || {}).url || "";
+  return img ? `<img src="${escapeHtml(img)}" alt="">` : `<span class="res-open__noimg">写真</span>`;
+}
+function openReservationEditor(idx) {
+  const key = typeof window.resKeyAt === "function" ? window.resKeyAt(idx) : null;
+  if (!key || !window.ReservationEditor) { showToast("予約データの読み込み中です。少し待ってからもう一度押してください", "error"); return; }
+  window.ReservationEditor.open(key);
+}
 function updateResConfirmCall(idx, checked) {
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
@@ -3957,6 +4044,8 @@ function renderReservations() {
   if (!fullList.length) { area.innerHTML = '<div class="empty">予約データはまだありません</div>'; return; }
   const unpaidOnlyEl = document.getElementById("resUnpaidOnly");
   const unpaidOnly = unpaidOnlyEl && unpaidOnlyEl.checked;
+  const searchEl = document.getElementById("resSearch");
+  const searchQ = searchEl ? searchEl.value.trim() : "";
   // フィルターしても「操作」ボタン等に渡すidxは元の配列の位置（reservationKeysと対応）のまま使う必要があるため、
   // 絞り込みは表示するかどうかだけを切り替え、配列そのものは詰め直さない。
   const list = fullList;
@@ -3966,6 +4055,7 @@ function renderReservations() {
   let shown = 0;
   list.forEach((r, idx) => {
     if (unpaidOnly && r.paymentDone) return;
+    if (searchQ && !reservationMatches(r, searchQ)) return;
     shown++;
     const status = r.status || "受付済";
     const color = STATUS_COLORS[status] || "#999";
@@ -3999,7 +4089,7 @@ function renderReservations() {
       <td>${escapeHtml(r.name)}<br><span class="small">${escapeHtml(r.furigana)}</span></td>
       <td>${escapeHtml(r.tel)}<br><span class="small">${escapeHtml(r.email)}</span>${r.birthday?`<br><span class="small">生: ${escapeHtml(r.birthday)}</span>`:""}</td>
       <td>${escapeHtml(r.pickupDate)} ${escapeHtml(r.pickupTime)}</td>
-      <td>${reservationItemsHtml(r)}${reservationPriceHtml(r)}</td>
+      <td><button type="button" class="res-open" onclick="openReservationEditor(${idx})">${reservationThumbHtml(r)}<span>詳細・変更</span></button>${r.revisionCount ? `<div class="small" style="margin-top:4px;color:#4a6f9c;font-weight:700;">修正${r.revisionCount}まで反映</div>` : ""}${reservationItemsHtml(r)}${reservationPriceHtml(r)}</td>
       <td>${r.receiptNeeded?`<div style="font-size:11px;font-weight:700;color:#a98554;margin-bottom:4px;">🧾 領収書必要<br>宛名: ${escapeHtml(r.receiptName)}</div>`:""}<span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
       <td><textarea rows="2" style="font-size:12px;width:120px;padding:4px;border:1px solid #ddd;resize:vertical;" onchange="updateResNotes(${idx},this.value)">${escapeHtml(r.notes||"")}</textarea></td>
       <td>
@@ -4011,6 +4101,9 @@ function renderReservations() {
   });
   html += '</tbody></table></div>';
   if (unpaidOnly && !shown) html = '<div class="empty">未払いの予約はありません</div>' + html;
+  if (searchQ && !shown) html = '<div class="empty">「' + escapeHtml(searchQ) + '」に一致する予約はありません</div>' + html;
+  const countEl = document.getElementById("resSearchCount");
+  if (countEl) countEl.textContent = searchQ ? shown + "件ヒット" : "";
   area.innerHTML = html;
 }
 function renderApplications() {
@@ -5335,6 +5428,17 @@ function syncCorporateFromFirebase() {
   });
 }
 
+// 予約の詳細・変更画面（reservation-editor.js）が使うFirebase操作（2026-10-02）
+window.resKeyAt = function (idx) { return reservationKeys[idx]; };
+window.fbResEditorApi = {
+  getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
+  multiUpdate: (patch) => update(ref(fbDb), patch),
+  getStaff: () => get(ref(fbDb, "reservationStaff")).then(s => s.val()),
+  setStaff: (list) => set(ref(fbDb, "reservationStaff"), list),
+  uploadImage: (blob, type) => window.fbUploadImage(blob, type),
+  pushSentImage: (key, data) => push(ref(fbDb, "reservations/" + key + "/sentImages"), data),
+  currentUserEmail: () => (fbAuth.currentUser && fbAuth.currentUser.email) || ""
+};
 window.fbUpdateReservation = function (idx, patch) {
   const key = reservationKeys[idx];
   if (!key) return;

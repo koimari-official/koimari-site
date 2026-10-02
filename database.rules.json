@@ -22,8 +22,13 @@
         ".write": "(auth != null && auth.token.store !== true) || (!data.exists() && newData.child('status').val() === 'pending')"
       }
     },
+    "reservationStaff": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.store !== true"
+    },
     "reservations": {
       ".read": "auth != null",
+      ".indexOn": ["lineUserId"],
       "$id": {
         ".write": "(auth != null && (auth.token.store !== true || newData.exists())) || !data.exists()",
         "reservationNo": {
