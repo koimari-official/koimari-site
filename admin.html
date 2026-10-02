@@ -2551,6 +2551,8 @@ function appendExtraFlags(item, obj, onUpdate) {
   };
   box.appendChild(mk("★ おすすめ商品に表示", "featured"));
   box.appendChild(mk("❄ 季節限定", "seasonal"));
+  // ギャラリーのジャンル選択「すべて」の丸い写真に使う（2026-10-02オーナー指示）。複数に付けた場合はギャラリーで前に並ぶものが優先
+  box.appendChild(mk("ギャラリーの「すべて」の写真にする", "galleryCover"));
   item.appendChild(box);
 }
 // 商品ごとの「予約フォームの自動選択」（2026-09-29オーナー指示）。ギャラリーでこのケーキを選んで予約に進んだとき、
@@ -5030,6 +5032,7 @@ function renderGalleryAdmin() {
     const firstField = item.querySelector(".img-item__field");
     item.insertBefore(catBox, firstField);
     item.appendChild(makeGalleryEditor(g, "img", { maxWidth: 2400, max: 6, onChange: () => renderGalleryAdmin() }));
+    appendExtraFlags(item, galleryData[i], () => {});
     // 並べ替え（2026-09-28）。このパネルの作品は公開ギャラリーの最初に並ぶ（他カテゴリーより前）。
     appendReorderControls(item, galleryData, i, () => renderGalleryAdmin(), "custom");
     { const tag = document.createElement("div"); tag.className = "cake-no-tag"; tag.textContent = "ギャラリー番号 作品 No." + String(g.no || "").padStart(2, "0") + "（お客様にはこの番号で表示されます）"; item.insertBefore(tag, item.firstChild); }

@@ -89,7 +89,8 @@ a.gal-card .gal-card__img{cursor:pointer}
 .gal-card:hover .gal-card__custom,.gal-card:hover .gal-card__standard,
 .gal-card:focus-visible .gal-card__custom,.gal-card:focus-visible .gal-card__standard{transform:scale(1.22) translateY(-4px);box-shadow:0 10px 22px rgba(58,42,35,.35)}
 .gal-card__body{padding:20px 22px 22px;flex:1;display:flex;flex-direction:column}
-.gal-card__no{font-family:var(--font-sans);font-size:12px;letter-spacing:.02em;color:var(--color-accent-dark);font-weight:700;margin-bottom:4px}
+.gal-card__no{font-family:var(--font-sans);font-size:19px;letter-spacing:.04em;color:#6b4a2a;font-weight:700;margin-bottom:6px}
+.gal-card__line-note{font-size:14px;line-height:1.7;color:var(--color-text-soft);margin-top:8px;font-weight:600}
 .gal-card__title{font-family:var(--font-mincho);font-size:17px;letter-spacing:.04em;margin-bottom:8px;font-weight:600;line-height:1.5}
 .gal-card__desc{font-size:16px;font-weight:600;color:var(--color-text-soft);line-height:1.85;margin-bottom:14px;flex:1}
 .gal-card__meta{display:flex;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--color-text-soft);font-family:var(--font-mincho);padding-top:12px;border-top:1px dashed var(--color-line);align-items:center}
@@ -202,7 +203,8 @@ main{padding-top:26px!important}
 .gal-notes{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:40px 0 10px}
 .lightbox__info{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:min(92vw,560px);background:rgba(254,252,248,.97);border-radius:14px;padding:14px 18px;text-align:center;cursor:default;display:none}
 .lightbox__info.show{display:block}
-.lightbox__info-title{font-family:var(--font-mincho);font-size:17px;font-weight:700;color:#2e2118;line-height:1.5}
+.lightbox__info-note{font-size:14px;color:#4a3a2a;margin-top:6px;font-weight:600}
+.lightbox__info-title{font-family:var(--font-mincho);font-size:20px;font-weight:700;color:#2e2118;line-height:1.5}
 .lightbox__info-btn{display:inline-block;margin-top:10px;background:#06c755;color:#fff;font-family:var(--font-mincho);font-size:15px;font-weight:700;padding:11px 24px;border-radius:999px}
 </style>
 </head>
@@ -355,6 +357,11 @@ function titleWithWrap(s){
 // 言う番号と食い違わないようにするため（2026-10-02）。固定番号の無い古いデータだけ並び順で番号を振る。
 // 管理画面で作品を追加した時の仮タイトル「新規作品」は表示しない（番号「作品 No.01」だけを出す。2026-10-02オーナー指示）
 function isPlaceholderTitle(t){ return !String(t||"").trim() || String(t).trim() === "新規作品"; }
+document.addEventListener("click", (e) => {
+  const a = e.target.closest && e.target.closest("a[data-copy]");
+  if (!a) return;
+  try { if (navigator.clipboard) navigator.clipboard.writeText(a.dataset.copy); } catch (err) {}
+});
 function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = Number(g.no) > 0 ? Number(g.no) : i+1; }); return arr; }
 
 // デコレーションケーキ等の「作品ポートフォリオ」（見積り制・カテゴリcake/roll）と、
@@ -381,7 +388,7 @@ let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
 
 function menuItemToCard(item, catKey, idx, productType){
   const custom = productType === "decorationCake" && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === "custom";
-  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured, custom, cakeNo: productType === "decorationCake" ? Number(item.no) || 0 : 0 };
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured, galleryCover: !!item.galleryCover, custom, cakeNo: productType === "decorationCake" ? Number(item.no) || 0 : 0 };
 }
 // 画像が未設定の商品は、公開ページではエラーのように見えてしまうため一覧に出さない（2026-09-28オーナー指示）。
 // 並び順は「作品ポートフォリオ→デコレーション→カット→ロール→焼き菓子→ギフト」で、各カテゴリー内は管理画面の並び順。
@@ -420,6 +427,8 @@ function getCount(catKey){
 
 // ジャンルの代表写真＝そのジャンルで一番前に並んでいる商品の写真（管理画面の並び順に連動）
 function coverOf(catKey){
+  // 「すべて」は、管理画面で「ギャラリーの『すべて』の写真にする」を付けた商品・作品の写真を優先（2026-10-02）
+  if (catKey === "all") { const pinned = gallery.find(g => g.galleryCover && g.img); if (pinned) return pinned.img; }
   const list = catKey === "all" ? gallery : CROSS_TAG_CATEGORIES.has(catKey) ? gallery.filter(g => g[catKey]) : gallery.filter(g => g.category === catKey);
   const first = list.find(g => g.isMenuItem && g.img) || list.find(g => g.img);
   return first ? first.img : "";
@@ -487,7 +496,8 @@ function renderGrid(){
           ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
-        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + String(g.__no).padStart(2,"0") + (g.title ? "『" + g.title + "』" : "") + "と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>`;
+        <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="gal-card__cta" data-copy="作品No.${String(g.__no).padStart(2,"0")}">LINEで相談する（作品No.${String(g.__no).padStart(2,"0")}）</a>
+        <p class="gal-card__line-note">LINEのトークで「作品No.${String(g.__no).padStart(2,"0")}」とお送りください（ボタンを押すと番号がコピーされます）</p>`;
     card.innerHTML = `
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
@@ -599,7 +609,7 @@ function openLightbox(photos, title, g) {
   if (info) {
     if (g && g.__no) {
       const no = String(g.__no).padStart(2, "0");
-      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><a class="lightbox__info-btn" target="_blank" rel="noopener" href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + no + (title ? "『" + title + "』" : "") + "と同じテイストで相談したいです")}">同じテイストでLINE相談する</a>`;
+      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><a class="lightbox__info-btn" target="_blank" rel="noopener" href="https://lin.ee/tgXqHoK" data-copy="作品No.${no}">LINEで相談する（作品No.${no}）</a><div class="lightbox__info-note">LINEのトークで「作品No.${no}」とお送りください</div>`;
       info.classList.add("show");
       info.onclick = e => e.stopPropagation();
     } else { info.classList.remove("show"); info.innerHTML = ""; }

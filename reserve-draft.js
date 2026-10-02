@@ -56,7 +56,7 @@
   }
 
   function liffUrl(code) { return LIFF_URL + "?draft=" + encodeURIComponent(code) + "#reserve"; }
-  function oaMessageUrl(code) { return "https://line.me/R/oaMessage/" + encodeURIComponent(OA_ID) + "/?" + encodeURIComponent("【ご希望仕様コード】" + code); }
+  // ※ line.me/R/oaMessage/ 形式はPC等でLINE社のトップページに飛ぶため使わない（2026-10-02）。案内は LINE_ADD_URL に統一。
   function isLineBrowser() { return /Line\//i.test(navigator.userAgent); }
 
   function showModal(code, pick) {
@@ -78,7 +78,7 @@
       '<li>トーク画面下部メニューの「ご予約」をタップ</li>' +
       '<li>予約フォームにご希望の商品が自動で反映されます（うまく反映されない場合は、上のコードをフォームに入力してください）</li></ol>' +
       '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;padding:14px;border-radius:999px;background:#06c755;color:#fff;font-weight:700;text-decoration:none;margin-bottom:10px;">LINEで友だち追加して進む</a>' +
-      '<a href="' + oaMessageUrl(code) + '" target="_blank" rel="noopener" style="display:block;font-size:12.5px;color:#6b5a48;margin-bottom:14px;">すでに友だちの方：コードをトークに送って続ける</a>' +
+      '<a href="' + LINE_ADD_URL + '" target="_blank" rel="noopener" style="display:block;font-size:14px;color:#4a3a2a;margin-bottom:14px;line-height:1.7;">すでに友だちの方：LINEを開き、メニューの「ご予約」から進んでください（上のコードを入力すると商品が反映されます）</a>' +
       '<button type="button" id="draftClose" style="font-size:13px;padding:8px 18px;border:none;background:none;color:#888;cursor:pointer;">閉じる</button></div>';
     document.body.appendChild(wrap);
     wrap.addEventListener("click", function (e) { if (e.target === wrap) wrap.remove(); });
