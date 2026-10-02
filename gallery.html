@@ -236,7 +236,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="page-head__inner">
     <span class="page-head__en">Gallery &amp; Voices</span>
     <h1 class="page-head__title">みんなの「美味しい！」を集めました</h1>
-    <p class="page-head__lead">気になるケーキをタップすると、お値段の目安とご予約へ進めます。</p>
+    <p class="page-head__lead">写真から気になるケーキを選んで、そのままLINEでご予約いただけます。<br>仕様・お値段・お受け取り日は、ご予約後にパティシエがお電話で確定いたしますので、ご安心ください。</p>
   </div>
 </div>
 <main>
@@ -514,7 +514,7 @@ function renderGrid(){
         ${g.seasonal ? `<span class="gal-card__seasonal">季節限定</span>` : ""}
         ${g.featured ? `<span class="gal-card__popular">★ 人気</span>` : ""}
         ${!g.isMenuItem ? `<span class="gal-card__custom">オーダーメイド</span>` : (g.category === "cake" ? (g.custom ? `<span class="gal-card__custom">フルオーダー</span>` : `<span class="gal-card__standard">定番</span>`) : "")}
-        <img src="${escape(g.img)}" alt="${escape(g.title)}">
+        <img src="${escape(g.img)}" alt="${escape(g.title)}" loading="lazy" decoding="async">
       </div>
       ${subPhotos.length ? `<div class="gal-card__thumbs">${subPhotos.map((p,i) => `<img class="gal-card__thumb" src="${escape(p)}" data-idx="${i+1}" alt="">`).join("")}</div>` : ""}
       <div class="gal-card__body">${bodyHtml}</div>`;
@@ -586,14 +586,14 @@ function applyFetchedVoicesData(val){
 window.applyFetchedVoicesData = applyFetchedVoicesData;
 
 // デコレーションケーキ・カットケーキ・ロールケーキの実商品メニュー（siteImages）を取り込む（2026-09-08）
-function applyFetchedMenuItems(data){
+function applyFetchedMenuItems(data, done){
   if (!data) return;
   if (Array.isArray(data.decorationCakes)) menuDecorationCakes = data.decorationCakes;
   if (Array.isArray(data.cutcakes)) menuCutcakes = data.cutcakes;
   if (Array.isArray(data.rollcakes)) menuRollcakes = data.rollcakes;
   if (Array.isArray(data.baked)) menuBaked = data.baked;
   if (Array.isArray(data.gift)) menuGift = data.gift;
-  menuSynced = true;
+  if (done !== false) menuSynced = true;
   buildGallery();
   renderGalleryPage();
 }
@@ -686,13 +686,15 @@ async function fetchSiteImagesKey(key){
 (async () => {
   const keys = ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift"];
   const data = {};
-  for (const key of keys) {
+  // 5種類を同時に取得し、届いたカテゴリーから順に表示する（以前は1つずつ順番に取得し、全部そろうまで何も出なかった）
+  await Promise.all(keys.map(async (key) => {
     for (let attempt = 0; attempt < 2; attempt++) {
       if (attempt > 0) await new Promise(r => setTimeout(r, 400));
       try { data[key] = await fetchSiteImagesKey(key); break; } catch (e) { /* リトライ */ }
     }
-  }
-  if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems(data);
+    if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems({ [key]: data[key] }, false);
+  }));
+  if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems(data, true);
 })();
 </script>
 </body>
