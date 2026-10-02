@@ -459,7 +459,7 @@ function renderInfo(item, plainName, config) {
   if (isCustom) priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__note">写真のケーキをもとに、パティシエがお見積もり・納期をご回答します</span>';
   priceHintFor(item, productType).then(t => {
     if (!t) return;
-    const isHint = !item.price;
+    const isHint = !(item.price && /[1-9]/.test(String(item.price)));
     priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint ? '<span class="pd-price__note">' + (size ? esc(size) + 'の場合のお値段です。' : '') + 'サイズ・クリーム・飾りの変更でお値段が変わります</span>' : '');
     const sp = document.getElementById('pdStickyPrice'); if (sp) sp.textContent = t;
   });

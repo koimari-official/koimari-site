@@ -2889,7 +2889,7 @@ function renderExperiences() {
 
 document.getElementById("addHero").addEventListener("click", () => { workingData.hero.push({src:"",titleEn:"New Slide",titleJp:"新しいスライド",visible:true}); renderHero(); updateSaveBar(); });
 document.getElementById("addCategory").addEventListener("click", () => { workingData.categories.push({name:"新規カテゴリ",en:"New Category",img:"",desc:"",gallery:[],visible:true}); renderCategories(); updateSaveBar(); });
-document.getElementById("addDecorationCake").addEventListener("click", () => { workingData.decorationCakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderDecorationCakes(); updateSaveBar(); });
+document.getElementById("addDecorationCake").addEventListener("click", () => { workingData.decorationCakes.push({name:"新商品",nameEn:"",price:"",img:"",desc:"",gallery:[],visible:true}); renderDecorationCakes(); updateSaveBar(); }); // 価格は空（料金表の目安を表示）。番号は renderDecorationCakes で自動採番
 document.getElementById("addCutcake").addEventListener("click", () => { workingData.cutcakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderCutcakes(); updateSaveBar(); });
 document.getElementById("addRollcake").addEventListener("click", () => { workingData.rollcakes.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderRollcakes(); updateSaveBar(); });
 document.getElementById("addBaked").addEventListener("click", () => { workingData.baked.push({name:"新商品",nameEn:"",price:"¥0",img:"",desc:"",gallery:[],visible:true}); renderBaked(); updateSaveBar(); });

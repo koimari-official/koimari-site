@@ -52,7 +52,8 @@
   function yen(n) { return "¥" + Number(n).toLocaleString(); }
   // 表示用の価格テキスト（例：「¥3,630〜」）。出せない場合は空文字
   function priceText(item, productType, prices) {
-    if (item && item.price) return String(item.price);
+    // 管理画面の価格欄。「¥0」「0円」など0円の入力は未入力として扱う（新規追加時の初期値対策）
+    if (item && item.price && /[1-9]/.test(String(item.price))) return String(item.price);
     if (productType !== "decorationCake" || !prices) return "";
     if (orderModeOf(item) === "custom") return "";
     var size = (item.spec && item.spec.size ? String(item.spec.size).split("(")[0] : "") || sizeOf(item);
