@@ -16,8 +16,13 @@
     cache = Promise.all([
       getJson("koimariContent/cakeSizePrices"),
       getJson("koimariContent/cakeTypePrices"),
-      getJson("koimariContent/cakeChocoCreamSurcharge")
-    ]).then(function (r) { return { sizePrices: r[0] || {}, typePrices: r[1] || {}, choco: Number(r[2]) || 0 }; });
+      getJson("koimariContent/cakeChocoCreamSurcharge"),
+      getJson("koimariContent/cakeSpecOverrides")
+    ]).then(function (r) {
+      // 料金表の詳細（フルーツトッピング・カラークリーム等）の上書き値を反映してから計算する
+      if (r[3] && root.CakePricing && root.CakePricing.applyOverrides) root.CakePricing.applyOverrides(r[3]);
+      return { sizePrices: r[0] || {}, typePrices: r[1] || {}, choco: Number(r[2]) || 0 };
+    });
     return cache;
   }
   function sizeOf(item) {
@@ -59,6 +64,15 @@
     var size = (item.spec && item.spec.size ? String(item.spec.size).split("(")[0] : "") || sizeOf(item);
     var cream = creamOf(item, prices);
     if (!size || !cream) return "";
+    var spec = (item && item.spec) || {};
+    if (Number(spec.tiers) > 1) return ""; // 2段・3段は組み合わせ次第のため目安を出さない
+    // 2026-10-02オーナー指摘：飾り付け（バラエティフルーツ＝フルーツトッピング）などの料金が入っていなかった。
+    // 予約フォームと同じ計算（cake-pricing.js の estimate）で、サイズ・クリーム・飾り付け・シーンを含めた金額を出す。
+    if (root.CakePricing && root.CakePricing.estimate) {
+      var est = root.CakePricing.estimate({ tiers: [size], creamType: cream, tierSpecs: [{ cream: cream }], decoration: spec.decoration || "", occasion: spec.occasion || "" },
+        { sizePrices: prices.sizePrices, typePrices: prices.typePrices, chocoCream: prices.choco || undefined });
+      return est && !est.needsConsult && est.subtotal ? yen(est.subtotal) + "〜" : "";
+    }
     var p = 0;
     if (cream === "生クリーム") p = Number(prices.sizePrices[size]) || 0;
     else if (cream === "生チョコクリーム") p = (Number(prices.sizePrices[size]) || 0) && (Number(prices.sizePrices[size]) + prices.choco);
