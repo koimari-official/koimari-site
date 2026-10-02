@@ -353,6 +353,8 @@ function titleWithWrap(s){
 // 金額はギャラリー上に出さず、この番号でお問合せいただいてから個別に見積もる運用にするため。
 // オーダーメイド作品の番号は、管理画面で振った固定番号（g.no）を使う。並び替え・削除で番号がずれて、お客様がお電話で
 // 言う番号と食い違わないようにするため（2026-10-02）。固定番号の無い古いデータだけ並び順で番号を振る。
+// 管理画面で作品を追加した時の仮タイトル「新規作品」は表示しない（番号「作品 No.01」だけを出す。2026-10-02オーナー指示）
+function isPlaceholderTitle(t){ return !String(t||"").trim() || String(t).trim() === "新規作品"; }
 function assignGalleryNumbers(arr){ arr.forEach((g,i)=>{ g.__no = Number(g.no) > 0 ? Number(g.no) : i+1; }); return arr; }
 
 // デコレーションケーキ等の「作品ポートフォリオ」（見積り制・カテゴリcake/roll）と、
@@ -406,7 +408,7 @@ function buildGallery(){
     .map((c, idx) => ({ c, idx }))
     .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "gift", idx, "gift"));
-  gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
+  gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img).map(g => Object.assign({}, g, { title: isPlaceholderTitle(g.title) ? "" : g.title })), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
 }
 buildGallery();
 
@@ -478,14 +480,14 @@ function renderGrid(){
         <div class="gal-card__price" data-price-for="${g.productType}:${g.idx}"></div>
         <span class="gal-card__cta">くわしく見る →</span>`
       : `<div class="gal-card__no">作品 No.${String(g.__no).padStart(2,"0")}</div>
-        <h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
+        ${g.title ? `<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>` : ""}
         <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${g.size ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(g.size)}</strong>（参考）</span>` : ""}
           ${g.lead ? `<span class="gal-card__meta-item">納期: <strong>${escape(g.lead)}</strong></span>` : ""}
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
-        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + String(g.__no).padStart(2,"0") + "『" + g.title + "』と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>`;
+        <a href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + String(g.__no).padStart(2,"0") + (g.title ? "『" + g.title + "』" : "") + "と同じテイストで相談したいです")}" target="_blank" rel="noopener" class="gal-card__cta">同じテイストでご相談する →</a>`;
     card.innerHTML = `
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
@@ -597,7 +599,7 @@ function openLightbox(photos, title, g) {
   if (info) {
     if (g && g.__no) {
       const no = String(g.__no).padStart(2, "0");
-      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><a class="lightbox__info-btn" target="_blank" rel="noopener" href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + no + "『" + (title || "") + "』と同じテイストで相談したいです")}">同じテイストでLINE相談する</a>`;
+      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><a class="lightbox__info-btn" target="_blank" rel="noopener" href="https://line.me/R/oaMessage/@744lgqjn/?${encodeURIComponent("作品No." + no + (title ? "『" + title + "』" : "") + "と同じテイストで相談したいです")}">同じテイストでLINE相談する</a>`;
       info.classList.add("show");
       info.onclick = e => e.stopPropagation();
     } else { info.classList.remove("show"); info.innerHTML = ""; }
