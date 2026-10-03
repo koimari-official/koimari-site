@@ -112,6 +112,45 @@ main{max-width:820px;margin:0 auto;padding:70px 24px 60px}
   .cta-banner__btn{padding:15px 26px;font-size:14px}
 }
 </style>
+<style id="product-v3">
+/* 2026-10-03オーナー指摘：PCではズームしすぎに見えて読みにくい → 全体を一回り小さく、写真と情報が1画面に収まるように。
+   ただし子供〜ご年配の方が読めるよう、本文は16〜17px以上を保つ。 */
+main.pd{max-width:1040px}
+.pd-grid{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:40px}
+.pd-media{max-width:500px;justify-self:end;width:100%}
+.pd-en{font-size:14px}
+.pd-title{font-size:clamp(22px,2.2vw,28px)!important;line-height:1.5;margin-bottom:10px}
+.pd-price{font-size:26px!important}
+.pd-price__note{font-size:14px!important}
+.pd-chips{margin:8px 0 12px}
+.pd-chip{font-size:13.5px}
+.pd-info .product-desc{font-size:16.5px!important;line-height:1.9!important;margin-bottom:18px}
+.pd-info .product-reserve__btn{font-size:17px!important;padding:15px 22px!important}
+.pd-points li{font-size:15px}
+.pd-sizes{margin:6px 0 18px}
+.pd-size-table{width:100%;border-collapse:collapse;font-size:15.5px;background:var(--color-paper);border:1px solid var(--color-line);border-radius:12px;overflow:hidden}
+.pd-size-table th{font-size:13px;color:var(--color-text-soft);font-weight:700;background:#f3ece1;padding:8px 10px;text-align:left}
+.pd-size-table td{padding:9px 10px;border-top:1px solid #eadcc8;vertical-align:middle}
+.pd-size-table tr.is-photo td{background:#fff7e0}
+.pd-size-price{font-weight:700;color:#8a3a2a;white-space:nowrap}
+.pd-size-special{font-size:12.5px;color:var(--color-text-soft);font-weight:700;line-height:1.4;display:inline-block}
+.pd-size-tag{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;color:#fff;background:var(--color-accent-dark);border-radius:4px;padding:1px 6px;vertical-align:middle}
+.pd-included{margin:10px 0 0;font-size:15px;font-weight:700;color:#0b5a28;background:#eaf7ee;border:1px solid #9ad9b0;border-radius:10px;padding:8px 12px;line-height:1.7}
+.pd-size-note{margin:8px 0 0;font-size:14px;color:var(--color-text-soft)}
+.pd-phone{font-size:15px;line-height:1.8;margin:-8px 0 20px;color:var(--color-text-soft)}
+.pd-phone a{color:#0b7a37;font-weight:700;font-size:17px;font-family:var(--font-sans)}
+@media(max-width:860px){
+  .pd-media{max-width:none;justify-self:stretch}
+  .pd-title{font-size:22px!important}
+  .pd-price{font-size:24px!important}
+  .pd-info .product-desc{font-size:16px!important}
+  .pd-size-table{font-size:15px}
+  .pd-size-table th,.pd-size-table td{padding:9px 6px;white-space:nowrap}
+  .pd-size-table th{font-size:12px}
+  .pd-size-tag{display:block;margin:3px 0 0;width:max-content}
+  .pd-size-special{white-space:normal}
+}
+</style>
 <style id="product-v2">
 /* 商品紹介ページ（2026-10-02オーナー指示：写真はシズル感があるのに、ページ自体が購買意欲をそそらない）。
    写真を大きく横スワイプ、その横（スマホは下）に商品名・目安価格・サイズ・説明・予約ボタン・こだわりをまとめ、
@@ -231,8 +270,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <h1 class="pd-title" id="pageTitle">読み込み中…</h1>
       <div class="pd-price" id="pdPrice"></div>
       <div class="pd-chips" id="pdChips"></div>
+      <div class="pd-sizes" id="pdSizes"></div>
       <div class="product-desc" id="productDesc"></div>
       <div id="pdReserveSlot"></div>
+      <div class="pd-phone" id="pdPhone"></div>
       <ul class="pd-points" id="pdPoints"></ul>
     </div>
   </div>
@@ -460,15 +501,38 @@ function renderInfo(item, plainName, config) {
   priceHintFor(item, productType).then(t => {
     if (!t) return;
     const isHint = !(item.price && /[1-9]/.test(String(item.price)));
-    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint ? '<span class="pd-price__note">' + (size ? esc(size) + 'の場合のお値段です。' : '') + 'サイズ・クリーム・飾りの変更でお値段が変わります</span>' : '');
+    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint ? '<span class="pd-price__note">' + (size ? '写真のサイズ（' + esc(size) + '）のお値段です。' : '') + 'ほかのサイズは下の表をご覧ください</span>' : '');
     const sp = document.getElementById('pdStickyPrice'); if (sp) sp.textContent = t;
   });
+  renderSizeTable(item, size);
+  const phone = document.getElementById('pdPhone');
+  if (phone) {
+    const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
+    phone.innerHTML = productType === 'category' || productType === 'recommended' ? '' : 'お電話でのご予約は <a href="tel:07091580641">070-9158-0641</a>' + (no ? '<br>「' + no + (size ? '・' + esc(size) : '') + '」のようにお伝えいただくとスムーズです' : '');
+  }
   const text = plainName + ' ' + String(item.desc || '');
   const pts = [];
   if (/フルーツ|いちご|苺|果実|ベリー|タルト/.test(text)) pts.push('季節のフルーツをたっぷり。見た目も味も華やかに仕上げます');
   if (productType !== 'category' && productType !== 'recommended') pts.push('お店で一つひとつ手作りしています');
   pts.push('お酒はごく少量で、焼き上げの時にしっかり加熱して飛ばしています。小さなお子様にも安心です');
   document.getElementById('pdPoints').innerHTML = '<li class="pd-points__head">こいまりのこだわり</li>' + pts.map(t => '<li>' + esc(t) + '</li>').join('');
+}
+// 号数ごとの表（2026-10-03オーナー指示：電話で予約する方にも、サイズとお値段が一目で分かるように）
+function renderSizeTable(item, photoSize) {
+  const box = document.getElementById('pdSizes');
+  if (!box) return;
+  box.innerHTML = '';
+  if (productType !== 'decorationCake' || !window.KoimariPriceHint) return;
+  window.KoimariPriceHint.load().then(pr => {
+    const rows = window.KoimariPriceHint.sizePriceRows(item, productType, pr);
+    if (!rows.length) return;
+    const custom = rows[0].custom;
+    box.innerHTML = '<table class="pd-size-table"><thead><tr><th>サイズ</th><th>直径</th><th>人数の目安</th>' + (custom ? '' : '<th>お値段（税込）</th>') + '</tr></thead><tbody>' +
+      rows.map(r => '<tr' + (r.size === photoSize ? ' class="is-photo"' : '') + '><td><b>' + r.size + '</b>' + (r.size === photoSize ? '<span class="pd-size-tag">写真のサイズ</span>' : '') + '</td><td>' + esc(r.cm) + '</td><td>' + esc(r.serves) + '</td>' +
+        (custom ? '' : '<td class="pd-size-price">' + (r.price ? '¥' + Number(r.price).toLocaleString() : '<span class="pd-size-special">特殊仕様<br>（お電話で確認）</span>') + '</td>') + '</tr>').join('') + '</tbody></table>' +
+      (custom ? '<p class="pd-size-note">このケーキはフルオーダーのため、お値段はご予約後にパティシエがご回答します。</p>'
+        : '<p class="pd-included">ろうそく5本（1袋）とメッセージプレート1枚は、お値段に含まれています。</p>');
+  });
 }
 function setupSticky(item) {
   const bar = document.getElementById('pdSticky');

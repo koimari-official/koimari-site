@@ -81,5 +81,24 @@
     else p = Number(prices.typePrices[cream] && prices.typePrices[cream][size]) || 0;
     return p ? yen(p) + "〜" : "";
   }
-  root.KoimariPriceHint = { orderModeOf: orderModeOf, load: load, sizeOf: sizeOf, sizeLabel: sizeLabel, descBody: descBody, priceText: priceText };
+  // 号数ごとのお値段（4号〜7号）。予約フォームと同じ計算で、ベース・飾り付け（標準の飾り付けは基本料金に含む）を反映。
+  // 原価表にない号数は price: 0（＝特殊仕様。お電話で確認）。2段以上の商品・フルオーダーは空配列。
+  function sizePriceRows(item, productType, prices) {
+    var S = root.CakePricing && root.CakePricing.SPEC && root.CakePricing.SPEC.sizes;
+    if (!S || productType !== "decorationCake" || !prices) return [];
+    var spec = (item && item.spec) || {};
+    if (Number(spec.tiers) > 1) return [];
+    var custom = orderModeOf(item) === "custom";
+    var cream = custom ? "" : creamOf(item, prices);
+    return ["4号", "5号", "6号", "7号"].map(function (size) {
+      var price = 0;
+      if (cream && root.CakePricing.estimate) {
+        var est = root.CakePricing.estimate({ tiers: [size], creamType: cream, tierSpecs: [{ cream: cream }], decoration: spec.decoration || "", includedDecoration: spec.decoration || "", occasion: spec.occasion || "" },
+          { sizePrices: prices.sizePrices, typePrices: prices.typePrices, chocoCream: prices.choco || undefined });
+        price = est && !est.needsConsult ? est.subtotal : 0;
+      }
+      return { size: size, cm: (S[size] || {}).cm || "", serves: (S[size] || {}).serves || "", price: price, custom: custom };
+    });
+  }
+  root.KoimariPriceHint = { orderModeOf: orderModeOf, sizePriceRows: sizePriceRows, load: load, sizeOf: sizeOf, sizeLabel: sizeLabel, descBody: descBody, priceText: priceText };
 })(typeof window !== "undefined" ? window : this);
