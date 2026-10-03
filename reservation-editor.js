@@ -17,7 +17,7 @@
   var DECORATIONS = ["いちごのみ", "バラエティフルーツ"];
   var TARTS = ["フルーツタルトBOX", "ストロベリータルトBOX"];
   var OCCASIONS = ["", "バースデー", "クリスマス", "その他"];
-  var DEFAULT_STAFF = ["オーナー", "お母さん", "楠田", "永山"];
+  var DEFAULT_STAFF = ["オーナー", "お母さん", "楠田", "永山", "小見", "山崎", "橋本", "木村"]; // 給与計算アプリに登録の在籍スタッフ（2026-10-03）
   var TIMES = (function () { var a = []; for (var m = 600; m <= 1170; m += 30) a.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0")); return a; })();
 
   var priceBase = null, refCakes = null;
