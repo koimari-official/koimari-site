@@ -2617,7 +2617,7 @@ function appendExtraFlags(item, obj, onUpdate) {
 const SPEC_OPTIONS = {
   tiers: [["1", "1段"], ["2", "2段"], ["3", "3段"]],
   size: [["4号(約12cm/3-4名)", "4号（約12cm）"], ["5号(約15cm/5-6名)", "5号（約15cm）"], ["6号(約18cm/7-8名)", "6号（約18cm）"], ["7号(約21cm/9-10名)", "7号（約21cm）"]],
-  cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ"].map((v) => [v, v]),
+  cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース"].map((v) => [v, v]),
   decoration: ["いちごのみ", "バラエティフルーツ"].map((v) => [v, v]),
   occasion: ["バースデー", "クリスマス"].map((v) => [v, v]),
   creamSub: ["生クリームあり", "生クリームなし"].map((v) => [v, v]),
@@ -2657,11 +2657,11 @@ function appendSpecEditor(item, r, onChange) {
   specWrap.className = "om-spec";
   const hint = document.createElement("div");
   hint.className = "om-hint";
-  hint.textContent = "このケーキを選んだお客様の予約フォームに、下の内容が最初から選ばれた状態で入ります（お客様はプルダウンの範囲で変更できます）。サイズとクリームの種類は必ず選んでください。";
+  hint.textContent = "このケーキを選んだお客様の予約フォームに、下の内容が最初から選ばれた状態で入ります（お客様はプルダウンの範囲で変更できます）。サイズとベースの種類は必ず選んでください。";
   specWrap.appendChild(hint);
   const grid = document.createElement("div");
   grid.className = "om-grid";
-  [["tiers", "段数"], ["size", "1段目（一番下）のサイズ"], ["cream", "クリームの種類"], ["creamSub", "タルトの生クリーム"], ["decoration", "飾り付け"], ["occasion", "ご利用シーン"]].forEach(([key, label]) => {
+  [["tiers", "段数"], ["size", "1段目（一番下）のサイズ"], ["cream", "ベースの種類"], ["creamSub", "タルトの生クリーム"], ["decoration", "飾り付け"], ["occasion", "ご利用シーン"]].forEach(([key, label]) => {
     const fbox = document.createElement("div");
     fbox.dataset.key = key;
     const lb = document.createElement("label");
@@ -2693,7 +2693,7 @@ function appendSpecEditor(item, r, onChange) {
     if (subBox) { subBox.style.display = TART_CREAMS.includes(cur.cream) ? "" : "none"; if (!TART_CREAMS.includes(cur.cream)) subBox.querySelector("select").value = ""; }
     customNote.style.display = mode === "custom" ? "" : "none";
     if (mode !== "standard") return;
-    if (!cur.size || !cur.cream) { status.className = "om-status om-status--warn"; status.textContent = "サイズとクリームの種類が未選択です。このままではお客様に確定金額を出せず「別途ご回答」になります。"; return; }
+    if (!cur.size || !cur.cream) { status.className = "om-status om-status--warn"; status.textContent = "サイズとベースの種類が未選択です。このままではお客様に確定金額を出せず「別途ご回答」になります。"; return; }
     let price = "";
     try {
       if (window.KoimariPriceHint) window.KoimariPriceHint.load().then((pr) => {
@@ -5879,7 +5879,7 @@ const cakeTypePricesRef = ref(fbDb, "koimariContent/cakeTypePrices");
 onValue(ref(fbDb, "koimariContent/costPublicPrices"), (snap) => { const v = snap.val() || {}; window.costPublicPrices = v.list || []; });
 const cakeCutContainerFeeRef = ref(fbDb, "koimariContent/cakeCutContainerFee");
 // member.htmlの種類別価格表（CakePricing.estimateのtypePrices）。種類名はフォームのクリームの種類の値と揃える。
-const CAKE_TYPE_PRICE_ROWS = ["フルーツタルトBOX","ストロベリータルトBOX","ミッシェルBOX","ガトーショコラBOX","ブルーベリーケーキ"];
+const CAKE_TYPE_PRICE_ROWS = ["フルーツタルトBOX","ストロベリータルトBOX","ミッシェルBOX","ガトーショコラBOX","ブルーベリーケーキ","ムース"]; // ムース：グランマニエBOX等（2026-10-03追加）
 const CAKE_TYPE_PRICE_SIZES = [4, 5, 6, 7];
 const cakeCreamToppingPriceRef = ref(fbDb, "koimariContent/cakeCreamToppingPrice");
 const cakeChocoCreamSurchargeRef = ref(fbDb, "koimariContent/cakeChocoCreamSurcharge");

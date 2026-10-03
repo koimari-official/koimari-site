@@ -208,6 +208,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> ムース</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ（お日にちをいただく場合があります）</label>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
@@ -978,6 +979,11 @@ function applyFormSpec(s) {
     setRadio("reserveTiers", String(s.tiers || 1));
     tierSpecs = (s.specs || []).map(x => ({ cream: x.cream, colors: (x.colors || []).slice() }));
     ensureTierSpecs();
+    // 2026-10-03 不具合修正：この後のサイズ設定で「フォーム内の変更」処理が走り、画面でチェック中のベース（初期値の生クリーム）で
+    // 記録が上書きされ、ギャラリーから来ても生クリーム以外のベース（ミッシェルBOX・ムース等）が選ばれていなかった。
+    // 先に画面のチェックも記録どおりに合わせておく。
+    activeTier = Math.min(s.activeTier || 0, tierSpecs.length - 1);
+    loadActiveSpec();
     // サイズ：一番下の段を先に決めると上の段の選択肢が確定する。
     const setSize = (i, v) => { const el = document.querySelector('.tier-size-select[data-tier="' + i + '"]'); if (el && !el.disabled && v) { el.value = v; el.dispatchEvent(new Event("change", { bubbles: true })); } };
     (s.sizes || []).forEach((v, i) => setSize(i, v));

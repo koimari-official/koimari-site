@@ -12,7 +12,7 @@
   var SIZE_FULL = { "4号": "4号(約12cm/3-4名)", "5号": "5号(約15cm/5-6名)", "6号": "6号(約18cm/7-8名)", "7号": "7号(約21cm/9-10名)" };
   var BOTTOM_SIZES = ["4号", "5号", "6号", "7号"];
   var UPPER_SIZES = ["3号", "4号", "5号", "セルクル", "カットケーキ"];
-  var CREAMS = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ"];
+  var CREAMS = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース"];
   var COLORS = ["黒", "グレー", "赤", "青", "紺", "黄色", "ピンク", "緑", "黄緑", "茶色", "水色"];
   var DECORATIONS = ["いちごのみ", "バラエティフルーツ"];
   var TARTS = ["フルーツタルトBOX", "ストロベリータルトBOX"];
@@ -255,7 +255,7 @@
         var n = e.tiers.length;
         html += '<div class="re-tier"><div class="re-tier__title">' + esc(n > 1 ? tierName(i, n) : "ケーキ") + "</div>" +
           field("サイズ", sel("reSize" + i, i === 0 ? BOTTOM_SIZES : UPPER_SIZES, t.size, function (o) { return o; })) +
-          (t.size === "セルクル" || t.size === "カットケーキ" ? "" : field("クリーム・種類", sel("reCream" + i, CREAMS, t.cream || "生クリーム", function (o) { return o; })) +
+          (t.size === "セルクル" || t.size === "カットケーキ" ? "" : field("ベースの種類", sel("reCream" + i, CREAMS, t.cream || "生クリーム", function (o) { return o; })) +
           (t.cream === "生クリーム" || !t.cream ? field("カラー（1段1色）", sel("reColor" + i, [""].concat(COLORS), t.color)) : "") +
           (i === 0 && TARTS.indexOf(t.cream) >= 0 ? field("タルトの生クリーム", sel("reCreamSub", ["生クリームあり", "生クリームなし"], e.creamSub || "生クリームあり", function (o) { return o; })) : "")) + "</div>";
       });
