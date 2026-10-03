@@ -327,6 +327,24 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
   .cal-n{font-size:17px}
   .cal-s,.cal-x,.cal-u{display:none}
 }
+
+/* クリスマスケーキ設定（2026-10-03） */
+.xm-box{background:#fff;border:1px solid var(--color-line);padding:14px 18px;margin-bottom:16px;display:flex;flex-direction:column;gap:10px}
+.xm-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:14px}
+.xm-row .input{width:auto}
+.xm-card{display:flex;gap:16px;background:#fff;border:1px solid var(--color-line);padding:14px;margin-bottom:12px}
+.xm-photo{flex:0 0 180px;display:flex;flex-direction:column;gap:8px;align-items:center}
+.xm-photo img{width:180px;height:180px;object-fit:contain;background:#faf7f2;border-radius:8px}
+.xm-photo span{width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#faf7f2;color:#a98554}
+.xm-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.xm-l{font-size:12.5px;color:var(--color-text-soft);margin-top:6px}
+.xm-sizes{display:flex;flex-direction:column;gap:6px}
+.xm-size{display:flex;align-items:center;gap:6px}
+.xm-size .xm-sz{width:120px}.xm-size .xm-pr{width:120px}
+.xm-del-size{border:1px solid #ddd;background:#fff;border-radius:50%;width:28px;height:28px;cursor:pointer}
+.xm-add-size{align-self:flex-start;margin-top:4px}
+.xm-foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px}
+@media(max-width:700px){.xm-card{flex-direction:column}.xm-photo{flex-basis:auto}}
 .move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
 .move-cat label{font-weight:700;color:#4a6f9c}
 .move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
@@ -492,6 +510,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="priceTable">料金表（単価）</button>
       <button class="tab" data-panel="cakeFlavors">ケーキの種類</button>
       <button class="tab" data-panel="holidays">営業日設定</button>
+
+      <button class="tab" data-panel="christmas">クリスマスケーキ</button>
 
       <span class="tab-group-label">販促・システム設定</span>
       <button class="tab" data-panel="i18n">英語翻訳</button>
@@ -1232,6 +1252,25 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     </section>
 
     <!-- ===== 料金表（単価）：2026-10-02オーナー指示。予約フォームの自動見積もりに使う単価を1ページで確認・変更する ===== -->
+
+    <!-- ===== クリスマスケーキ（2026-10-03） ===== -->
+    <section class="panel" id="panel-christmas">
+      <div class="panel__head"><h2 class="panel__title">クリスマスケーキ</h2><a href="christmas.html" target="_blank" class="btn btn--small btn--ghost">公開ページを見る ↗</a></div>
+      <p class="panel__desc">クリスマスケーキの写真・名前・サイズ・お値段と、ご予約の受付状態を設定します。<b>「受付中」にして保存した時点で</b>、クリスマスページの予約ボタンと、LINE予約フォームの「クリスマスケーキ」が表示されます。写真は元の画質のまま保存します。</p>
+      <div class="xm-box">
+        <div class="xm-row"><b>受付状態</b>
+          <label><input type="radio" name="xmStatus" value="preparing"> 準備中（ページは「近日受付開始」・予約はできない）</label>
+          <label><input type="radio" name="xmStatus" value="open"> 受付中</label>
+          <label><input type="radio" name="xmStatus" value="closed"> 受付終了</label>
+        </div>
+        <div class="xm-row"><b>お渡し期間</b><input type="date" id="xmFrom" class="input"> 〜 <input type="date" id="xmTo" class="input"><span class="small">ご予約は12月20日まで・店頭で前払い（これまでどおり）</span></div>
+      </div>
+      <div id="xmItems"></div>
+      <div style="position:sticky;bottom:0;background:var(--color-bg,#fff);padding:14px 0;border-top:1px solid var(--color-line);margin-top:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <button class="btn" id="xmSave">保存して反映</button><button class="btn btn--ghost btn--small" id="xmAdd">＋ ケーキを追加</button><span id="xmNote" class="small"></span>
+      </div>
+    </section>
+
     <section class="panel" id="panel-priceTable">
       <div class="panel__head"><h2 class="panel__title">料金表（単価）</h2></div>
       <p class="panel__desc">LINE予約フォームの自動見積もりに使っている<strong>現在の単価の一覧</strong>です（すべて税込）。数字を書き換えて「保存して反映」を押すと、予約フォームの見積もりに即時反映されます。書き換えた欄は黄色になり、保存前に変更内容を確認できます。</p>
@@ -4318,6 +4357,7 @@ function resCakeTitle(r) {
   const it = Array.isArray(r.items) && r.items[0] || {};
   if (it.category === "ロールケーキ") return "ロールケーキ" + (it.flavor ? "（" + it.flavor + "）" : "");
   if (it.category === "焼き菓子") return "焼き菓子・ギフト";
+  if (it.category === "カットケーキ") return "カットケーキ " + r.items.map((x) => x.flavor + "×" + (x.qty || 1)).join("、");
   return (r.creamType || it.flavor || "デコレーションケーキ") + (r.decoration ? "（" + r.decoration + "）" : "");
 }
 function resCakeSpecLine(r) {
@@ -4424,8 +4464,8 @@ function resDaySummary(rows) {
     if (!items.length) { cnt[resCakeTitle(r)] = (cnt[resCakeTitle(r)] || 0) + 1; return; }
     items.forEach((it, i) => {
       const base = (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? "" : (r.creamType || it.category || ""));
-      const k = (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
-      cnt[k] = (cnt[k] || 0) + 1;
+      const k = it.category === "カットケーキ" ? "カット " + it.flavor : (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
+      cnt[k] = (cnt[k] || 0) + (Number(it.qty) || 1);
     });
   });
   return Object.keys(cnt).sort().map((k) => k + "×" + cnt[k]);
@@ -6001,6 +6041,112 @@ window.firebaseLogin = function (email, password) {
 window.firebaseLogout = function () {
   return signOut(fbAuth);
 };
+
+
+/* ===== クリスマスケーキ（koimariContent/christmas、2026-10-03オーナー指示） =====
+   5種類のクリスマスケーキを、価格が決まる前から登録しておき、任意の日に「受付中」へ切り替えて受付を始める。
+   受付中にすると christmas.html の予約ボタンと、LINE予約フォーム（member.html）の「クリスマスケーキ」が出る。 */
+let xmData = null, xmBound = false;
+const XM_SIZES = ["4号", "5号", "6号", "7号"];
+function xmEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
+function xmRender() {
+  const wrap = document.getElementById("xmItems");
+  if (!wrap || !xmData) return;
+  document.querySelectorAll('input[name="xmStatus"]').forEach((r) => { r.checked = r.value === (xmData.status || "preparing"); });
+  document.getElementById("xmFrom").value = xmData.pickupFrom || "";
+  document.getElementById("xmTo").value = xmData.pickupTo || "";
+  wrap.innerHTML = (xmData.items || []).map((c, i) => '<div class="xm-card" data-i="' + i + '">' +
+    '<div class="xm-photo">' + (c.img ? '<img src="' + xmEsc(c.img) + '" alt="">' : '<span>写真なし</span>') + '<label class="btn btn--small btn--ghost">写真を変える<input type="file" accept="image/*" class="xm-file" hidden></label></div>' +
+    '<div class="xm-main">' +
+      '<label class="xm-l">ケーキの名前</label><input class="input xm-name" value="' + xmEsc(c.name) + '">' +
+      '<label class="xm-l">説明文（クリスマスページに表示）</label><textarea class="input xm-desc" rows="2">' + xmEsc(c.desc) + '</textarea>' +
+      '<label class="xm-l">サイズとお値段（税込・未定なら空欄）</label>' +
+      '<div class="xm-sizes">' + (c.sizes || []).map((s, j) => '<div class="xm-size" data-j="' + j + '"><input class="input xm-sz" list="xmSizeList" value="' + xmEsc(s.size) + '" placeholder="例：5号"><span>¥</span><input class="input xm-pr" inputmode="numeric" value="' + xmEsc(s.price || "") + '" placeholder="未定"><button type="button" class="xm-del-size" title="このサイズを消す">×</button></div>').join("") + '</div>' +
+      '<button type="button" class="btn btn--small btn--ghost xm-add-size">＋ サイズを追加</button>' +
+      '<div class="xm-foot"><label><input type="checkbox" class="xm-vis"' + (c.visible !== false ? " checked" : "") + '> 表示する</label>' +
+      '<button type="button" class="btn btn--small btn--ghost xm-up"' + (i === 0 ? " disabled" : "") + '>↑</button><button type="button" class="btn btn--small btn--ghost xm-down"' + (i === xmData.items.length - 1 ? " disabled" : "") + '>↓</button>' +
+      '<button type="button" class="btn btn--small btn--danger xm-del">このケーキを消す</button></div>' +
+    '</div></div>').join("") + '<datalist id="xmSizeList">' + XM_SIZES.map((s) => '<option value="' + s + '">').join("") + '</datalist>';
+}
+// 画面の入力内容を xmData に取り込む（描き直す前に必ず呼ぶ）
+function xmCollect() {
+  if (!xmData) return;
+  const st = document.querySelector('input[name="xmStatus"]:checked');
+  xmData.status = st ? st.value : "preparing";
+  xmData.pickupFrom = document.getElementById("xmFrom").value || "";
+  xmData.pickupTo = document.getElementById("xmTo").value || "";
+  document.querySelectorAll("#xmItems .xm-card").forEach((card) => {
+    const c = xmData.items[Number(card.dataset.i)];
+    if (!c) return;
+    c.name = card.querySelector(".xm-name").value.trim();
+    c.desc = card.querySelector(".xm-desc").value.trim();
+    c.visible = card.querySelector(".xm-vis").checked;
+    c.sizes = Array.from(card.querySelectorAll(".xm-size")).map((row) => ({ size: row.querySelector(".xm-sz").value.trim(), price: Number(String(row.querySelector(".xm-pr").value).replace(/[^0-9]/g, "")) || "" })).filter((s) => s.size);
+  });
+}
+function initXmasPanel() {
+  if (xmBound) return;
+  xmBound = true;
+  onValue(ref(fbDb, "koimariContent/christmas"), (snap) => {
+    if (xmData && document.getElementById("xmItems").dataset.dirty === "1") return; // 入力中は上書きしない
+    xmData = snap.val() || { status: "preparing", pickupFrom: "", pickupTo: "", items: [] };
+    if (!Array.isArray(xmData.items)) xmData.items = [];
+    xmRender();
+  });
+  const wrap = document.getElementById("xmItems");
+  const panel = document.getElementById("panel-christmas");
+  panel.addEventListener("input", () => { wrap.dataset.dirty = "1"; });
+  panel.addEventListener("change", () => { wrap.dataset.dirty = "1"; });
+  wrap.addEventListener("click", (e) => {
+    const card = e.target.closest(".xm-card");
+    if (!card) return;
+    const i = Number(card.dataset.i);
+    const act = (fn) => { xmCollect(); fn(); wrap.dataset.dirty = "1"; xmRender(); };
+    if (e.target.closest(".xm-add-size")) act(() => { xmData.items[i].sizes = (xmData.items[i].sizes || []).concat([{ size: "", price: "" }]); });
+    else if (e.target.closest(".xm-del-size")) { const j = Number(e.target.closest(".xm-size").dataset.j); act(() => { xmData.items[i].sizes.splice(j, 1); }); }
+    else if (e.target.closest(".xm-up")) act(() => { const a = xmData.items; [a[i - 1], a[i]] = [a[i], a[i - 1]]; });
+    else if (e.target.closest(".xm-down")) act(() => { const a = xmData.items; [a[i + 1], a[i]] = [a[i], a[i + 1]]; });
+    else if (e.target.closest(".xm-del")) { if (confirm("「" + (xmData.items[i].name || "このケーキ") + "」を消しますか？（保存するまで公開ページは変わりません）")) act(() => { xmData.items.splice(i, 1); }); }
+  });
+  wrap.addEventListener("change", async (e) => {
+    if (!e.target.classList.contains("xm-file") || !e.target.files[0]) return;
+    const file = e.target.files[0];
+    const i = Number(e.target.closest(".xm-card").dataset.i);
+    const note = document.getElementById("xmNote");
+    note.textContent = "写真をアップロード中…";
+    try {
+      // 画質を落とさないよう、選んだファイルをそのまま保存する（縮小・圧縮しない）
+      const path = "siteImages/christmas/" + Date.now() + "-" + file.name.replace(/[^\w.\-]/g, "_");
+      const r = storageRef(fbStorage, path);
+      await uploadBytes(r, file, { contentType: file.type || "image/jpeg", cacheControl: "public,max-age=31536000" });
+      const url = await getDownloadURL(r);
+      xmCollect(); xmData.items[i].img = url; wrap.dataset.dirty = "1"; xmRender();
+      note.textContent = "写真を入れ替えました。「保存して反映」を押すと公開されます";
+    } catch (err) { console.warn(err); note.textContent = "写真のアップロードに失敗しました"; }
+  });
+  document.getElementById("xmAdd").addEventListener("click", () => { xmCollect(); xmData.items.push({ name: "", desc: "", img: "", sizes: [{ size: "5号", price: "" }], visible: true }); wrap.dataset.dirty = "1"; xmRender(); });
+  document.getElementById("xmSave").addEventListener("click", async () => {
+    xmCollect();
+    const note = document.getElementById("xmNote");
+    const shown = xmData.items.filter((c) => c.visible !== false);
+    if (xmData.status === "open") {
+      const missing = shown.filter((c) => !c.img || !c.name || !(c.sizes || []).length || (c.sizes || []).some((s) => !(Number(s.price) > 0)));
+      if (!xmData.pickupFrom || !xmData.pickupTo) { alert("お渡し期間を入れてください"); return; }
+      if (missing.length) { alert("受付中にする前に、次のケーキの名前・写真・サイズ・お値段を入れてください：\n" + missing.map((c) => "・" + (c.name || "（名前なし）")).join("\n")); return; }
+    }
+    try {
+      await set(ref(fbDb, "koimariContent/christmas"), { ...xmData, updatedAt: new Date().toISOString() });
+      wrap.dataset.dirty = "";
+      note.textContent = "保存しました（" + ({ preparing: "準備中", open: "受付中", closed: "受付終了" }[xmData.status] || "") + "）";
+      if (xmData.status === "open" && confirm("トップページのお知らせバナーを「クリスマスケーキのご予約受付中」に切り替えますか？\n（いま出ているバナーの内容は置き換わります）")) {
+        const md = (ds) => { const m = String(ds).match(/^\d{4}-(\d{2})-(\d{2})$/); return m ? (+m[1]) + "/" + (+m[2]) : ""; };
+        await update(ref(fbDb, "siteConfig"), { eventBanner: { show: true, eventName: "クリスマス", label: "Christmas", text: "クリスマスケーキのご予約受付中（" + md(xmData.pickupFrom) + "〜" + md(xmData.pickupTo) + "お渡し）", link: "christmas.html", linkText: "ケーキを見る →", until: xmData.pickupTo } });
+        note.textContent += "・トップのバナーも切り替えました";
+      }
+    } catch (err) { console.warn(err); note.textContent = "保存に失敗しました"; }
+  });
+}
+document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest('.tab[data-panel="christmas"]')) initXmasPanel(); });
 
 /* ===== 季節イベント設定（siteConfig/eventBanner） ===== */
 const eventBannerConfigRef = ref(fbDb, "siteConfig/eventBanner");

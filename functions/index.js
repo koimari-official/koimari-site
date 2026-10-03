@@ -179,6 +179,8 @@ function occasionCategoryName(baseCategory, occasion, occasionOther) {
 function productLabel(data) {
   const item = data.items && data.items[0];
   if (!item) return data.type || "ご予約商品";
+  // カットケーキ単体のご予約（2026-10-03）：「カットケーキ（チーズケーキ×2、ショート×1）」
+  if (item.category === "カットケーキ") return "カットケーキ（" + data.items.map((i) => (i.flavor || "") + "×" + (i.qty || 1)).join("、") + "）";
   const isRoll = item.category === "ロールケーキ";
   const occasionName = occasionCategoryName(item.category, data.occasion, data.occasionOther);
   let base;
