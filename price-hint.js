@@ -90,7 +90,8 @@
     if (Number(spec.tiers) > 1) return [];
     var custom = orderModeOf(item) === "custom";
     var cream = custom ? "" : creamOf(item, prices);
-    return ["4号", "5号", "6号", "7号"].map(function (size) {
+    var allowed = (cream && root.CakePricing.SPEC.baseSizes && root.CakePricing.SPEC.baseSizes[cream]) || ["4号", "5号", "6号", "7号"];
+    return allowed.map(function (size) {
       var price = 0;
       if (cream && root.CakePricing.estimate) {
         var est = root.CakePricing.estimate({ tiers: [size], creamType: cream, tierSpecs: [{ cream: cream }], decoration: spec.decoration || "", includedDecoration: spec.decoration || "", occasion: spec.occasion || "" },
@@ -100,5 +101,17 @@
       return { size: size, cm: (S[size] || {}).cm || "", serves: (S[size] || {}).serves || "", price: price, custom: custom };
     });
   }
-  root.KoimariPriceHint = { orderModeOf: orderModeOf, sizePriceRows: sizePriceRows, load: load, sizeOf: sizeOf, sizeLabel: sizeLabel, descBody: descBody, priceText: priceText };
+  // フルオーダーのケーキの「目安」（2026-10-03オーナー指示：ガトーショコラBOXはフルオーダーのまま、目安として5号5,000円を出す）。
+  // 管理画面の「サイズ・ベースの種類」（無ければ説明文の【5号】・商品名）から、料金表の価格を出す。例：「5号 ¥5,000〜」。出せなければ空文字
+  function guideText(item, prices) {
+    if (!item || !prices || !root.CakePricing || !root.CakePricing.estimate) return "";
+    var spec = item.spec || {};
+    var size = (spec.size ? String(spec.size).split("(")[0] : "") || sizeOf(item);
+    var cream = spec.cream || creamOf(item, prices);
+    if (!size || !cream || Number(spec.tiers) > 1) return "";
+    var est = root.CakePricing.estimate({ tiers: [size], creamType: cream, tierSpecs: [{ cream: cream }], decoration: "", includedDecoration: "", occasion: "" },
+      { sizePrices: prices.sizePrices, typePrices: prices.typePrices, chocoCream: prices.choco || undefined });
+    return est && !est.needsConsult && est.subtotal ? size + " " + yen(est.subtotal) + "〜" : "";
+  }
+  root.KoimariPriceHint = { orderModeOf: orderModeOf, sizePriceRows: sizePriceRows, guideText: guideText, load: load, sizeOf: sizeOf, sizeLabel: sizeLabel, descBody: descBody, priceText: priceText };
 })(typeof window !== "undefined" ? window : this);

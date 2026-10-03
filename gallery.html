@@ -569,7 +569,7 @@ function fillCardPrices(){
     document.querySelectorAll("[data-price-for]").forEach(el => {
       const [type, idx] = el.dataset.priceFor.split(":");
       const item = (SRC[type] || [])[Number(idx)];
-      const t = item ? window.KoimariPriceHint.priceText(item, type, pr) : "";
+      const t = item ? (window.KoimariPriceHint.priceText(item, type, pr) || (window.KoimariPriceHint.orderModeOf(item) === "custom" && window.KoimariPriceHint.guideText ? (window.KoimariPriceHint.guideText(item, pr) ? "目安 " + window.KoimariPriceHint.guideText(item, pr) : "") : "")) : "";
       el.innerHTML = t ? escape(t) + "<small>（税込）</small>" : "";
     });
   });

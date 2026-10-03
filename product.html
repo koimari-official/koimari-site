@@ -176,6 +176,8 @@ main.pd{max-width:1120px;padding:20px 24px 60px}
 .pd-badge--popular{background:#b03b48;color:#fff}
 .pd-no{font-family:var(--font-sans);font-size:19px;font-weight:700;color:var(--color-accent-dark);letter-spacing:.04em;align-self:center;margin-left:4px}
 .pd-badge--custom{background:#c9a96e;color:#fff}
+.pd-price__guide{display:block;font-size:20px;font-weight:700;color:#8a3a2a;margin-top:4px;font-family:var(--font-sans)}
+.pd-price__guide small{font-size:13px;font-weight:500;color:var(--color-text-soft)}
 .pd-price__custom{font-family:var(--font-mincho);font-size:24px;color:#4a3a2a}
 .pd-badge--seasonal{background:#f5d6a8;color:#4a3a2a}
 .pd-en:empty{display:none}
@@ -446,7 +448,7 @@ function renderProductPage(){
       const sizeMatch = String(item.desc || '').match(/^【([^】]+)】/);
       window.KoimariDraft.start({
         name: plainName, productType: productType, idx: productIdx,
-        img: item.img, price: item.price || '', size: sizeMatch ? sizeMatch[1] : '',
+        img: item.img, price: item.price || (currentGuide ? '目安 ' + currentGuide : ''), size: sizeMatch ? sizeMatch[1] : '',
         spec: window.KoimariDraft.buildSpec(item.spec),
         orderMode: window.KoimariPriceHint ? window.KoimariPriceHint.orderModeOf(item) : '',
         no: productType === 'decorationCake' ? Number(item.no) || 0 : 0
@@ -497,7 +499,10 @@ function renderInfo(item, plainName, config) {
   document.getElementById('pdChips').innerHTML = size ? '<span class="pd-chip">写真のサイズ：' + esc(PH.sizeLabel(size)) + '</span>' : '';
   const priceEl = document.getElementById('pdPrice');
   priceEl.innerHTML = '';
-  if (isCustom) priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__note">写真のケーキをもとに、パティシエがお見積もり・納期をご回答します</span>';
+  if (isCustom) {
+    priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__note">写真のケーキをもとに、パティシエがお見積もり・納期をご回答します</span>';
+    if (PH) PH.load().then(pr => { const g = PH.guideText(item, pr); currentGuide = g; if (g) priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__guide">目安：' + esc(g) + '<small>（税込）</small></span><span class="pd-price__note">写真のケーキをもとに、パティシエがお見積もり・納期をご回答します</span>'; }).catch(() => {});
+  }
   priceHintFor(item, productType).then(t => {
     if (!t) return;
     const isHint = !(item.price && /[1-9]/.test(String(item.price)));
@@ -527,6 +532,7 @@ function renderSizeTable(item, photoSize) {
     const rows = window.KoimariPriceHint.sizePriceRows(item, productType, pr);
     if (!rows.length) return;
     const custom = rows[0].custom;
+    if (rows.length === 1) { const n = document.querySelector('#pdPrice .pd-price__note'); if (n) n.textContent = 'このケーキは' + rows[0].size + 'のみのご用意です'; }
     box.innerHTML = '<table class="pd-size-table"><thead><tr><th>サイズ</th><th>直径</th><th>人数の目安</th>' + (custom ? '' : '<th>お値段（税込）</th>') + '</tr></thead><tbody>' +
       rows.map(r => '<tr' + (r.size === photoSize ? ' class="is-photo"' : '') + '><td><b>' + r.size + '</b>' + (r.size === photoSize ? '<span class="pd-size-tag">写真のサイズ</span>' : '') + '</td><td>' + esc(r.cm) + '</td><td>' + esc(r.serves) + '</td>' +
         (custom ? '' : '<td class="pd-size-price">' + (r.price ? '¥' + Number(r.price).toLocaleString() : '<span class="pd-size-special">特殊仕様<br>（お電話で確認）</span>') + '</td>') + '</tr>').join('') + '</tbody></table>' +
@@ -534,6 +540,7 @@ function renderSizeTable(item, photoSize) {
         : '<p class="pd-included">ろうそく5本（1袋）とメッセージプレート1枚は、お値段に含まれています。</p>');
   });
 }
+var currentGuide = ''; // フルオーダーの目安（例：5号 ¥5,000〜）。予約フォームへ引き継ぐ
 function setupSticky(item) {
   const bar = document.getElementById('pdSticky');
   const main = document.querySelector('#productReserve button');

@@ -249,6 +249,87 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .pt-yen input{width:110px;padding:7px 9px;font-size:14px;text-align:right;}
 .pt-matrix .pt-yen input{width:86px;}
 .pt-special{background:#f3f0ec!important;color:#9a8a78!important}
+
+/* 予約一覧：カード・カレンダー表示（2026-10-03） */
+.res-viewbar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.res-viewbar .seg{display:inline-flex;border:1px solid var(--color-line,#e5d9c6);border-radius:999px;overflow:hidden;background:#fff}
+.res-viewbar .seg button{white-space:nowrap;border:0;background:none;padding:9px 16px;font-size:14px;font-weight:700;color:#6b5a48;cursor:pointer}
+.res-viewbar .seg button.on{background:#4a3a2a;color:#fff}
+.res-viewbar .seg--sub button{padding:7px 14px;font-size:13px}
+.rc-day{margin:0 0 22px}
+.rc-day__head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;font-size:19px;margin:0 0 10px;padding:8px 14px;background:#f3ece1;border-radius:10px;font-family:var(--font-sans,sans-serif)}
+.rc-day__head b{font-size:17px;color:#8a3a2a}
+.rc-day__head small{font-size:13px;color:#6b5a48;font-weight:500}
+.rc-day__head.is-today{background:#fff3cf}
+.rc{display:flex;gap:14px;background:#fff;border:1px solid #e8dccb;border-radius:12px;padding:12px;margin-bottom:10px}
+.rc--alert{border-color:#e3a2aa;box-shadow:0 0 0 2px #fbeaec inset}
+.rc--cancel{opacity:.5}
+.rc-photo{flex:0 0 96px;width:96px;height:96px;border:0;padding:0;border-radius:10px;overflow:hidden;background:#f3ece1;cursor:pointer}
+.rc-photo img{width:100%;height:100%;object-fit:cover;display:block}
+.rc-photo .res-open__noimg{display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:12px;color:#a98554}
+.rc-body{flex:1;min-width:0}
+.rc-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.rc-time{font-size:20px;font-weight:800;color:#4a3a2a;font-family:var(--font-sans,sans-serif)}
+.rc-no{font-family:monospace;font-weight:700;color:#6b5a48}
+.rc-tag{font-size:11.5px;font-weight:700;border-radius:4px;padding:2px 7px}
+.rc-tag--xmas{background:#e9f6ee;color:#0b7a37;border:1px solid #9ad9b0}
+.rc-tag--line{color:#06962c;border:1px solid #06962c}
+.rc-tag--repeat{background:#fff3cf;color:#8a5a00;border:1px solid #e8c36a}
+.rc-status{margin-left:auto;font-size:13px;font-weight:700;padding:4px 6px;border:1px solid #ddd;border-radius:6px}
+.rc-cake{font-size:18px;font-weight:800;color:#2f241a;margin-top:4px;line-height:1.45}
+.rc-spec{font-size:15px;color:#4a3a2a;margin-top:2px}
+.rc-rev{margin-left:8px;font-size:12px;color:#4a6f9c;font-weight:700}
+.rc-extra{font-size:13.5px;color:#6b5a48;margin-top:2px}
+.rc-who{font-size:14.5px;margin-top:6px}
+.rc-who a{color:#0b7a37;font-weight:700}
+.rc-amount{font-weight:700;color:#5d8a4e}
+.rc-amount--fixed{color:#8a3a2a}
+.rc-amount--quote{color:#a98554}
+.rc-warn{margin-top:6px;font-size:13.5px;font-weight:700;color:#b03b48;background:#fbeaec;border-radius:6px;padding:4px 8px}
+.rc-checks{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.rc-checks label{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;border:1px solid #ddd;border-radius:999px;padding:5px 11px;cursor:pointer;color:#6b5a48;background:#faf7f2}
+.rc-checks label.on{background:#e9f6ee;border-color:#9ad9b0;color:#0b5a28}
+.rc-checks label.ng{background:#fbeaec;border-color:#e3a2aa;color:#b03b48}
+.rc-checks input{width:16px;height:16px}
+.rc-open{margin-left:auto;font-size:14px;font-weight:700;border:1px solid var(--color-accent,#c9a96e);background:#fff;color:var(--color-accent-dark,#a88a52);border-radius:999px;padding:7px 16px;cursor:pointer}
+.rc-more{margin-top:8px;font-size:13px}
+.rc-more summary{cursor:pointer;color:#6b5a48}
+.rc-memo{width:100%;margin-top:6px;font-size:13px;padding:6px;border:1px solid #ddd;border-radius:6px}
+.rc-tpl{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.cal-nav{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.cal-nav .btn{white-space:nowrap;width:auto;min-width:0;flex:0 0 auto;writing-mode:horizontal-tb}
+.cal-nav b{font-size:20px}
+.cal-nav b span{color:#8a3a2a}
+.cal-xbtn{background:#0b7a37!important;border-color:#0b7a37!important;color:#fff!important}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.cal-w{text-align:center;font-size:13px;font-weight:700;color:#6b5a48;padding:4px 0}
+.cal-w.is-sun,.cal-cell.is-sun .cal-d{color:#b03b48}
+.cal-w.is-sat,.cal-cell.is-sat .cal-d{color:#4a6f9c}
+.cal-cell{min-height:92px;border:1px solid #e8dccb;border-radius:8px;background:#fff;padding:5px 6px;text-align:left;display:flex;flex-direction:column;gap:2px;cursor:pointer;font:inherit}
+.cal-cell--blank{background:none;border:0;cursor:default}
+.cal-cell.lv1{background:#fbf6ec}.cal-cell.lv2{background:#f6e7c9}.cal-cell.lv3{background:#f0d29a}.cal-cell.lv4{background:#e7b25c}
+.cal-cell.is-today{outline:2px solid #4a3a2a}
+.cal-cell.is-sel{outline:3px solid #0b7a37}
+.cal-d{font-size:13px;font-weight:700}
+.cal-n{font-size:22px;font-weight:800;color:#4a3a2a;line-height:1}
+.cal-n small{font-size:11px;margin-left:1px}
+.cal-x{font-size:10.5px;font-weight:700;color:#0b7a37}
+.cal-u{font-size:10.5px;font-weight:700;color:#b03b48}
+.cal-s{font-size:10.5px;color:#6b5a48;line-height:1.35;overflow:hidden}
+.cal-help{margin:8px 0 16px}
+@media(max-width:700px){
+  .rc{padding:10px;gap:10px}
+  .rc-photo{flex-basis:72px;width:72px;height:72px}
+  .rc-cake{font-size:16.5px}
+  .rc-status{margin-left:0}
+  .rc-open{margin-left:0}
+  .cal-cell{min-height:64px;padding:3px}
+  .cal-n{font-size:17px}
+  .cal-s,.cal-x,.cal-u{display:none}
+}
+.move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
+.move-cat label{font-weight:700;color:#4a6f9c}
+.move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
 .pt-synced{background:#eaf7ee!important;border-color:#7cc296!important;color:#0b5a28!important}
 .pt-changed{background:#fff6c7!important;border-color:#e0b100!important;}
 </style>
@@ -585,6 +666,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div id="trashAreaRes" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
       <div class="confirm-call-warning" id="confirmCallWarning">⚠️ <span id="confirmCallWarningText"></span></div>
       <div class="res-search"><input type="search" id="resSearch" class="input" placeholder="予約番号・お名前・ふりがな・電話番号で検索（例：142／山田／09012345678）" oninput="renderReservations()"><span id="resSearchCount" class="small"></span></div>
+      <div class="res-viewbar" id="resViewBar"></div>
       <div id="reservationsArea"></div>
     </section>
 
@@ -2268,7 +2350,30 @@ function galleryDisplayOrder() {
   });
   return out;
 }
+// ギャラリーの商品を別のカテゴリーへ移す（2026-10-03オーナー指示：期間限定のケーキをカットケーキへ等）
+const MOVE_CATEGORY_LABELS = { decorationCakes: "デコレーションケーキ", cutcakes: "カットケーキ", rollcakes: "ロールケーキ", baked: "焼き菓子", gift: "ギフト" };
+function appendMoveCategory(item, arr, i, catKey) {
+  const row = document.createElement("div");
+  row.className = "move-cat";
+  row.innerHTML = '<label>カテゴリーを移動</label><select><option value="">（今は「' + MOVE_CATEGORY_LABELS[catKey] + '」）</option>' + Object.keys(MOVE_CATEGORY_LABELS).filter((k) => k !== catKey).map((k) => '<option value="' + k + '">「' + MOVE_CATEGORY_LABELS[k] + '」へ移す</option>').join("") + "</select>";
+  row.querySelector("select").addEventListener("change", (e) => {
+    const to = e.target.value;
+    if (!to) return;
+    const it = arr[i];
+    if (!confirm("「" + String((it && it.name) || "この商品").replace(/<[^>]*>/g, "") + "」を「" + MOVE_CATEGORY_LABELS[to] + "」へ移します。\n（季節限定・おすすめの印はそのまま引き継ぎます。画面下の「変更を保存」で公開ページに反映されます）")) { e.target.value = ""; return; }
+    if (!Array.isArray(workingData[to])) workingData[to] = [];
+    if (to !== "decorationCakes") delete it.no; // デコレーションケーキの番号（No.D）は移動先では使わない
+    arr.splice(i, 1);
+    workingData[to].push(it);
+    ({ decorationCakes: renderDecorationCakes, cutcakes: renderCutcakes, rollcakes: renderRollcakes, baked: renderBaked, gift: renderGift })[catKey]();
+    ({ decorationCakes: renderDecorationCakes, cutcakes: renderCutcakes, rollcakes: renderRollcakes, baked: renderBaked, gift: renderGift })[to]();
+    updateSaveBar();
+    showToast("「" + MOVE_CATEGORY_LABELS[to] + "」の一番下へ移しました。「変更を保存」を押すと反映されます");
+  });
+  item.appendChild(row);
+}
 function appendReorderControls(item, arr, i, onChange, catKey) {
+  if (MOVE_CATEGORY_LABELS[catKey]) appendMoveCategory(item, arr, i, catKey);
   if (catKey) {
     const it = arr[i] || {};
     const pos = galleryDisplayOrder().findIndex((o) => o.k === catKey && o.idx === i);
@@ -2622,7 +2727,7 @@ function appendExtraFlags(item, obj, onUpdate) {
 const SPEC_OPTIONS = {
   tiers: [["1", "1段"], ["2", "2段"], ["3", "3段"]],
   size: [["4号(約12cm/3-4名)", "4号（約12cm）"], ["5号(約15cm/5-6名)", "5号（約15cm）"], ["6号(約18cm/7-8名)", "6号（約18cm）"], ["7号(約21cm/9-10名)", "7号（約21cm）"]],
-  cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース"].map((v) => [v, v]),
+  cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース", "モンブラン"].map((v) => [v, v]),
   decoration: ["いちごのみ", "バラエティフルーツ"].map((v) => [v, v]),
   occasion: ["バースデー", "クリスマス"].map((v) => [v, v]),
   creamSub: ["生クリームあり", "生クリームなし"].map((v) => [v, v]),
@@ -2689,11 +2794,13 @@ function appendSpecEditor(item, r, onChange) {
   box.appendChild(specWrap);
   const customNote = document.createElement("div");
   customNote.className = "om-hint";
-  customNote.textContent = "フルオーダーのケーキは、ギャラリーでは「フルオーダー」と表示し、価格の目安は出しません。お客様が予約すると「お見積もり・納期は別途ご回答」とご案内し、スタッフ通知にも表示されます。";
+  customNote.textContent = "フルオーダーのケーキは、ギャラリーでは「フルオーダー」と表示します（上でサイズ・ベースを選ぶと目安の金額も表示）。お客様が予約すると「お見積もり・納期は別途ご回答」とご案内し、スタッフ通知にも表示されます。";
   box.appendChild(customNote);
   function refresh() {
     const mode = orderModeOf(r);
-    specWrap.style.display = mode === "standard" ? "" : "none";
+    // フルオーダーでも「サイズ・ベースの種類」を選んでおくと、ギャラリー・商品ページ・予約に「目安：5号 ¥5,000〜」を出す（2026-10-03）
+    specWrap.style.display = "";
+    hint.textContent = mode === "standard" ? "このケーキを選んだお客様の予約フォームに、下の内容が最初から選ばれた状態で入ります（お客様はプルダウンの範囲で変更できます）。サイズとベースの種類は必ず選んでください。" : "フルオーダーでも、サイズとベースの種類を選んでおくと「目安：5号 ¥5,000〜（税込）」のように料金表の金額を目安として表示します（お見積もりは別途ご回答のまま）。";
     const subBox = grid.querySelector('[data-key="creamSub"]');
     if (subBox) { subBox.style.display = TART_CREAMS.includes(cur.cream) ? "" : "none"; if (!TART_CREAMS.includes(cur.cream)) subBox.querySelector("select").value = ""; }
     customNote.style.display = mode === "custom" ? "" : "none";
@@ -4183,7 +4290,241 @@ function updateResConfirmed(idx, checked) {
 }
 // 管理画面を開きっぱなしにしていても「未確認が3時間経過」の状態を検知できるよう、定期的にバッジを再計算する
 setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
+
+// ===== 予約一覧の見やすい表示（2026-10-03オーナー指示）=====
+// 「どんなケーキの予約が入っているか」を一目で見られるカード表示（お引き取り日ごと）と、
+// 何日に何件入っているかを見るカレンダー表示を追加。従来の表は「表」で残す。表示の切替はこの端末だけに記憶する。
+let resView = (() => { try { return localStorage.getItem("koimari_res_view") || "card"; } catch (e) { return "card"; } })();
+let resRange = "upcoming"; // upcoming＝今日以降／all＝すべて／past＝過去
+let resCalMonth = "";      // "2026-12"
+let resCalDay = "";        // カレンダーで選んだ日 "2026-12-24"
+const RES_WEEK = ["日", "月", "火", "水", "木", "金", "土"];
+function setResView(v) { resView = v; try { localStorage.setItem("koimari_res_view", v); } catch (e) {} renderReservations(); }
+function setResRange(v) { resRange = v; renderReservations(); }
+function resPickupDate(r) { return String(r.finalPickupDate || r.pickupDate || ""); }
+function resPickupTime(r) { return String(r.finalPickupTime || r.pickupTime || ""); }
+function resTodayStr() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function resDateLabel(ds) {
+  const m = String(ds).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return ds || "日付未定";
+  const d = new Date(+m[1], +m[2] - 1, +m[3]);
+  return (+m[2]) + "月" + (+m[3]) + "日（" + RES_WEEK[d.getDay()] + "）";
+}
+function resSizeKey(s) { const m = String(s || "").match(/([3-7])号/); return m ? m[1] + "号" : String(s || "").split("(")[0]; }
+// ケーキの中身を1〜2行で（例：「No.D10 生チョコクリーム（いちご）」「5号・生チョコクリーム・いちごのみ・バースデー」）
+function resCakeTitle(r) {
+  if (r.galleryPick && r.galleryPick.name) return (r.galleryPick.no ? cakeNoLabel(r.galleryPick.no) + " " : "") + r.galleryPick.name;
+  if (r.category === "kidsManager") return "キッズ店長体験";
+  const it = Array.isArray(r.items) && r.items[0] || {};
+  if (it.category === "ロールケーキ") return "ロールケーキ" + (it.flavor ? "（" + it.flavor + "）" : "");
+  if (it.category === "焼き菓子") return "焼き菓子・ギフト";
+  return (r.creamType || it.flavor || "デコレーションケーキ") + (r.decoration ? "（" + r.decoration + "）" : "");
+}
+function resCakeSpecLine(r) {
+  const items = Array.isArray(r.items) ? r.items : [];
+  const sizes = items.map((it) => resSizeKey(it.size)).filter(Boolean);
+  const parts = [];
+  if (sizes.length) parts.push(sizes.length > 1 ? sizes.length + "段（" + sizes.join("＋") + "）" : sizes[0]);
+  if (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1) parts.push(r.tierSpecs.map((t) => t.cream).filter(Boolean).join("／"));
+  else if (r.creamType) parts.push(r.creamType + (r.creamTypeSub ? "（" + r.creamTypeSub + "）" : ""));
+  if (r.decoration) parts.push(r.decoration);
+  if (r.occasion) parts.push(r.occasion === "その他" && r.occasionOther ? r.occasionOther : r.occasion);
+  return parts.join("・");
+}
+function resExtrasLine(r) {
+  const out = [];
+  const msg = (Array.isArray(r.items) && r.items[0] && r.items[0].message) || "";
+  if (msg) out.push("プレート「" + msg + "」");
+  if (r.candleNeeded) out.push("ろうそく" + (r.candleType ? "（" + r.candleType + "）" : ""));
+  if (r.colorCream) out.push("色クリーム" + r.colorCream.count + "色");
+  if (r.strawberryAdd) out.push("いちご増量");
+  if (r.creamTopping) out.push("生クリームたっぷり");
+  if (Array.isArray(r.addOns) && r.addOns.length) out.push("追加：" + r.addOns.map((a) => a.name || a).join("・"));
+  return out.join("　");
+}
+function resAmountHtml(r) {
+  if (r.finalPrice) return '<span class="rc-amount rc-amount--fixed">確定 ¥' + Number(r.finalPrice).toLocaleString() + "</span>";
+  if (r.quoteSeparately) return '<span class="rc-amount rc-amount--quote">お見積もり別途' + (r.galleryPick && /^目安/.test(r.galleryPick.price || "") ? "（" + escapeHtml(r.galleryPick.price) + "）" : "") + "</span>";
+  if (r.priceNeedsConsult) return '<span class="rc-amount rc-amount--quote">特殊仕様（電話で確認）</span>';
+  if (r.subtotal) return '<span class="rc-amount">' + (r.priceIsFixed ? "案内済 ¥" + Number(r.subtotal).toLocaleString() : "目安 ¥" + Number(r.subtotal).toLocaleString() + "〜") + "</span>";
+  return "";
+}
+// 同じ電話番号のご予約が何回目か（リピーターのお客様との会話のきっかけに）
+function resVisitCounts(list) {
+  const byTel = {};
+  list.forEach((r) => { const t = String(r.tel || "").replace(/\D/g, ""); if (t.length >= 10 && r.status !== "キャンセル") (byTel[t] = byTel[t] || []).push(r); });
+  return byTel;
+}
+function resFiltered(list) {
+  const unpaidOnly = (document.getElementById("resUnpaidOnly") || {}).checked;
+  const q = ((document.getElementById("resSearch") || {}).value || "").trim();
+  const today = resTodayStr();
+  const out = [];
+  list.forEach((r, idx) => {
+    if (!r) return;
+    if (unpaidOnly && r.paymentDone) return;
+    if (q && !reservationMatches(r, q)) return;
+    if (!q && resView === "card") {
+      const d = resPickupDate(r);
+      if (resRange === "upcoming" && d && d < today) return;
+      if (resRange === "past" && (!d || d >= today)) return;
+    }
+    out.push({ r, idx });
+  });
+  return out;
+}
+function resCardHtml(r, idx, byTel) {
+  const status = r.status || "受付済";
+  const overdue = isConfirmCallOverdue(r), payOverdue = isChristmasPaymentOverdue(r);
+  const tel = String(r.tel || "").replace(/\D/g, "");
+  const visits = (byTel[tel] || []).slice().sort((a, b) => String(a.submittedAt).localeCompare(String(b.submittedAt)));
+  const nth = visits.indexOf(r) + 1;
+  const allergy = (r.allergy || []).filter((a) => a && a !== "なし");
+  const extras = resExtrasLine(r);
+  return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + '">' +
+    '<button type="button" class="rc-photo" onclick="openReservationEditor(' + idx + ')" title="詳細・変更">' + reservationThumbHtml(r) + "</button>" +
+    '<div class="rc-body">' +
+      '<div class="rc-top"><span class="rc-time">' + escapeHtml(resPickupTime(r) || "時間未定") + "</span>" +
+        (r.reservationNo ? '<span class="rc-no">' + formatReservationNo(r.reservationNo) + '</span>' : '') +
+        (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
+        (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : "") +
+        (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
+        '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
+      '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + "</div>" +
+      '<div class="rc-spec">' + escapeHtml(resCakeSpecLine(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
+      (extras ? '<div class="rc-extra">' + escapeHtml(extras) + "</div>" : "") +
+      '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "　" + resAmountHtml(r) + "</div>" +
+      (allergy.length || (r.note && hasMeaningfulNoteAdmin(r.note)) || r.receiptNeeded ? '<div class="rc-warn">' + (allergy.length ? "アレルギー：" + escapeHtml(allergy.join("・")) + "　" : "") + (r.note && hasMeaningfulNoteAdmin(r.note) ? "備考：" + escapeHtml(r.note) + "　" : "") + (r.receiptNeeded ? "領収書（" + escapeHtml(r.receiptName || "") + "）" : "") + "</div>" : "") +
+      '<div class="rc-checks">' +
+        '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">確認電話" + (overdue ? "（未・3時間経過）" : "") + "</label>" +
+        '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">予約確定</label>" +
+        '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払い" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + "</label>" +
+        '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
+      "</div>" +
+      '<details class="rc-more"><summary>メモ・連絡文・受付日時</summary>' +
+        '<div class="small">受付：' + fmtDate(r.submittedAt) + (r.email ? "　" + escapeHtml(r.email) : "") + (r.birthday ? "　生年月日：" + escapeHtml(r.birthday) : "") + "</div>" +
+        reservationPriceHtml(r) +
+        '<textarea rows="2" class="rc-memo" placeholder="スタッフメモ" onchange="updateResNotes(' + idx + ',this.value)">' + escapeHtml(r.notes || "") + "</textarea>" +
+        "<div class=\"rc-tpl\"><button class=\"btn btn--small\" onclick='copyTemplate(\"confirm\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>確認文</button>" +
+        "<button class=\"btn btn--small btn--ghost\" onclick='copyTemplate(\"complete\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>完了文</button>" +
+        "<button class=\"btn btn--small btn--danger\" onclick='copyTemplate(\"cancel\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>キャンセル文</button></div>" +
+      "</details>" +
+    "</div></article>";
+}
+function hasMeaningfulNoteAdmin(note) {
+  const t = String(note || "").replace(/[\s　。．.、,！!]/g, "");
+  return !!t && !/^(なし|無し|ナシ|特になし|特に無し|とくになし|ありません|ないです|ない|無|なしです|特にありません|-|ー|―|‐)$/.test(t);
+}
+// その日の製造の目安（ベース×号数ごとの台数）。キャンセルは数えない
+function resDaySummary(rows) {
+  const cnt = {};
+  rows.forEach(({ r }) => {
+    if (r.status === "キャンセル") return;
+    const items = Array.isArray(r.items) ? r.items : [];
+    if (!items.length) { cnt[resCakeTitle(r)] = (cnt[resCakeTitle(r)] || 0) + 1; return; }
+    items.forEach((it, i) => {
+      const base = (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? "" : (r.creamType || it.category || ""));
+      const k = (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
+      cnt[k] = (cnt[k] || 0) + 1;
+    });
+  });
+  return Object.keys(cnt).sort().map((k) => k + "×" + cnt[k]);
+}
+function renderReservationCards(area, fullList) {
+  const rows = resFiltered(fullList);
+  const byTel = resVisitCounts(fullList);
+  const today = resTodayStr();
+  rows.sort((a, b) => {
+    const da = resPickupDate(a.r) || "9999", db = resPickupDate(b.r) || "9999";
+    if (da !== db) return resRange === "past" ? db.localeCompare(da) : da.localeCompare(db);
+    return resPickupTime(a.r).localeCompare(resPickupTime(b.r));
+  });
+  const groups = [];
+  rows.forEach((x) => { const d = resPickupDate(x.r); const g = groups[groups.length - 1]; if (g && g.d === d) g.rows.push(x); else groups.push({ d, rows: [x] }); });
+  let html = "";
+  if (!groups.length) html = '<div class="empty">' + (resRange === "upcoming" ? "今日以降のご予約はありません" : "該当するご予約はありません") + "</div>";
+  groups.forEach((g) => {
+    const live = g.rows.filter((x) => x.r.status !== "キャンセル").length;
+    html += '<section class="rc-day"><h3 class="rc-day__head' + (g.d === today ? " is-today" : "") + '"><span>' + (g.d === today ? "今日　" : "") + resDateLabel(g.d) + "</span><b>" + live + "件</b><small>" + escapeHtml(resDaySummary(g.rows).join("　")) + "</small></h3>" +
+      g.rows.map(({ r, idx }) => resCardHtml(r, idx, byTel)).join("") + "</section>";
+  });
+  area.innerHTML = html;
+  return rows.length;
+}
+function resCalShift(n) {
+  const [y, m] = (resCalMonth || resTodayStr().slice(0, 7)).split("-").map(Number);
+  const d = new Date(y, m - 1 + n, 1);
+  resCalMonth = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+  resCalDay = "";
+  renderReservations();
+}
+function resCalGo(ym) { resCalMonth = ym; resCalDay = ""; renderReservations(); }
+function resCalPick(ds) { resCalDay = resCalDay === ds ? "" : ds; renderReservations(); }
+function renderReservationCalendar(area, fullList) {
+  if (!resCalMonth) resCalMonth = resTodayStr().slice(0, 7);
+  const [y, m] = resCalMonth.split("-").map(Number);
+  const rows = resFiltered(fullList);
+  const byDay = {};
+  rows.forEach((x) => { const d = resPickupDate(x.r); if (d.slice(0, 7) === resCalMonth) (byDay[d] = byDay[d] || []).push(x); });
+  const first = new Date(y, m - 1, 1), days = new Date(y, m, 0).getDate();
+  const today = resTodayStr();
+  let monthTotal = 0;
+  let cells = "";
+  for (let i = 0; i < first.getDay(); i++) cells += '<div class="cal-cell cal-cell--blank"></div>';
+  for (let d = 1; d <= days; d++) {
+    const ds = resCalMonth + "-" + String(d).padStart(2, "0");
+    const list = (byDay[ds] || []).filter((x) => x.r.status !== "キャンセル");
+    monthTotal += list.length;
+    const lv = list.length === 0 ? 0 : list.length <= 2 ? 1 : list.length <= 5 ? 2 : list.length <= 10 ? 3 : 4;
+    const wd = new Date(y, m - 1, d).getDay();
+    const xmas = list.filter((x) => x.r.christmasOrder).length;
+    const unconfirmed = list.filter((x) => !x.r.confirmCallDone && !x.r.reservationConfirmed).length;
+    cells += '<button type="button" class="cal-cell lv' + lv + (ds === today ? " is-today" : "") + (ds === resCalDay ? " is-sel" : "") + (wd === 0 ? " is-sun" : wd === 6 ? " is-sat" : "") + '" onclick="resCalPick(\'' + ds + '\')">' +
+      '<span class="cal-d">' + d + "</span>" +
+      (list.length ? '<span class="cal-n">' + list.length + "<small>件</small></span>" : "") +
+      (xmas ? '<span class="cal-x">クリスマス' + xmas + "</span>" : "") +
+      (unconfirmed ? '<span class="cal-u">未確認' + unconfirmed + "</span>" : "") +
+      '<span class="cal-s">' + escapeHtml(resDaySummary(list).slice(0, 3).join(" ")) + "</span></button>";
+  }
+  const thisYear = new Date().getFullYear();
+  let html = '<div class="cal-nav"><button type="button" class="btn btn--small btn--ghost" onclick="resCalShift(-1)">‹ 前の月</button>' +
+    "<b>" + y + "年" + m + "月　<span>" + monthTotal + "件</span></b>" +
+    '<button type="button" class="btn btn--small btn--ghost" onclick="resCalShift(1)">次の月 ›</button>' +
+    '<button type="button" class="btn btn--small btn--ghost" onclick="resCalGo(\'' + resTodayStr().slice(0, 7) + '\')">今月</button>' +
+    '<button type="button" class="btn btn--small cal-xbtn" onclick="resCalGo(\'' + thisYear + '-12\')">12月（クリスマス）</button></div>' +
+    '<div class="cal-grid">' + RES_WEEK.map((w, i) => '<div class="cal-w' + (i === 0 ? " is-sun" : i === 6 ? " is-sat" : "") + '">' + w + "</div>").join("") + cells + "</div>" +
+    '<p class="small cal-help">日付を押すと、その日のご予約と製造の目安（ベース・号数ごとの台数）が下に出ます。キャンセルは件数に含めません。</p>';
+  if (resCalDay) {
+    const byTel = resVisitCounts(fullList);
+    const list = (byDay[resCalDay] || []).slice().sort((a, b) => resPickupTime(a.r).localeCompare(resPickupTime(b.r)));
+    const live = list.filter((x) => x.r.status !== "キャンセル");
+    html += '<section class="rc-day"><h3 class="rc-day__head"><span>' + resDateLabel(resCalDay) + "</span><b>" + live.length + "件</b><small>" + escapeHtml(resDaySummary(list).join("　")) + "</small></h3>" +
+      (list.length ? list.map(({ r, idx }) => resCardHtml(r, idx, byTel)).join("") : '<div class="empty">この日のご予約はありません</div>') + "</section>";
+  }
+  area.innerHTML = html;
+  return rows.length;
+}
+function renderResViewBar() {
+  const bar = document.getElementById("resViewBar");
+  if (!bar) return;
+  const b = (v, t) => '<button type="button" class="' + (resView === v ? "on" : "") + '" onclick="setResView(\'' + v + '\')">' + t + "</button>";
+  const r = (v, t) => '<button type="button" class="' + (resRange === v ? "on" : "") + '" onclick="setResRange(\'' + v + '\')">' + t + "</button>";
+  bar.innerHTML = '<div class="seg">' + b("card", "カード") + b("calendar", "カレンダー") + b("table", "表") + "</div>" +
+    (resView === "card" ? '<div class="seg seg--sub">' + r("upcoming", "今日以降") + r("past", "過去") + r("all", "すべて") + "</div>" : "");
+}
 function renderReservations() {
+  renderResViewBar();
+  if (resView === "table") return renderReservationsTable();
+  const area = document.getElementById("reservationsArea");
+  const fullList = loadList(RES_KEY);
+  updateConfirmCallWarning();
+  if (!fullList.length) { area.innerHTML = '<div class="empty">予約データはまだありません</div>'; return; }
+  const n = resView === "calendar" ? renderReservationCalendar(area, fullList) : renderReservationCards(area, fullList);
+  const q = ((document.getElementById("resSearch") || {}).value || "").trim();
+  const countEl = document.getElementById("resSearchCount");
+  if (countEl) countEl.textContent = q ? n + "件ヒット" : "";
+}
+function renderReservationsTable() {
   const area = document.getElementById("reservationsArea");
   const fullList = loadList(RES_KEY);
   updateConfirmCallWarning();

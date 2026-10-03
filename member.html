@@ -208,7 +208,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> ムース</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> ムース（4号のみ）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="モンブラン"> モンブラン（フルオーダー・お見積もり）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ（お日にちをいただく場合があります）</label>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
@@ -1258,7 +1259,11 @@ function hasMeaningfulNote(note) {
   const t = String(note || "").replace(/[\s　。．.、,！!]/g, "");
   return !!t && !/^(なし|無し|ナシ|特になし|特に無し|とくになし|ありません|ないです|ない|無|なしです|特にありません|-|ー|―|‐)$/.test(t);
 }
-function quoteSeparatelyNow() { try { return !!(currentDraft && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
+// フルオーダーのベース（モンブラン）が選ばれているか（2026-10-03）
+function customBaseNow() { try { const hit = activeSpecs().find(s => (CakePricing.SPEC.customBases || []).includes(s.cream)); return hit ? hit.cream : ""; } catch (e) { return ""; } }
+// フルオーダーの目安（商品ページで出した「目安 5号 ¥5,000〜」）
+function draftGuideNow() { try { return currentDraft && currentDraft.orderMode === "custom" && /^目安/.test(String(currentDraft.price || "")) ? String(currentDraft.price) : ""; } catch (e) { return ""; } }
+function quoteSeparatelyNow() { try { return !!customBaseNow() || !!(currentDraft && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
 // 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ）
 function isPhotoChristmas(data) { return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img); }
 function estimateIsFixed(data) {
@@ -1270,7 +1275,7 @@ function estimateIsFixed(data) {
   return (data.items || []).length === 1;
 }
 function estimateHeadline(data) {
-  if (data.quoteSeparately) return "別途、パティシエよりお見積もり・納期をご回答いたします";
+  if (data.quoteSeparately) return "別途、パティシエよりお見積もり・納期をご回答いたします" + (data.galleryPick && /^目安/.test(data.galleryPick.price || "") ? "（" + data.galleryPick.price.replace(/^目安\s*/, "目安：") + "・税込）" : "");
   if (data.priceNeedsConsult) return "特殊仕様のため、スタッフがお電話で仕様・料金を確認いたします";
   if (estimateIsFixed(data)) return yenFixed(data.subtotal) + "（税込）";
   return CakePricing.fromYen(data.subtotal) + "（税込）";
@@ -1285,7 +1290,7 @@ function paymentNoticeText(data) {
 }
 function estimateDisclaimer(data) {
   const pay = paymentNoticeText(data);
-  if (data && data.quoteSeparately) return "ギャラリーで選んだ写真の仕様は、内容を確認のうえパティシエよりお電話でお見積もり・納期をご回答いたします。" + pay;
+  if (data && data.quoteSeparately) return (data.customBase ? data.customBase + "はフルオーダーのため、内容を確認のうえ" : "ギャラリーで選んだ写真の仕様は、内容を確認のうえ") + "パティシエよりお電話でお見積もり・納期をご回答いたします。" + pay;
   if (data && hasMeaningfulNote(data.note) && !estimateIsFixed(data)) {
     return "備考にご記入いただいた内容を確認のうえ、お電話にて価格・納期をご案内いたします。" + pay;
   }
@@ -1306,7 +1311,8 @@ function updateLivePriceDisplay() {
   }
   bar.style.display = "flex";
   if (quoteSeparatelyNow()) {
-    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">ギャラリーの写真の仕様のため、お見積もり・納期は別途ご回答いたします</span>`;
+    const guide = draftGuideNow();
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">${customBaseNow() ? customBaseNow() + "はフルオーダーのため" : "ギャラリーの写真の仕様のため"}、お見積もり・納期は別途ご回答いたします${guide ? "<br><b>" + guide.replace(/^目安\s*/, "目安：") + "（税込）</b>" : ""}</span>`;
   } else if (result.incomplete) {
     bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">サイズを選ぶと、ここに表示されます</span>`;
   } else if (result.priceNeedsConsult) {
@@ -1405,7 +1411,12 @@ function renderTierSizeSelects(tierCount) {
   const prevSizes = Array.from(wrap.querySelectorAll(".tier-size-select")).map(s => s.value);
 
   if (tierCount === 1) {
-    wrap.innerHTML = editableSizeSelectHtml(0, SIZE_OPTIONS, prevSizes[0], 1);
+    // ベースによって作れる号数が決まっている場合（ムース＝4号のみ）は、その号数だけを出す（2026-10-03）
+    const allowed = (CakePricing.SPEC.baseSizes || {})[bottomCream()];
+    const opts = allowed ? SIZE_OPTIONS.filter((o, i) => i === 0 || allowed.includes(sizeKeyOf(o.value))) : SIZE_OPTIONS;
+    let val = prevSizes[0];
+    if (allowed && !opts.some(o => o.value === val)) val = allowed.length === 1 ? ((opts.find(o => sizeKeyOf(o.value) === allowed[0]) || {}).value || "") : "";
+    wrap.innerHTML = editableSizeSelectHtml(0, opts, val, 1);
     return;
   }
   const allowedBottoms = tierCount === 2 ? ["4号", "5号", "6号", "7号"] : ["6号", "7号"];
@@ -2111,7 +2122,7 @@ function renderDraftBanner() {
   if (currentDraft) {
     el.innerHTML = `<div style="display:flex;gap:12px;align-items:center;background:#f3ece1;border:1px solid #d8baa4;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
       ${currentDraft.img ? `<img src="${esc(currentDraft.img)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ""}
-      <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${Number(currentDraft.no) > 0 ? "No.D" + String(currentDraft.no).padStart(2, "0") + " " : ""}${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div>${currentDraftSpecApplied ? `<div style="font-size:12px;color:#4a3a2a;margin-top:2px;">この商品の仕様を自動で選びました。内容は下でご変更いただけます。</div>` : ""}</div>
+      <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${Number(currentDraft.no) > 0 ? "No.D" + String(currentDraft.no).padStart(2, "0") + " " : ""}${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div>${draftGuideNow() ? `<div style="font-size:13px;color:#8a3a2a;font-weight:700;margin-top:2px;">${esc(draftGuideNow().replace(/^目安\s*/, "目安："))}（税込）・お見積もりは別途ご回答</div>` : ""}${currentDraftSpecApplied ? `<div style="font-size:12px;color:#4a3a2a;margin-top:2px;">この商品の仕様を自動で選びました。内容は下でご変更いただけます。</div>` : ""}</div>
       <button type="button" id="draftClear" style="font-size:12px;border:1px solid #c9a96e;background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;">解除</button></div>`;
     document.getElementById("draftClear").addEventListener("click", () => { currentDraft = null; try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {} clearPendingDraft(); renderDraftBanner(); });
   } else {
@@ -2328,6 +2339,7 @@ function setupReserveForm(uid, displayName) {
         ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: currentDraft.name || "", productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "", img: currentDraft.img || "", ...(Number(currentDraft.no) > 0 ? { no: Number(currentDraft.no) } : {}) } } : {}),
         ...(quoteSeparatelyNow() ? { quoteSeparately: true } : {}),
+        ...(isCake && customBaseNow() ? { customBase: customBaseNow() } : {}),
         ...(includedDecorationNow() ? { includedDecoration: includedDecorationNow() } : {}),
         receiptNeeded, receiptName: receiptNeeded ? (document.getElementById("reserveReceiptName").value || "") : ""
       };

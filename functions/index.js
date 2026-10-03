@@ -622,7 +622,8 @@ function buildStaffNotifyText(data) {
   if (data.specialSpec) {
     lines.push("⚠ 特殊仕様: " + data.specialSpec + "（納期は通常と異なります・要確認）");
   }
-  if (data.quoteSeparately) lines.push("⚠ ギャラリーの写真の仕様で注文（プルダウンで表せない仕様）：お見積もり・納期を電話で回答してください");
+  if (data.customBase) lines.push("⚠ " + data.customBase + "（フルオーダー）：お見積もり・納期を電話で回答してください");
+  else if (data.quoteSeparately) lines.push("⚠ ギャラリーの写真の仕様で注文（プルダウンで表せない仕様）：お見積もり・納期を電話で回答してください" + (data.galleryPick && data.galleryPick.price ? "（お客様に表示した" + data.galleryPick.price + "）" : ""));
   if (isPhotoChristmas(data)) lines.push("📷 写真で選んだクリスマスケーキ：確認電話なし（LINE自動送信のみ）。仕様確定後に確定画像を送ってください");
   if (data.christmasOrder) {
     lines.push("🎄 クリスマスケーキ: 当日のお会計なし（" + XMAS_PAYMENT_DEADLINE + "までに店頭でお支払いいただく案内済み）");
@@ -908,7 +909,11 @@ function buildReceivedMessage(data) {
   lines.push("◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
   if (data.quoteSeparately) lines.push("　※納期は別途ご回答いたします");
   lines.push("", data.christmasOrder && data.priceIsFixed ? "◆お支払い金額" : fixedNow && !data.quoteSeparately ? "◆お支払い金額（確定）" : "◆お見積もり");
-  if (data.quoteSeparately) lines.push("◇別途、パティシエより", "　お見積もりをご回答いたします");
+  if (data.quoteSeparately) {
+    lines.push("◇別途、パティシエより", "　お見積もりをご回答いたします");
+    const guide = data.galleryPick && /^目安/.test(String(data.galleryPick.price || "")) ? String(data.galleryPick.price).replace(/^目安\s*/, "") : "";
+    if (guide) lines.push("　（目安：" + guide + "・税込）");
+  }
   else if (data.priceNeedsConsult) lines.push("◇特殊仕様のため、スタッフが", "　お電話で仕様・料金を確認します");
   else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
   else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", ...estimateReasonLines(data));
