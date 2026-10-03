@@ -44,7 +44,7 @@
     if (refCakes) return Promise.resolve(refCakes);
     return getJson("siteImages/decorationCakes").then(function (d) {
       var arr = Array.isArray(d) ? d : Object.values(d || {});
-      refCakes = arr.filter(function (it) { return it && it.img && it.visible !== false && it.orderMode !== "custom"; }).map(function (it) { return { name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【([^】]+)】/) || [])[1] || "")) }; });
+      refCakes = arr.filter(function (it) { return it && it.img && it.visible !== false && it.orderMode !== "custom"; }).map(function (it) { return { name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }; });
       return refCakes;
     });
   }

@@ -248,6 +248,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .pt-yen{display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .pt-yen input{width:110px;padding:7px 9px;font-size:14px;text-align:right;}
 .pt-matrix .pt-yen input{width:86px;}
+.pt-special{background:#f3f0ec!important;color:#9a8a78!important}
 .pt-synced{background:#eaf7ee!important;border-color:#7cc296!important;color:#0b5a28!important}
 .pt-changed{background:#fff6c7!important;border-color:#e0b100!important;}
 </style>
@@ -5934,7 +5935,7 @@ function buildPriceTable() {
     html += group("その他", "", table(row("3段の出張組み立て料", yenIn("cso_onsite", SO.onsiteAssemblyFee), "交通費は別途")));
   }
   html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・オーナメントなどの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
-  html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div></div>' + html;
+  html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。<b>原価表にない組み合わせは「特殊仕様」</b>となり、予約フォームでは金額を出さず、スタッフがお電話で仕様・料金を確認します。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div><details style="margin-top:8px;"><summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6f9c;">原価計算アプリとの対応表を見る（自動判定が正しいか確認できます）</summary><div id="ptSourceMap" style="margin-top:8px;overflow-x:auto;"></div></details></div>' + html;
   wrap.innerHTML = html;
   // 原価計算アプリから反映された欄を書き換え不可にする（koimariContent/priceTableSource）
   if (typeof window.fbOnPriceTableSource === "function") window.fbOnPriceTableSource((src) => {
@@ -5944,8 +5945,19 @@ function buildPriceTable() {
       if (m.target === "基本料金") ids.add("cfPrice" + n);
       else { const i = CAKE_TYPE_PRICE_ROWS.indexOf(m.target); if (i >= 0) ids.add("ctp_" + i + "_" + n); }
     });
-    wrap.querySelectorAll(".pt-input").forEach((el) => { const on = ids.has(el.id); el.readOnly = on; el.classList.toggle("pt-synced", on); el.title = on ? "原価計算アプリから自動反映（原価計算アプリで変更してください）" : ""; });
+    wrap.querySelectorAll(".pt-input").forEach((el) => {
+      const isBody = /^cfPrice\d$|^ctp_\d+_\d$/.test(el.id); // ケーキ本体（ベース×号数）の欄
+      const on = ids.has(el.id);
+      el.readOnly = isBody;
+      el.classList.toggle("pt-synced", on);
+      el.classList.toggle("pt-special", isBody && !on);
+      if (isBody && !on) { el.value = ""; el.placeholder = "特殊仕様"; }
+      el.title = on ? "原価計算アプリから自動反映（原価計算アプリで変更してください）" : (isBody ? "原価表にないため特殊仕様（スタッフがお電話で仕様・料金を確認）" : "");
+    });
     const st = document.getElementById("ptSourceStatus");
+    // 何が何に対応しているかをオーナーが確認できる対応表（2026-10-03オーナー指示：自動判定が適切か確認したい）
+    const tbl = document.getElementById("ptSourceMap");
+    if (tbl && src) tbl.innerHTML = "<table class='pt-table'><thead><tr><th>原価計算アプリの商品名</th><th>料金表での扱い</th><th>号数</th><th>金額（税込）</th></tr></thead><tbody>" + (src.mapped || []).slice().sort((a, b) => String(a.target + a.size).localeCompare(String(b.target + b.size), "ja")).map((m) => "<tr><td>" + String(m.name).replace(/[<>&]/g, "") + "</td><td>" + (m.target === "基本料金" ? "1段の基本料金（生クリーム）" : "種類：" + m.target) + "</td><td>" + m.size + "</td><td>¥" + Number(m.price).toLocaleString() + "</td></tr>").join("") + "</tbody></table>";
     if (st && src) st.innerHTML = "最終反映：" + String(src.syncedAt || "").slice(0, 16).replace("T", " ") + "（" + (src.mapped || []).length + "件）" + ((src.unmapped || []).length ? "<br><b style=\"color:#b03b48;\">取り込めなかった商品：" + src.unmapped.map((x) => String(x).replace(/[<>&]/g, "")).join("、") + "</b>（商品名の最後に「　5号」のように号数を付けると取り込まれます）" : "");
   });
   // 書き換えた欄を黄色にする（最初にさわった時点の値と比べる）
@@ -6067,7 +6079,8 @@ function initCakeSizePricesPanel() {
       const candleBagPricePlain = Number(document.getElementById("cfCandleBagPricePlain").value) || 0;
       const messagePlatePrice = Number(document.getElementById("cfMessagePlatePrice").value) || 0;
       update(ref(fbDb, "koimariContent"), {
-        cakeSizePrices: prices, cakeTypePrices: typePrices, cakeCutContainerFee: cutContainerFee, cakeCreamToppingPrice: creamToppingPrice, cakeChocoCreamSurcharge: chocoCreamSurcharge,
+        // ケーキ本体の価格（cakeSizePrices/cakeTypePrices）は原価計算アプリから自動反映するため、ここでは保存しない（2026-10-03）
+        cakeCutContainerFee: cutContainerFee, cakeCreamToppingPrice: creamToppingPrice, cakeChocoCreamSurcharge: chocoCreamSurcharge,
         cakeCandleBagPriceNumber: candleBagPriceNumber, cakeCandleBagPricePlain: candleBagPricePlain,
         cakeMessagePlatePrice: messagePlatePrice,
         cakeSpecOverrides: collectSpecOverrides() || {}

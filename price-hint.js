@@ -27,7 +27,9 @@
   }
   function sizeOf(item) {
     var m = String((item && item.desc) || "").match(/^【([^】]+)】/);
-    return m ? m[1] : "";
+    if (!m) return "";
+    var n = m[1].match(/([3-7])号/); // 【参考画像4号】等の書き方にも対応（2026-10-03）
+    return n ? n[1] + "号" : m[1];
   }
   // 「4号」→「4号（直径約12cm・3〜4人前）」
   function sizeLabel(size) {

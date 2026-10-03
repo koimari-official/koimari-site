@@ -1080,7 +1080,7 @@ function updateReserveFloat() {
   const TOTAL = 8;
   const pct = Math.round(((TOTAL - Math.min(TOTAL, miss.length)) / TOTAL) * 100);
   const r = computeCakeSubtotal();
-  const price = !r.applicable || r.incomplete ? "" : quoteSeparatelyNow() ? "お見積もりは別途ご回答" : r.priceNeedsConsult ? "料金はお電話でご案内" : (r.priceIsFixed ? yenFixed(r.subtotal) : CakePricing.fromYen(r.subtotal)) + "（税込）";
+  const price = !r.applicable || r.incomplete ? "" : quoteSeparatelyNow() ? "お見積もりは別途ご回答" : r.priceNeedsConsult ? "特殊仕様（お電話で確認）" : (r.priceIsFixed ? yenFixed(r.subtotal) : CakePricing.fromYen(r.subtotal)) + "（税込）";
   el.style.display = "block";
   el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;"><span style="color:#6b5a48;">' + (miss.length ? "あと" + miss.length + "項目で確認画面へ" : "入力OK！確認画面へ進めます") + '</span><b style="color:#a88a52;font-size:16px;">' + price + '</b></div>' +
     '<div style="height:5px;background:#eee3d3;border-radius:3px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (miss.length ? "#e0a13a" : "#3aa76d") + ';transition:width .3s;"></div></div>';
@@ -1271,7 +1271,7 @@ function estimateIsFixed(data) {
 }
 function estimateHeadline(data) {
   if (data.quoteSeparately) return "別途、パティシエよりお見積もり・納期をご回答いたします";
-  if (data.priceNeedsConsult) return "この組み合わせは、料金をお電話で個別にご案内します";
+  if (data.priceNeedsConsult) return "特殊仕様のため、スタッフがお電話で仕様・料金を確認いたします";
   if (estimateIsFixed(data)) return yenFixed(data.subtotal) + "（税込）";
   return CakePricing.fromYen(data.subtotal) + "（税込）";
 }
@@ -1310,7 +1310,7 @@ function updateLivePriceDisplay() {
   } else if (result.incomplete) {
     bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">サイズを選ぶと、ここに表示されます</span>`;
   } else if (result.priceNeedsConsult) {
-    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">この組み合わせは、料金をお電話で個別にご案内します</span>`;
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">特殊仕様のため、スタッフがお電話で仕様・料金を確認いたします</span>`;
   } else if (result.priceIsFixed) {
     bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__amount">${yenFixed(result.subtotal)}<small>（税込）</small></span>`;
   } else {
@@ -1375,12 +1375,12 @@ function sizeOptionLabel(o, tierCount) {
     const creamNow = (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "";
     const typeMap = currentTypePrices[creamNow];
     if (typeMap) {
-      priceText = typeMap[key] ? ` - ¥${typeMap[key].toLocaleString()}〜` : "（この種類はお電話で個別にご案内）";
+      priceText = typeMap[key] ? ` - ¥${typeMap[key].toLocaleString()}〜` : "（特殊仕様：お電話で確認）";
     } else if (!creamNow || CakePricing.SPEC.plainCreams.indexOf(creamNow) >= 0) {
       const price = currentSizePrices[key];
       if (price) priceText = ` - ¥${price.toLocaleString()}〜`;
     } else {
-      priceText = "（この種類はお電話で個別にご案内）";
+      priceText = "（特殊仕様：お電話で確認）";
     }
   }
   const badge = (tierCount === 1 && o.value === RECOMMENDED_SIZE_VALUE) ? "（定番）" : "";
@@ -2040,7 +2040,7 @@ let refLastKey = "";
     const res = await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/decorationCakes.json");
     const data = res.ok ? await res.json() : null;
     const arr = Array.isArray(data) ? data : Object.values(data || {});
-    refCakes = arr.filter(it => it && it.img && it.visible !== false && it.orderMode !== "custom").map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【([^】]+)】/) || [])[1] || "")) }));
+    refCakes = arr.filter(it => it && it.img && it.visible !== false && it.orderMode !== "custom").map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }));
   } catch (e) { refCakes = []; }
   updateRefImage();
 })();

@@ -282,4 +282,20 @@ console.log("OK: buildCouponReplyText");
   assertEqual(diamondLine("備考", "あ".repeat(30)), "◇備考\n　" + "あ".repeat(30), "長い項目は次行に全角スペース付きで置く");
 }
 
+// --- 原価計算アプリ→料金表の対応づけ（2026-10-03） ---
+{
+  const { mapCostPricesToPriceTable } = require("./index.js")._internal;
+  const r = mapCostPricesToPriceTable([
+    { category: "ホールケーキ", name: "生クリームバースデー（いちご・ミックスフルーツ）　4号", salePrice: 3800 },
+    { category: "ホールケーキ", name: "フルーツタルトBOX　6号", salePrice: 7800 },
+    { category: "ホールケーキ", name: "グランマニエBOX", salePrice: 3400 },
+    { category: "ホールケーキ", name: "なにかのケーキ", salePrice: 1000 },
+    { category: "カットケーキ", name: "チーズケーキ", salePrice: 750 },
+  ]);
+  assertEqual(r.sizePrices["4号"], 3800, "生クリームは1段の基本料金へ");
+  assertEqual(r.typePrices["フルーツタルトBOX"]["6号"], 7800, "タルト6号は原価計算アプリの金額");
+  assertEqual(r.typePrices["ムース"]["4号"], 3400, "グランマニエBOXは4号のムースとして取り込む（オーナー確認）");
+  assertEqual(r.unmapped.join(), "なにかのケーキ", "当てはまらない商品は取り込まない");
+}
+
 console.log("\nすべてのローカルテストに合格しました。");

@@ -628,7 +628,7 @@ function buildStaffNotifyText(data) {
     lines.push("🎄 クリスマスケーキ: 当日のお会計なし（" + XMAS_PAYMENT_DEADLINE + "までに店頭でお支払いいただく案内済み）");
   }
   if (data.priceNeedsConsult) {
-    lines.push("お見積もり: この組み合わせは料金を個別に電話案内（お客様には「お電話で個別にご案内」と表示済み）");
+    lines.push("⚠ 特殊仕様（原価表にない組み合わせ）：お電話で仕様・料金を確認してください");
   } else if (data.subtotal) {
     const detail = Array.isArray(data.estimateLines) && data.estimateLines.length
       ? ["", ...data.estimateLines.map((l) => "　" + l.label + " ¥" + Number(l.amount).toLocaleString())].join("\n")
@@ -909,7 +909,7 @@ function buildReceivedMessage(data) {
   if (data.quoteSeparately) lines.push("　※納期は別途ご回答いたします");
   lines.push("", data.christmasOrder && data.priceIsFixed ? "◆お支払い金額" : fixedNow && !data.quoteSeparately ? "◆お支払い金額（確定）" : "◆お見積もり");
   if (data.quoteSeparately) lines.push("◇別途、パティシエより", "　お見積もりをご回答いたします");
-  else if (data.priceNeedsConsult) lines.push("◇個別にご案内します");
+  else if (data.priceNeedsConsult) lines.push("◇特殊仕様のため、スタッフが", "　お電話で仕様・料金を確認します");
   else if (data.subtotal && data.priceIsFixed) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "（税込）");
   else if (data.subtotal) lines.push("◇¥" + Number(data.subtotal).toLocaleString() + "〜（税込）", ...estimateReasonLines(data));
   else lines.push("◇お電話でご案内します");
@@ -1103,13 +1103,16 @@ exports.lookupMyContact = onRequest(
 //  ・それ以外は、種類ごとの価格（cakeTypePrices）の該当する種類へ。グランマニエBOXはベースの種類「ムース」として扱う
 //  ・号数の無い商品（例：グランマニエBOX）や当てはまらない商品は取り込まず、「未対応」として記録する
 const COST_TYPE_ALIASES = { "グランマニエBOX": "ムース" };
+// 原価表の商品名に号数が無い商品の号数（オーナー確認済みのものだけ。原価計算アプリで「グランマニエBOX　4号」と名前に付ければ不要）
+const COST_DEFAULT_SIZE = { "グランマニエBOX": "4号" };
 const COST_TYPE_NAMES = ["ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース"];
 function mapCostPricesToPriceTable(list) {
   const sizePrices = {}, typePrices = {}, mapped = [], unmapped = [];
   (Array.isArray(list) ? list : []).forEach((p) => {
     if (!p || p.category !== "ホールケーキ" || !(Number(p.salePrice) > 0)) return;
     const name = String(p.name || "").trim();
-    const m = name.match(/^(.*?)[\s\u3000]+([3-7])号$/);
+    let m = name.match(/^(.*?)[\s\u3000]+([3-7])号$/);
+    if (!m && COST_DEFAULT_SIZE[name]) m = [name, name, COST_DEFAULT_SIZE[name].replace("号", "")];
     if (!m) { unmapped.push(name); return; }
     const base = m[1].trim(), size = m[2] + "号", price = Number(p.salePrice);
     if (base.indexOf("生クリーム") >= 0 && base.indexOf("生チョコ") < 0) { sizePrices[size] = price; mapped.push({ name, target: "基本料金", size, price }); return; }
@@ -1123,8 +1126,9 @@ function mapCostPricesToPriceTable(list) {
 async function syncPriceTableFromCost(list) {
   const r = mapCostPricesToPriceTable(list);
   const up = {};
-  Object.keys(r.sizePrices).forEach((size) => { up["koimariContent/cakeSizePrices/" + size] = r.sizePrices[size]; });
-  Object.keys(r.typePrices).forEach((t) => Object.keys(r.typePrices[t]).forEach((size) => { up["koimariContent/cakeTypePrices/" + t + "/" + size] = r.typePrices[t][size]; }));
+  // 原価表にない組み合わせ（手入力で残っていた金額）は消す＝特殊仕様としてお電話で個別に確認する
+  up["koimariContent/cakeSizePrices"] = r.sizePrices;
+  up["koimariContent/cakeTypePrices"] = r.typePrices;
   up["koimariContent/priceTableSource"] = { syncedAt: new Date().toISOString(), mapped: r.mapped, unmapped: r.unmapped };
   await admin.database().ref().update(up);
   return r;

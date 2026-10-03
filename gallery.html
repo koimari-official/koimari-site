@@ -524,7 +524,7 @@ function renderGrid(){
       ? `${g.cakeNo ? `<div class="gal-card__no">No.D${String(g.cakeNo).padStart(2, "0")}</div>` : ""}<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(descBody||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
-          ${sizeMatch ? `<span class="gal-card__meta-item">写真のサイズ: <strong>${escape(sizeMatch[1])}</strong></span>` : ""}
+          ${sizeMatch ? `<span class="gal-card__meta-item">写真のサイズ: <strong>${escape((sizeMatch[1].match(/[3-7]号/) || [sizeMatch[1]])[0])}</strong></span>` : ""}
         </div>
         <div class="gal-card__price" data-price-for="${g.productType}:${g.idx}"></div>
         <span class="gal-card__cta">くわしく見る →</span>`
