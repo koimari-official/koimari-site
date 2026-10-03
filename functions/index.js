@@ -291,6 +291,16 @@ async function pushLineMessage(userId, text, accessToken) {
 // quickReplyItemsを渡すと、返信メッセージの下にタップ可能なボタンを添付できる。
 // リッチメニューは一度ユーザーが折りたたむと次回から自動再表示されない（LINE側の仕様でBot側から
 // 制御不可）ため、「予約」「注文」等の話題では毎回このボタンで確実に導線を出す（2026-09-06指示）。
+// 複数のメッセージ（文章＋カード等）をまとめて返信する（最大5通）
+async function replyLineMessages(replyToken, messages, accessToken) {
+  const res = await fetch("https://api.line.me/v2/bot/message/reply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ replyToken, messages: messages.slice(0, 5) }),
+  });
+  if (!res.ok) console.error("LINE reply failed:", res.status, await res.text());
+  return res.ok;
+}
 async function replyToLine(replyToken, text, accessToken, quickReplyItems) {
   const message = { type: "text", text };
   if (quickReplyItems && quickReplyItems.length) {
@@ -388,7 +398,7 @@ exports._internal = {
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
-  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage,
+  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard,
 };
 
 exports.lineWebhook = onRequest(
@@ -423,7 +433,9 @@ exports.lineWebhook = onRequest(
       if (event.type === "follow" && event.replyToken && event.source && event.source.type === "user") {
         try {
           const pick = await pendingPickFor(event.source.userId);
-          await replyToLine(event.replyToken, buildFollowMessage(pick), LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
+          const coupons = (await admin.database().ref("koimariOps/coupons").once("value")).val();
+          const card = buildReserveCard(pick, await reserveCardImage());
+          await replyLineMessages(event.replyToken, [{ type: "text", text: buildFollowMessage(pick, coupons) }, card], LINE_CHANNEL_ACCESS_TOKEN.value());
         } catch (err) {
           console.error("友だち登録への返信に失敗:", err);
         }
@@ -721,8 +733,19 @@ function galleryPickLabel(pick) {
 // 友だち登録した直後にトークへ送る案内（2026-10-02オーナー指示：登録後に予約ページへのリンクと簡単な案内があれば離脱が減る）。
 // ギャラリーでケーキを選んでから登録した方（予約フォームで読み込んだ仕様を lineMembers/{uid}/profile/pendingDraft に保存済み）には、
 // そのケーキが入った予約フォームのリンクを送る。それ以外の方には、通常の予約フォームとギャラリーのリンクを送る。
-function buildFollowMessage(pick) {
+function buildFollowMessage(pick, coupons) {
   const lines = ["友だち追加ありがとうございます🎂", ""];
+  // 有効なクーポン（期限内）があれば、最初に案内する（2026-10-03：友だち登録キャンペーン）
+  const active = (Array.isArray(coupons) ? coupons : []).filter((c) => c && c.discount && (!c.expiry || c.expiry >= todayDateKeyJST(new Date())));
+  if (active.length) {
+    lines.push("◆友だち限定クーポン");
+    active.forEach((c) => {
+      lines.push("◇" + c.discount);
+      if (c.memo) lines.push("　" + c.memo);
+      if (c.expiry) lines.push("　※" + formatCouponExpiry(c.expiry) + "まで");
+    });
+    lines.push("◇トーク画面下の「クーポン」から", "　いつでも表示できます", "");
+  }
   if (pick && pick.code) {
     lines.push(
       "さきほどギャラリーで選んだケーキで、",
@@ -762,6 +785,37 @@ function buildFollowMessage(pick) {
   );
   return lines.join("\n");
 }
+function buildReserveCard(pick, imageUrl) {
+  const url = pick && pick.code ? "https://liff.line.me/2011059940-hMTBZaUz?draft=" + encodeURIComponent(pick.code) + "#reserve" : RESERVE_LIFF_URL;
+  const bubble = {
+    type: "bubble",
+    body: {
+      type: "box", layout: "vertical", spacing: "sm",
+      contents: [
+        { type: "text", text: "ケーキのご予約", weight: "bold", size: "xl", color: "#2e2118" },
+        { type: "text", text: pick && pick.code ? "さきほど選んだケーキが入った予約フォームが開きます" : "写真から選んで、そのままLINEでご予約いただけます", wrap: true, size: "sm", color: "#4a3a2a" },
+      ],
+    },
+    footer: {
+      type: "box", layout: "vertical",
+      contents: [{ type: "button", style: "primary", color: "#06c755", action: { type: "uri", label: "ご予約はこちら", uri: url } }],
+    },
+  };
+  if (imageUrl && /^https:\/\//.test(imageUrl)) {
+    bubble.hero = { type: "image", url: imageUrl, size: "full", aspectRatio: "1:1", aspectMode: "cover", action: { type: "uri", uri: url } };
+  }
+  return { type: "flex", altText: "ケーキのご予約はこちら", contents: bubble };
+}
+// 「ご予約」カードの写真：ギャラリーの「すべて」の写真（galleryCover）→ なければ先頭の作品
+async function reserveCardImage() {
+  try {
+    const list = (await admin.database().ref("koimariContent/gallery").once("value")).val() || [];
+    const arr = Array.isArray(list) ? list : Object.values(list);
+    const pick = arr.find((g) => g && g.galleryCover && g.img) || arr.find((g) => g && g.img);
+    return pick ? pick.img : "";
+  } catch (err) { return ""; }
+}
+
 // 予約フォームで読み込んだギャラリーの仕様（30日以内）。予約フォーム（member.html）の PENDING_DRAFT_DAYS と同じ期間
 async function pendingPickFor(userId) {
   try {
@@ -1264,7 +1318,8 @@ function buildCouponReplyText(coupons, todayKey, displayName) {
     ? [`${displayName}様への友だち限定クーポンのご案内です🎫`, "", "◆ご利用いただけるクーポン"]
     : ["ただいま開催中のクーポンはこちらです🎫", "", "◆ご利用いただけるクーポン"];
   active.forEach((c) => {
-    lines.push("◇" + (c.discount || "") + (c.memo ? "（" + c.memo + "）" : ""));
+    lines.push("◇" + (c.discount || ""));
+    if (c.memo) lines.push("　" + c.memo);
     if (c.expiry) lines.push("　※" + formatCouponExpiry(c.expiry) + "まで");
   });
   if (displayName) {

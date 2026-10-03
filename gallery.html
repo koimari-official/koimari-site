@@ -228,6 +228,14 @@ main{padding-top:26px!important}
 .cat-pager span{display:block;font-size:13px;color:var(--color-text-soft);font-weight:600}
 .cat-pager b{display:block;font-family:var(--font-mincho);font-size:19px;letter-spacing:.04em}
 </style>
+<style id="gal-campaign-css">
+/* 季節のお知らせの帯（トップページと同じ設定 siteConfig/eventBanner を表示。2026-10-03） */
+.gal-campaign{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--color-accent) 0%,var(--color-accent-dark) 50%,var(--color-accent) 100%);color:#fff;padding:12px 18px;font-family:var(--font-mincho);text-align:center}
+.gal-campaign[hidden]{display:none}
+.gal-campaign__label{font-size:13px;font-weight:700;letter-spacing:.1em;border:1px solid rgba(255,255,255,.8);padding:2px 10px}
+.gal-campaign__text{font-size:16px;font-weight:700;letter-spacing:.04em;line-height:1.6}
+.gal-campaign__link{font-size:15px;font-weight:700;color:#fff;text-decoration:underline;text-underline-offset:4px}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -251,6 +259,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <li><a href="reservation.html" class="nav-link">ご予約</a></li>
   </ul>
 </nav>
+<div class="gal-campaign" id="galCampaign" hidden><span class="gal-campaign__label" id="galCampaignLabel"></span><span class="gal-campaign__text" id="galCampaignText"></span><a class="gal-campaign__link" id="galCampaignLink" href="#"></a></div>
 <div class="page-head">
   <div class="page-head__inner">
     <span class="page-head__en">Gallery &amp; Voices</span>
@@ -733,6 +742,18 @@ const db = getDatabase(fbApp);
 // 必要な2つのパスだけを個別に購読する。
 onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
   if (typeof window.applyFetchedGalleryData === "function") window.applyFetchedGalleryData(snapshot.val());
+});
+// 季節のお知らせの帯（トップページと同じ設定）。表示終了日を過ぎたら出さない
+onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
+  const cfg = snapshot.val() || {}, box = document.getElementById("galCampaign");
+  if (!box) return;
+  const d = new Date(), today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  if (cfg.show === false || !cfg.text || (cfg.until && today > cfg.until)) { box.hidden = true; return; }
+  document.getElementById("galCampaignLabel").textContent = cfg.label || "お知らせ";
+  document.getElementById("galCampaignText").textContent = cfg.text;
+  const a = document.getElementById("galCampaignLink");
+  if (cfg.link) { a.href = cfg.link; a.textContent = cfg.linkText || "詳しく見る →"; if (/^https?:/.test(cfg.link)) { a.target = "_blank"; a.rel = "noopener"; } a.hidden = false; } else a.hidden = true;
+  box.hidden = false;
 });
 onValue(ref(db, "koimariContent/voices"), (snapshot) => {
   if (typeof window.applyFetchedVoicesData === "function") window.applyFetchedVoicesData(snapshot.val());

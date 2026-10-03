@@ -238,7 +238,7 @@ console.log("OK: formatPickupDateTimeJp");
 
 assertEqual(
   buildCouponReplyText([{ discount: "3%OFF", memo: "店頭購入限定", expiry: "" }], "2026-09-06"),
-  "ただいま開催中のクーポンはこちらです🎫\n\n◆ご利用いただけるクーポン\n◇3%OFF（店頭購入限定）",
+  "ただいま開催中のクーポンはこちらです🎫\n\n◆ご利用いただけるクーポン\n◇3%OFF\n　店頭購入限定",
   "expiry未設定のクーポンは期限表記なしで常に有効"
 );
 assertEqual(

@@ -1071,7 +1071,15 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         </div>
         <div class="field" style="margin-bottom:20px;">
           <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">リンク先ページ</label>
-          <input type="text" id="ecLink" class="input" placeholder="例: mothers-day.html">
+          <input type="text" id="ecLink" class="input" placeholder="例: mothers-day.html ／ LINE友だち追加は https://lin.ee/tgXqHoK">
+        </div>
+        <div class="field" style="margin-bottom:20px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">リンクの文字（空欄なら「詳しく見る →」）</label>
+          <input type="text" id="ecLinkText" class="input" placeholder="例: LINEで友だち追加する →">
+        </div>
+        <div class="field" style="margin-bottom:20px;">
+          <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;font-family:var(--font-mincho);">表示終了日（この日を過ぎると自動で消えます。空欄なら期限なし）</label>
+          <input type="date" id="ecUntil" class="input">
         </div>
         <button class="btn" id="ecSave">保存して反映</button>
         <span id="ecSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
@@ -5667,6 +5675,9 @@ function initEventConfigPanel() {
     if (labelEl) labelEl.value = cfg.label || "";
     if (textEl) textEl.value = cfg.text || "";
     if (linkEl) linkEl.value = cfg.link || "";
+    const ltEl = document.getElementById("ecLinkText"), untilEl = document.getElementById("ecUntil");
+    if (ltEl) ltEl.value = cfg.linkText || "";
+    if (untilEl) untilEl.value = cfg.until || "";
   });
   const saveBtn = document.getElementById("ecSave");
   if (saveBtn && !saveBtn.dataset.bound) {
@@ -5678,6 +5689,8 @@ function initEventConfigPanel() {
         label: document.getElementById("ecLabel").value.trim(),
         text: document.getElementById("ecText").value.trim(),
         link: document.getElementById("ecLink").value.trim(),
+        linkText: document.getElementById("ecLinkText").value.trim(),
+        until: document.getElementById("ecUntil").value || "",
       };
       update(ref(fbDb, "siteConfig"), { eventBanner: cfg }).then(() => {
         const note = document.getElementById("ecSavedNote");

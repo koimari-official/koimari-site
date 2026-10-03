@@ -1024,11 +1024,14 @@ window.applyEventBannerConfig = function(cfg){
   if (!banner) return;
   const dismissKey = 'koimari_banner_v1';
   if (!cfg || cfg.show === false) return;
-  if (sessionStorage.getItem(dismissKey)) return;
+  // 表示終了日（2026-10-03追加）：その日の終わりまで表示し、翌日からは出さない
+  if (cfg.until) { const d = new Date(); const today = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); if (today > cfg.until) return; }
+  try { if (sessionStorage.getItem(dismissKey + (cfg.text || ""))) return; } catch (e) {}
   if (cfg.label) document.getElementById('eventBannerLabel').textContent = cfg.label;
   if (cfg.text) document.getElementById('eventBannerText').textContent = cfg.text;
   const linkEl = document.getElementById('eventBannerLink');
-  if (cfg.link) { linkEl.href = cfg.link; } else { linkEl.style.display = 'none'; }
+  if (cfg.link) { linkEl.href = cfg.link; if (/^https?:/.test(cfg.link)) { linkEl.target = "_blank"; linkEl.rel = "noopener"; } } else { linkEl.style.display = 'none'; }
+  if (cfg.linkText) linkEl.textContent = cfg.linkText;
   banner.classList.add('show');
   document.getElementById('eventBannerClose').addEventListener('click', () => {
     banner.style.overflow = 'hidden';
@@ -1036,7 +1039,7 @@ window.applyEventBannerConfig = function(cfg){
     banner.style.maxHeight = banner.scrollHeight + 'px';
     requestAnimationFrame(() => { banner.style.maxHeight = '0'; banner.style.opacity = '0'; });
     setTimeout(() => { banner.style.display = 'none'; }, 320);
-    sessionStorage.setItem(dismissKey, '1');
+    try { sessionStorage.setItem(dismissKey + (cfg.text || ""), '1'); } catch (e) {}
   }, { once: true });
 };
 
