@@ -693,9 +693,14 @@ function paymentLines(data, stage) {
   return lines;
 }
 
+// 備考欄の「なし」「特になし」「ありません」等は、要望なしとして扱う（2026-10-03：「なし」と書いただけで確定価格にならなかった）
+function hasMeaningfulNote(note) {
+  const t = String(note || "").replace(/[\s　。．.、,！!]/g, "");
+  return !!t && !/^(なし|無し|ナシ|特になし|特に無し|とくになし|ありません|ないです|ない|無|なしです|特にありません|-|ー|―|‐)$/.test(t);
+}
 // 「¥◯◯〜」で案内する理由の注記。備考にご希望がある場合は、内容確認のうえ電話で価格・納期を回答する。
 function estimateReasonLines(data) {
-  if (data && String(data.note || "").trim()) {
+  if (data && hasMeaningfulNote(data.note)) {
     return ["　※ご要望の内容を確認のうえ、", "　　お電話で価格・納期を", "　　ご案内いたします"];
   }
   return ["　※最低金額の目安です。", "　　確定金額はお電話でご案内します"];

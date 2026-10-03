@@ -17,7 +17,16 @@
   var DECORATIONS = ["いちごのみ", "バラエティフルーツ"];
   var TARTS = ["フルーツタルトBOX", "ストロベリータルトBOX"];
   var OCCASIONS = ["", "バースデー", "クリスマス", "その他"];
-  var DEFAULT_STAFF = ["オーナー", "お母さん", "楠田", "永山", "小見", "山崎", "橋本", "木村"]; // 給与計算アプリに登録の在籍スタッフ（2026-10-03）
+  // 基本の並び（2026-10-03オーナー指定）。実際の表示は、修正の記録で選ばれた回数が多い順（同じ回数ならこの順）
+  var DEFAULT_STAFF = ["楠田", "永山", "小見", "お母さん", "橋本", "木村", "オーナー"];
+  function orderStaffByUse(list) {
+    var count = {};
+    try {
+      var all = typeof window.loadList === "function" ? window.loadList("koimari_reservations") : JSON.parse(localStorage.getItem("koimari_reservations") || "[]");
+      (all || []).forEach(function (r) { var revs = r && r.revisions ? (Array.isArray(r.revisions) ? r.revisions : Object.values(r.revisions)) : []; revs.forEach(function (v) { if (v && v.by) count[v.by] = (count[v.by] || 0) + 1; }); });
+    } catch (e) {}
+    return list.map(function (n, i) { return { n: n, i: i, c: count[n] || 0 }; }).sort(function (a, b) { return b.c - a.c || a.i - b.i; }).map(function (x) { return x.n; });
+  }
   var TIMES = (function () { var a = []; for (var m = 600; m <= 1170; m += 30) a.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0")); return a; })();
 
   var priceBase = null, refCakes = null;
@@ -186,6 +195,7 @@
     Promise.all([api.getReservation(key), loadPriceBase(), loadRefCakes(), api.getStaff().catch(function () { return null; })]).then(function (v) {
       state.key = key; state.r = v[0] || {}; state.snap = snapshotOf(state.r); state.edit = null;
       if (Array.isArray(v[3]) && v[3].length) state.staff = v[3].filter(Boolean);
+      state.staff = orderStaffByUse(state.staff);
       renderView();
     }).catch(function (e) { document.getElementById("reBody").innerHTML = '<p style="padding:30px;color:#b03b48;">読み込みに失敗しました：' + esc(e && e.message || e) + "</p>"; });
   }
@@ -243,6 +253,13 @@
     // 仕様を変えない限り、予約時の金額はそのまま（料金表が後から改定されていても勝手に変えない）。
     state.edit._priceManual = false;
     state.specKey = specKeyOf(state.edit);
+    // お客様にお伝え済みの金額（確定金額があればそれ、なければ予約時に表示した金額）と、変更前の仕様を「今の料金表」で計算した金額。
+    // 変更後の金額＝お伝え済みの金額＋（変更後の仕様の金額−変更前の仕様の金額）。料金表が予約後に改定されていても、
+    // 仕様を変えていない部分の金額は上がらない（2026-10-03オーナー指摘：お伝え済みの金額から、今回の変更でいくらになったかを出す）。
+    state.told = { price: state.snap.price || state.snap.subtotal || 0, range: !state.snap.price && !!state.snap.subtotal };
+    var b0 = estimateOf(state.snap, state.r);
+    state.baseAuto = b0 && !b0.needsConsult ? b0.subtotal : null;
+    if (!state.edit.price && state.told.price) state.edit.price = state.told.price;
     renderEdit();
   }
   function renderEdit() {
@@ -271,11 +288,21 @@
     html += field("お引き取り時間", sel("reTime", [""].concat(TIMES), e.pickupTime, function (o) { return o || "選択"; }));
     var est = cake ? estimateOf(e, r) : null;
     var sk = specKeyOf(e);
-    if (sk !== state.specKey) { if (!e._priceManual && est && !est.needsConsult) e.price = est.subtotal; state.specKey = sk; }
-    html += '<div class="re-price"><div class="re-price__auto">' + (est ? (est.needsConsult ? "自動計算：この組み合わせは料金表にありません（金額を入力してください）" : "自動計算：<b>" + yen(est.subtotal) + "</b>（税込）") : "") +
+    var told = state.told || { price: 0 };
+    var delta = est && !est.needsConsult && state.baseAuto != null ? est.subtotal - state.baseAuto : null;
+    var newPrice = told.price && delta != null ? told.price + delta : (est && !est.needsConsult ? est.subtotal : 0);
+    if (sk !== state.specKey) { if (!e._priceManual && newPrice) e.price = newPrice; state.specKey = sk; }
+    var sign = function (n) { return (n > 0 ? "+" : n < 0 ? "−" : "±") + yen(Math.abs(n)); };
+    var priceSummary = told.price
+      ? '<div class="re-told">お客様にお伝え済みの金額：<b>' + yen(told.price) + (told.range ? "〜" : "") + "</b>（" + (told.range ? "予約時の目安" : "確定済み") + "）</div>" +
+        (delta != null ? '<div class="re-told">今回の変更による差額：<b>' + sign(delta) + "</b>　→　変更後の金額：<b>" + yen(newPrice) + "</b>（税込）</div>"
+          : '<div class="re-told re-told--warn">変更前の仕様を料金表で計算できないため、差額は出せません。金額を確認して入力してください。</div>') +
+        (est && !est.needsConsult && est.subtotal !== newPrice ? '<div class="re-lines">（参考）今の料金表どおりに計算した場合：' + yen(est.subtotal) + "</div>" : "")
+      : "";
+    html += '<div class="re-price">' + priceSummary + '<div class="re-price__auto">' + (est ? (est.needsConsult ? "料金表：この組み合わせは料金表にありません（金額を入力してください）" : (told.price ? "変更後の仕様の内訳（今の料金表）：<b>" : "自動計算：<b>") + yen(est.subtotal) + "</b>（税込）") : "") +
       (est && est.lines && est.lines.length ? '<div class="re-lines">' + est.lines.map(function (l) { return esc(l.label) + "　" + yen(l.amount); }).join("<br>") + "</div>" : "") +
       (est && est.notes && est.notes.length ? '<div class="re-lines">※' + est.notes.map(esc).join("<br>※") + "</div>" : "") + "</div>" +
-      field("確定金額（税込）", '<div class="re-yen"><input type="number" min="0" class="input re-in" id="rePrice" value="' + esc(e.price || "") + '"> 円' + (est && !est.needsConsult ? ' <button type="button" class="re-btn re-btn--small" id="reUseAuto">自動計算の金額を入れる</button>' : "") + "</div>") + "</div>";
+      field("確定金額（税込）", '<div class="re-yen"><input type="number" min="0" class="input re-in" id="rePrice" value="' + esc(e.price || "") + '"> 円' + (est && !est.needsConsult ? ' <button type="button" class="re-btn re-btn--small" id="reUseAuto">変更後の金額を入れる</button>' : "") + "</div>") + "</div>";
     html += field("変更メモ（お客様のご要望など）", '<textarea class="input re-in" id="reMemo" rows="2" placeholder="例：お電話で5号に変更のご希望"></textarea>');
     html += field("担当者", sel("reStaff", [""].concat(state.staff), "", function (o) { return o || "選んでください"; }) + ' <button type="button" class="re-link" id="reEditStaff">担当者リストを編集</button>');
     var diffs = diffRows(state.snap, e);
@@ -293,7 +320,12 @@
       el.addEventListener(el.tagName === "SELECT" || el.type === "checkbox" || el.type === "date" ? "change" : "input", function () { readEdit(el.tagName === "SELECT" || el.type === "checkbox"); });
     });
     var au = document.getElementById("reUseAuto");
-    if (au) au.addEventListener("click", function () { var est = estimateOf(state.edit, state.r); if (est && !est.needsConsult) { state.edit.price = est.subtotal; state.edit._priceManual = false; renderEdit(); } });
+    if (au) au.addEventListener("click", function () {
+      var est = estimateOf(state.edit, state.r), told = state.told || { price: 0 };
+      if (!est || est.needsConsult) return;
+      state.edit.price = told.price && state.baseAuto != null ? told.price + (est.subtotal - state.baseAuto) : est.subtotal;
+      state.edit._priceManual = false; renderEdit();
+    });
     document.getElementById("rePrice").addEventListener("input", function () { state.edit._priceManual = true; });
     document.getElementById("reCancel").addEventListener("click", function () { state.edit = null; renderView(); });
     document.getElementById("reSave").addEventListener("click", save);

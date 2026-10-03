@@ -1219,7 +1219,7 @@ function computeCakeSubtotal() {
     candlePlain: currentCandleBagPricePlain, candleNumber: currentCandleBagPriceNumber, messagePlate: currentMessagePlatePrice
   });
   // 金額を「確定」で出せるのは、①個別案内が不要 ②「別途ご案内」の注記が無い ③1段（多段は組み合わせ次第で変動しうる）の3つを満たす場合のみ。
-  const noteFilled = !!(document.getElementById("reserveNote") || {}).value && !!document.getElementById("reserveNote").value.trim();
+  const noteFilled = hasMeaningfulNote((document.getElementById("reserveNote") || {}).value);
   const fixed = !r.needsConsult && (r.notes || []).length === 0 && input.tiers.length === 1 && !noteFilled && !quoteSeparatelyNow();
   return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, priceIsFixed: fixed, applicable: true, lines: r.lines, notes: r.notes };
 }
@@ -1253,6 +1253,11 @@ function includedDecorationNow() {
     return (JSON.parse(currentDraft.spec) || {}).decoration || "";
   } catch (e) { return ""; }
 }
+// 備考欄の「なし」「特になし」「ありません」等は、要望なしとして扱う（2026-10-03：「なし」と書いただけで確定価格にならなかった）
+function hasMeaningfulNote(note) {
+  const t = String(note || "").replace(/[\s　。．.、,！!]/g, "");
+  return !!t && !/^(なし|無し|ナシ|特になし|特に無し|とくになし|ありません|ないです|ない|無|なしです|特にありません|-|ー|―|‐)$/.test(t);
+}
 function quoteSeparatelyNow() { try { return !!(currentDraft && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
 // 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ）
 function isPhotoChristmas(data) { return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img); }
@@ -1261,7 +1266,7 @@ function estimateIsFixed(data) {
   if (data.priceNeedsConsult) return false;
   if ((data.estimateNotes || []).length) return false;
   // 備考にご希望が書かれている場合は、内容を確認してから価格・納期を回答する（確定金額にしない）。
-  if (String(data.note || "").trim()) return false;
+  if (hasMeaningfulNote(data.note)) return false;
   return (data.items || []).length === 1;
 }
 function estimateHeadline(data) {
@@ -1281,7 +1286,7 @@ function paymentNoticeText(data) {
 function estimateDisclaimer(data) {
   const pay = paymentNoticeText(data);
   if (data && data.quoteSeparately) return "ギャラリーで選んだ写真の仕様は、内容を確認のうえパティシエよりお電話でお見積もり・納期をご回答いたします。" + pay;
-  if (data && String(data.note || "").trim() && !estimateIsFixed(data)) {
+  if (data && hasMeaningfulNote(data.note) && !estimateIsFixed(data)) {
     return "備考にご記入いただいた内容を確認のうえ、お電話にて価格・納期をご案内いたします。" + pay;
   }
   if (data && estimateIsFixed(data)) return "この内容での金額です（ご要望の追加があった場合は変わることがあります）。" + pay;
