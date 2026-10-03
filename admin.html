@@ -248,6 +248,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .pt-yen{display:flex;align-items:center;gap:4px;white-space:nowrap;}
 .pt-yen input{width:110px;padding:7px 9px;font-size:14px;text-align:right;}
 .pt-matrix .pt-yen input{width:86px;}
+.pt-synced{background:#eaf7ee!important;border-color:#7cc296!important;color:#0b5a28!important}
 .pt-changed{background:#fff6c7!important;border-color:#e0b100!important;}
 </style>
 <style id="res-editor-css">
@@ -5582,6 +5583,7 @@ function syncCorporateFromFirebase() {
 
 // 予約の詳細・変更画面（reservation-editor.js）が使うFirebase操作（2026-10-02）
 window.resKeyAt = function (idx) { return reservationKeys[idx]; };
+window.fbOnPriceTableSource = (cb) => onValue(ref(fbDb, "koimariContent/priceTableSource"), (s) => cb(s.val()));
 window.fbResEditorApi = {
   getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
   multiUpdate: (patch) => update(ref(fbDb), patch),
@@ -5932,7 +5934,20 @@ function buildPriceTable() {
     html += group("その他", "", table(row("3段の出張組み立て料", yenIn("cso_onsite", SO.onsiteAssemblyFee), "交通費は別途")));
   }
   html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・オーナメントなどの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
+  html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div></div>' + html;
   wrap.innerHTML = html;
+  // 原価計算アプリから反映された欄を書き換え不可にする（koimariContent/priceTableSource）
+  if (typeof window.fbOnPriceTableSource === "function") window.fbOnPriceTableSource((src) => {
+    const ids = new Set();
+    (src && src.mapped || []).forEach((m) => {
+      const n = String(m.size || "").replace("号", "");
+      if (m.target === "基本料金") ids.add("cfPrice" + n);
+      else { const i = CAKE_TYPE_PRICE_ROWS.indexOf(m.target); if (i >= 0) ids.add("ctp_" + i + "_" + n); }
+    });
+    wrap.querySelectorAll(".pt-input").forEach((el) => { const on = ids.has(el.id); el.readOnly = on; el.classList.toggle("pt-synced", on); el.title = on ? "原価計算アプリから自動反映（原価計算アプリで変更してください）" : ""; });
+    const st = document.getElementById("ptSourceStatus");
+    if (st && src) st.innerHTML = "最終反映：" + String(src.syncedAt || "").slice(0, 16).replace("T", " ") + "（" + (src.mapped || []).length + "件）" + ((src.unmapped || []).length ? "<br><b style=\"color:#b03b48;\">取り込めなかった商品：" + src.unmapped.map((x) => String(x).replace(/[<>&]/g, "")).join("、") + "</b>（商品名の最後に「　5号」のように号数を付けると取り込まれます）" : "");
+  });
   // 書き換えた欄を黄色にする（最初にさわった時点の値と比べる）
   wrap.addEventListener("focusin", (e) => { const el = e.target; if (el.classList.contains("pt-input") && el.dataset.orig === undefined) el.dataset.orig = el.value; });
   wrap.addEventListener("input", (e) => { const el = e.target; if (el.classList.contains("pt-input")) el.classList.toggle("pt-changed", el.value !== (el.dataset.orig || "")); });

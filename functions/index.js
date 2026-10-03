@@ -4,7 +4,7 @@ process.env.TZ = "Asia/Tokyo";
 
 const { onRequest } = require("firebase-functions/v2/https");
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-const { onValueCreated, onValueUpdated } = require("firebase-functions/v2/database");
+const { onValueCreated, onValueUpdated, onValueWritten } = require("firebase-functions/v2/database");
 const { defineSecret } = require("firebase-functions/params");
 const crypto = require("crypto");
 const fs = require("fs");
@@ -398,7 +398,7 @@ exports._internal = {
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
-  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard,
+  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost,
 };
 
 exports.lineWebhook = onRequest(
@@ -1093,6 +1093,49 @@ exports.lookupMyContact = onRequest(
       console.error("lookupMyContact failed:", err);
       res.status(500).json({});
     }
+  }
+);
+
+// 料金表のデコレーションケーキの金額は、原価計算アプリの商品一覧（koimariContent/costPublicPrices、税込の販売価格）に統一する
+// （2026-10-03オーナー指示。以前は料金表に別途入力していて、タルト6号が7,200円/7,800円と食い違っていた）。
+// 商品名「ミッシェルBOX　5号」のように「種類＋全角/半角スペース＋号数」のものを対象にする。
+//  ・名前に「生クリーム」を含み「生チョコ」を含まない → 1段の基本料金（cakeSizePrices）
+//  ・それ以外は、種類ごとの価格（cakeTypePrices）の該当する種類へ。グランマニエBOXはベースの種類「ムース」として扱う
+//  ・号数の無い商品（例：グランマニエBOX）や当てはまらない商品は取り込まず、「未対応」として記録する
+const COST_TYPE_ALIASES = { "グランマニエBOX": "ムース" };
+const COST_TYPE_NAMES = ["ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース"];
+function mapCostPricesToPriceTable(list) {
+  const sizePrices = {}, typePrices = {}, mapped = [], unmapped = [];
+  (Array.isArray(list) ? list : []).forEach((p) => {
+    if (!p || p.category !== "ホールケーキ" || !(Number(p.salePrice) > 0)) return;
+    const name = String(p.name || "").trim();
+    const m = name.match(/^(.*?)[\s\u3000]+([3-7])号$/);
+    if (!m) { unmapped.push(name); return; }
+    const base = m[1].trim(), size = m[2] + "号", price = Number(p.salePrice);
+    if (base.indexOf("生クリーム") >= 0 && base.indexOf("生チョコ") < 0) { sizePrices[size] = price; mapped.push({ name, target: "基本料金", size, price }); return; }
+    const type = COST_TYPE_ALIASES[base] || COST_TYPE_NAMES.find((t) => base === t || base.indexOf(t) === 0);
+    if (!type) { unmapped.push(name); return; }
+    (typePrices[type] = typePrices[type] || {})[size] = price;
+    mapped.push({ name, target: type, size, price });
+  });
+  return { sizePrices, typePrices, mapped, unmapped };
+}
+async function syncPriceTableFromCost(list) {
+  const r = mapCostPricesToPriceTable(list);
+  const up = {};
+  Object.keys(r.sizePrices).forEach((size) => { up["koimariContent/cakeSizePrices/" + size] = r.sizePrices[size]; });
+  Object.keys(r.typePrices).forEach((t) => Object.keys(r.typePrices[t]).forEach((size) => { up["koimariContent/cakeTypePrices/" + t + "/" + size] = r.typePrices[t][size]; }));
+  up["koimariContent/priceTableSource"] = { syncedAt: new Date().toISOString(), mapped: r.mapped, unmapped: r.unmapped };
+  await admin.database().ref().update(up);
+  return r;
+}
+exports.syncPriceTableFromCost = onValueWritten(
+  { ref: "/koimariContent/costPublicPrices", instance: "koimari-tasting-default-rtdb", region: "asia-southeast1" },
+  async (event) => {
+    const v = event.data.after.val();
+    if (!v || !Array.isArray(v.list)) return;
+    const r = await syncPriceTableFromCost(v.list);
+    console.log("原価計算アプリから料金表へ反映:", r.mapped.length, "件／未対応:", r.unmapped.join("、"));
   }
 );
 
