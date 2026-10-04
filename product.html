@@ -224,6 +224,29 @@ main.pd{max-width:1120px;padding:20px 24px 60px}
 }
 @media(min-width:861px){.pd-sticky{display:none!important}}
 </style>
+<style id="product-v4">
+/* 2026-10-04：情報の塊（ケーキ／お引き渡しの目安／ご予約方法）を分けて、迷わず読めるように */
+.pd-block{margin:26px 0 0;border-radius:16px;padding:20px 22px}
+.pd-block__h{font-family:var(--font-mincho);font-size:19px;font-weight:700;color:#3a2a1c;margin:0 0 12px;line-height:1.5}
+.pd-lead{background:#fff7ea;border:1px solid #e8cf9f}
+.pd-lead__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.pd-lead__list li{position:relative;padding-left:1.3em;font-size:16px;line-height:1.8;color:#3a2a1c}
+.pd-lead__list li::before{content:"◆";position:absolute;left:0;top:0;color:#c9a96e;font-size:13px;line-height:2.2}
+.pd-lead__list b{font-family:var(--font-sans);color:#8a3a2a}
+.pd-howto{background:#fff;border:1px solid var(--color-line)}
+.pd-howto__label{font-size:15.5px;font-weight:700;color:#3a2a1c;margin:0 0 8px}
+.pd-howto__line .product-reserve{margin:0!important}
+.pd-howto__line .product-reserve__btn{width:100%;font-size:18px!important;padding:17px 22px!important;font-family:var(--font-sans)!important}
+.pd-howto__line .product-reserve__note{font-size:15px;color:#4a3a2a;margin:8px 0 0;text-align:left}
+.pd-howto__tel{margin-top:20px;padding-top:18px;border-top:1px dashed #e0d2bd}
+.pd-howto__tel p{font-size:15.5px;line-height:1.85;color:#4a3a2a;margin:0 0 12px}
+.pd-tel-btn{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid #0b7a37;border-radius:14px;padding:12px 16px;text-decoration:none;color:#0b7a37;background:#f3fbf6}
+.pd-tel-btn span{font-size:14px;font-weight:700}
+.pd-tel-btn b{font-size:24px;letter-spacing:.04em;font-family:var(--font-sans)}
+.pd-info .product-desc{margin-bottom:0!important}
+.pd-points{margin-top:26px}
+@media(max-width:860px){.pd-block{padding:18px 16px}.pd-tel-btn b{font-size:22px}}
+</style>
 <style id="nav-large">
 /* ナビゲーション（2026-09-28）：ピル型ボタンは安っぽく見えるため、上質な和菓子店のような「金の細線で挟んだ、
    明朝体の文字リンク＋小さな金のひし形の区切り」に変更。文字は20pxで大きく、ホバー/フォーカスで金の下線が伸びる */
@@ -274,8 +297,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="pd-chips" id="pdChips"></div>
       <div class="pd-sizes" id="pdSizes"></div>
       <div class="product-desc" id="productDesc"></div>
-      <div id="pdReserveSlot"></div>
-      <div class="pd-phone" id="pdPhone"></div>
+      <section class="pd-block pd-lead" id="pdLead" style="display:none;"></section>
+      <section class="pd-block pd-howto" id="pdHowto" style="display:none;">
+        <h2 class="pd-block__h">ご予約方法</h2>
+        <div class="pd-howto__line">
+          <div class="pd-howto__label">LINEでご予約の方</div>
+          <div id="pdReserveSlot"></div>
+        </div>
+        <div class="pd-howto__tel" id="pdTel"></div>
+      </section>
       <ul class="pd-points" id="pdPoints"></ul>
     </div>
   </div>
@@ -442,7 +472,7 @@ function renderProductPage(){
     const box = document.createElement('div');
     box.id = 'productReserve';
     box.className = 'product-reserve';
-    box.innerHTML = '<button type="button" class="product-reserve__btn">この商品でご予約に進む →</button><p class="product-reserve__note">選んだ商品を予約フォームに引き継げます（LINEでのご予約）。LINEをお持ちでない方は、この仕様をお電話（<a href="tel:07091580641">070-9158-0641</a>）でお伝えください。</p>';
+    box.innerHTML = '<button type="button" class="product-reserve__btn">この仕様でLINE予約に進む →</button><p class="product-reserve__note">選んだ商品仕様がそのままLINEに引き継がれます。</p>';
     document.getElementById('pdReserveSlot').appendChild(box);
     box.querySelector('button').addEventListener('click', function(){
       const sizeMatch = String(item.desc || '').match(/^【([^】]+)】/);
@@ -462,7 +492,13 @@ function renderProductPage(){
 const TYPE_LABELS = { decorationCake: 'デコレーションケーキ', cutcake: 'カットケーキ', rollcake: 'ロールケーキ', baked: '焼き菓子', gift: 'ギフト', category: '商品・ケーキ', recommended: 'おすすめ' };
 function priceHintFor(it, type) {
   if (!window.KoimariPriceHint) return Promise.resolve('');
-  return window.KoimariPriceHint.load().then(pr => window.KoimariPriceHint.priceText(it, type, pr)).catch(() => '');
+  // カットケーキは価格欄が空なら、原価計算アプリの販売価格（管理画面で紐づけた商品名→商品名の一致）を出す（2026-10-04）
+  return window.KoimariPriceHint.load().then(pr => {
+    const t = window.KoimariPriceHint.priceText(it, type, pr);
+    if (t || type !== 'cutcake') return t;
+    const nm = String(it.name || '').replace(/<[^>]*>/g, '');
+    return fetch('https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/koimariContent/costPublicPrices.json').then(r => r.json()).then(v => { const p = ((v && v.list) || []).find(x => x && (x.name === it.costName || x.name === nm)); return p && Number(p.salePrice) > 0 ? '¥' + Number(p.salePrice).toLocaleString() : ''; });
+  }).catch(() => '');
 }
 function renderMedia(photos, plainName, gated) {
   const wrap = document.getElementById('productPhotos');
@@ -506,15 +542,11 @@ function renderInfo(item, plainName, config) {
   priceHintFor(item, productType).then(t => {
     if (!t) return;
     const isHint = !(item.price && /[1-9]/.test(String(item.price)));
-    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint ? '<span class="pd-price__note">' + (size ? '写真のサイズ（' + esc(size) + '）のお値段です。' : '') + 'ほかのサイズは下の表をご覧ください</span>' : '');
+    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint && productType === 'cutcake' ? '<span class="pd-price__note">1個のお値段です（3個からご予約いただけます）</span>' : isHint ? '<span class="pd-price__note">' + (size ? '写真のサイズ（' + esc(size) + '）のお値段です。' : '') + 'ほかのサイズは下の表をご覧ください</span>' : '');
     const sp = document.getElementById('pdStickyPrice'); if (sp) sp.textContent = t;
   });
   renderSizeTable(item, size);
-  const phone = document.getElementById('pdPhone');
-  if (phone) {
-    const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
-    phone.innerHTML = productType === 'category' || productType === 'recommended' ? '' : 'お電話でのご予約は <a href="tel:07091580641">070-9158-0641</a>' + (no ? '<br>「' + no + (size ? '・' + esc(size) : '') + '」のようにお伝えいただくとスムーズです' : '');
-  }
+  renderLeadAndTel(item, size);
   const text = plainName + ' ' + String(item.desc || '');
   const pts = [];
   if (/フルーツ|いちご|苺|果実|ベリー|タルト/.test(text)) pts.push('季節のフルーツをたっぷり。見た目も味も華やかに仕上げます');
@@ -541,6 +573,26 @@ function renderSizeTable(item, photoSize) {
   });
 }
 var currentGuide = ''; // フルオーダーの目安（例：5号 ¥5,000〜）。予約フォームへ引き継ぐ
+// ② 納期の目安・注意書き と ③ お電話でのご予約（電話番号はページ内でここ1か所にまとめる）
+function renderLeadAndTel(item, size) {
+  const lead = document.getElementById('pdLead'), howto = document.getElementById('pdHowto'), tel = document.getElementById('pdTel');
+  if (!lead || !howto || !tel) return;
+  const isProduct = productType !== 'category' && productType !== 'recommended';
+  lead.style.display = howto.style.display = isProduct ? '' : 'none';
+  if (!isProduct) return;
+  const custom = productType === 'decorationCake' && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === 'custom';
+  const rows = productType === 'cutcake'
+    ? ['カットケーキのご予約は<b>3個から</b>、<b>お引き取りの3営業日前まで</b>承ります。', '2個以下のご注文や、3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。']
+    : ['お引き渡し日は資材の在庫状況によります。お早めのご相談をおすすめいたします。',
+       custom ? 'フルオーダーのケーキ：<b>14日程度</b>お日にちをいただく場合がございます。' : '定番ケーキ：<b>3営業日以降</b>のお引き取り',
+       '3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。'];
+  lead.innerHTML = '<h2 class="pd-block__h">お引き渡しの目安・ご注意</h2><ul class="pd-lead__list">' + rows.map(r => '<li>' + r + '</li>').join('') + '</ul>';
+  const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
+  const say = no ? '「' + no + (size ? '・' + esc(size) : '') + '」' : '「' + esc(String(item.name || '').replace(/<[^>]*>/g, '')) + '」';
+  tel.innerHTML = '<div class="pd-howto__label">お電話でご予約の方（LINEをお持ちでない方）</div>' +
+    '<p>※LINEをお持ちでない方は、こちらの仕様をお控えの上、お電話にて内容をお伺いいたします。' + say + 'のようにお伝えいただくとスムーズです。</p>' +
+    '<a class="pd-tel-btn" href="tel:07091580641"><span>お電話でのご予約・ご相談</span><b>070-9158-0641</b></a>';
+}
 function setupSticky(item) {
   const bar = document.getElementById('pdSticky');
   const main = document.querySelector('#productReserve button');
