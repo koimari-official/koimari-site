@@ -440,6 +440,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <p style="font-size:12.5px;color:var(--color-text-soft);line-height:1.8;margin:0 0 10px;">直前のキャンセルはキャンセルポリシーに則りご請求させていただきます。近年、心ないご対応をされるお客様も増えており、当店存続のため何卒ご理解・ご協力をお願い申し上げます。</p>
         <div class="field">
           <label class="field__check">
+            <input type="checkbox" id="reserveMailOptIn">
+            <span>お得なクーポンや新商品のお知らせをメールで受け取る（任意・いつでも停止できます）</span>
+          </label>
+        </div>
+        <div class="field">
+          <label class="field__check">
             <input type="checkbox" id="reserveConsent">
             <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>・<a href="terms.html" target="_blank" rel="noopener">利用規約</a>（キャンセルポリシー含む）と、上記のご注意事項に同意する</span>
           </label>
@@ -2426,12 +2432,14 @@ function setupReserveForm(uid, displayName) {
     const tel = document.getElementById("reserveTel").value || "";
     const email = document.getElementById("reserveEmail").value || "";
     const privacyConsent = document.getElementById("reserveConsent").checked;
+    // メールでの広告配信は、特定電子メール法によりご本人の事前の同意（オプトイン）が必要なため、任意のチェックで同意をいただく（2026-10-04）
+    const mailOptIn = !!(document.getElementById("reserveMailOptIn") || {}).checked;
     const storeConfirmed = document.getElementById("reserveStoreConfirm").checked;
     const leadConfirmed = document.getElementById("reserveLeadConfirm").checked;
     const note = document.getElementById("reserveNote").value || "";
     const commonFields = {
       name, furigana, tel, email, zipcode: "", address: "", birthday: "",
-      privacyConsent, storeConfirmed, leadConfirmed, note,
+      privacyConsent, storeConfirmed, leadConfirmed, note, mailOptIn, ...(mailOptIn ? { mailOptInAt: new Date().toISOString() } : {}),
       noshi: "", noshiTitle: "", noshiName: "", messageCard: "", wrapping: "",
       status: "受付済", notes: "",
       submittedAt: new Date().toISOString(),
