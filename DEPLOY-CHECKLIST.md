@@ -61,7 +61,7 @@ Q1
 - [ ] `node --check functions/index.js` で構文エラーが無いことを確認した
 - [ ] `cd functions && node test-local.js` を実行し、**全項目がOKになる**ことを確認した
       （既存テストを壊していないか。新しいロジックには可能ならテストケースも追加する）
-- [ ] デプロイ対象の関数名を正確に特定した（例: `lineWebhook`、`ensureRichMenu`、
+- [ ] デプロイ対象の関数名を正確に特定した（例: `lineWebhook`、
       `sendPickupReminders`、`notifyStaffOnNewReservation`）
 - [ ] **`firebase deploy --only functions:<関数名1>,functions:<関数名2>` のように、
       変更した関数だけを明示的に指定してデプロイした**
@@ -80,11 +80,10 @@ Q1
 - [ ] レイアウト（タップ領域の位置・個数）を変えた場合、`functions/index.js` の
       `RICHMENU_AREAS` の並び順・座標を画像と一致するよう更新した
 - [ ] **`RICHMENU_VERSION` の値を必ず変更した**（画像だけ差し替えてこれを忘れると、
-      `ensureRichMenu`が「既に正しいバージョンが設定済み」と誤認し、何も起きない。
+      反映処理が「既に正しいバージョンが設定済み」と誤認し、何も起きない。
       今回のセッションで2回、この手順を忘れかけた）
-- [ ] `firebase deploy --only functions:ensureRichMenu` でデプロイした
-- [ ] 反映は毎日4:00(JST)の自動実行を待つか、オーナーにCloud Schedulerでの
-      手動実行を依頼する旨を伝えた（このAI自身は手動実行できないことを明示する）
+- [ ] `functions` ディレクトリで `node scripts/apply-richmenu.js` を実行して反映した
+      （2026-10-04に毎日4時の自動確認`ensureRichMenu`は廃止。デプロイでは反映されない）
 
 ---
 

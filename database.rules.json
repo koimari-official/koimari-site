@@ -22,6 +22,10 @@
         ".write": "(auth != null && auth.token.store !== true) || (!data.exists() && newData.child('status').val() === 'pending')"
       }
     },
+    "customerFlags": {
+      ".read": "auth != null",
+      ".write": "auth != null && auth.token.store !== true"
+    },
     "reservationStaff": {
       ".read": "auth != null",
       ".write": "auth != null && auth.token.store !== true"

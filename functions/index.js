@@ -400,7 +400,7 @@ exports._internal = {
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
-  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost,
+  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost, customerFlagLines,
 };
 
 exports.lineWebhook = onRequest(
@@ -665,9 +665,22 @@ exports.notifyStaffOnNewReservation = onValueCreated(
       console.warn("staffNotifyGroupId未設定のため、新規予約通知をスキップしました。");
       return;
     }
-    await pushLineMessage(groupId, buildStaffNotifyText(data), LINE_CHANNEL_ACCESS_TOKEN.value());
+    let text = buildStaffNotifyText(data);
+    try {
+      const warn = customerFlagLines(data, (await admin.database().ref("customerFlags").once("value")).val());
+      if (warn.length) text = warn.join("\n") + "\n\n" + text;
+    } catch (e) { console.warn("要注意のお客様の確認に失敗:", e.message); }
+    await pushLineMessage(groupId, text, LINE_CHANNEL_ACCESS_TOKEN.value());
   }
 );
+// 要注意のお客様（admin.html「要注意のお客様」、customerFlags）に電話・LINE・メールのどれかが一致したら、スタッフ通知の先頭に出す（2026-10-04）
+function cfTelKey(t) { let d = String(t || "").replace(/\D/g, ""); if (d.indexOf("81") === 0 && d.length >= 11) d = "0" + d.slice(2); return d.length >= 10 ? d : ""; }
+function customerFlagLines(data, flagsObj) {
+  const t = cfTelKey(data.tel), m = String(data.email || "").trim().toLowerCase(), l = data.lineUserId || "";
+  const levels = { caution: "注意して対応", prepay: "前払いをお願いする", decline: "ご予約をお断りする" };
+  return Object.values(flagsObj || {}).filter((f) => f && ((t && cfTelKey(f.tel) === t) || (l && f.lineUserId === l) || (m && /@/.test(m) && String(f.email || "").trim().toLowerCase() === m)))
+    .map((f) => "⚠⚠ 要注意のお客様（" + (f.type || "") + "／" + (levels[f.level] || "注意して対応") + "）" + (f.note ? "\n　" + f.note : ""));
+}
 
 // 予約内容の確定連絡（2026-09-26）：管理画面の予約一覧で「予約確定」にチェックが入った瞬間、
 // お客様のLINEトークへ確定内容を自動送信する。二重送信しないよう confirmMessageSentAt を記録する。
@@ -1341,17 +1354,10 @@ async function ensureMainRichMenu(accessToken) {
   return richMenuId;
 }
 
-exports.ensureRichMenu = onSchedule(
-  {
-    schedule: "0 4 * * *", // 毎日4:00(JST)に確認。既に正しい/手動設定済みなら何もしない安全設計
-    timeZone: "Asia/Tokyo",
-    region: "asia-northeast1",
-    secrets: [LINE_CHANNEL_ACCESS_TOKEN],
-  },
-  async () => {
-    await ensureMainRichMenu(LINE_CHANNEL_ACCESS_TOKEN.value());
-  }
-);
+// リッチメニューの反映は、デザインを変えた時だけ手動で行う（2026-10-04オーナー判断：毎日4時の自動確認は不要。
+// Cloud Schedulerの無料枠（3件）を空けるため定期実行は廃止）。反映手順は assets/richmenu-src/README.md の
+// 「反映手順」を参照（scripts/apply-richmenu.js を実行）。Firebaseの関数として認識されないよう列挙不可で公開する
+Object.defineProperty(exports, "__ensureMainRichMenu", { value: ensureMainRichMenu, enumerable: false });
 
 function todayDateKeyJST(now) {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;

@@ -58,10 +58,10 @@ Pythonスクリプトで実SVGに置換してから書き出す運用でした�
 3. 書き出した画像を `functions/assets/richmenu-main.jpg` として保存する
 4. `functions/index.js` の `RICHMENU_VERSION` の値を必ず変更する
    （例: `"2026-09-01-tanukichi"` → `"2026-10-01-halloween"` など、日付+内容がわかる文字列にする）
-   **これを更新し忘れると、画像を差し替えても自動反映されません**（`ensureRichMenu` は
-   バージョン文字列が変わった時だけ新しいリッチメニューを作り直す仕組みのため）
+   **これを更新し忘れると、画像を差し替えても反映されません**（反映処理はバージョン文字列が
+   変わった時だけ新しいリッチメニューを作り直す仕組みのため）
 5. `RICHMENU_AREAS` のタップ先URLを変える場合は同じファイル内の該当箇所を編集する
-6. デプロイ: `firebase deploy --only functions:ensureRichMenu`（他の関数を巻き込まないよう必ずこの
-   スコープ指定で。詳細は`CLAUDE.md`または過去のやり取り参照）
-7. `ensureRichMenu` は毎日4:00(JST)に自動実行されるため、最大1日で反映される。すぐ反映したい場合は
-   Firebase ConsoleのCloud Scheduler画面から手動実行するか、Jobsに直接デプロイ後の即時実行を依頼する
+6. 反映：`functions` ディレクトリで `node scripts/apply-richmenu.js` を実行する（その場でLINEに反映される。
+   firebase CLIへのログインが必要）。**デプロイは不要**
+   ※2026-10-04まであった毎日4:00の自動確認（`ensureRichMenu`）は、オーナー判断で廃止した
+   （Cloud Schedulerの無料枠を空けるため）。自動では反映されないので、必ずこの手順で反映すること

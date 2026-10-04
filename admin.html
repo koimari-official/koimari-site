@@ -345,6 +345,19 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .xm-add-size{align-self:flex-start;margin-top:4px}
 .xm-foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px;font-size:13px}
 @media(max-width:700px){.xm-card{flex-direction:column}.xm-photo{flex-basis:auto}}
+
+/* 要注意のお客様（2026-10-04） */
+.cf-form{background:#fff;border:1px solid var(--color-line);padding:16px 18px;margin-bottom:18px}
+.cf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px 14px}
+.cf-grid label,.cf-wide{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--color-text-soft)}
+.cf-wide{margin-top:10px}
+.cf-actions{display:flex;gap:10px;align-items:center;margin-top:12px;flex-wrap:wrap}
+.cf-type{color:#b03b48}
+.cf-alert{margin-top:6px;font-size:13.5px;font-weight:700;color:#fff;background:#b03b48;border-radius:6px;padding:6px 10px;line-height:1.6}
+.cf-hist{margin-top:6px;font-size:13px;font-weight:700;color:#8a2d38;background:#fbeaec;border:1px solid #e3a2aa;border-radius:6px;padding:3px 8px;display:inline-block}
+.rc--flag{border:2px solid #b03b48}
+.rc-flagbtn{margin-top:6px;font-size:12.5px;border:1px solid #b03b48;color:#b03b48;background:#fff;border-radius:999px;padding:4px 12px;cursor:pointer}
+.store-mode .rc-flagbtn{display:none}
 .move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
 .move-cat label{font-weight:700;color:#4a6f9c}
 .move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
@@ -512,6 +525,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="holidays">営業日設定</button>
 
       <button class="tab" data-panel="christmas">クリスマスケーキ</button>
+      <button class="tab" data-panel="customerFlags">要注意のお客様</button>
 
       <span class="tab-group-label">販促・システム設定</span>
       <button class="tab" data-panel="i18n">英語翻訳</button>
@@ -1252,6 +1266,27 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     </section>
 
     <!-- ===== 料金表（単価）：2026-10-02オーナー指示。予約フォームの自動見積もりに使う単価を1ページで確認・変更する ===== -->
+
+
+    <!-- ===== 要注意のお客様（2026-10-04） ⚠️ 機密：個人情報。スタッフ間の共有のみ、お客様には一切表示しない ===== -->
+    <section class="panel" id="panel-customerFlags">
+      <div class="panel__head"><h2 class="panel__title">要注意のお客様</h2></div>
+      <p class="panel__desc">無断でお引き取りに来られない・キャンセルが多い・カスタマーハラスメントがあったお客様を登録します。登録したお客様から新しいご予約が入ると、<b>予約一覧に赤い「要注意」</b>が付き、<b>スタッフのLINE通知</b>にも表示されます（お電話番号・LINE・メールのどれかが一致したとき）。お客様側の画面には一切表示されません。個人情報のため、事実だけを簡潔に記録してください。</p>
+      <div class="cf-form" id="cfForm">
+        <div class="cf-grid">
+          <label>お名前<input class="input" id="cfName" placeholder="例：山田 花子"></label>
+          <label>ふりがな<input class="input" id="cfKana"></label>
+          <label>電話番号<input class="input" id="cfTel" inputmode="tel" placeholder="ハイフンなしでも可"></label>
+          <label>メール<input class="input" id="cfEmail"></label>
+          <label>理由<select class="input select" id="cfType"><option>無断でお引き取りなし</option><option>キャンセルが多い</option><option>直前キャンセル（ご請求未収）</option><option>カスタマーハラスメント</option><option>その他</option></select></label>
+          <label>対応<select class="input select" id="cfLevel"><option value="caution">注意して対応（受付はする）</option><option value="prepay">前払いをお願いする</option><option value="decline">ご予約をお断りする</option></select></label>
+        </div>
+        <label class="cf-wide">内容（いつ・何があったか）<textarea class="input" id="cfNote" rows="2" placeholder="例：10/5 16:00のご予約、連絡なくお引き取りなし。電話もつながらず"></textarea></label>
+        <input type="hidden" id="cfLine"><input type="hidden" id="cfEditId">
+        <div class="cf-actions"><button class="btn" id="cfSave">登録する</button><button class="btn btn--ghost btn--small" id="cfReset" type="button">入力を消す</button><span class="small" id="cfMsg"></span></div>
+      </div>
+      <div id="cfList"></div>
+    </section>
 
     <!-- ===== クリスマスケーキ（2026-10-03） ===== -->
     <section class="panel" id="panel-christmas">
@@ -4235,7 +4270,7 @@ document.getElementById("runSeoCheck").addEventListener("click", async () => {
 /* ============================================================
    予約・応募一覧
    ============================================================ */
-const STATUS_COLORS = { "受付済":"#4a6f9c", "対応中":"#a98554", "完了":"#5d8a4e", "キャンセル":"#b03b48", "未対応":"#a98554", "対応完了":"#5d8a4e" };
+const STATUS_COLORS = { "受付済":"#4a6f9c", "対応中":"#a98554", "完了":"#5d8a4e", "キャンセル":"#b03b48", "引取りなし":"#7a1f2b", "未対応":"#a98554", "対応完了":"#5d8a4e" };
 // 1234 → "No.1234"（4桁未満は0埋め）。functions/index.js・member.htmlと表記をそろえること。
 function formatReservationNo(n) { return n ? "No." + String(n).padStart(4, "0") : "—"; }
 // クリスマスケーキは12/20までの店頭払い・当日会計なし（2026-09-29オーナー指示）。
@@ -4330,6 +4365,97 @@ function updateResConfirmed(idx, checked) {
 // 管理画面を開きっぱなしにしていても「未確認が3時間経過」の状態を検知できるよう、定期的にバッジを再計算する
 setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
 
+
+// ===== 要注意のお客様（2026-10-04） ⚠️ 機密：個人情報 =====
+function cfTelKey(t) { let d = String(t || "").replace(/\D/g, ""); if (d.indexOf("81") === 0 && d.length >= 11) d = "0" + d.slice(2); return d.length >= 10 ? d : ""; }
+function cfMailKey(m) { m = String(m || "").trim().toLowerCase(); return /@/.test(m) ? m : ""; }
+const CF_LEVEL_LABEL = { caution: "注意して対応", prepay: "前払いをお願いする", decline: "ご予約をお断りする" };
+// 予約に一致する登録（電話・LINE・メールのどれか）
+function customerFlagsFor(r) {
+  const t = cfTelKey(r.tel), m = cfMailKey(r.email), l = r.lineUserId || "";
+  return (window.__customerFlags || []).filter((f) => (t && cfTelKey(f.tel) === t) || (l && f.lineUserId === l) || (m && cfMailKey(f.email) === m));
+}
+// 同じお客様の過去のキャンセル・お引き取りなしの回数（予約一覧から自動で数える）
+function customerHistoryFor(r, list) {
+  const t = cfTelKey(r.tel), l = r.lineUserId || "";
+  let cancel = 0, noShow = 0;
+  (list || []).forEach((x) => {
+    if (!x || x === r) return;
+    if (!((t && cfTelKey(x.tel) === t) || (l && x.lineUserId === l))) return;
+    if (x.status === "キャンセル") cancel++;
+    if (x.status === "引取りなし") noShow++;
+  });
+  return { cancel, noShow };
+}
+function customerAlertHtml(r, list) {
+  const flags = customerFlagsFor(r), h = customerHistoryFor(r, list);
+  let html = "";
+  if (flags.length) html += '<div class="cf-alert"><b>要注意のお客様</b>　' + flags.map((f) => escapeHtml(f.type || "") + "（" + escapeHtml(CF_LEVEL_LABEL[f.level] || "注意して対応") + "）" + (f.note ? "：" + escapeHtml(f.note) : "")).join("<br>") + "</div>";
+  if (h.cancel || h.noShow) html += '<div class="cf-hist">これまでに ' + [h.noShow ? "お引き取りなし " + h.noShow + "回" : "", h.cancel ? "キャンセル " + h.cancel + "回" : ""].filter(Boolean).join("・") + "</div>";
+  return html;
+}
+function openCustomerFlagForm(idx) {
+  const r = loadList(RES_KEY)[idx];
+  if (!r) return;
+  const tab = document.querySelector('.tab[data-panel="customerFlags"]');
+  if (tab) tab.click();
+  cfResetForm();
+  const g = (id) => document.getElementById(id);
+  g("cfName").value = r.name || ""; g("cfKana").value = r.furigana || ""; g("cfTel").value = r.tel || ""; g("cfEmail").value = r.email || ""; g("cfLine").value = r.lineUserId || "";
+  g("cfType").value = r.status === "引取りなし" ? "無断でお引き取りなし" : r.status === "キャンセル" ? "キャンセルが多い" : "その他";
+  g("cfNote").value = (r.pickupDate ? r.pickupDate + " " + (r.pickupTime || "") + " のご予約（" + formatReservationNo(r.reservationNo) + "）：" : "");
+  g("cfNote").focus();
+  g("cfForm").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+function cfResetForm() {
+  ["cfName", "cfKana", "cfTel", "cfEmail", "cfNote", "cfLine", "cfEditId"].forEach((id) => { const el = document.getElementById(id); if (el) el.value = ""; });
+  const t = document.getElementById("cfType"), l = document.getElementById("cfLevel"); if (t) t.selectedIndex = 0; if (l) l.selectedIndex = 0;
+  const b = document.getElementById("cfSave"); if (b) b.textContent = "登録する";
+}
+function cfEdit(id) {
+  const f = (window.__customerFlags || []).find((x) => x.id === id); if (!f) return;
+  const g = (k) => document.getElementById(k);
+  g("cfName").value = f.name || ""; g("cfKana").value = f.furigana || ""; g("cfTel").value = f.tel || ""; g("cfEmail").value = f.email || ""; g("cfLine").value = f.lineUserId || "";
+  g("cfType").value = f.type || "その他"; g("cfLevel").value = f.level || "caution"; g("cfNote").value = f.note || ""; g("cfEditId").value = id;
+  g("cfSave").textContent = "内容を更新する";
+  g("cfForm").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+function cfDelete(id) {
+  const f = (window.__customerFlags || []).find((x) => x.id === id); if (!f) return;
+  if (!confirm("「" + (f.name || "このお客様") + "」の登録を削除しますか？")) return;
+  window.fbDeleteCustomerFlag(id).then(() => showToast("削除しました")).catch((e) => showToast("削除できませんでした（権限がありません）", "error"));
+}
+window.renderCustomerFlags = function () {
+  const box = document.getElementById("cfList");
+  if (!box) return;
+  const list = (window.__customerFlags || []).slice().sort((a, b) => String(b.updatedAt || b.createdAt || "").localeCompare(String(a.updatedAt || a.createdAt || "")));
+  const all = loadList(RES_KEY);
+  box.innerHTML = list.length ? '<table class="res-table cf-table"><thead><tr><th>お名前</th><th>連絡先</th><th>理由・対応</th><th>内容</th><th>これまでの記録</th><th>登録</th><th></th></tr></thead><tbody>' + list.map((f) => {
+    const h = customerHistoryFor({ tel: f.tel, lineUserId: f.lineUserId }, all);
+    const count = all.filter((x) => x && ((cfTelKey(f.tel) && cfTelKey(x.tel) === cfTelKey(f.tel)) || (f.lineUserId && x.lineUserId === f.lineUserId))).length;
+    return "<tr><td><b>" + escapeHtml(f.name || "") + "</b><br><span class=small>" + escapeHtml(f.furigana || "") + "</span></td>" +
+      "<td>" + escapeHtml(f.tel || "") + (f.email ? "<br><span class=small>" + escapeHtml(f.email) + "</span>" : "") + (f.lineUserId ? "<br><span class=small>LINE連携あり</span>" : "") + "</td>" +
+      "<td><b class=cf-type>" + escapeHtml(f.type || "") + "</b><br>" + escapeHtml(CF_LEVEL_LABEL[f.level] || "注意して対応") + "</td>" +
+      "<td style='max-width:280px;white-space:pre-wrap;'>" + escapeHtml(f.note || "") + "</td>" +
+      "<td class=small>ご予約 " + count + "件<br>お引き取りなし " + h.noShow + "回<br>キャンセル " + h.cancel + "回</td>" +
+      "<td class=small>" + escapeHtml(String(f.updatedAt || f.createdAt || "").slice(0, 10)) + "<br>" + escapeHtml(f.by || "") + "</td>" +
+      "<td><button class='btn btn--small btn--ghost' onclick=\"cfEdit('" + f.id + "')\">編集</button> <button class='btn btn--small btn--danger' onclick=\"cfDelete('" + f.id + "')\">削除</button></td></tr>";
+  }).join("") + "</tbody></table>" : '<div class="empty">登録はまだありません。予約一覧の各予約の「メモ・連絡文・受付日時」を開くと「要注意のお客様に登録」ボタンがあります。</div>';
+};
+document.addEventListener("click", (e) => {
+  if (e.target && e.target.id === "cfReset") { cfResetForm(); return; }
+  if (!e.target || e.target.id !== "cfSave") return;
+  const g = (id) => document.getElementById(id).value.trim();
+  const data = { name: g("cfName"), furigana: g("cfKana"), tel: g("cfTel"), email: g("cfEmail"), lineUserId: g("cfLine"), type: g("cfType"), level: g("cfLevel"), note: g("cfNote"), updatedAt: new Date().toISOString(), by: window.fbCurrentEmail ? window.fbCurrentEmail() : "" };
+  if (!data.name) { alert("お名前を入力してください"); return; }
+  if (!cfTelKey(data.tel) && !data.lineUserId && !cfMailKey(data.email)) { alert("電話番号・メールのどちらかを入力してください（一致の判定に使います）"); return; }
+  const id = g("cfEditId");
+  if (!id) data.createdAt = data.updatedAt;
+  window.fbSaveCustomerFlag(id, data).then(() => { document.getElementById("cfMsg").textContent = id ? "更新しました" : "登録しました"; cfResetForm(); setTimeout(() => { const m = document.getElementById("cfMsg"); if (m) m.textContent = ""; }, 3000); })
+    .catch(() => { document.getElementById("cfMsg").textContent = "保存できませんでした（この画面は管理者アカウントのみ登録できます）"; });
+});
+document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest('.tab[data-panel="customerFlags"]')) window.renderCustomerFlags(); });
+
 // ===== 予約一覧の見やすい表示（2026-10-03オーナー指示）=====
 // 「どんなケーキの予約が入っているか」を一目で見られるカード表示（お引き取り日ごと）と、
 // 何日に何件入っているかを見るカレンダー表示を追加。従来の表は「表」で残す。表示の切替はこの端末だけに記憶する。
@@ -4421,7 +4547,8 @@ function resCardHtml(r, idx, byTel) {
   const nth = visits.indexOf(r) + 1;
   const allergy = (r.allergy || []).filter((a) => a && a !== "なし");
   const extras = resExtrasLine(r);
-  return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + '">' +
+  const alertHtml = customerAlertHtml(r, loadList(RES_KEY));
+  return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + (customerFlagsFor(r).length ? " rc--flag" : "") + '">' +
     '<button type="button" class="rc-photo" onclick="openReservationEditor(' + idx + ')" title="詳細・変更">' + reservationThumbHtml(r) + "</button>" +
     '<div class="rc-body">' +
       '<div class="rc-top"><span class="rc-time">' + escapeHtml(resPickupTime(r) || "時間未定") + "</span>" +
@@ -4429,10 +4556,10 @@ function resCardHtml(r, idx, byTel) {
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
         (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
-        '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
+        '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
       '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + "</div>" +
       '<div class="rc-spec">' + escapeHtml(resCakeSpecLine(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
-      (extras ? '<div class="rc-extra">' + escapeHtml(extras) + "</div>" : "") +
+      (extras ? '<div class="rc-extra">' + escapeHtml(extras) + "</div>" : "") + alertHtml +
       '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "　" + resAmountHtml(r) + "</div>" +
       (allergy.length || (r.note && hasMeaningfulNoteAdmin(r.note)) || r.receiptNeeded ? '<div class="rc-warn">' + (allergy.length ? "アレルギー：" + escapeHtml(allergy.join("・")) + "　" : "") + (r.note && hasMeaningfulNoteAdmin(r.note) ? "備考：" + escapeHtml(r.note) + "　" : "") + (r.receiptNeeded ? "領収書（" + escapeHtml(r.receiptName || "") + "）" : "") + "</div>" : "") +
       '<div class="rc-checks">' +
@@ -4444,6 +4571,7 @@ function resCardHtml(r, idx, byTel) {
       '<details class="rc-more"><summary>メモ・連絡文・受付日時</summary>' +
         '<div class="small">受付：' + fmtDate(r.submittedAt) + (r.email ? "　" + escapeHtml(r.email) : "") + (r.birthday ? "　生年月日：" + escapeHtml(r.birthday) : "") + "</div>" +
         reservationPriceHtml(r) +
+        '<button type="button" class="rc-flagbtn" onclick="openCustomerFlagForm(' + idx + ')">要注意のお客様に登録</button>' +
         '<textarea rows="2" class="rc-memo" placeholder="スタッフメモ" onchange="updateResNotes(' + idx + ',this.value)">' + escapeHtml(r.notes || "") + "</textarea>" +
         "<div class=\"rc-tpl\"><button class=\"btn btn--small\" onclick='copyTemplate(\"confirm\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>確認文</button>" +
         "<button class=\"btn btn--small btn--ghost\" onclick='copyTemplate(\"complete\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>完了文</button>" +
@@ -4592,8 +4720,9 @@ function renderReservationsTable() {
       <td style="font-family:monospace;font-weight:700;white-space:nowrap;">${formatReservationNo(r.reservationNo)}</td>
       <td>
         <select onchange="updateResStatus(${idx},this.value)" style="font-size:12px;padding:4px 6px;border:1px solid #ddd;border-radius:3px;color:${color};font-weight:600;">
-          ${["受付済","対応中","完了","キャンセル"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
+          ${["受付済","対応中","完了","キャンセル","引取りなし"].map(s=>`<option value="${s}"${s===status?" selected":""}>${s}</option>`).join("")}
         </select>
+        ${customerAlertHtml(r, list)}
         ${r.emailSent===false?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ メール未送信</div>':""}
       </td>
       <td style="text-align:center;">
@@ -5966,6 +6095,22 @@ function syncCorporateFromFirebase() {
 // 予約の詳細・変更画面（reservation-editor.js）が使うFirebase操作（2026-10-02）
 window.resKeyAt = function (idx) { return reservationKeys[idx]; };
 window.fbOnPriceTableSource = (cb) => onValue(ref(fbDb, "koimariContent/priceTableSource"), (s) => cb(s.val()));
+
+/* ===== 要注意のお客様（customerFlags、2026-10-04オーナー指示） ⚠️ 機密 ===== */
+window.__customerFlags = [];
+onAuthStateChanged(fbAuth, (u) => {
+  if (!u || window.__cfBound) return;
+  window.__cfBound = true;
+  onValue(ref(fbDb, "customerFlags"), (snap) => {
+    const v = snap.val() || {};
+    window.__customerFlags = Object.keys(v).map((k) => Object.assign({ id: k }, v[k]));
+    if (typeof window.renderCustomerFlags === "function") window.renderCustomerFlags();
+    if (typeof window.renderReservations === "function") try { window.renderReservations(); } catch (e) {}
+  }, () => {});
+});
+window.fbSaveCustomerFlag = (id, data) => id ? update(ref(fbDb, "customerFlags/" + id), data) : push(ref(fbDb, "customerFlags"), data);
+window.fbDeleteCustomerFlag = (id) => remove(ref(fbDb, "customerFlags/" + id));
+window.fbCurrentEmail = () => (fbAuth.currentUser && fbAuth.currentUser.email) || "";
 window.fbResEditorApi = {
   getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
   multiUpdate: (patch) => update(ref(fbDb), patch),
