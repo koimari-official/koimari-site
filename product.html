@@ -243,7 +243,11 @@ main.pd{max-width:1120px;padding:20px 24px 60px}
 .pd-tel-btn{display:flex;flex-direction:column;align-items:center;gap:2px;border:2px solid #0b7a37;border-radius:14px;padding:12px 16px;text-decoration:none;color:#0b7a37;background:#f3fbf6}
 .pd-tel-btn span{font-size:14px;font-weight:700}
 .pd-tel-btn b{font-size:24px;letter-spacing:.04em;font-family:var(--font-sans)}
-.pd-info .product-desc{margin-bottom:0!important}
+/* 説明文：囲みの中に埋もれないよう、見出し付きのカードにして主役にする（2026-10-04オーナー指摘） */
+.pd-about{margin:6px 0 22px;background:#fff;border:1px solid #ecd9c4;border-left:4px solid var(--color-accent);border-radius:14px;padding:18px 22px}
+.pd-about__h{font-family:var(--font-mincho);font-size:15px;font-weight:700;color:var(--color-accent-dark);letter-spacing:.08em;margin:0 0 8px}
+.pd-info .pd-about .product-desc{font-size:17.5px!important;line-height:2!important;color:var(--color-text)!important;font-weight:600;margin:0!important;padding:0!important;background:none!important;border:0!important}
+@media(max-width:860px){.pd-about{padding:16px 16px}.pd-info .pd-about .product-desc{font-size:16.5px!important}}
 .pd-points{margin-top:26px}
 @media(max-width:860px){.pd-block{padding:18px 16px}.pd-tel-btn b{font-size:22px}}
 </style>
@@ -295,8 +299,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <h1 class="pd-title" id="pageTitle">読み込み中…</h1>
       <div class="pd-price" id="pdPrice"></div>
       <div class="pd-chips" id="pdChips"></div>
+      <section class="pd-about"><h2 class="pd-about__h">このケーキについて</h2><div class="product-desc" id="productDesc"></div></section>
       <div class="pd-sizes" id="pdSizes"></div>
-      <div class="product-desc" id="productDesc"></div>
       <section class="pd-block pd-lead" id="pdLead" style="display:none;"></section>
       <section class="pd-block pd-howto" id="pdHowto" style="display:none;">
         <h2 class="pd-block__h">ご予約方法</h2>
