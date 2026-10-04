@@ -48,6 +48,27 @@
       return refCakes;
     });
   }
+  // カットケーキ単体のご予約の変更用（2026-10-04）：ギャラリーのカットケーキと、原価計算アプリの販売価格（member.htmlと同じ選び方）
+  var cutCatalog = null;
+  function loadCutCatalog() {
+    if (cutCatalog) return Promise.resolve(cutCatalog);
+    return Promise.all([getJson("siteImages/cutcakes"), getJson("koimariContent/costPublicPrices")]).then(function (v) {
+      var arr = Array.isArray(v[0]) ? v[0] : Object.values(v[0] || {}), pm = {};
+      ((v[1] && v[1].list) || []).forEach(function (p) { if (p && p.name) pm[p.name] = Number(p.salePrice) || 0; });
+      cutCatalog = arr.filter(function (it) { return it && it.name && it.visible !== false; }).map(function (it) {
+        var nm = String(it.name).replace(/<[^>]*>/g, "");
+        return { name: nm, img: it.img || "", price: pm[it.costName || ""] || pm[it.name] || pm[nm] || (Number(String(it.price || "").replace(/[^0-9]/g, "")) || 0) };
+      });
+      return cutCatalog;
+    });
+  }
+  function isCutRes(r) { var it = (r.items || [])[0] || {}; return it.category === "カットケーキ"; }
+  function cutInfo(name) { return (cutCatalog || []).filter(function (x) { return x.name === name; })[0] || null; }
+  function cutTotalOf(s) { return (s.cuts || []).reduce(function (a, c) { return a + (Number(c.qty) || 0); }, 0); }
+  function cutEstimate(s) {
+    var miss = false, lines = (s.cuts || []).map(function (c) { var p = Number(c.price) || (cutInfo(c.name) || {}).price || 0; if (!p) miss = true; return { label: c.name + " ×" + c.qty, amount: p * c.qty }; });
+    return { subtotal: lines.reduce(function (a, l) { return a + l.amount; }, 0), needsConsult: miss || !lines.length, lines: lines, notes: miss ? ["価格が分からないカットケーキがあります（原価計算アプリと未連携）"] : [] };
+  }
   // 予約フォーム（member.html の refCandidates）と同じ選び方で、クリームの種類に近い商品写真を探す
   function refImageFor(cream) {
     var list = refCakes || [];
@@ -69,7 +90,7 @@
   function snapshotOf(r) {
     var items = r.items || [];
     var specs = Array.isArray(r.tierSpecs) && r.tierSpecs.length === items.length ? r.tierSpecs.slice().reverse() : null;
-    var tiers = items.map(function (it, i) {
+    var tiers = isCutRes(r) ? [] : items.map(function (it, i) {
       var cream = specs ? (specs[i].cream || "") : (i === 0 ? (r.creamType || "") : "");
       var colors = specs ? (specs[i].colors || []) : (i === 0 && r.colorCream ? (r.colorCream.colors || []) : []);
       return { size: plainSize(it.size), cream: cream, color: colors[0] || "" };
@@ -93,13 +114,18 @@
       pickupTime: r.finalPickupTime || r.pickupTime || "",
       price: Number(r.finalPrice) || (r.priceIsFixed ? Number(r.subtotal) || 0 : 0),
       priceIsRange: !r.finalPrice && !r.priceIsFixed && !!r.subtotal,
-      subtotal: Number(r.subtotal) || 0
+      subtotal: Number(r.subtotal) || 0,
+      cuts: isCutRes(r) ? items.filter(function (it) { return it.flavor; }).map(function (it) { return { name: it.flavor, qty: Number(it.qty) || 1, price: Number(it.price) || 0 }; }) : undefined
     };
   }
   // 表示・比較用の行 [項目, 内容]
   function rowsOf(s) {
     var rows = [];
-    rows.push(["商品", s.category + (s.flavor ? "（" + s.flavor + "）" : "")]);
+    if (s.cuts) {
+      rows.push(["商品", "カットケーキ（合計" + cutTotalOf(s) + "個）"]);
+      s.cuts.forEach(function (c) { rows.push(["カット：" + c.name, c.qty + "個"]); });
+    } else rows.push(["商品", s.category + (s.flavor ? "（" + s.flavor + "）" : "")]);
+    var simple = s.cuts || s.category === "クリスマスケーキ"; // ろうそく・プレート・オプションの無い商品
     if (s.tiers.length) {
       rows.push(["段数", s.tiers.length + "段"]);
       s.tiers.forEach(function (t, i) {
@@ -109,13 +135,13 @@
     }
     if (s.decoration) rows.push(["飾り付け", s.decoration]);
     if (s.occasion) rows.push(["ご利用シーン", s.occasion === "その他" && s.occasionOther ? s.occasionOther : s.occasion]);
-    rows.push(["ろうそく", s.candleType ? s.candleType + " " + s.candleCount + (s.candleType === "ナンバーろうそく" ? "文字" : "袋") : "なし"]);
-    rows.push(["メッセージプレート", s.messageCount ? s.messageCount + "枚" + (s.message ? "「" + s.message + "」" : "") : "なし"]);
+    if (!simple) rows.push(["ろうそく", s.candleType ? s.candleType + " " + s.candleCount + (s.candleType === "ナンバーろうそく" ? "文字" : "袋") : "なし"]);
+    if (!simple) rows.push(["メッセージプレート", s.messageCount ? s.messageCount + "枚" + (s.message ? "「" + s.message + "」" : "") : "なし"]);
     var opts = [];
     if (s.creamTopping) opts.push("生クリームたっぷり乗せ");
     if (s.strawberryAdd) opts.push("いちごトッピング");
     if (s.onsiteAssembly) opts.push("出張組み立て");
-    rows.push(["オプション", opts.length ? opts.join("、") : "なし"]);
+    if (!simple) rows.push(["オプション", opts.length ? opts.join("、") : "なし"]);
     rows.push(["お引き取り", (s.pickupDate || "未定") + " " + (s.pickupTime || "")]);
     rows.push(["金額（税込）", s.price ? yen(s.price) + (s.priceIsRange ? "〜" : "") : (s.subtotal ? yen(s.subtotal) + "〜（目安）" : "お電話でご案内")]);
     return rows;
@@ -131,6 +157,7 @@
     return out;
   }
   function estimateOf(s, r) {
+    if (s.cuts) return cutEstimate(s);
     if (!window.CakePricing || !priceBase || !s.tiers.length) return null;
     return window.CakePricing.estimate({
       tiers: s.tiers.map(function (t) { return t.size; }),
@@ -146,6 +173,15 @@
   }
   // スナップショット → 予約データの更新内容（member.html が保存する形式にそろえる）
   function patchOf(s, r, est) {
+    if (s.cuts) {
+      return {
+        items: s.cuts.map(function (c) { var info = cutInfo(c.name) || {}; var old = (r.items || []).filter(function (it) { return it.flavor === c.name; })[0] || {}; return { category: "カットケーキ", image: old.image || (/^https?:/.test(info.img || "") ? info.img : ""), size: "", flavor: c.name, qty: c.qty, price: Number(c.price) || info.price || 0, message: "" }; }),
+        cutOrder: { count: cutTotalOf(s) },
+        pickupDate: s.pickupDate, pickupTime: s.pickupTime, finalPickupDate: s.pickupDate, finalPickupTime: s.pickupTime,
+        finalPrice: s.price || null, priceIsFixed: !!s.price, priceNeedsConsult: false,
+        subtotal: est && !est.needsConsult ? est.subtotal : (r.subtotal || 0)
+      };
+    }
     var n = s.tiers.length;
     var p = {
       items: n ? s.tiers.map(function (t, i) { return { category: s.category || "デコレーションケーキ", image: "", size: SIZE_FULL[t.size] || t.size, flavor: s.flavor || "", message: i === 0 ? s.message : "" }; }) : (r.items || null),
@@ -193,10 +229,10 @@
     document.body.style.overflow = "hidden";
     document.getElementById("reBody").innerHTML = '<p style="padding:30px;">読み込み中…</p>';
     Promise.all([api.getReservation(key), loadPriceBase(), loadRefCakes(), api.getStaff().catch(function () { return null; })]).then(function (v) {
-      state.key = key; state.r = v[0] || {}; state.snap = snapshotOf(state.r); state.edit = null;
       if (Array.isArray(v[3]) && v[3].length) state.staff = v[3].filter(Boolean);
       state.staff = orderStaffByUse(state.staff);
-      renderView();
+      var go = function () { state.key = key; state.r = v[0] || {}; state.snap = snapshotOf(state.r); state.edit = null; renderView(); };
+      return isCutRes(v[0] || {}) ? loadCutCatalog().then(go, go) : go();
     }).catch(function (e) { document.getElementById("reBody").innerHTML = '<p style="padding:30px;color:#b03b48;">読み込みに失敗しました：' + esc(e && e.message || e) + "</p>"; });
   }
 
@@ -210,6 +246,11 @@
     }
     var sent = r.sentImages ? Object.values(r.sentImages) : [];
     var html = "";
+    // カットケーキのご予約は、選んだカットケーキの写真を並べる（デコレーションケーキの参考写真は出さない）
+    if (isCutRes(r)) {
+      (r.items || []).forEach(function (it) { if (it.image) html += '<figure class="re-photo"><img src="' + esc(it.image) + '" alt=""><figcaption><span>カットケーキ</span>' + esc(it.flavor) + " ×" + esc(it.qty || 1) + "</figcaption></figure>"; });
+      return html || '<div class="re-photo re-photo--none">カットケーキ（写真なし）</div>';
+    }
     if (img) html += '<figure class="re-photo"><img src="' + esc(img) + '" alt=""><figcaption><span>' + esc(label) + "</span>" + esc(name) + "</figcaption></figure>";
     else if (pick.name) html += '<div class="re-photo re-photo--none">ギャラリーで選択：' + esc(name) + "（写真なし）</div>";
     sent.sort(function (a, b) { return String(a.sentAt).localeCompare(String(b.sentAt)); }).forEach(function (si) {
@@ -284,9 +325,19 @@
         '<label class="re-check"><input type="checkbox" id="reStraw"' + (e.strawberryAdd ? " checked" : "") + "> いちごトッピング</label>" +
         (e.tiers.length === 3 ? '<label class="re-check"><input type="checkbox" id="reOnsite"' + (e.onsiteAssembly ? " checked" : "") + "> 出張組み立て</label>" : ""));
     }
+    if (e.cuts) {
+      e.cuts.forEach(function (c, i) {
+        var unit = Number(c.price) || (cutInfo(c.name) || {}).price || 0;
+        html += field(c.name + (unit ? "（1個 " + yen(unit) + "）" : "（価格未登録）"), sel("reCutQ" + i, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20], c.qty, function (o) { return o ? o + "個" : "0個（取り消す）"; }));
+      });
+      var names = e.cuts.map(function (c) { return c.name; });
+      html += field("カットケーキを追加", sel("reCutAdd", [""].concat((cutCatalog || []).map(function (c) { return c.name; }).filter(function (nm) { return names.indexOf(nm) < 0; })), "", function (o) { return o || "＋ 追加するケーキを選ぶ"; }));
+      var tot = cutTotalOf(e);
+      html += '<div class="re-told' + (tot < 3 ? " re-told--warn" : "") + '">合計 <b>' + tot + "個</b>" + (tot < 3 ? "（通常は3個からのご予約です。お電話で了承済みの場合のみ確定してください）" : "") + "</div>";
+    }
     html += field("お引き取り日", '<input type="date" class="input re-in" id="reDate" value="' + esc(e.pickupDate) + '">');
     html += field("お引き取り時間", sel("reTime", [""].concat(TIMES), e.pickupTime, function (o) { return o || "選択"; }));
-    var est = cake ? estimateOf(e, r) : null;
+    var est = cake || e.cuts ? estimateOf(e, r) : null;
     var sk = specKeyOf(e);
     var told = state.told || { price: 0 };
     var delta = est && !est.needsConsult && state.baseAuto != null ? est.subtotal - state.baseAuto : null;
@@ -348,6 +399,11 @@
       e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;
       e.creamTopping = g("reTopping").checked; e.strawberryAdd = g("reStraw").checked; e.onsiteAssembly = g("reOnsite") ? g("reOnsite").checked : false;
     }
+    if (e.cuts) {
+      e.cuts = e.cuts.map(function (c, i) { return { name: c.name, qty: g("reCutQ" + i) ? Number(g("reCutQ" + i).value) || 0 : c.qty, price: c.price }; }).filter(function (c) { return c.qty > 0; });
+      var add = g("reCutAdd") ? g("reCutAdd").value : "";
+      if (add) e.cuts.push({ name: add, qty: 1, price: (cutInfo(add) || {}).price || 0 });
+    }
     e.pickupDate = g("reDate").value; e.pickupTime = g("reTime").value;
     e.price = Number(g("rePrice").value) || 0; e.priceIsRange = false;
     if (rerender) {
@@ -370,9 +426,11 @@
     if (!confirm("修正" + n + "として確定します。\n\n" + changes.map(function (c) { return "・" + c.label + "：" + c.from + " → " + c.to; }).join("\n") + (r.lineUserId ? "\n\nお客様のLINEにも変更後の内容が届きます。" : ""))) return;
     var now = new Date().toISOString(), base = "reservations/" + state.key + "/", up = {};
     if (!revs.length) up[base + "revisions/0"] = { label: "初回予約", savedAt: r.submittedAt || now, by: r.channel === "LINE" ? "お客様（LINE予約フォーム）" : "お客様（予約フォーム）", snapshot: state.snap };
-    var est = isCakeRes(r) ? estimateOf(e, r) : null;
+    if (e.cuts && !e.cuts.length) { alert("カットケーキが0個です。ご予約自体の取り消しは、一覧のステータスを「キャンセル」にしてください"); return; }
+    if (e.cuts && cutTotalOf(e) < 3 && !confirm("合計" + cutTotalOf(e) + "個です（通常は3個から）。お電話で了承済みとして確定しますか？")) return;
+    var est = isCakeRes(r) || e.cuts ? estimateOf(e, r) : null;
     var patch = patchOf(e, r, est);
-    if (!isCakeRes(r)) { patch = { pickupDate: e.pickupDate, pickupTime: e.pickupTime, finalPickupDate: e.pickupDate, finalPickupTime: e.pickupTime, finalPrice: e.price, priceIsFixed: true }; }
+    if (!isCakeRes(r) && !e.cuts) { patch = { pickupDate: e.pickupDate, pickupTime: e.pickupTime, finalPickupDate: e.pickupDate, finalPickupTime: e.pickupTime, finalPrice: e.price, priceIsFixed: true }; }
     up[base + "revisions/" + n] = { label: "修正" + n, savedAt: now, by: staff, byAccount: api.currentUserEmail() || "", memo: memo, changes: changes, snapshot: e };
     Object.keys(patch).forEach(function (k) { up[base + k] = patch[k]; });
     up[base + "revisionCount"] = n; up[base + "lastRevisionAt"] = now;
