@@ -79,6 +79,7 @@ a { color: inherit; text-decoration: none; }
 .admin-header__actions { display: flex; gap: 10px; }
 .admin-header__actions a, .admin-header__actions button { font-size: 13px; padding: 9px 18px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer; font-family: inherit; letter-spacing: 0.08em; transition: background 0.2s; }
 .admin-header__actions a:hover, .admin-header__actions button:hover { background: rgba(255,255,255,0.2); }
+@media (max-width: 760px) { .admin-header { padding: 10px 12px; gap: 8px; flex-wrap: wrap; } .admin-header__logo { font-size: 18px; } .admin-header__actions { gap: 6px; } .admin-header__actions a, .admin-header__actions button { padding: 7px 10px; font-size: 12px; white-space: nowrap; } }
 
 main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
@@ -96,6 +97,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .tab-group-label:first-of-type { padding-top: 4px; }
 .tab__count { display: inline-block; margin-left: 8px; font-family: var(--font-en); background: var(--color-accent); color: #fff; padding: 2px 9px; border-radius: 10px; font-size: 12px; letter-spacing: 0; font-weight: 500; }
 .tab__count--warn { background: #b03b48; }
+@media (max-width: 760px) {
+  .tabs { gap: 6px; padding-bottom: 10px; margin-bottom: 18px; }
+  .tab { padding: 7px 11px; font-size: 13px; letter-spacing: .02em; background: #f4ede1; border: 1px solid #e3d6c4; border-radius: 999px; border-bottom-width: 1px; color: #5a4a3a; font-family: var(--font-sans); }
+  .tab.active { background: var(--color-accent-dark); border-color: var(--color-accent-dark); color: #fff; }
+  .tab-group-label { padding: 8px 2px 0; font-size: 10.5px; }
+  .tab__count { margin-left: 5px; padding: 1px 7px; font-size: 11px; }
+}
 .confirm-call-warning { display: none; align-items: center; gap: 10px; background: #fdecec; border: 1px solid #b03b48; color: #8a2c37; padding: 12px 16px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
 .confirm-call-warning.show { display: flex; }
 .res-row--overdue { background: #fdecec !important; }
@@ -499,7 +507,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <span class="tab-group-label">予約・問い合わせ管理</span>
       <button class="tab" data-panel="notify">🔔 店舗通知モード</button>
       <button class="tab" data-panel="kitchen">🧁 製造シート（タブレット）</button>
-      <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
+      <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount" style="display:none;">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
       <button class="tab" data-panel="quoteBuilder">個別見積もり作成</button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
       <button class="tab" data-panel="corporate">法人ご相談 <span class="tab__count" id="corpCount">0</span></button>
@@ -1629,7 +1637,7 @@ function handleNewSubmissionAlert(type, data) {
 window.handleNewSubmissionAlert = handleNewSubmissionAlert;
 
 // ===== 未対応のご予約（2026-10-07）=====
-// 「確認電話」にチェックが入っていない新しい予約があれば、どの画面でも上部に赤いバナーを出し、1分ごとに音を鳴らす。
+// 「電話済み」にチェックが入っていない新しい予約があれば、どの画面でも上部に赤いバナーを出し、60分ごとに音を鳴らす。
 // 状態は全端末で共有のデータ（confirmCallDone）から作るので、誰かが対応するとすべてのタブレット・スマホから同時に消える。
 // iPadが古く通知（Web Push）に対応していなくても、この画面を開いておけば知らせられる。
 let pendingChimeTimer = null;
@@ -1637,7 +1645,7 @@ function updatePendingResAlert(entries) {
   const box = document.getElementById("pendingResAlert");
   if (!box) return;
   const now = Date.now();
-  const pending = (entries || []).filter(([, r]) => r && r.category !== "kidsManager" && !r.confirmCallDone && r.status !== "キャンセル" && r.status !== "引取りなし" && r.submittedAt && now - new Date(r.submittedAt).getTime() < 7 * 86400000);
+  const pending = (entries || []).filter(([, r]) => isNotCalledYet(r));
   // 対応済みの予約の通知が端末に残っていたら閉じる
   try {
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
@@ -1650,14 +1658,14 @@ function updatePendingResAlert(entries) {
     if (pendingChimeTimer) { clearInterval(pendingChimeTimer); pendingChimeTimer = null; }
     return;
   }
-  document.getElementById("pendingResTitle").textContent = "未対応のご予約 " + pending.length + "件（確認電話をお願いします）";
+  document.getElementById("pendingResTitle").textContent = "未対応のご予約 " + pending.length + "件（お電話で内容の確認をお願いします）";
   document.getElementById("pendingResList").textContent = pending.slice(0, 3).map(([, r]) => (r.name || "お客様") + "様" + (r.pickupDate ? "（" + r.pickupDate.slice(5).replace("-", "/") + "）" : "")).join("、") + (pending.length > 3 ? " ほか" : "");
   document.getElementById("pendingResSoundHint").style.display = notifyAudioUnlocked ? "none" : "block";
   box.style.display = "block";
   document.body.style.paddingTop = box.offsetHeight + "px";
   if (!pendingChimeTimer) {
     if (notifyAudioUnlocked) notifyPlayChime();
-    pendingChimeTimer = setInterval(() => { if (notifyAudioUnlocked) notifyPlayChime(); }, 60000);
+    pendingChimeTimer = setInterval(() => { if (notifyAudioUnlocked) notifyPlayChime(); }, 60 * 60000); // 60分ごと（2026-10-07オーナー指示）
   }
 }
 window.updatePendingResAlert = updatePendingResAlert;
@@ -3805,12 +3813,14 @@ document.getElementById("salesGoalSave").addEventListener("click", async () => {
 /* ============================================================
    予約ステータス・メモ更新
    ============================================================ */
-function updateResStatus(idx, status) {
+async function updateResStatus(idx, status) {
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
-  list[idx].status = status;
+  const actor = await askActor("ステータスを「" + status + "」にした人");
+  if (!actor) { renderReservations(); return; }
+  list[idx].status = status; list[idx].statusBy = actor; list[idx].statusAt = new Date().toISOString();
   localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, { status });
+  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, { status, statusBy: actor, statusAt: list[idx].statusAt });
   updateCounts();
   if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
 }
@@ -4455,18 +4465,29 @@ function isChristmasPaymentOverdue(r) {
 }
 const CONFIRM_CALL_OVERDUE_HOURS = 3;
 function isConfirmCallOverdue(r) {
-  if (r.confirmCallDone || r.status === "キャンセル" || !r.submittedAt) return false;
+  if (!isNotCalledYet(r) || !r.submittedAt) return false;
   return (Date.now() - new Date(r.submittedAt).getTime()) > CONFIRM_CALL_OVERDUE_HOURS * 60 * 60 * 1000;
 }
+// 電話がまだのご予約（キャンセル・完了・お引き取りなしを除く、お引き取り日が今日以降または未定）。バッジ・警告・赤いバナーで共通（2026-10-07）
+function isNotCalledYet(r) {
+  if (!r || r.confirmCallDone || r.category === "kidsManager") return false;
+  if (["キャンセル", "引取りなし", "完了"].indexOf(r.status) >= 0) return false;
+  const d = String(r.finalPickupDate || r.pickupDate || "");
+  const today = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+  return !d || d >= today;
+}
+window.isNotCalledYet = isNotCalledYet;
 function updateConfirmCallWarning() {
   const overdueCount = loadList(RES_KEY).filter(isConfirmCallOverdue).length;
   const badge = document.getElementById("resUnconfirmedCount");
-  if (badge) { badge.textContent = overdueCount; badge.style.display = overdueCount ? "inline-block" : "none"; }
+  // 2026-10-07：数字が2つあって意味が分からないとの指摘。総件数は出さず、電話がまだの予約の件数だけを「未対応 N」で表示する
+  const notCalled = loadList(RES_KEY).filter(isNotCalledYet).length;
+  if (badge) { badge.textContent = "未対応 " + notCalled; badge.title = "電話で内容の確認がまだのご予約"; badge.style.display = notCalled ? "inline-block" : "none"; }
   const warning = document.getElementById("confirmCallWarning");
   const warningText = document.getElementById("confirmCallWarningText");
   if (warning && warningText) {
     if (overdueCount) {
-      warningText.textContent = `確認電話が未実施のまま${CONFIRM_CALL_OVERDUE_HOURS}時間以上経過している予約が${overdueCount}件あります`;
+      warningText.textContent = `電話での確認がまだのまま、受付から${CONFIRM_CALL_OVERDUE_HOURS}時間以上たったご予約が${overdueCount}件あります`;
       warning.classList.add("show");
     } else {
       warning.classList.remove("show");
@@ -4474,10 +4495,12 @@ function updateConfirmCallWarning() {
   }
 }
 // 「支払い済」チェック（2026-09-29オーナー指示：引き渡し・支払いの管理を楽にする）。
-function updateResPayment(idx, checked) {
+async function updateResPayment(idx, checked) {
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
-  const patch = { paymentDone: checked, paymentDoneAt: checked ? new Date().toISOString() : null };
+  const actor = checked ? await askActor("お支払いを受けた人") : null;
+  if (checked && !actor) { renderReservations(); return; }
+  const patch = { paymentDone: checked, paymentDoneAt: checked ? new Date().toISOString() : null, paymentDoneBy: checked ? actor : null };
   Object.assign(list[idx], patch);
   localStorage.setItem(RES_KEY, JSON.stringify(list));
   if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
@@ -4502,7 +4525,68 @@ function openReservationEditor(idx) {
   if (!key || !window.ReservationEditor) { showToast("予約データの読み込み中です。少し待ってからもう一度押してください", "error"); return; }
   window.ReservationEditor.open(key);
 }
-function updateResConfirmCall(idx, checked) {
+// ===== 誰が処理したか（2026-10-07オーナー指示）=====
+// 各工程（電話済み・内容確定・支払い・製造済み・ステータス）に、処理した人と日時を記録する。
+// 個人のアカウントは自動でその人の名前。お店の共用アカウント（タブレット）は、毎回プルダウンで担当者を選んでもらう。
+window.__actor = { shared: false, name: "" };
+function askActor(title) {
+  if (!window.__actor.shared) return Promise.resolve(window.__actor.name || "不明");
+  return new Promise(async (resolve) => {
+    let staff = [];
+    try { staff = (await window.fbResEditorApi.getStaff()) || []; } catch (e) {}
+    if (!Array.isArray(staff)) staff = Object.values(staff || {});
+    let last = ""; try { last = sessionStorage.getItem("koimari_last_actor") || ""; } catch (e) {}
+    const m = document.createElement("div");
+    m.style.cssText = "position:fixed;inset:0;z-index:9600;background:rgba(30,20,14,.55);display:flex;align-items:center;justify-content:center;padding:16px;";
+    m.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:380px;width:100%;padding:20px;"><div style="font-weight:700;font-size:16px;margin-bottom:10px;">' + escapeHtml(title) + '</div>' +
+      '<label style="font-size:13px;color:var(--color-text-soft);">担当者を選んでください</label><select id="actorSel" class="input" style="margin:6px 0 14px;font-size:17px;"><option value="">選んでください</option>' +
+      staff.map(n => '<option' + (n === last ? " selected" : "") + '>' + escapeHtml(n) + '</option>').join("") + '</select>' +
+      '<div style="display:flex;gap:8px;justify-content:flex-end;"><button type="button" class="btn btn--small btn--ghost" id="actorCancel">やめる</button><button type="button" class="btn btn--small" id="actorOk">決定</button></div></div>';
+    document.body.appendChild(m);
+    m.querySelector("#actorCancel").addEventListener("click", () => { m.remove(); resolve(null); });
+    m.querySelector("#actorOk").addEventListener("click", () => {
+      const v = m.querySelector("#actorSel").value;
+      if (!v) { showToast("担当者を選んでください", "error"); return; }
+      try { sessionStorage.setItem("koimari_last_actor", v); } catch (e) {}
+      m.remove(); resolve(v);
+    });
+  });
+}
+window.askActor = askActor;
+function byLine(name, at) { return name || at ? '<div class="small" style="margin-top:3px;white-space:nowrap;">' + escapeHtml(name || "") + (at ? " " + fmtDate(at) : "") + "</div>" : ""; }
+function byText(name, at) { return name ? "（" + name + (at ? " " + fmtDate(at).replace(/^\d{4}\//, "") : "") + "）" : ""; }
+async function updateResConfirmCall(idx, checked) {
+  const list = loadList(RES_KEY);
+  if (!list[idx]) return;
+  const cur = list[idx];
+  if (!checked) {
+    if (!confirm("「電話済み」を外しますか？")) { renderReservations(); return; }
+    applyResPatch(idx, { confirmCallDone: false, confirmCallAt: null, confirmCallBy: null });
+    return;
+  }
+  // 電話で内容を確定した時点でチェック。確定金額・お引き取り日時を入力すると、LINEのお客様には確定連絡が自動で届き「内容確定」になる
+  const actor = await askActor("電話で内容を確定した人");
+  if (!actor) { renderReservations(); return; }
+  const priceIn = prompt("電話で確定した金額（税込・数字のみ）" + (cur.subtotal ? "\n（お客様への案内：¥" + Number(cur.subtotal).toLocaleString() + (cur.priceIsFixed ? "＝確定金額" : "〜") + "）" : "") + "\n\n※キャンセルすると「電話済み」になりません", cur.finalPrice || cur.subtotal || "");
+  if (priceIn === null) { renderReservations(); return; }
+  const price = Number(String(priceIn).replace(/[^0-9]/g, ""));
+  if (!price) { showToast("金額は数字で入力してください", "error"); renderReservations(); return; }
+  const dtIn = prompt("電話で確定したお引き取り日時（例：2026-10-03 14:00）", (cur.finalPickupDate || cur.pickupDate || "") + " " + (cur.finalPickupTime || cur.pickupTime || ""));
+  if (dtIn === null) { renderReservations(); return; }
+  const m = String(dtIn).match(/(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/);
+  if (!m) { showToast("日時は「2026-10-03 14:00」の形式で入力してください", "error"); renderReservations(); return; }
+  applyResPatch(idx, { confirmCallDone: true, confirmCallAt: new Date().toISOString(), confirmCallBy: actor, finalPrice: price, finalPickupDate: m[1], finalPickupTime: m[2].padStart(5, "0") });
+  if (cur.channel === "LINE" && cur.lineUserId) showToast("お客様のLINEに確定のお見積もり・お引き取り日時を自動で連絡し、「内容確定」にします");
+}
+function applyResPatch(idx, patch) {
+  const list = loadList(RES_KEY);
+  if (!list[idx]) return;
+  Object.assign(list[idx], patch);
+  localStorage.setItem(RES_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
+  renderReservations();
+}
+function updateResConfirmCall_OLD(idx, checked) {
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
   const patch = { confirmCallDone: checked, confirmCallAt: checked ? new Date().toISOString() : null };
@@ -4513,27 +4597,16 @@ function updateResConfirmCall(idx, checked) {
 }
 // 「確認電話」とは別の段階：予約内容そのものが最終確定したかどうか（2026-08-19オーナー指示）。
 // スタッフ全員がリアルタイムで進捗を共有できるよう、確認電話チェックと同じ仕組みで追加。
-function updateResConfirmed(idx, checked) {
+async function updateResConfirmed(idx, checked) {
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
-  const patch = { reservationConfirmed: checked, reservationConfirmedAt: checked ? new Date().toISOString() : null };
-  if (checked) {
-    // パティシエの確認電話で決まった、確定のお引き取り日時・税込金額を入力（お客様へ送る確定連絡LINEに載る）。
-    const cur = list[idx];
-    const priceIn = prompt("確定金額（税込・数字のみ）を入力してください" + (cur.subtotal ? "\n（お客様への案内：¥" + Number(cur.subtotal).toLocaleString() + (cur.priceIsFixed ? "＝確定金額" : "〜＝目安") + "）" : "") + "\n\n※キャンセルすると「予約確定」になりません", cur.finalPrice || cur.subtotal || "");
-    if (priceIn === null) { renderReservations(); return; }
-    const price = Number(String(priceIn).replace(/[^0-9]/g, ""));
-    if (!price) { showToast("金額は数字で入力してください", "error"); renderReservations(); return; }
-    const dtIn = prompt("確定のお引き取り日時を入力してください（例：2026-10-03 14:00）", (cur.finalPickupDate || cur.pickupDate || "") + " " + (cur.finalPickupTime || cur.pickupTime || ""));
-    if (dtIn === null) { renderReservations(); return; }
-    const m = String(dtIn).match(/(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/);
-    if (!m) { showToast("日時は「2026-10-03 14:00」の形式で入力してください", "error"); renderReservations(); return; }
-    patch.finalPrice = price; patch.finalPickupDate = m[1]; patch.finalPickupTime = m[2].padStart(5, "0");
-  }
-  Object.assign(list[idx], patch);
-  localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
-  renderReservations();
+  // 「内容確定」は、電話済み（確定金額・日時の入力）のあと、お客様のLINEへ確定連絡を送った時点で自動でチェックされる。
+  // LINEで予約していないお客様などは、ここから手動でチェックできる（誰がチェックしたかを記録）。
+  if (checked && !list[idx].confirmCallDone && !confirm("まだ「電話済み」になっていません。内容確定にしてよいですか？")) { renderReservations(); return; }
+  if (!checked) { if (!confirm("「内容確定」を外しますか？")) { renderReservations(); return; } applyResPatch(idx, { reservationConfirmed: false, reservationConfirmedAt: null, reservationConfirmedBy: null }); return; }
+  const actor = await askActor("内容確定にした人");
+  if (!actor) { renderReservations(); return; }
+  applyResPatch(idx, { reservationConfirmed: true, reservationConfirmedAt: new Date().toISOString(), reservationConfirmedBy: actor });
 }
 // 管理画面を開きっぱなしにしていても「未確認が3時間経過」の状態を検知できるよう、定期的にバッジを再計算する
 setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
@@ -4736,9 +4809,9 @@ function resCardHtml(r, idx, byTel) {
       '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "　" + resAmountHtml(r) + "</div>" +
       (allergy.length || (r.note && hasMeaningfulNoteAdmin(r.note)) || r.receiptNeeded ? '<div class="rc-warn">' + (allergy.length ? "アレルギー：" + escapeHtml(allergy.join("・")) + "　" : "") + (r.note && hasMeaningfulNoteAdmin(r.note) ? "備考：" + escapeHtml(r.note) + "　" : "") + (r.receiptNeeded ? "領収書（" + escapeHtml(r.receiptName || "") + "）" : "") + "</div>" : "") +
       '<div class="rc-checks">' +
-        '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">確認電話" + (overdue ? "（未・3時間経過）" : "") + "</label>" +
-        '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">予約確定</label>" +
-        '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払い" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + "</label>" +
+        '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（未・3時間経過）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>" +
+        '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">内容確定" + (r.reservationConfirmedBy ? byText(r.reservationConfirmedBy, r.reservationConfirmedAt) : (r.channel === "LINE" ? "（電話済みでLINE自動連絡）" : "")) + "</label>" +
+        '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払い" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + byText(r.paymentDoneBy, r.paymentDoneAt) + "</label>" +
         '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
       "</div>" +
       '<details class="rc-more"><summary>メモ・連絡文・受付日時</summary>' +
@@ -4878,7 +4951,7 @@ function renderReservationsTable() {
   // 絞り込みは表示するかどうかだけを切り替え、配列そのものは詰め直さない。
   const list = fullList;
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>予約番号</th><th>ステータス</th><th>確認電話</th><th>予約確定</th><th>支払い</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
+  html += '<th>予約番号</th><th>ステータス</th><th>電話済み</th><th>内容確定</th><th>支払い</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
   html += '</tr></thead><tbody>';
   let shown = 0;
   list.forEach((r, idx) => {
@@ -4901,17 +4974,17 @@ function renderReservationsTable() {
       <td style="text-align:center;">
         <input type="checkbox" onchange="updateResConfirmCall(${idx},this.checked)" ${r.confirmCallDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
         ${overdue?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 未確認</div>':""}
-        ${r.confirmCallDone && r.confirmCallAt?`<div class="small" style="margin-top:4px;white-space:nowrap;">${fmtDate(r.confirmCallAt)}</div>`:""}
+        ${r.confirmCallDone?byLine(r.confirmCallBy, r.confirmCallAt):""}
       </td>
       <td style="text-align:center;">
         <input type="checkbox" onchange="updateResConfirmed(${idx},this.checked)" ${r.reservationConfirmed?"checked":""} style="width:18px;height:18px;cursor:pointer;">
-        ${r.reservationConfirmed && r.reservationConfirmedAt?`<div class="small" style="margin-top:4px;white-space:nowrap;">${fmtDate(r.reservationConfirmedAt)}</div>`:""}
+        ${r.reservationConfirmed?byLine(r.reservationConfirmedBy, r.reservationConfirmedAt):""}
       </td>
       <td style="text-align:center;">
         <input type="checkbox" onchange="updateResPayment(${idx},this.checked)" ${r.paymentDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
         ${r.christmasOrder?'<div style="margin-top:4px;font-size:10px;font-weight:700;color:#0b7a37;white-space:nowrap;">🎄 12/20までに店頭で</div>':""}
         ${payOverdue?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 支払い期限超過</div>':""}
-        ${r.paymentDone && r.paymentDoneAt?`<div class="small" style="margin-top:4px;white-space:nowrap;">${fmtDate(r.paymentDoneAt)}</div>`:""}
+        ${r.paymentDone?byLine(r.paymentDoneBy, r.paymentDoneAt):""}
       </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.type)}${r.channel==="LINE"?'<br><span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;color:#06962c;border:1px solid #06962c;border-radius:3px;padding:1px 5px;">LINE</span>':""}</td>
@@ -6140,13 +6213,13 @@ function renderKitchen() {
     const done = !!r.kitchenDone;
     return '<div style="background:' + (done ? "#eef7f0" : "#fff") + ';border:2px solid ' + (done ? "#9ad9b0" : "#d8baa4") + ';border-radius:16px;padding:18px 20px;margin-bottom:16px;">' +
       '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;"><div><span style="font-size:32px;font-weight:800;">' + kEsc(r.pickupTime || "--:--") + '</span> <span style="font-size:22px;font-weight:700;margin-left:10px;">' + kEsc(r.name || "") + ' 様</span></div>' +
-      '<label style="display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;cursor:pointer;"><input type="checkbox" class="k-done" data-key="' + kEsc(key) + '" ' + (done ? "checked" : "") + ' style="width:32px;height:32px;">製造済み</label></div>' +
+      '<label style="display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;cursor:pointer;"><input type="checkbox" class="k-done" data-key="' + kEsc(key) + '" ' + (done ? "checked" : "") + ' style="width:32px;height:32px;">製造済み' + (done && r.kitchenDoneBy ? '<span style="font-size:13px;font-weight:400;">（' + kEsc(r.kitchenDoneBy) + '）</span>' : '') + '</label></div>' +
       '<div style="font-size:22px;line-height:1.7;margin-top:10px;">' + spec.join("<br>") + '</div>' + msg +
       (extra.length ? '<div style="font-size:17px;line-height:1.8;margin-top:8px;color:#4a3a2a;">' + extra.join("　／　") + '</div>' : "") + later + special +
       (r.note ? '<div style="font-size:16px;margin-top:8px;color:#4a3a2a;">📝 ' + kEsc(r.note) + '</div>' : "") +
       '<div style="font-size:14px;color:#8a7a68;margin-top:8px;">' + (r.tel ? "☎ " + kEsc(r.tel) : "") + (r.reservationConfirmed ? "　✓予約確定済み" : "　（確認未了）") + '</div></div>';
   }).join("");
-  list.querySelectorAll(".k-done").forEach(cb => cb.addEventListener("change", () => update(ref(fbDb, "reservations/" + cb.dataset.key), { kitchenDone: cb.checked }).catch(err => showToast("保存に失敗しました: " + (err && err.message ? err.message : err), "error"))));
+  list.querySelectorAll(".k-done").forEach(cb => cb.addEventListener("change", async () => { const actor = cb.checked ? await window.askActor("製造した人") : null; if (cb.checked && !actor) { cb.checked = false; return; } return update(ref(fbDb, "reservations/" + cb.dataset.key), { kitchenDone: cb.checked, kitchenDoneBy: actor, kitchenDoneAt: cb.checked ? new Date().toISOString() : null }).catch(err => showToast("保存に失敗しました: " + (err && err.message ? err.message : err), "error")); }));
 }
 window.initKitchen = function () {
   const dEl = document.getElementById("kDate");
@@ -7222,6 +7295,9 @@ onAuthStateChanged(fbAuth, (user) => {
         return;
       }
       if (c.store === true || c.koimariAdmin === "store") applyStoreMode();
+      const email = String(user.email || user.uid || "").toLowerCase();
+      const shared = c.store === true || email === "sankyu00002@gmail.com";
+      window.__actor = { shared, name: shared ? "" : (c.staffName || (viaGoogle ? email : "オーナー")) };
     }).catch(() => {});
     // URLの#で指定されたタブ（例: admin.html#reservations）をログイン直後に開く
     if (typeof window.openTabFromHash === "function") window.openTabFromHash();

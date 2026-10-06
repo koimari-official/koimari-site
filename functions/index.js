@@ -1180,11 +1180,25 @@ exports.sendReservationConfirmedMessage = onValueUpdated(
   async (event) => {
     const before = event.data.before.val() || {};
     const after = event.data.after.val() || {};
-    if (!after.reservationConfirmed || before.reservationConfirmed) return;
-    if (after.channel !== "LINE" || !after.lineUserId || after.confirmMessageSentAt || after.status === "キャンセル") return;
-    if (isPhotoChristmas(after)) return;
+    // 2026-10-07オーナー指示：電話で内容を確定（「電話済み」＋確定金額・日時）した時点で、LINEのお客様には確定連絡を自動送信し、
+    // 送信できたら「内容確定」に自動でチェックする（誰がチェックしたか＝自動送信と記録）。手動で内容確定にした場合も従来どおり送る。
+    const callNow = after.confirmCallDone && !before.confirmCallDone && after.finalPrice;
+    const confirmNow = after.reservationConfirmed && !before.reservationConfirmed;
+    if (!callNow && !confirmNow) return;
+    if (after.status === "キャンセル" || after.confirmMessageSentAt) return;
+    const ref = admin.database().ref(`reservations/${event.params.pushId}`);
+    const isLine = after.channel === "LINE" && after.lineUserId && !isPhotoChristmas(after);
+    if (!isLine) {
+      // LINEで連絡できないお客様は、電話で確定した時点で内容確定にする
+      if (callNow && !after.reservationConfirmed) await ref.update({ reservationConfirmed: true, reservationConfirmedAt: new Date().toISOString(), reservationConfirmedBy: "自動（LINE未連携・電話で確定）" });
+      return;
+    }
     const ok = await pushLineMessage(after.lineUserId, buildConfirmMessage(after), LINE_CHANNEL_ACCESS_TOKEN.value());
-    if (ok) await admin.database().ref(`reservations/${event.params.pushId}/confirmMessageSentAt`).set(new Date().toISOString());
+    if (!ok) return;
+    const now = new Date().toISOString();
+    const patch = { confirmMessageSentAt: now };
+    if (!after.reservationConfirmed) Object.assign(patch, { reservationConfirmed: true, reservationConfirmedAt: now, reservationConfirmedBy: "自動（LINEで確定連絡を送信）" });
+    await ref.update(patch);
   }
 );
 
@@ -1508,7 +1522,7 @@ exports.pushReservationHandled = onValueUpdated(
     const no = after.reservationNo ? "No." + String(after.reservationNo).padStart(4, "0") + " " : "";
     await pushToStaff({
       title: "対応済み " + no,
-      body: (after.name || "お客様") + " 様のご予約は、確認電話が完了しました（対応不要です）",
+      body: (after.name || "お客様") + " 様のご予約は、" + (after.confirmCallBy ? after.confirmCallBy + "さんが" : "") + "電話で内容を確認済みです（対応不要です）",
       tag: "res-" + event.params.pushId, url: ADMIN_RES_URL, kind: "handled", silent: true
     }, log.paths);
     await logRef.remove();
