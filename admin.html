@@ -1470,17 +1470,12 @@ function loadData() {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const p = JSON.parse(raw);
-      return {
-        hero: p.hero || JSON.parse(JSON.stringify(DEFAULT_IMAGES.hero)),
-        greeting: p.greeting || DEFAULT_IMAGES.greeting,
-        categories: p.categories || JSON.parse(JSON.stringify(DEFAULT_IMAGES.categories)),
-        decorationCakes: p.decorationCakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.decorationCakes)),
-        cutcakes: p.cutcakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.cutcakes)),
-        rollcakes: p.rollcakes || JSON.parse(JSON.stringify(DEFAULT_IMAGES.rollcakes)),
-        baked: p.baked || JSON.parse(JSON.stringify(DEFAULT_IMAGES.baked)),
-        gift: p.gift || JSON.parse(JSON.stringify(DEFAULT_IMAGES.gift)),
-        experiences: p.experiences || JSON.parse(JSON.stringify(DEFAULT_IMAGES.experiences))
-      };
+      // 2026-10-07：項目を1つずつ書き並べていたため「こだわり写真」（philosophy）等が漏れ、保存済みの端末では
+      // こだわり写真の欄が空になり機能していなかった。DEFAULT_IMAGESの全項目を自動で拾う形にして、今後の追加漏れを防ぐ。
+      const out = JSON.parse(JSON.stringify(DEFAULT_IMAGES));
+      Object.keys(p || {}).forEach(k => { if (p[k] !== undefined && p[k] !== null) out[k] = p[k]; });
+      Object.keys(DEFAULT_IMAGES).forEach(k => { if (Array.isArray(DEFAULT_IMAGES[k]) && !Array.isArray(out[k])) out[k] = JSON.parse(JSON.stringify(DEFAULT_IMAGES[k])); });
+      return out;
     }
   } catch (e) {}
   return JSON.parse(JSON.stringify(DEFAULT_IMAGES));
