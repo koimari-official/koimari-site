@@ -6195,7 +6195,7 @@ function renderKitchen() {
     }
     const extra = [];
     if (r.occasion) extra.push("シーン：" + kEsc(r.occasion === "その他" ? (r.occasionOther || "その他") : r.occasion));
-    if (r.decoration) extra.push("飾り：" + kEsc(r.decoration));
+    if (r.decoration) extra.push("飾り：" + kEsc(({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[r.decoration] || r.decoration)));
     if (r.strawberryAdd) extra.push("いちごトッピング");
     if (r.topCut) extra.push("カットケーキ載せ" + (r.topCut.note ? "：" + kEsc(r.topCut.note) : ""));
     if (Array.isArray(r.cutCakes) && r.cutCakes.length) extra.push("<b>上に載せるカットケーキ：" + r.cutCakes.map(c => kEsc(c.name) + "×" + c.qty).join("、") + "</b>");
@@ -6204,6 +6204,7 @@ function renderKitchen() {
     if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
     if (r.christmasOrder) extra.push("クリスマス（メリークリスマスプレート）");
     if (r.extraChargeNote || r.extraCharge) extra.push("<b>追加のご注文：" + kEsc(r.extraChargeNote || "") + (r.extraCharge ? " ¥" + Number(r.extraCharge).toLocaleString() : "") + "</b>");
+    if (r.fruitExtra) extra.push("<b>フルーツ増量</b>");
     if (r.omakaseDeco) extra.push("<b>おまかせデコレーション：" + kEsc(r.omakaseDeco) + (r.omakaseWish ? "（ご希望：" + kEsc(r.omakaseWish) + "）" : "") + "</b>");
     if (Array.isArray(r.toppings) && r.toppings.length) extra.push("トッピング：" + r.toppings.map(kEsc).join("・") + "（要連絡）");
     if (Array.isArray(r.addOns) && r.addOns.length) extra.push("追加商品：" + r.addOns.map(a => kEsc(a.name) + "×" + a.qty).join("、"));
@@ -6893,7 +6894,7 @@ function buildPriceTable() {
   const group = (title, note, inner) => '<div class="pt-group"><h3>' + title + "</h3>" + (note ? '<p class="pt-note">' + note + "</p>" : "") + inner + "</div>";
   const table = (rows) => '<table class="pt-table"><thead><tr><th>項目</th><th>単価（税込）</th><th>補足</th></tr></thead><tbody>' + rows + "</tbody></table>";
   let html = "";
-  html += group("1段ケーキの基本料金（生クリーム）", "LINE予約フォームのサイズの横に表示される価格です。生チョコクリームはこの金額＋「生チョコクリームへの変更」です。",
+  html += group("1段ケーキの基本料金（生クリームBOX：いちご・ミックスフルーツ同額）", "LINE予約フォームのサイズの横に表示される価格です。生チョコクリームはこの金額＋「生チョコクリームへの変更」です。",
     table(row("4号（直径12cm）", yenIn("cfPrice4")) + row("5号（直径15cm）", yenIn("cfPrice5")) + row("6号（直径18cm）", yenIn("cfPrice6")) + row("7号（直径21cm）", yenIn("cfPrice7"))));
   let mx = '<div style="overflow-x:auto;"><table class="pt-table pt-matrix"><thead><tr><th>種類</th>' + CAKE_TYPE_PRICE_SIZES.map(n => "<th>" + n + "号</th>").join("") + "</tr></thead><tbody>";
   CAKE_TYPE_PRICE_ROWS.forEach((name, i) => { mx += '<tr><td class="pt-label">' + name + "</td>" + CAKE_TYPE_PRICE_SIZES.map(n => "<td>" + yenIn("ctp_" + i + "_" + n, null, "取扱なし") + "</td>").join("") + "</tr>"; });
@@ -6903,7 +6904,7 @@ function buildPriceTable() {
   if (SO) [1, 2, 3].forEach(n => { cream += row("カラークリーム " + n + "色（合計）", yenIn("cso_color_" + n, SO.colorCream[n]), n === 3 ? "4色目以降は1色ごとに1色分を加算" : ""); });
   html += group("クリーム・色", "", table(cream));
   let top = row("生クリームたっぷり乗せ", yenIn("cfCreamToppingPrice"), "クリスマスケーキは対象外");
-  if (SO) ["4号", "5号", "6号"].forEach(k => { top += row("フルーツトッピング " + k, yenIn("cso_fruit_" + k, SO.fruitTopping[k]), k === "6号" ? "7号は別途ご案内" : ""); });
+  if (SO) ["4号", "5号", "6号", "7号"].forEach(k => { top += row("いちご・ミックスフルーツの増量 " + k, yenIn("cso_fruit_" + k, SO.fruitTopping[k]), k === "4号" ? "飾り付けのフルーツを増やすオプション" : ""); });
   if (SO) top += row("いちごトッピング", yenIn("cso_straw", SO.strawberryAdd.price), "ミッシェルBOX・ガトーショコラBOX");
   top += row("タルトにカットケーキを載せる入れ物代", yenIn("cfCutContainerFee", null, "未設定"), "空欄＝別途ご案内");
   html += group("トッピング・追加", "", table(top));
@@ -7020,7 +7021,7 @@ function initCakeSizePricesPanel() {
     onValue(ref(fbDb, "koimariContent/cakeSpecOverrides"), (snap) => {
       const o = snap.val() || {};
       const set = (id, v) => { const el = document.getElementById(id); if (!el || el.classList.contains("pt-changed")) return; const d = (window.ptDefaults || {})[id]; if (v != null) el.value = v; else if (d != null) el.value = d; };
-      ["4号", "5号", "6号"].forEach(k => set("cso_fruit_" + k, o.fruitTopping && o.fruitTopping[k]));
+      ["4号", "5号", "6号", "7号"].forEach(k => set("cso_fruit_" + k, o.fruitTopping && o.fruitTopping[k]));
       [1, 2, 3].forEach(n => set("cso_color_" + n, o.colorCream && o.colorCream[n]));
       set("cso_straw", o.strawberryPrice); set("cso_onsite", o.onsiteAssemblyFee);
       ["松", "竹", "梅"].forEach(k => set("cso_omakase_" + k, o.omakaseDeco && o.omakaseDeco[k]));
@@ -7032,7 +7033,7 @@ function initCakeSizePricesPanel() {
     if (!SO) return null;
     const n = id => { const el = document.getElementById(id); const v = el ? Number(el.value) : 0; return v > 0 ? v : null; };
     const o = { fruitTopping: {}, colorCream: {}, multiTier: {} };
-    ["4号", "5号", "6号"].forEach(k => { const v = n("cso_fruit_" + k); if (v) o.fruitTopping[k] = v; });
+    ["4号", "5号", "6号", "7号"].forEach(k => { const v = n("cso_fruit_" + k); if (v) o.fruitTopping[k] = v; });
     [1, 2, 3].forEach(i => { const v = n("cso_color_" + i); if (v) o.colorCream[i] = v; });
     const st = n("cso_straw"); if (st) o.strawberryPrice = st;
     const os = n("cso_onsite"); if (os) o.onsiteAssemblyFee = os;

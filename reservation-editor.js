@@ -14,7 +14,7 @@
   var UPPER_SIZES = ["3号", "4号", "5号", "セルクル", "カットケーキ"];
   var CREAMS = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース", "モンブラン"];
   var COLORS = ["黒", "グレー", "赤", "青", "紺", "黄色", "ピンク", "緑", "黄緑", "茶色", "水色"];
-  var DECORATIONS = ["いちごのみ", "バラエティフルーツ"];
+  var DECORATIONS = ["いちごのみ", "バラエティフルーツ"]; // 画面の表示は「いちご」「ミックスフルーツ」（同額）
   var TARTS = ["フルーツタルトBOX", "ストロベリータルトBOX"];
   var OCCASIONS = ["", "バースデー", "クリスマス", "その他"];
   // 基本の並び（2026-10-03オーナー指定）。実際の表示は、修正の記録で選ばれた回数が多い順（同じ回数ならこの順）
@@ -111,6 +111,7 @@
       strawberryAdd: !!r.strawberryAdd,
       onsiteAssembly: !!r.onsiteAssembly,
       omakase: r.omakaseDeco || "",
+      fruitExtra: !!r.fruitExtra,
       extraNote: r.extraChargeNote || "",
       extraAmount: Number(r.extraCharge) || 0,
       pickupDate: r.finalPickupDate || r.pickupDate || "",
@@ -143,6 +144,7 @@
     var opts = [];
     if (s.creamTopping) opts.push("生クリームたっぷり乗せ");
     if (s.strawberryAdd) opts.push("いちごトッピング");
+    if (s.fruitExtra) opts.push("フルーツ増量");
     if (s.onsiteAssembly) opts.push("出張組み立て");
     if (!simple) rows.push(["オプション", opts.length ? opts.join("、") : "なし"]);
     if (!simple) rows.push(["おまかせデコレーション", s.omakase || "なし"]);
@@ -175,7 +177,7 @@
       candleNeeded: !!s.candleType, candleType: s.candleType, candleBags: s.candleCount,
       messageCount: s.messageCount,
       addOns: r.addOns || [], toppings: r.toppings || [], topCut: !!r.topCut, cutCakes: r.cutCakes || [],
-      omakase: s.omakase || ""
+      omakase: s.omakase || "", fruitExtra: !!s.fruitExtra
     }, priceBase);
   }
   // 電話で受けた追加のご注文（選択肢にないもの）の金額を、料金表の計算結果に足す（2026-10-06）
@@ -209,6 +211,7 @@
       messageCount: s.messageCount,
       creamTopping: !!s.creamTopping, strawberryAdd: s.strawberryAdd || null, onsiteAssembly: s.onsiteAssembly || null,
       omakaseDeco: s.omakase || null,
+      fruitExtra: s.fruitExtra || null,
       pickupDate: s.pickupDate, pickupTime: s.pickupTime, finalPickupDate: s.pickupDate, finalPickupTime: s.pickupTime,
       finalPrice: s.price || null,
       priceIsFixed: !!s.price, priceNeedsConsult: !s.price && !(est && est.subtotal)
@@ -339,6 +342,7 @@
       html += field("メッセージプレート", sel("reMsgN", [0, 1, 2, 3], e.messageCount, function (o) { return o ? o + "枚" : "なし"; }) + (e.messageCount ? '<input class="input re-in" id="reMsg" value="' + esc(e.message) + '" placeholder="プレートの文字">' : ""));
       html += field("オプション", '<label class="re-check"><input type="checkbox" id="reTopping"' + (e.creamTopping ? " checked" : "") + "> 生クリームたっぷり乗せ</label>" +
         '<label class="re-check"><input type="checkbox" id="reStraw"' + (e.strawberryAdd ? " checked" : "") + "> いちごトッピング</label>" +
+        '<label class="re-check"><input type="checkbox" id="reFruitExtra"' + (e.fruitExtra ? " checked" : "") + "> フルーツ増量</label>" +
         (e.tiers.length === 3 ? '<label class="re-check"><input type="checkbox" id="reOnsite"' + (e.onsiteAssembly ? " checked" : "") + "> 出張組み立て</label>" : ""));
       var OMK = (window.CakePricing && window.CakePricing.SPEC.omakaseDeco) || {};
       html += field("電話での追加のご注文（選択肢にないもの）", '<input class="input re-in" id="reExtraNote" value="' + esc(e.extraNote || "") + '" placeholder="例：チョコプレート追加、ドライフラワー" style="margin-bottom:6px;"><div class="re-yen"><input type="number" min="0" class="input re-in" id="reExtraAmt" value="' + esc(e.extraAmount || "") + '"> 円（税込・確定金額に加算されます）</div>');
@@ -419,6 +423,7 @@
       e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;
       e.creamTopping = g("reTopping").checked; e.strawberryAdd = g("reStraw").checked; e.onsiteAssembly = g("reOnsite") ? g("reOnsite").checked : false;
       e.omakase = g("reOmakase") ? g("reOmakase").value : (e.omakase || "");
+      e.fruitExtra = g("reFruitExtra") ? g("reFruitExtra").checked : !!e.fruitExtra;
       e.extraNote = g("reExtraNote") ? g("reExtraNote").value : (e.extraNote || ""); e.extraAmount = g("reExtraAmt") ? Number(g("reExtraAmt").value) || 0 : (e.extraAmount || 0);
     }
     if (e.cuts) {

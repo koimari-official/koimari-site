@@ -602,6 +602,7 @@ function buildStaffNotifyText(data) {
   if (Array.isArray(data.decideLater) && data.decideLater.length) {
     lines.push("あとで相談: " + data.decideLater.join("・"));
   }
+  if (data.fruitExtra) lines.push("フルーツ増量: あり");
   if (data.omakaseDeco) lines.push("おまかせデコレーション: " + data.omakaseDeco + (data.omakaseWish ? "（ご希望：" + data.omakaseWish + "）" : ""));
   if (Array.isArray(data.toppings) && data.toppings.length) {
     lines.push("トッピング: " + data.toppings.join("・") + "（料金・納期は別途連絡）");
@@ -887,7 +888,7 @@ function orderDetailLines(data) {
       lines.push(diamondLine("カラークリーム", data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "（" + data.colorCream.colors.join("・") + "）" : "")));
     }
   }
-  if (data.decoration) lines.push(diamondLine("飾り付け", data.decoration));
+  if (data.decoration) lines.push(diamondLine("飾り付け", ({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration)));
   if (isCakeLike) {
     lines.push(diamondLine("ろうそく", data.christmasOrder ? "無料でお付けします" : (data.candleNeeded ? data.candleType + " " + data.candleBags + "袋" : "なし")));
     if (data.christmasOrder) lines.push(diamondLine("プレート", "「メリークリスマス」"));
@@ -901,6 +902,7 @@ function orderDetailLines(data) {
   if (Array.isArray(data.cutCakes) && data.cutCakes.length) lines.push(diamondLine("カットケーキ", data.cutCakes.map((c) => c.name + "×" + c.qty).join("、")));
   if (data.onsiteAssembly) extras.push("出張組み立て");
   (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
+  if (data.fruitExtra) extras.push("フルーツ増量");
   if (data.omakaseDeco) extras.push("おまかせデコレーション（" + data.omakaseDeco + "）");
   if (data.extraChargeNote || data.extraCharge) extras.push("追加のご注文" + (data.extraChargeNote ? "（" + data.extraChargeNote + "）" : ""));
   (data.toppings || []).forEach((t) => extras.push(t));

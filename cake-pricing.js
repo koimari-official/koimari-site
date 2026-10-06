@@ -18,7 +18,7 @@
       "7号": { cm: "約21cm", serves: "9〜10人前" }
     },
     christmas: { deadlineMonth: 12, deadlineDay: 20 },
-    fruitTopping: { "4号": 900, "5号": 1300, "6号": 1600 }, // 7号は取り決めなし→別途ご案内
+    fruitTopping: { "4号": 900, "5号": 1300, "6号": 1600, "7号": 2500 }, // いちご・ミックスフルーツの増量（2026-10-07オーナー確認：7号は2,500円）
     chocoCream: 500,
     colorCream: { 1: 500, 2: 1000, 3: 1500 },
     // ミッシェルBOX・ガトーショコラBOXの「フルーツトッピング」はいちごトッピングの意味（オーナー確認 2026-09-24）。
@@ -125,11 +125,12 @@
     if (input.strawberryAdd && SPEC.strawberryAdd.creamTypes.indexOf(cream) >= 0) {
       lines.push({ label: "いちごトッピング（目安）", amount: SPEC.strawberryAdd.price });
     }
-    // フルーツトッピングは、デフォルトより増量する場合だけ（ギャラリーのデフォルトのケーキの標準の飾り付け＝includedDecoration は基本料金に含む）
-    if (input.decoration === "バラエティフルーツ" && input.includedDecoration !== "バラエティフルーツ") {
+    // 飾り付けの「いちご」「ミックスフルーツ」はどちらも基本料金に含む（2026-10-07オーナー確認：同じ価格）。
+    // フルーツトッピング＝いちご・ミックスフルーツの「増量」（オプション）。input.fruitExtra のときだけ号数に応じて加算する。
+    if (input.fruitExtra) {
       var fp = !multi ? SPEC.fruitTopping[tierKey(tiers[0])] : undefined;
-      if (fp) lines.push({ label: "フルーツトッピング", amount: fp });
-      else notes.push("フルーツトッピングの料金は別途ご案内します");
+      if (fp) lines.push({ label: (input.decoration === "バラエティフルーツ" ? "ミックスフルーツ" : "いちご") + "の増量", amount: fp });
+      else notes.push("フルーツ増量の料金は別途ご案内します");
     }
     if (input.creamTopping && !isXmas) lines.push({ label: "生クリームたっぷり乗せ", amount: base.creamToppingPrice || 0 });
 
@@ -219,7 +220,7 @@
     if (!o || typeof o !== "object") return;
     var num = function (v) { v = Number(v); return isFinite(v) && v > 0 ? v : null; };
     var v;
-    Object.keys(SPEC.fruitTopping).concat(["6号"]).forEach(function (k) { v = num(o.fruitTopping && o.fruitTopping[k]); if (v) SPEC.fruitTopping[k] = v; });
+    Object.keys(SPEC.fruitTopping).forEach(function (k) { v = num(o.fruitTopping && o.fruitTopping[k]); if (v) SPEC.fruitTopping[k] = v; });
     [1, 2, 3].forEach(function (n) { v = num(o.colorCream && o.colorCream[n]); if (v) SPEC.colorCream[n] = v; });
     v = num(o.strawberryPrice); if (v) SPEC.strawberryAdd.price = v;
     v = num(o.onsiteAssemblyFee); if (v) SPEC.onsiteAssemblyFee = v;
