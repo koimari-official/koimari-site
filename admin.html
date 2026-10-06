@@ -3405,6 +3405,7 @@ function mountGalleryCatNav(currentPanel) {
 }
 document.getElementById("addExperience").addEventListener("click", () => { workingData.experiences.push({key:"new-program-"+Date.now(),title:"新規プログラム",en:"New Program",target:"対象 / ",img:"",desc:"",duration:"",fee:"",visible:true}); renderExperiences(); updateSaveBar(); });
 document.getElementById("saveBtn").addEventListener("click", async () => {
+  if (window.__uploading > 0) { showToast("写真のアップロード中です。終わってから「変更を保存」を押してください", "error"); return; }
   if (typeof window.fbSaveSiteImages !== "function" || typeof window.fbLoadSiteImages !== "function") {
     showToast("保存機能の読み込み中です。少し待って再度お試しください。", "error");
     return;
@@ -6113,9 +6114,30 @@ window.fbUploadImage = async function (blob, contentType) {
   const ext = type.split("/")[1] || "jpg";
   const path = "siteImages/uploads/" + Date.now() + "-" + Math.random().toString(36).slice(2) + "." + ext;
   const snapRef = storageRef(fbStorage, path);
-  await uploadBytes(snapRef, blob, { contentType: type });
-  return await getDownloadURL(snapRef);
+  // 2026-10-07：スマホで写真を選んだ後、アップロードが終わる前に「変更を保存」を押す（または画面を離れる）と、
+  // 写真が反映されないまま終わっていた（カテゴリ「焼き菓子」で発生）。アップロード中は画面全体に案内を出し、保存も止める。
+  uploadBusy(+1);
+  try {
+    await uploadBytes(snapRef, blob, { contentType: type });
+    return await getDownloadURL(snapRef);
+  } finally { uploadBusy(-1); }
 };
+function uploadBusy(d) {
+  window.__uploading = Math.max(0, (window.__uploading || 0) + d);
+  let ov = document.getElementById("uploadOverlay");
+  if (!ov) {
+    ov = document.createElement("div");
+    ov.id = "uploadOverlay";
+    ov.style.cssText = "position:fixed;inset:0;z-index:9800;background:rgba(30,20,14,.45);display:none;align-items:center;justify-content:center;padding:20px;";
+    ov.innerHTML = '<div style="background:#fff;border-radius:14px;padding:22px 24px;max-width:340px;text-align:center;font-size:15px;line-height:1.8;"><div style="font-size:28px;margin-bottom:6px;">⏳</div><b>写真をアップロードしています</b><br><span style="font-size:13px;color:#7a6a58;">このままお待ちください（画面を閉じないでください）</span></div>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display = window.__uploading > 0 ? "flex" : "none";
+  if (d < 0 && window.__uploading === 0 && typeof showToast === "function") {
+    const bar = document.getElementById("saveBar");
+    setTimeout(() => { if (bar && bar.style.display !== "none") showToast("写真を差し替えました。画面下の「変更を保存」を押すとサイトに反映されます"); }, 300);
+  }
+}
 // 2026-09-11オーナー指示：使われなくなった古い画像履歴を削除する際、データベース上の
 // 記録だけでなくStorage上の実ファイルも消し、不要なデータが並行して残らないようにする。
 // data URLやUnsplash等の外部URLはStorageの管理外なので何もしない（エラーにもしない）。
