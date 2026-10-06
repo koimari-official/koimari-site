@@ -1598,7 +1598,7 @@ function renderTierSizeSelects(tierCount) {
     const allowed = (CakePricing.SPEC.baseSizes || {})[bottomCream()];
     const opts = allowed ? [SIZE_OPTIONS[0], SIZE_3].concat(SIZE_OPTIONS.slice(1)).filter((o, i) => i === 0 || allowed.includes(sizeKeyOf(o.value))) : SIZE_OPTIONS;
     let val = prevSizes[0];
-    if (allowed && !opts.some(o => o.value === val)) val = allowed.length === 1 ? ((opts.find(o => sizeKeyOf(o.value) === allowed[0]) || {}).value || "") : "";
+    if (allowed && (!val || !opts.some(o => o.value === val))) val = allowed.length === 1 ? ((opts.find(o => sizeKeyOf(o.value) === allowed[0]) || {}).value || "") : "";
     wrap.innerHTML = editableSizeSelectHtml(0, opts, val, 1);
     return;
   }
