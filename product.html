@@ -135,6 +135,11 @@ main.pd{max-width:1040px}
 .pd-size-price{font-weight:700;color:#8a3a2a;white-space:nowrap}
 .pd-size-special{font-size:12.5px;color:var(--color-text-soft);font-weight:700;line-height:1.4;display:inline-block}
 .pd-size-tag{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;color:#fff;background:var(--color-accent-dark);border-radius:4px;padding:1px 6px;vertical-align:middle}
+.pd-omakase{margin:10px 0 0;background:#fffaf0;border:1px solid #e3c98f;border-radius:10px;padding:10px 14px}
+.pd-omakase__title{font-size:15px;font-weight:700;color:#7a5418;margin-bottom:6px}
+.pd-omakase__list{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:16px;font-family:var(--font-sans)}
+.pd-omakase__list b{color:#7a5418}
+.pd-omakase__note{margin:6px 0 0;font-size:13.5px;line-height:1.7;color:#5a4a3a}
 .pd-included{margin:10px 0 0;font-size:15px;font-weight:700;color:#0b5a28;background:#eaf7ee;border:1px solid #9ad9b0;border-radius:10px;padding:8px 12px;line-height:1.7}
 .pd-size-note{margin:8px 0 0;font-size:14px;color:var(--color-text-soft)}
 .pd-phone{font-size:15px;line-height:1.8;margin:-8px 0 20px;color:var(--color-text-soft)}
@@ -559,6 +564,13 @@ function renderInfo(item, plainName, config) {
   document.getElementById('pdPoints').innerHTML = '<li class="pd-points__head">こいまりのこだわり</li>' + pts.map(t => '<li>' + esc(t) + '</li>').join('');
 }
 // 号数ごとの表（2026-10-03オーナー指示：電話で予約する方にも、サイズとお値段が一目で分かるように）
+// おまかせデコレーション（2026-10-06）。金額は cake-pricing.js の SPEC.omakaseDeco と同じにすること。
+function omakaseHtml() {
+  const S = (window.CakePricing && window.CakePricing.SPEC.omakaseDeco) || { "松": 3000, "竹": 2000, "梅": 1000 };
+  return '<div class="pd-omakase"><div class="pd-omakase__title">おまかせデコレーション（追加オプション）</div>' +
+    '<div class="pd-omakase__list">' + ["松", "竹", "梅"].map(k => '<span><b>' + k + '</b>　+¥' + Number(S[k]).toLocaleString() + '</span>').join('') + '</div>' +
+    '<p class="pd-omakase__note">パティシエがケーキに合わせて、華やかに飾り付けます。ご予約時にお選びください。</p></div>';
+}
 function renderSizeTable(item, photoSize) {
   const box = document.getElementById('pdSizes');
   if (!box) return;
@@ -573,7 +585,7 @@ function renderSizeTable(item, photoSize) {
       rows.map(r => '<tr' + (r.size === photoSize ? ' class="is-photo"' : '') + '><td><b>' + r.size + '</b>' + (r.size === photoSize ? '<span class="pd-size-tag">写真のサイズ</span>' : '') + '</td><td>' + esc(r.cm) + '</td><td>' + esc(r.serves) + '</td>' +
         (custom ? '' : '<td class="pd-size-price">' + (r.price ? '¥' + Number(r.price).toLocaleString() : '<span class="pd-size-special">特殊仕様<br>（お電話で確認）</span>') + '</td>') + '</tr>').join('') + '</tbody></table>' +
       (custom ? '<p class="pd-size-note">このケーキはフルオーダーのため、お値段はご予約後にパティシエがご回答します。</p>'
-        : '<p class="pd-included">ろうそく5本（1袋）とメッセージプレート1枚は、お値段に含まれています。</p>');
+        : '<p class="pd-included">ろうそく5本（1袋）とメッセージプレート1枚は、お値段に含まれています。</p>' + omakaseHtml());
   });
 }
 var currentGuide = ''; // フルオーダーの目安（例：5号 ¥5,000〜）。予約フォームへ引き継ぐ

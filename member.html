@@ -291,6 +291,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span id="reserveCreamToppingLabel">生クリームたっぷり乗せ（+540円・税込）</span>
           </label>
         </div>
+        <div class="field" id="reserveOmakaseField">
+          <label class="field__label">おまかせデコレーション（オプション）</label>
+          <div class="field__hint" style="margin-bottom:8px;">パティシエがケーキに合わせて、華やかに飾り付けます。</div>
+          <div class="radio-list">
+            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="" checked> なし</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="梅"> 梅（+¥1,000）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="竹"> 竹（+¥2,000）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="松"> 松（+¥3,000）</label>
+          </div>
+        </div>
         <div class="field" id="reserveToppingsField">
           <label class="field__label">トッピング（オプション）</label>
           <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・金箔・アラザンの料金とお日にちは、ご予約後にパティシエよりご連絡します。</div>
@@ -933,7 +943,7 @@ function collectFormSpec() {
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
     candle: !!(g("reserveCandleNeeded") || {}).checked, candleType: cv("reserveCandleType"), candleBags: (g("reserveCandleBags") || {}).value || "1",
     msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
-    toppings: selectedToppings(), later: laterList(),
+    toppings: selectedToppings(), later: laterList(), omakase: selectedOmakase(),
     addOns: Object.keys(addOnQty).filter(k => addOnQty[k] > 0).map(k => [k, addOnQty[k]]),
     date: (g("reserveDate") || {}).value || "", time: (g("reserveTime") || {}).value || ""
   };
@@ -1010,6 +1020,7 @@ function applyFormSpec(s) {
     setVal("reserveMessageCount", s.msgCount || "0"); setVal("reserveChocoText", s.msgText || "");
     LATER_ITEMS.forEach(([id, label]) => { const e = document.getElementById(id); if (e) e.checked = (s.later || []).includes(label); });
     document.querySelectorAll(".reserve-topping").forEach(e => { e.checked = (s.toppings || []).includes(e.value); });
+    { const om = document.querySelector('input[name="reserveOmakase"][value="' + (s.omakase || "") + '"]'); if (om) om.checked = true; }
     Object.keys(addOnQty).forEach(k => delete addOnQty[k]);
     (s.addOns || []).forEach(([k, q]) => { addOnQty[k] = q; });
     renderAddOns();
@@ -1054,6 +1065,7 @@ function specialReasons() {
   selectedToppings().forEach(t => r.push(t));
   return r;
 }
+function selectedOmakase() { return (document.querySelector('input[name="reserveOmakase"]:checked') || {}).value || ""; }
 function selectedToppings() { return Array.from(document.querySelectorAll(".reserve-topping:checked")).map(e => e.value); }
 // ===== 進捗・おすすめ・あとで決める・名入れ文字プレビュー・前回と同じ注文（2026-09-26）=====
 // 画面下に「あと◯項目」と概算金額を常に表示する（離脱防止）。
@@ -1345,6 +1357,7 @@ function gatherEstimateInput() {
     messageCount: g("reserveMessageCount") ? (Number(g("reserveMessageCount").value) || 0) : 0,
     addOns: selectedAddOns(),
     toppings: selectedToppings(),
+    omakase: selectedOmakase(),
     onsiteAssembly: currentTierCount() === 3 && !!(g("reserveOnsite") && g("reserveOnsite").checked),
     topCut: !!(g("reserveTopCut") && g("reserveTopCut").checked),
     cutCakes: selectedCutCakes()
@@ -2047,6 +2060,7 @@ function renderReserveConfirm(data, targetId) {
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
     ${(data.decideLater || []).length ? `<dt>あとで相談</dt><dd>${data.decideLater.map(t => escape(t)).join("・")}</dd>` : ""}
+    ${data.omakaseDeco ? `<dt>おまかせデコレーション</dt><dd>${escape(data.omakaseDeco)}</dd>` : ""}
     ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金・納期は別途ご連絡）</dd>` : ""}
     ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
@@ -2116,6 +2130,7 @@ function buildReserveSummaryText(data) {
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
   if ((data.decideLater || []).length) lines.push(`あとで相談: ${data.decideLater.join("・")}`);
+  if (data.omakaseDeco) lines.push(`おまかせデコレーション: ${data.omakaseDeco}`);
   if ((data.toppings || []).length) lines.push(`トッピング: ${data.toppings.join("・")}（料金・納期は別途ご連絡）`);
   (data.tierSpecs || []).forEach(t => lines.push(`${t.tier}: ${String(t.size).replace(/\(.*$/, "")} ${t.cream}${(t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""}`));
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
@@ -2517,6 +2532,7 @@ function setupReserveForm(uid, displayName) {
         ...(isCake && selectedCutCakes().length ? { cutCakes: selectedCutCakes() } : {}),
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isCake && selectedToppings().length ? { toppings: selectedToppings() } : {}),
+        ...(isCake && selectedOmakase() ? { omakaseDeco: selectedOmakase() } : {}),
         ...(isCake && laterList().length ? { decideLater: laterList() } : {}),
         ...(isCake && specialReasons().length ? { specialReasons: specialReasons() } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),

@@ -601,6 +601,7 @@ function buildStaffNotifyText(data) {
   if (Array.isArray(data.decideLater) && data.decideLater.length) {
     lines.push("あとで相談: " + data.decideLater.join("・"));
   }
+  if (data.omakaseDeco) lines.push("おまかせデコレーション: " + data.omakaseDeco);
   if (Array.isArray(data.toppings) && data.toppings.length) {
     lines.push("トッピング: " + data.toppings.join("・") + "（料金・納期は別途連絡）");
   }
@@ -896,6 +897,7 @@ function orderDetailLines(data) {
   if (Array.isArray(data.cutCakes) && data.cutCakes.length) lines.push(diamondLine("カットケーキ", data.cutCakes.map((c) => c.name + "×" + c.qty).join("、")));
   if (data.onsiteAssembly) extras.push("出張組み立て");
   (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
+  if (data.omakaseDeco) extras.push("おまかせデコレーション（" + data.omakaseDeco + "）");
   (data.toppings || []).forEach((t) => extras.push(t));
   if (extras.length) lines.push(diamondLine("オプション", extras.join("、")));
   if (Array.isArray(data.decideLater) && data.decideLater.length) lines.push(diamondLine("あとで相談", data.decideLater.join("・")));

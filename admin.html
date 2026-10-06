@@ -5957,6 +5957,7 @@ function renderKitchen() {
     if (r.creamTopping) extra.push("生クリームたっぷり乗せ");
     if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
     if (r.christmasOrder) extra.push("クリスマス（メリークリスマスプレート）");
+    if (r.omakaseDeco) extra.push("<b>おまかせデコレーション：" + kEsc(r.omakaseDeco) + "</b>");
     if (Array.isArray(r.toppings) && r.toppings.length) extra.push("トッピング：" + r.toppings.map(kEsc).join("・") + "（要連絡）");
     if (Array.isArray(r.addOns) && r.addOns.length) extra.push("追加商品：" + r.addOns.map(a => kEsc(a.name) + "×" + a.qty).join("、"));
     const msg = it.message ? '<div style="margin-top:8px;padding:10px 14px;border-radius:10px;background:#4a2a18;color:#fbe9c8;font-size:22px;font-weight:700;letter-spacing:.06em;">🍫 ' + kEsc(it.message) + '</div>' : "";
@@ -6564,6 +6565,7 @@ function buildPriceTable() {
     let cut = "";
     ["4号", "5号", "6号", "7号"].forEach(k => { cut += row("一番下が " + k, yenIn("cso_cutded_" + k, SO.cutTopDeduction[k])); });
     html += group("一番上をカットケーキにした時の値引き", "同じ組み合わせのホールケーキのセット価格からこの金額を引き、選んだカットケーキの代金を足します。", table(cut));
+    html += group("おまかせデコレーション", "パティシエがケーキに合わせて飾り付けるオプション", table(["松", "竹", "梅"].map(k => row(k, yenIn("cso_omakase_" + k, SO.omakaseDeco[k]))).join("")));
     html += group("その他", "", table(row("3段の出張組み立て料", yenIn("cso_onsite", SO.onsiteAssemblyFee), "交通費は別途")));
   }
   html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・オーナメントなどの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
@@ -6669,6 +6671,7 @@ function initCakeSizePricesPanel() {
       ["4号", "5号", "6号"].forEach(k => set("cso_fruit_" + k, o.fruitTopping && o.fruitTopping[k]));
       [1, 2, 3].forEach(n => set("cso_color_" + n, o.colorCream && o.colorCream[n]));
       set("cso_straw", o.strawberryPrice); set("cso_onsite", o.onsiteAssemblyFee);
+      ["松", "竹", "梅"].forEach(k => set("cso_omakase_" + k, o.omakaseDeco && o.omakaseDeco[k]));
       ["4号", "5号", "6号", "7号"].forEach(k => set("cso_cutded_" + k, o.cutTopDeduction && o.cutTopDeduction[k]));
       Object.keys(SO.multiTier).forEach((k, i) => { const s = (o.multiTier || {})[k] || {}; set("cso_mt_" + i + "_price", s.price); set("cso_mt_" + i + "_min", s.min); set("cso_mt_" + i + "_soft", s.soft); });
     });
@@ -6681,6 +6684,7 @@ function initCakeSizePricesPanel() {
     [1, 2, 3].forEach(i => { const v = n("cso_color_" + i); if (v) o.colorCream[i] = v; });
     const st = n("cso_straw"); if (st) o.strawberryPrice = st;
     const os = n("cso_onsite"); if (os) o.onsiteAssemblyFee = os;
+    o.omakaseDeco = {}; ["松", "竹", "梅"].forEach(k => { const v = n("cso_omakase_" + k); if (v) o.omakaseDeco[k] = v; });
     o.cutTopDeduction = {}; ["4号", "5号", "6号", "7号"].forEach(k => { const v = n("cso_cutded_" + k); if (v) o.cutTopDeduction[k] = v; });
     Object.keys(SO.multiTier).forEach((k, i) => { const s = {}; const p = n("cso_mt_" + i + "_price"), mn = n("cso_mt_" + i + "_min"), sf = n("cso_mt_" + i + "_soft"); if (p) s.price = p; if (mn) s.min = mn; if (sf) s.soft = sf; if (Object.keys(s).length) o.multiTier[k] = s; });
     return o;

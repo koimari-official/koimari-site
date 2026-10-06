@@ -36,6 +36,8 @@
     cutTopDeduction: { "4号": 500, "5号": 700, "6号": 1000, "7号": 1200 },
     // 一番上をカットケーキにしたときに、価格の基準にする「ホールケーキの一番上」
     cutTopBase: { "4号": "セルクル", "5号": "3号", "6号": "4号", "7号": "5号", "6号+4号": "セルクル", "7号+5号": "3号" },
+    // おまかせデコレーション（パティシエがケーキに合わせて飾り付け。2026-10-06オーナー決定）
+    omakaseDeco: { "松": 3000, "竹": 2000, "梅": 1000 },
     multiTier: {
       "4号+セルクル": { price: 5500 },
       "5号+3号": { price: 8200, lead: { min: 7, soft: 10 } },
@@ -147,6 +149,7 @@
       if (pr > 0) lines.push({ label: a.name + " × " + q, amount: pr * q });
       else notes.push(a.name + "の料金は別途ご案内します");
     });
+    if (input.omakase && SPEC.omakaseDeco[input.omakase]) lines.push({ label: "おまかせデコレーション（" + input.omakase + "）", amount: SPEC.omakaseDeco[input.omakase] });
     if ((input.toppings || []).length) notes.push(input.toppings.join("・") + "の料金・納期は、ご予約後にパティシエより別途ご連絡します");
     if (input.onsiteAssembly && tiers.length === 3) {
       lines.push({ label: "出張組み立て料", amount: SPEC.onsiteAssemblyFee });
@@ -220,6 +223,7 @@
     [1, 2, 3].forEach(function (n) { v = num(o.colorCream && o.colorCream[n]); if (v) SPEC.colorCream[n] = v; });
     v = num(o.strawberryPrice); if (v) SPEC.strawberryAdd.price = v;
     v = num(o.onsiteAssemblyFee); if (v) SPEC.onsiteAssemblyFee = v;
+    ["松", "竹", "梅"].forEach(function (k) { v = num(o.omakaseDeco && o.omakaseDeco[k]); if (v) SPEC.omakaseDeco[k] = v; });
     Object.keys(SPEC.cutTopDeduction).forEach(function (k) { v = num(o.cutTopDeduction && o.cutTopDeduction[k]); if (v) SPEC.cutTopDeduction[k] = v; });
     Object.keys(o.multiTier || {}).forEach(function (k) {
       var t = SPEC.multiTier[k], s = o.multiTier[k];
