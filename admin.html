@@ -6775,7 +6775,7 @@ function initXmasPanel() {
       note.textContent = "保存しました（" + ({ preparing: "準備中", open: "受付中", closed: "受付終了" }[xmData.status] || "") + "）";
       if (xmData.status === "open" && confirm("トップページのお知らせバナーを「クリスマスケーキのご予約受付中」に切り替えますか？\n（いま出ているバナーの内容は置き換わります）")) {
         const md = (ds) => { const m = String(ds).match(/^\d{4}-(\d{2})-(\d{2})$/); return m ? (+m[1]) + "/" + (+m[2]) : ""; };
-        await update(ref(fbDb, "siteConfig"), { eventBanner: { show: true, eventName: "クリスマス", label: "Christmas", text: "クリスマスケーキのご予約受付中（" + md(xmData.pickupFrom) + "〜" + md(xmData.pickupTo) + "お渡し）", link: "christmas.html", linkText: "ケーキを見る →", until: xmData.pickupTo } });
+        await update(ref(fbDb, "siteConfig"), { eventBanner: { show: true, eventName: "クリスマス", label: "Christmas", text: "クリスマスケーキのご予約受付中（" + md(xmData.pickupFrom) + "〜" + md(xmData.pickupTo) + "お渡し・埋まり次第終了）", link: "christmas.html", linkText: "ケーキを見る →", until: xmData.pickupTo } });
         note.textContent += "・トップのバナーも切り替えました";
       }
     } catch (err) { console.warn(err); note.textContent = "保存に失敗しました"; }

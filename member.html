@@ -1371,7 +1371,7 @@ function renderShopPicker() {
     return;
   }
   label.innerHTML = 'クリスマスケーキ<span class="req-mark">必須</span>';
-  notice.innerHTML = box("お渡しは<b>" + xmasRangeText() + "</b>です。お支払いは<b>12月20日まで</b>に店頭でお願いいたします（お支払いの時点でご予約確定）。<br>写真は昨年のケーキです。砂糖菓子など一部の仕様が異なる場合がございます。");
+  notice.innerHTML = box("お渡しは<b>" + xmasRangeText() + "</b>です。お支払いは<b>12月20日まで</b>に店頭でお願いいたします（お支払いの時点でご予約確定）。ご予約が埋まり次第、受付を終了します。<br>写真は昨年のケーキです。砂糖菓子など一部の仕様が異なる場合がございます。");
   const items = ((xmasConf && xmasConf.items) || []).map((c, i) => ({ c, i })).filter(x => x.c && x.c.visible !== false && x.c.img);
   grid.innerHTML = items.length ? items.map(({ c, i }) => card(xmasPick.i === i, pic(c.img) +
     '<div style="font-size:14px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(c.name || "") + "</div>" +

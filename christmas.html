@@ -231,7 +231,7 @@ function render(){
   document.getElementById("xmRange").textContent = range;
   document.getElementById("xmInfoRange").textContent = range + "（店頭でのお渡し）";
   const s = document.getElementById("xmStatus");
-  if (st === "open") s.innerHTML = '<div class="xm-status xm-status--open"><b>ご予約受付中</b><br>ケーキとサイズを選んで「このケーキを予約する」へお進みください（LINEでのご予約）。</div>';
+  if (st === "open") s.innerHTML = '<div class="xm-status xm-status--open"><b>ご予約受付中</b><br>ケーキとサイズを選んで「このケーキを予約する」へお進みください（LINEでのご予約）。<br>ご予約が埋まり次第、受付を終了します。</div>';
   else if (st === "closed") s.innerHTML = '<div class="xm-status xm-status--closed"><b>今年のご予約受付は終了しました</b><br>たくさんのご予約をありがとうございました。お問い合わせはお電話でお願いいたします。</div>';
   else s.innerHTML = '<div class="xm-status xm-status--prep"><b>ご予約の受付は近日開始します</b><br>LINEの友だち登録をしていただくと、受付開始をいちばんにお知らせします。<br><a class="xm-line" href="' + LINE_URL + '" target="_blank" rel="noopener">LINEで友だち登録する</a></div>';
   const items = (conf && Array.isArray(conf.items) ? conf.items : []).map((c, i) => ({ c, i })).filter(x => x.c && x.c.visible !== false && x.c.img);

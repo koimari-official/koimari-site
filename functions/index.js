@@ -706,6 +706,7 @@ function paymentLines(data, stage) {
     lines.push("◇" + XMAS_PAYMENT_DEADLINE + "までに店頭で", "　お願いしております");
     // 2026-10-02オーナー確認：LINEで予約 → 12/20までに店頭で前払い。お支払いの時点でご予約確定
     lines.push("◇お支払いの時点で", "　ご予約確定となります");
+    if (stage === "received") lines.push("◇ご予約が埋まり次第、", "　受付を終了します");
     if (stage === "reminder") lines.push("◇お済みでない場合は、", "　お早めにご来店ください");
     lines.push("◇お引き渡し当日はお会計を", "　承っておりません");
     return lines;
