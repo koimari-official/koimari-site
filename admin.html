@@ -1431,10 +1431,10 @@ const DEFAULT_IMAGES = {
   // 「こいまりのこだわり」4カードの写真（2026-09-29、管理画面から1枚ずつ差し替えられるようにした）。
   // 見出し・本文はコード側に固定（写真だけ差し替える運用）。順番はトップページの表示順と同じ。
   philosophy: [
-    { title: "地域に愛される店舗でありたい", img: "brand-story-community.jpg" },
-    { title: "小さなお子様からご年配の方まで安心して", img: "brand-story-anzen.jpg" },
-    { title: "大阪市城東区から、大阪の魅力を", img: "brand-story-osaka.jpg" },
-    { title: "果実をたっぷりと、心まで満たす一切れに", img: "brand-story-fruit.jpg" }
+    {"title":"地域に愛される店舗でありたい","body":"地域に愛される店舗でありたいと考えています。地元中学校の職業体験では、毎年一番人気の職場としてご評価いただき、卒業後もアルバイトに来てくれるスタッフもいます。お子様からご年配の方まで、すべての世代のご家族に愛していただける、「実家みたい」と言っていただけるような安心できる存在を目指して日々お菓子を焼き上げております。この輪を、より広いエリアへと広げていきたいと考えています。","img":"brand-story-community.jpg"},
+    {"title":"小さなお子様からご年配の方まで安心して","body":"お菓子に使用するお酒は、素材の風味を引き立てるためのごく少量にとどめ、焼き上げの加熱工程でアルコール分はしっかりと飛ばすことを基本としています。小さなお子様やご年配の方はもちろん、妊娠中の方やお酒が苦手な方にも、安心して召し上がっていただけるお菓子作りに努めています。","img":"brand-story-anzen.jpg"},
+    {"title":"大阪市城東区から、大阪の魅力を","body":"私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。","img":"brand-story-osaka.jpg"},
+    {"title":"果実をたっぷりと、心まで満たす一切れに","body":"旬のフルーツを惜しみなく使い、ひと切れでも満足感のある食べ応えにこだわっています。断面いっぱいに広がる果実の彩りと、しっかりとしたボリューム感。見た目の華やかさだけでなく、口いっぱいに広がる果実の美味しさをお楽しみいただけます。","img":"brand-story-fruit.jpg"}
   ],
 
   categories: [
@@ -2848,15 +2848,19 @@ function resolveCategoryImg(c) {
 }
 function renderPhilosophy() {
   const grid = document.getElementById("philosophyGrid"); grid.innerHTML = "";
-  if (!Array.isArray(workingData.philosophy)) workingData.philosophy = [];
+  if (!Array.isArray(workingData.philosophy) || !workingData.philosophy.length) workingData.philosophy = JSON.parse(JSON.stringify(DEFAULT_IMAGES.philosophy));
   workingData.philosophy.forEach((c, i) => {
     const item = makeImageItem({
       preview: c.img,
       originalSrc: c.imgOriginal,
       maxWidth: 1800,
       aspectRatio: 4 / 3,
-      fields: [{ label: "画像URL", key: "img", value: c.img || "", type: "input" }],
-      onChange: (k, v) => { workingData.philosophy[i].img = v; refreshPreview(grid.children[i], v); updateSaveBar(); },
+      fields: [
+        { label: "見出し", key: "title", value: c.title || "", type: "input" },
+        { label: "本文", key: "body", value: c.body || "", type: "textarea" },
+        { label: "画像URL", key: "img", value: c.img || "", type: "input" }
+      ],
+      onChange: (k, v) => { workingData.philosophy[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); if (k === "title") { const cp = grid.children[i] && grid.children[i].querySelector(".philo-cap"); if (cp) cp.textContent = (i + 1) + "枚目：" + v; } updateSaveBar(); },
       onFile: result => {
         const { url, original } = applyCropResult(result);
         workingData.philosophy[i].img = url;
@@ -2866,6 +2870,7 @@ function renderPhilosophy() {
       onDelete: null
     });
     const cap = document.createElement("div");
+    cap.className = "philo-cap";
     cap.style.cssText = "margin-bottom:10px;font-family:var(--font-mincho);font-size:14px;font-weight:700;";
     cap.textContent = (i + 1) + "枚目：" + (c.title || "");
     item.insertBefore(cap, item.firstChild);

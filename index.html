@@ -1602,10 +1602,19 @@ window.renderQuickReserveStrip=renderQuickReserveStrip;
 function renderPhilosophyImages(){
   const list=(IMAGES&&Array.isArray(IMAGES.philosophy))?IMAGES.philosophy:[];
   if(window.PhotoAdjust)window.PhotoAdjust.register(list);
+  const cards=document.querySelectorAll(".philosophy__card");
   for(let i=0;i<4;i++){
     const el=document.getElementById("img-philosophy-"+i);
     const src=list[i]&&list[i].img;
     if(el&&src) el.src=src;
+    // 見出し・本文も管理画面（こだわり写真）から編集できる（2026-10-07）。未入力ならページに書かれた文のまま
+    const card=cards[i];
+    if(card&&list[i]){
+      const h3=card.querySelector("h3"), p=card.querySelector(".philosophy__body p");
+      if(h3&&list[i].title) h3.textContent=list[i].title;
+      if(p&&list[i].body) p.textContent=list[i].body;
+      if(el&&list[i].title) el.alt="こいまり "+list[i].title;
+    }
   }
 }
 window.renderPhilosophyImages=renderPhilosophyImages;
