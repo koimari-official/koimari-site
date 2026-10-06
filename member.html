@@ -666,7 +666,7 @@ function updateCandleBagsUI() {
     bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "袋"; });
     if (bagsLabel) bagsLabel.textContent = "袋数（1袋5本入）";
     opt1.textContent = "1袋（無料）";
-    hint.textContent = `普通のろうそくは1袋目無料、2袋目以降は1袋${currentCandleBagPricePlain.toLocaleString()}円+税かかります。`;
+    hint.textContent = `普通のろうそくは1袋目無料、2袋目以降は1袋${currentCandleBagPricePlain.toLocaleString()}円（税込）かかります。`;
   }
 }
 onValue(ref(db, "koimariContent/cakeMessagePlatePrice"), (snap) => { currentMessagePlatePrice = snap.val() || 0; });
