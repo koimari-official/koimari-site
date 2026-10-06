@@ -299,11 +299,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__label" id="reserveSizeFieldLabel">サイズ<span class="req-mark">必須</span></label>
           <div id="reserveTierSizesWrap"></div>
           <div class="error" id="reserveSizeError"></div>
+          <div id="reserveSmallDecoTip" style="display:none;margin-top:10px;background:#fffaf0;border:1px solid #e3c98f;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.7;color:#5a4a3a;">
+            小さめのサイズは、<b>おまかせデコレーション「梅」（+¥1,000）</b>で、ぐっと華やかになります。
+            <button type="button" id="reserveSmallDecoBtn" style="display:block;margin-top:8px;padding:8px 16px;border:1px solid #c8891e;background:#fff;color:#8a5a12;border-radius:999px;font-weight:700;cursor:pointer;">梅のおまかせデコをつける</button>
+          </div>
           <div id="reserveCutPickerField" style="display:none;margin-top:14px;">
             <label class="field__label">上に載せるカットケーキ（合計1〜4個）<span class="req-mark">必須</span></label>
             <div class="field__hint" style="margin-bottom:8px;">写真を見ながら、＋−で個数をえらんでください。カットケーキの代金が加算されます。</div>
             <div id="reserveCutGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;"></div>
             <div id="reserveCutStatus" class="field__hint" style="margin-top:8px;"></div>
+            <div id="reserveCutTip" style="display:none;margin-top:6px;font-size:13.5px;font-weight:700;color:#a35a2a;"></div>
             <div class="error" id="reserveCutError"></div>
           </div>
         </div>
@@ -473,6 +478,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
       <div id="reserveConfirmWrap" style="display:none;">
         <div class="confirm-box" id="reserveConfirmSummary"></div>
+        <div id="reserveConfirmUpsell"></div>
         <p style="font-size:13px;color:var(--color-text-soft);line-height:1.8;margin:14px 0 10px;">皆様にご満足いただくため、仕様を含めた予約内容の確認でスタッフよりお電話またはチャットでご連絡を差し上げることがございます。お手数でございますが、ご対応もしくは折り返しのご連絡をいただきますようご協力をお願い致します。</p>
         <ul style="font-size:13px;color:var(--color-error);line-height:1.8;margin:0 0 20px;padding-left:1.2em;">
           <li>ご連絡がつかない場合や折り返しをいただけない場合は、ご予約をキャンセルとさせていただくことがございます。</li>
@@ -1090,6 +1096,11 @@ function specialReasons() {
 }
 function omakaseWish() { return selectedOmakase() ? ((document.getElementById("reserveOmakaseWish") || {}).value || "").trim() : ""; }
 document.addEventListener("change", (e) => { if (e.target && e.target.name === "reserveOmakase") { const w = document.getElementById("reserveOmakaseWish"); if (w) w.style.display = e.target.value ? "" : "none"; } });
+document.addEventListener("click", (e) => {
+  if (!e.target || e.target.id !== "reserveSmallDecoBtn") return;
+  const r = document.querySelector('input[name="reserveOmakase"][value="梅"]');
+  if (r) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); }
+});
 function selectedOmakase() { return (document.querySelector('input[name="reserveOmakase"]:checked') || {}).value || ""; }
 function selectedToppings() { return Array.from(document.querySelectorAll(".reserve-topping:checked")).map(e => e.value); }
 // ===== 進捗・おすすめ・あとで決める・名入れ文字プレビュー・前回と同じ注文（2026-09-26）=====
@@ -1228,6 +1239,8 @@ function renderCutPicker() {
       '<button type="button" class="cut-plus" data-i="' + i + '" ' + (total >= CUT_MAX ? "disabled" : "") + ' style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;' + (total >= CUT_MAX ? "opacity:.35;" : "") + '">＋</button></div></div>';
   }).join("");
   const st = document.getElementById("reserveCutStatus");
+  { const tipEl = document.getElementById("reserveCutTip");
+    if (tipEl) { tipEl.style.display = total > 0 && total < CUT_MAX ? "" : "none"; tipEl.textContent = total > 0 && total < CUT_MAX ? "あと" + (CUT_MAX - total) + "個まで載せられます。もう1個追加すると、ぐっとにぎやかになります" : ""; } }
   if (st) st.textContent = total ? "選んだカットケーキ：" + total + "個（あと" + (CUT_MAX - total) + "個まで選べます）" : "1〜" + CUT_MAX + "個までお選びください";
   grid.querySelectorAll(".cut-plus").forEach(b => b.addEventListener("click", () => { if (cutTotal() >= CUT_MAX) return; const c = cutCatalog[Number(b.dataset.i)]; cutQty[c.name] = (cutQty[c.name] || 0) + 1; renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave(); }));
   grid.querySelectorAll(".cut-minus").forEach(b => b.addEventListener("click", () => { const c = cutCatalog[Number(b.dataset.i)]; cutQty[c.name] = Math.max(0, (cutQty[c.name] || 0) - 1); renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave(); }));
@@ -1698,6 +1711,11 @@ function updateCakeOptionUI() {
   const activeSpecial = tierCount > 1 && activeSizeEl && tierIsSpecialTop(activeSizeEl.value);
   if (activeSpecial) { g("reserveCreamTypeField").style.display = "none"; g("reserveColorCreamField").style.display = "none"; }
   renderTierDiagram();
+  { // 小さいサイズへの「梅」の提案（2026-10-07 客単価アップ）
+    const tip = g("reserveSmallDecoTip");
+    const k = tierCount === 1 && tiers[0] ? CakePricing.tierKey(tiers[0]) : "";
+    if (tip) tip.style.display = (!isXmas && (k === "3号" || k === "4号") && !selectedOmakase()) ? "" : "none";
+  }
   const fruit = g("decoFruitPrice");
   if (fruit) {
     let text = "";
@@ -2038,6 +2056,34 @@ function validateReserve(data) {
   return ok;
 }
 
+// 確認画面の「あわせていかがですか」（2026-10-07 客単価アップ）。まだ選んでいないものだけを出す。
+// 金額が決まっているもの（フルーツ増量・梅のおまかせデコ）はその場で追加して確認画面を作り直す。
+// 入力が必要なもの（名入れの文字・砂糖菓子の選択）は、入力欄までフォームを戻す。
+function renderConfirmUpsell(data) {
+  const el = document.getElementById("reserveConfirmUpsell");
+  if (!el) return;
+  const isCake = data && data.category === "cake" && !data.christmasOrder && data.items && data.items[0] && data.items[0].category === "デコレーションケーキ";
+  if (!isCake) { el.innerHTML = ""; return; }
+  const g = id => document.getElementById(id);
+  const size = (data.items && data.items[0] && data.items[0].size) || "";
+  const fp = (data.items || []).length === 1 ? CakePricing.SPEC.fruitTopping[CakePricing.tierKey(size)] : 0;
+  const opts = [];
+  if (!data.omakaseDeco) opts.push({ key: "ume", label: "おまかせデコレーション「梅」", price: "+¥1,000" });
+  if (!data.fruitExtra && fp && g("reserveDecorationField") && g("reserveDecorationField").style.display !== "none") opts.push({ key: "fruit", label: "フルーツの増量", price: "+¥" + fp.toLocaleString() });
+  if (!(Number(data.messageCount) > 0)) opts.push({ key: "msg", label: "名入れチョコレート", price: "無料" });
+  if (!(data.addOns || []).length && typeof addOnCatalog !== "undefined" && addOnCatalog.length) opts.push({ key: "addon", label: "砂糖菓子・オーナメント・クッキー", price: "写真から選べます" });
+  if (!opts.length) { el.innerHTML = ""; return; }
+  el.innerHTML = '<div style="margin:14px 0 4px;border:1px solid #e3c98f;background:#fffaf0;border-radius:12px;padding:12px 14px;"><div style="font-weight:700;color:#7a5418;margin-bottom:8px;">あわせていかがですか</div>' +
+    opts.map(o => '<button type="button" class="confirm-upsell" data-k="' + o.key + '" style="display:flex;justify-content:space-between;align-items:center;width:100%;margin:0 0 6px;padding:10px 12px;border:1px solid #e3c98f;background:#fff;border-radius:10px;cursor:pointer;font-size:14px;"><span>＋ ' + escape(o.label) + '</span><b style="color:#a35a2a;">' + escape(o.price) + '</b></button>').join("") + "</div>";
+  el.querySelectorAll(".confirm-upsell").forEach(b => b.addEventListener("click", () => {
+    const k = b.dataset.k;
+    const backTo = (id) => { document.getElementById("reserveConfirmWrap").style.display = "none"; document.getElementById("reserveFormWrap").style.display = "block"; const t = document.getElementById(id); if (t) { t.scrollIntoView({ behavior: "smooth", block: "center" }); } };
+    if (k === "ume") { const r = document.querySelector('input[name="reserveOmakase"][value="梅"]'); if (r) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); } document.getElementById("reserveSubmitBtn").click(); }
+    else if (k === "fruit") { const c = g("reserveFruitExtra"); if (c) { c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); } document.getElementById("reserveSubmitBtn").click(); }
+    else if (k === "msg") { const s = g("reserveMessageCount"); if (s) { s.value = "1"; s.dispatchEvent(new Event("change", { bubbles: true })); } backTo("reserveChocoText"); setTimeout(() => { const t = g("reserveChocoText"); if (t) t.focus(); }, 400); }
+    else if (k === "addon") backTo("reserveAddOnsField");
+  }));
+}
 function renderReserveConfirm(data, targetId) {
   const el = document.getElementById(targetId || "reserveConfirmSummary");
   if (data.category === "kidsManager") {
@@ -2588,6 +2634,7 @@ function setupReserveForm(uid, displayName) {
     banner.style.display = "none";
     pendingData = data;
     renderReserveConfirm(data);
+    renderConfirmUpsell(data);
     document.getElementById("reserveFormWrap").style.display = "none";
     document.getElementById("reserveConfirmWrap").style.display = "block";
     document.getElementById("reserveConfirmWrap").scrollIntoView({ behavior: "smooth", block: "start" });

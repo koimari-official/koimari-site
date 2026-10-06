@@ -135,6 +135,14 @@ main.pd{max-width:1040px}
 .pd-size-price{font-weight:700;color:#8a3a2a;white-space:nowrap}
 .pd-size-special{font-size:12.5px;color:var(--color-text-soft);font-weight:700;line-height:1.4;display:inline-block}
 .pd-size-tag{display:inline-block;margin-left:6px;font-size:11.5px;font-weight:700;color:#fff;background:var(--color-accent-dark);border-radius:4px;padding:1px 6px;vertical-align:middle}
+.pd-bigger{margin:12px 0 0;border:1px solid var(--color-line);border-radius:12px;padding:12px 14px;background:#fff}
+.pd-bigger__title{font-size:15px;font-weight:700;color:#7a5418}
+.pd-bigger__lead{margin:4px 0 10px;font-size:13.5px;line-height:1.7;color:#5a4a3a}
+.pd-bigger__list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pd-bigger__item{display:flex;flex-direction:column;gap:4px;text-decoration:none;color:inherit;border:1px solid var(--color-line);border-radius:10px;overflow:hidden;background:var(--color-paper,#fffdf9)}
+.pd-bigger__item img{width:100%;aspect-ratio:1/1;object-fit:cover}
+.pd-bigger__name{font-size:13px;font-weight:700;padding:0 8px;line-height:1.5}
+.pd-bigger__price{font-size:13px;color:#a35a2a;font-weight:700;padding:0 8px 8px;font-family:var(--font-sans)}
 .pd-omakase{margin:10px 0 0;background:#fffaf0;border:1px solid #e3c98f;border-radius:10px;padding:10px 14px}
 .pd-omakase__title{font-size:15px;font-weight:700;color:#7a5418;margin-bottom:6px}
 .pd-omakase__list{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:16px;font-family:var(--font-sans)}
@@ -582,6 +590,19 @@ function onlySizeOf(item) {
   const a = cream && window.CakePricing && window.CakePricing.SPEC.baseSizes && window.CakePricing.SPEC.baseSizes[cream];
   return a && a.length === 1 ? a[0] : '';
 }
+// 号数が1つだけのケーキ（例：グランマニエBOX＝3号・2〜3人前）は、人数が多い方向けに大きいサイズを選べるケーキを提案する（2026-10-07 客単価アップ）
+function renderBiggerSuggest(box, onlyRow) {
+  const list = (loadImages().decorationCakes || []).map((it, idx) => ({ it, idx })).filter(o => o.it && o.it.visible !== false && o.it.img && o.idx !== productIdx && !onlySizeOf(o.it) && !(window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(o.it) === 'custom'));
+  const choco = o => /チョコ|ショコラ|ミッシェル/.test(o.it.name || '') || ['ミッシェルBOX', '生チョコクリーム'].indexOf((o.it.spec || {}).cream) >= 0;
+  const picks = list.filter(choco).concat(list.filter(o => !choco(o))).slice(0, 2);
+  if (!picks.length) return;
+  const div = document.createElement('div');
+  div.className = 'pd-bigger';
+  div.innerHTML = '<div class="pd-bigger__title">4人以上で召し上がるなら</div><p class="pd-bigger__lead">このケーキは' + esc(onlyRow.size) + '（' + esc(onlyRow.serves || '') + '）のみです。大きいサイズを選べる、こちらのケーキもおすすめです。</p><div class="pd-bigger__list">' +
+    picks.map(o => '<a class="pd-bigger__item" href="product.html?type=decorationCake&idx=' + o.idx + '"><img src="' + esc(o.it.img) + '" alt="" loading="lazy"><span class="pd-bigger__name">' + esc(String(o.it.name || '').replace(/<[^>]*>/g, '')) + '</span><span class="pd-bigger__price" data-i="' + o.idx + '"></span></a>').join('') + '</div>';
+  box.appendChild(div);
+  picks.forEach(o => priceHintFor(o.it, 'decorationCake').then(t => { const el = div.querySelector('.pd-bigger__price[data-i="' + o.idx + '"]'); if (el && t) el.textContent = t + '（税込）'; }).catch(() => {}));
+}
 function renderSizeTable(item, photoSize) {
   const box = document.getElementById('pdSizes');
   if (!box) return;
@@ -597,6 +618,7 @@ function renderSizeTable(item, photoSize) {
         (custom ? '' : '<td class="pd-size-price">' + (r.price ? '¥' + Number(r.price).toLocaleString() : '<span class="pd-size-special">特殊仕様<br>（お電話で確認）</span>') + '</td>') + '</tr>').join('') + '</tbody></table>' +
       (custom ? '<p class="pd-size-note">このケーキはフルオーダーのため、お値段はご予約後にパティシエがご回答します。</p>'
         : '<p class="pd-included">ろうそく5本（1袋）とメッセージプレート1枚は、お値段に含まれています。</p>' + omakaseHtml());
+    if (rows.length === 1 && !custom) renderBiggerSuggest(box, rows[0]);
   });
 }
 var currentGuide = ''; // フルオーダーの目安（例：5号 ¥5,000〜）。予約フォームへ引き継ぐ
