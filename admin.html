@@ -1920,6 +1920,7 @@ function fileToDataUrl(file, maxWidth) {
             resolve(await window.fbUploadImage(blob));
           } catch (err) {
             console.warn("Storageアップロード失敗、data URLにフォールバック:", err);
+            if (typeof showToast === "function") showToast("写真をサーバーに保存できませんでした（元の写真も保存されていません）。この写真は後から位置の選び直しができないため、通信状況を確認して、もう一度ファイルから選び直してください", "error");
             try { resolve(canvas.toDataURL("image/jpeg", 0.92)); } catch (err2) { resolve(r.result); }
           }
         }, "image/jpeg", 0.92);
@@ -2046,12 +2047,12 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
     try { cropped = canvas.toDataURL("image/jpeg", 0.92); } catch (err) { cropped = null; }
     if (blob && typeof window.fbUploadImage === "function") {
       try { cropped = await window.fbUploadImage(blob); }
-      catch (err) { console.warn("Storageアップロード失敗、data URLにフォールバック:", err); }
+      catch (err) { console.warn("Storageアップロード失敗、data URLにフォールバック:", err); showToast("写真をサーバーに保存できませんでした（元の写真も保存されていません）。この写真は後から位置の選び直しができないため、通信状況を確認して、もう一度ファイルから選び直してください", "error"); }
     }
     let original = null;
     if (originalBlob && typeof window.fbUploadImage === "function") {
       try { original = await window.fbUploadImage(originalBlob, originalBlob.type); }
-      catch (err) { console.warn("元画像のStorageアップロードに失敗（切り抜き結果は保存されます）:", err); }
+      catch (err) { console.warn("元画像のStorageアップロードに失敗（切り抜き結果は保存されます）:", err); showToast("元の写真をサーバーに保存できませんでした。後から位置を選び直せるよう、もう一度ファイルから選び直してください", "error"); }
     }
     if (resolveFn) resolveFn({ cropped, original });
   }, "image/jpeg", 0.92);
