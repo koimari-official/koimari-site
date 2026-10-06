@@ -1363,6 +1363,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <div id="cropModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:2000;align-items:center;justify-content:center;padding:20px;">
   <div style="background:#fff;padding:22px;max-width:640px;width:100%;display:flex;flex-direction:column;gap:16px;">
     <h3 style="font-family:var(--font-mincho);font-size:16px;font-weight:600;">画像の切り抜き位置を調整してください</h3>
+    <p style="font-size:12.5px;color:var(--color-text-soft);margin-top:-8px;">写真全体を入れたい場合は、枠の角をドラッグして外側の白い部分まで広げてください（白い余白が付きます）。</p>
     <div id="cropRatioToggle" style="display:none;gap:8px;"></div>
     <div style="max-height:60vh;overflow:hidden;">
       <img id="cropImage" crossorigin="anonymous" style="display:block;max-width:100%;">
@@ -2008,6 +2009,7 @@ let _cropperInstance = null;
 let _cropResolve = null;
 let _cropTargetWidth = null;
 let _cropOriginalBlob = null;
+let _padInfo = null;
 // 2026-09-23オーナー指示：「元画像はそのまま保存し、選択した範囲を表示に使う」という
 // 一般的な非破壊トリミングの考え方に統一。新規ファイルのアップロード時はoriginalBlobに
 // 元ファイルを渡すと、切り抜き結果とは別にオリジナルもStorageへ保存し、両方のURLを返す。
@@ -2039,8 +2041,15 @@ function openCropModal(dataUrl, aspectRatio, ratioOptions, originalBlob) {
     } else {
       toggle.style.display = "none";
     }
+    const pad = _padInfo; _padInfo = null;
     img.onload = () => {
-      _cropperInstance = new Cropper(img, { aspectRatio, viewMode: 1, autoCropArea: 1, background: false });
+      _cropperInstance = new Cropper(img, { aspectRatio, viewMode: 1, autoCropArea: 1, background: false, ready() {
+        // 余白を足した画像のときは、最初の選択範囲を写真の中（余白なし）にしておく。写真全体を入れたい時は枠を広げる
+        if (!pad || !aspectRatio) return;
+        let w, h;
+        if (pad.w / pad.h > aspectRatio) { h = pad.h; w = h * aspectRatio; } else { w = pad.w; h = w / aspectRatio; }
+        try { this.cropper.setData({ x: pad.ox + (pad.w - w) / 2, y: pad.oy + (pad.h - h) / 2, width: w, height: h }); } catch (e) {}
+      } });
     };
     img.src = dataUrl;
     modal.style.display = "flex";
@@ -2067,7 +2076,9 @@ function padImageToAspectRatio(dataUrl, aspectRatio) {
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, canvasW, canvasH);
-      ctx.drawImage(img, Math.round((canvasW - naturalW) / 2), Math.round((canvasH - naturalH) / 2));
+      const ox = Math.round((canvasW - naturalW) / 2), oy = Math.round((canvasH - naturalH) / 2);
+      ctx.drawImage(img, ox, oy);
+      _padInfo = { ox, oy, w: naturalW, h: naturalH }; // 切り抜き画面の最初の選択範囲を「写真いっぱい」にするため
       resolve(canvas.toDataURL("image/png"));
     };
     img.onerror = () => reject(new Error("画像を読み込めませんでした"));
@@ -2220,6 +2231,10 @@ function imageLocationLabel(src) {
   } catch (e) { return ""; }
 }
 function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelete, maxWidth, aspectRatio, ratioOptions, padToFit }) {
+  // 2026-10-07：縦長・横長の写真でも、写真全体が入るように選べるようにする（以前はオーダーメイドだけ対応していて、
+  // 砂糖菓子などで「枠が写真からはみ出せず全体を入れられない」不具合が再発した）。すべての切り抜きで既定にする。
+  // 最初の選択範囲は従来どおり写真いっぱい（余白なし）なので、全体を入れたいときだけ枠を広げればよい。
+  if (padToFit !== false) padToFit = true;
   const item = document.createElement("div");
   item.className = "img-item";
   item.dataset.maxwidth = maxWidth || "";
