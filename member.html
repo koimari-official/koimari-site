@@ -75,6 +75,14 @@ select.input{appearance:auto;}
 textarea.input{resize:vertical;font-family:var(--font-sans);}
 .field__hint{font-size:12.5px;color:var(--color-text-soft);margin-top:6px;line-height:1.7;}
 /* 2026-09-22、フォーム入力中のリアルタイム合計金額バー(CRO改修指示書) */
+.omakase-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.omakase-card{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:14px 6px 12px;border:1.5px solid #e3c98f;border-radius:14px;background:linear-gradient(180deg,#fffdf8,#fbf1dc);cursor:pointer;text-align:center;transition:box-shadow .2s,border-color .2s}
+.omakase-card input{position:absolute;opacity:0;pointer-events:none}
+.omakase-card__rank{font-family:var(--font-mincho,serif);font-size:26px;font-weight:700;color:#7a5418;line-height:1.2}
+.omakase-card__price{font-family:var(--font-sans);font-size:15px;font-weight:700;color:#a35a2a}
+.omakase-card__desc{font-size:11.5px;color:#7a6a58}
+.omakase-card:has(input:checked){border-color:#c8891e;box-shadow:0 0 0 3px rgba(224,161,58,.35);background:linear-gradient(180deg,#fff8e8,#f8e3b5)}
+.omakase-none{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:14px;color:#5a4a3a;cursor:pointer}
 .live-total-bar{align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;background:var(--color-bg-soft,#f4ede1);border:1.5px solid var(--color-accent-dark,#a88a52);border-radius:6px;padding:14px 20px;margin:-6px 0 22px;position:sticky;top:8px;z-index:5;}
 .live-total-bar__label{font-size:13px;color:var(--color-text-soft);font-weight:600;}
 .live-total-bar__amount{font-size:22px;font-weight:700;color:var(--color-accent-dark,#a88a52);}
@@ -186,6 +194,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt" id="reserveTypeXmasOpt" style="display:none;"><input type="radio" name="reserveType" value="クリスマスケーキ"> クリスマスケーキ（12月22日〜25日お渡し）</label>
           </div>
         </div>
+        <div class="field" id="reserveOmakaseField">
+          <label class="field__label">おまかせデコレーション（オプション）</label>
+          <div class="field__hint" style="margin-bottom:10px;">パティシエがケーキに合わせて、華やかに飾り付けます。最終的なお値段は、ご予約後にスタッフからのお電話でご案内します。</div>
+          <div class="omakase-cards">
+            <label class="omakase-card"><input type="radio" name="reserveOmakase" value="松"><span class="omakase-card__rank">松</span><span class="omakase-card__price">+¥3,000</span><span class="omakase-card__desc">いちばん豪華</span></label>
+            <label class="omakase-card"><input type="radio" name="reserveOmakase" value="竹"><span class="omakase-card__rank">竹</span><span class="omakase-card__price">+¥2,000</span><span class="omakase-card__desc">しっかり華やか</span></label>
+            <label class="omakase-card"><input type="radio" name="reserveOmakase" value="梅"><span class="omakase-card__rank">梅</span><span class="omakase-card__price">+¥1,000</span><span class="omakase-card__desc">さりげなく</span></label>
+          </div>
+          <label class="omakase-none"><input type="radio" name="reserveOmakase" value="" checked> おまかせデコレーションはつけない</label>
+        </div>
         <div class="field" id="reserveTiersField" style="display:none;">
           <label class="field__label">段数<span class="req-mark">必須</span></label>
           <div class="radio-list" style="flex-direction:row;">
@@ -290,16 +308,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <input type="checkbox" id="reserveCreamTopping">
             <span id="reserveCreamToppingLabel">生クリームたっぷり乗せ（+540円・税込）</span>
           </label>
-        </div>
-        <div class="field" id="reserveOmakaseField">
-          <label class="field__label">おまかせデコレーション（オプション）</label>
-          <div class="field__hint" style="margin-bottom:8px;">パティシエがケーキに合わせて、華やかに飾り付けます。</div>
-          <div class="radio-list">
-            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="" checked> なし</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="梅"> 梅（+¥1,000）</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="竹"> 竹（+¥2,000）</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveOmakase" value="松"> 松（+¥3,000）</label>
-          </div>
         </div>
         <div class="field" id="reserveToppingsField">
           <label class="field__label">トッピング（オプション）</label>
@@ -1877,6 +1885,7 @@ function updateReserveFieldVisibility() {
   const isShop = category === "カットケーキ" || category === "クリスマスケーキ";
 
   document.getElementById("reserveTiersField").style.display = isCake ? "" : "none";
+  { const of = document.getElementById("reserveOmakaseField"); if (of) of.style.display = isCake ? "" : "none"; if (!isCake) { const n = document.querySelector('input[name="reserveOmakase"][value=""]'); if (n) n.checked = true; } }
   document.getElementById("reserveFlavorField").style.display = isRoll ? "" : "none";
   document.getElementById("reserveCreamTypeField").style.display = isCake ? "" : "none";
   document.getElementById("reserveDecorationField").style.display = isCake ? "" : "none";

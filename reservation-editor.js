@@ -110,6 +110,7 @@
       creamTopping: !!r.creamTopping,
       strawberryAdd: !!r.strawberryAdd,
       onsiteAssembly: !!r.onsiteAssembly,
+      omakase: r.omakaseDeco || "",
       pickupDate: r.finalPickupDate || r.pickupDate || "",
       pickupTime: r.finalPickupTime || r.pickupTime || "",
       price: Number(r.finalPrice) || (r.priceIsFixed ? Number(r.subtotal) || 0 : 0),
@@ -142,6 +143,7 @@
     if (s.strawberryAdd) opts.push("いちごトッピング");
     if (s.onsiteAssembly) opts.push("出張組み立て");
     if (!simple) rows.push(["オプション", opts.length ? opts.join("、") : "なし"]);
+    if (!simple) rows.push(["おまかせデコレーション", s.omakase || "なし"]);
     rows.push(["お引き取り", (s.pickupDate || "未定") + " " + (s.pickupTime || "")]);
     rows.push(["金額（税込）", s.price ? yen(s.price) + (s.priceIsRange ? "〜" : "") : (s.subtotal ? yen(s.subtotal) + "〜（目安）" : "お電話でご案内")]);
     return rows;
@@ -168,7 +170,8 @@
       colorCreamCount: s.tiers.filter(function (t) { return t.color; }).length,
       candleNeeded: !!s.candleType, candleType: s.candleType, candleBags: s.candleCount,
       messageCount: s.messageCount,
-      addOns: r.addOns || [], toppings: r.toppings || [], topCut: !!r.topCut, cutCakes: r.cutCakes || []
+      addOns: r.addOns || [], toppings: r.toppings || [], topCut: !!r.topCut, cutCakes: r.cutCakes || [],
+      omakase: s.omakase || ""
     }, priceBase);
   }
   // スナップショット → 予約データの更新内容（member.html が保存する形式にそろえる）
@@ -195,6 +198,7 @@
       candleNeeded: !!s.candleType, candleType: s.candleType || null, candleBags: s.candleType ? s.candleCount : 0,
       messageCount: s.messageCount,
       creamTopping: !!s.creamTopping, strawberryAdd: s.strawberryAdd || null, onsiteAssembly: s.onsiteAssembly || null,
+      omakaseDeco: s.omakase || null,
       pickupDate: s.pickupDate, pickupTime: s.pickupTime, finalPickupDate: s.pickupDate, finalPickupTime: s.pickupTime,
       finalPrice: s.price || null,
       priceIsFixed: !!s.price, priceNeedsConsult: !s.price && !(est && est.subtotal)
@@ -324,6 +328,8 @@
       html += field("オプション", '<label class="re-check"><input type="checkbox" id="reTopping"' + (e.creamTopping ? " checked" : "") + "> 生クリームたっぷり乗せ</label>" +
         '<label class="re-check"><input type="checkbox" id="reStraw"' + (e.strawberryAdd ? " checked" : "") + "> いちごトッピング</label>" +
         (e.tiers.length === 3 ? '<label class="re-check"><input type="checkbox" id="reOnsite"' + (e.onsiteAssembly ? " checked" : "") + "> 出張組み立て</label>" : ""));
+      var OMK = (window.CakePricing && window.CakePricing.SPEC.omakaseDeco) || {};
+      html += field("おまかせデコレーション", sel("reOmakase", ["", "梅", "竹", "松"], e.omakase || "", function (o) { return o ? o + "（+¥" + Number(OMK[o] || 0).toLocaleString() + "）" : "なし"; }));
     }
     if (e.cuts) {
       e.cuts.forEach(function (c, i) {
@@ -398,6 +404,7 @@
       e.candleType = g("reCandle").value; e.candleCount = g("reCandleN") ? Number(g("reCandleN").value) : (e.candleType ? 1 : 0);
       e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;
       e.creamTopping = g("reTopping").checked; e.strawberryAdd = g("reStraw").checked; e.onsiteAssembly = g("reOnsite") ? g("reOnsite").checked : false;
+      e.omakase = g("reOmakase") ? g("reOmakase").value : (e.omakase || "");
     }
     if (e.cuts) {
       e.cuts = e.cuts.map(function (c, i) { return { name: c.name, qty: g("reCutQ" + i) ? Number(g("reCutQ" + i).value) || 0 : c.qty, price: c.price }; }).filter(function (c) { return c.qty > 0; });
