@@ -269,6 +269,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。1つの段は1色までです（段ごとに違う色をお選びいただけます）。色をタップしてお選びください。</div>
           <div id="reserveColorChips"></div>
           <div id="reserveColorSummary" class="field__hint">色を選ぶと、色数に応じた金額が加算されます</div>
+          <div id="reserveColorWarn" style="display:none;margin-top:8px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.8;color:#6b4a12;">原色に近い色（濃い赤・黄色・青など）の色付き生クリームは、食用色素で着色するため、味に多少影響する場合がございます。また、衣服へ色移りする場合がございます。衣服などへの付着には十分お気をつけください。</div>
           <select id="reserveColorCream" style="display:none;"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
           <input type="text" id="reserveColorCreamNote" class="input" style="display:none;margin-top:10px;" maxlength="40" placeholder="「その他」の色・ご希望のイメージ（例: くすみピンク、ミントグリーン）">
         </div>
@@ -311,7 +312,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveToppingsField">
           <label class="field__label">トッピング（オプション）</label>
-          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・金箔・アラザンの料金とお日にちは、ご予約後にパティシエよりご連絡します。</div>
+          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・アラザンを選んだ場合は、数量によって金額が異なる場合がございます。別途お見積もりさせていただきます。</div>
           <div class="field__hint" style="margin-top:6px;">※金箔は取り寄せとなるため、お渡しまでお日にちをいただきます。</div>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔※<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
@@ -735,6 +736,15 @@ const CREAM_COLORS = [
 function colorLabelOf(name) { const c = CREAM_COLORS.find(x => x.name === name); return c ? c.label + (c.name.indexOf("その他") === 0 ? "" : "（" + c.name + "）") : name; }
 const CREAM_COLOR_MAX = 3;
 let selectedCreamColors = [];
+// 原色に近い濃い色（食用色素を多く使う色）。選ぶと味・色移りの注意を表示する（2026-10-06オーナー指示）
+const STRONG_COLORS = ["黒", "赤", "青", "紺", "黄色", "緑"];
+function updateColorWarn() {
+  const el = document.getElementById("reserveColorWarn");
+  if (!el) return;
+  let all = selectedCreamColors.slice();
+  try { if (typeof activeSpecs === "function") activeSpecs().forEach(s => (s.colors || []).forEach(c => all.push(c))); } catch (e) {}
+  el.style.display = all.some(c => STRONG_COLORS.includes(c)) ? "" : "none";
+}
 function renderColorChips() {
   const wrap = document.getElementById("reserveColorChips");
   if (!wrap) return;
@@ -759,6 +769,7 @@ function renderColorChips() {
     const price = (typeof colorPriceFor === "function") ? colorPriceFor(tot) : 0;
     hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.map(colorLabelOf).join("・") : "この段の色：未選択（白のままです）") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
   }
+  updateColorWarn();
 }
 function showColorLimitHint() {
   const hint = document.getElementById("reserveColorSummary");
