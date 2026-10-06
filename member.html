@@ -1572,12 +1572,12 @@ function updateLivePriceDisplay() {
   }
 }
 
-// 引き取り希望時間は、日祝は19:00・火-土は20:00の閉店時刻の30分前までを選択肢にする。
+// 引き取り希望時間は、日祝は19:00・火-土は20:00の閉店時刻までを選択肢にする（2026-10-07オーナー指示：お引き取りは閉店時間まで）。
 function timeOptionsForDate(dateStr) {
   if (!dateStr) return TIME_OPTIONS;
   const d = new Date(dateStr);
   const closeHour = (d.getDay() === 0 || JP_HOLIDAYS.has(dateKeyLocal(d))) ? 19 : 20;
-  const lastSlotMin = closeHour * 60 - 30;
+  const lastSlotMin = closeHour * 60;
   const opts = [];
   for (let m = 10 * 60; m <= lastSlotMin; m += 30) {
     opts.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);

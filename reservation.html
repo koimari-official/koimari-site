@@ -179,6 +179,8 @@ a { color: inherit; text-decoration: none; }
   letter-spacing: 0.04em;
   line-height: 2;
 }
+.lead-date{display:inline-block;margin:6px 0 4px;padding:6px 12px;background:#fff7ea;border:1px solid #e0b872;border-radius:8px;font-size:15px;color:#6b4a12;font-family:var(--font-sans)}
+.lead-date b{color:#a35a2a}
 /* 2026-09-22、お酒の使用に関する安心表記バッジ（オーナー指示） */
 .safety-note{display:inline-block;margin-top:16px;padding:8px 20px;background:var(--color-bg-soft);border:1px solid var(--color-line);border-radius:999px;font-family:var(--font-mincho);font-size:13px;letter-spacing:.03em;color:var(--color-text-soft)}
 
@@ -901,10 +903,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <h1 class="page-head__title">ご予約・会員登録</h1>
     <p class="page-head__lead">
       こいまり公式LINEアカウントの「友だち追加」が、そのまま会員登録になります。<br>
-      デコレーションケーキのご予約は3営業日前までにご連絡ください。当日はお電話にて承ります。<br>
+      ご予約は3営業日前までにご連絡ください。それ以降～当日のご注文は、お電話にて承ります。<br>
+      <span id="leadDateInfo" class="lead-date"></span>
       <span style="font-size:14px;">※本ページは「ケーキ屋さんこいまり 城東」のご予約についてのご案内です。</span>
     </p>
-    <span class="safety-note">お酒はごく少量・焼き上げ時にしっかり加熱飛散済み、小さなお子様も安心</span>
   </div>
 </div>
 
@@ -931,14 +933,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p style="margin-bottom:20px;">
         こいまりのご予約は、LINE公式アカウントの専用フォームから承っております。<br>
         友だち追加後、トーク画面下部のメニューの「ご予約」ボタンから、予約フォームにご入力ください。チャットでのご予約受付は行っておりません。<br>
-        <span style="font-size:14px;color:var(--color-text-mute);">※お引き取りは閉店時間の30分前までとさせていただいております。</span>
+        <span style="font-size:14px;color:var(--color-text-mute);">※お引き取りは閉店時間までとさせていただいております。</span>
       </p>
       <div style="background:var(--color-bg-soft,#f3ece1);border:1px solid var(--color-line,#e3d6c2);padding:20px 24px;margin-bottom:8px;">
         <p style="font-weight:700;margin-bottom:10px;font-size:15px;">友だち追加でそのまま会員登録が完了します</p>
-        <p style="font-size:14.5px;line-height:2;margin-bottom:14px;">LINE公式アカウントにご登録いただくことで、選択項目によるご予約、メールやLINEへのお引き取り日時のリマインド、最新情報やお得なクーポンの配信をご利用いただけます。</p>
+        <p style="font-size:14.5px;line-height:2;margin-bottom:14px;">LINE公式アカウントにご登録いただくことで、選択項目によるご予約、LINEへのお引き取り日時のリマインド、最新情報やお得なクーポンの配信をご利用いただけます。</p>
         <ul style="line-height:2;padding-left:1.3em;font-size:14.5px;">
-          <li>これまでの作品ギャラリーもご覧いただけます</li>
-          <li>お誕生日特典は準備中です（近日ご案内）</li>
+          <li>これまでのオーダーケーキの過去作品や、カットケーキ・ギフトなどもご覧いただけます</li>
         </ul>
       </div>
       <div style="text-align:center;margin:32px 0;">
@@ -993,6 +994,32 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script>
+  // 営業日カレンダー（管理画面の営業日設定）と連動して、「今日ネット予約できる一番早いお受取日」を表示する（2026-10-07オーナー指示）。
+  // 締切の考え方は予約フォーム（member.html computeOrderDeadline）と同じ：お受取日から定休日・臨時休業日を除いて3営業日さかのぼった日まで。
+  // 祝日のデータは member.html と同じものを使うこと。
+  (function () {
+    const JP_HOLIDAYS = new Set([
+  "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20","2026-04-29",
+  "2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-07-20","2026-08-11",
+  "2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23",
+  "2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-21","2027-03-22",
+  "2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11",
+  "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23",
+]);
+    var WEEK = ["日", "月", "火", "水", "木", "金", "土"];
+    function key(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+    function closed(d, hol) { var k = key(d); return (((hol.weeklyClosed || [1]).indexOf(d.getDay()) >= 0) && !JP_HOLIDAYS.has(k)) || (hol.extraClosed || []).indexOf(k) >= 0; }
+    function deadline(pick, hol) { var d = new Date(pick), n = 0, g = 0; while (n < 3 && g < 30) { d.setDate(d.getDate() - 1); if (!closed(d, hol)) n++; g++; } return d; }
+    function label(d) { return (d.getMonth() + 1) + "月" + d.getDate() + "日（" + WEEK[d.getDay()] + "）"; }
+    fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/koimariContent/holidays.json").then(function (r) { return r.json(); }).catch(function () { return null; }).then(function (hol) {
+      hol = hol || { weeklyClosed: [1], extraClosed: [] };
+      var today = new Date(); today.setHours(0, 0, 0, 0);
+      var p = new Date(today);
+      for (var i = 0; i < 60; i++) { p.setDate(p.getDate() + 1); if (!closed(p, hol) && deadline(p, hol) >= today) break; }
+      var el = document.getElementById("leadDateInfo");
+      if (el) el.innerHTML = "本日" + label(today) + "のネット予約は、<b>" + label(p) + "以降</b>のお受け取りが対象です。";
+    });
+  })();
   // クリスマスケーキの事前決済案内は11月・12月のみ表示
   var m = new Date().getMonth() + 1;
   if (m === 11 || m === 12) {
