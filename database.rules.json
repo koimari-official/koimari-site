@@ -98,6 +98,19 @@
     "sweetsLab": {
       ".read": "auth != null && auth.token.regular === true",
       ".write": "auth != null && auth.token.regular === true"
+    },
+    "pushSubs": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        "$sid": {
+          ".validate": "newData.child('sub').child('endpoint').isString()"
+        }
+      }
+    },
+    "pushLog": {
+      ".read": false,
+      ".write": false
     }
   }
 }

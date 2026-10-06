@@ -24,6 +24,7 @@ const ANTHROPIC_API_KEY = defineSecret("ANTHROPIC_API_KEY");
 // `firebase functions:secrets:set GMAIL_USER` / `GMAIL_APP_PASSWORD` --project koimari-tasting で設定する。
 const GMAIL_USER = defineSecret("GMAIL_USER");
 const GMAIL_APP_PASSWORD = defineSecret("GMAIL_APP_PASSWORD");
+const VAPID_PRIVATE_KEY = defineSecret("VAPID_PRIVATE_KEY"); // 予約のWeb Push通知（2026-10-07）
 
 // あいさつメッセージのカード②「ご予約」の送信テキスト（LINE Official Account Manager側の設定と一致させること）。
 // これに完全一致した場合はAIを呼ばず、予約フォーム（member.html）のLIFFリンクを確実に案内する
@@ -395,7 +396,7 @@ ${faqKnowledgeText}
 
 // ローカルテスト用に内部ロジックも公開する（Cloud Functionsとしてはデプロイされない、ただのプロパティ）。
 exports._internal = {
-  buildConfirmMessage, buildReceivedMessage,
+  buildConfirmMessage, buildReceivedMessage, isPushRecipient: (...a) => isPushRecipient(...a), pushContext: () => pushContext(),
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
@@ -660,6 +661,9 @@ exports.notifyStaffOnNewReservation = onValueCreated(
     if (!raw) return;
     const reservationNo = await assignReservationNo(event.params.pushId);
     const data = Object.assign({}, raw, { reservationNo });
+    // 2026-10-07オーナー指示：スタッフLINEグループへの通知はバイトにも24時間届くため停止。予約の通知は pushNewReservation（Web Push）に一本化。
+    return;
+    // eslint-disable-next-line no-unreachable
     const groupIdSnap = await admin.database().ref("koimariOps/staffNotifyGroupId").once("value");
     const groupId = groupIdSnap.val();
     if (!groupId) {
@@ -1233,6 +1237,10 @@ async function sendCustomerConfirmationEmail(data) {
 // 電話等での代替フォローを促す（2026-09-04オーナー指示：エラーで無言のまま止まらないようにする）。
 async function notifyStaffOfEmailFailure(data) {
   try {
+    // 2026-10-07：スタッフLINEグループではなく、管理画面の通知（常に通知する人＋勤務中の人）へ送る
+    await pushToStaff({ title: "予約確認メールの送信に失敗", body: (data.name || "お客様") + " 様へのメールが届いていません。お電話等でフォローしてください", tag: "mailfail-" + Date.now(), url: ADMIN_RES_URL, kind: "new" });
+    return;
+    // eslint-disable-next-line no-unreachable
     const groupIdSnap = await admin.database().ref("koimariOps/staffNotifyGroupId").once("value");
     const groupId = groupIdSnap.val();
     if (!groupId) return;
@@ -1248,7 +1256,7 @@ exports.sendCustomerReservationEmail = onValueCreated(
     ref: "/reservations/{pushId}",
     instance: "koimari-tasting-default-rtdb",
     region: "asia-southeast1",
-    secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, LINE_CHANNEL_ACCESS_TOKEN],
+    secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, LINE_CHANNEL_ACCESS_TOKEN, VAPID_PRIVATE_KEY],
   },
   async (event) => {
     const data = event.data.val();
@@ -1395,3 +1403,114 @@ function buildCouponReplyText(coupons, todayKey, displayName) {
   }
   return lines.join("\n");
 }
+
+// ===== 予約の通知（Web Push、2026-10-07オーナー指示）=====
+// スタッフLINEグループへの通知（バイトにも24時間届く）を廃止し、管理画面に登録した端末へだけ通知する。
+// 宛先：オーナー・店長・お店の共用アカウント（パスワードでログインする管理用アカウント）は常に。
+// それ以外の従業員（Googleでログイン）は、今日のシフトに入っていて勤務時間中（前後30分）の人だけ。
+// 「確認電話」にチェックが入ったら、同じ通知を「対応済み」に差し替える（他の端末で無駄に確認しに行かないように）。
+// VAPID_PRIVATE_KEY はファイル先頭で定義（他の関数のsecretsからも参照するため）
+const VAPID_PUBLIC_KEY = "BIEybZVJYMYQZ_2NHJ7xoDxU8MoMfG6ICNchRx5UihawOm0JvkqJPHjvJrIidkBngbx589oUajUeU5wGRsDQvcA";
+const PUSH_OWNER_EMAIL = "yoshida.koki1991@gmail.com";
+const ADMIN_RES_URL = "https://koimari-official.github.io/koimari-site/admin.html#reservations";
+
+function jstNowParts(now) {
+  const d = new Date(now.getTime() + 9 * 3600000);
+  return { date: d.toISOString().slice(0, 10), minutes: d.getUTCHours() * 60 + d.getUTCMinutes() };
+}
+function toMin(hhmm) { const m = String(hhmm || "").match(/^(\d{1,2}):(\d{2})/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; }
+
+// 通知してよいアカウント（uid）か判定する。uid→Firebase Authのユーザー。
+async function isPushRecipient(uid, ctx) {
+  let user = null;
+  try { user = await admin.auth().getUser(uid); } catch (e) { /* Googleログインの従業員はuid＝メール。ユーザー記録が無くてもメールで判定する */ }
+  const providers = user ? (user.providerData || []).map((p) => p.providerId) : [];
+  // パスワードでログインする管理用アカウント（オーナーの管理アカウント・お店の共用アカウント）は常に通知
+  if (providers.indexOf("password") >= 0) return true;
+  // Googleログイン（カスタムトークン）の従業員：uid＝メールアドレス
+  const email = String(uid).toLowerCase();
+  if (email === PUSH_OWNER_EMAIL) return true;
+  const role = ctx.roles[email];
+  if (!role || !(role.role === "manager" || role.koimariAdmin === "full" || role.koimariAdmin === "store")) return false;
+  if (role.role === "manager") return true;
+  if (email === "sankyu00002@gmail.com") return true;
+  // シフトに入っている人だけ（勤務時間の前後30分）
+  const staffId = ctx.staffByEmail[email];
+  if (!staffId) return false;
+  const doc = await admin.firestore().collection("payrollShiftSchedule").doc(staffId + "_" + ctx.today).get();
+  if (!doc.exists) return false;
+  const s = toMin(doc.data().scheduledStart), e = toMin(doc.data().scheduledEnd);
+  if (s == null || e == null) return false;
+  return ctx.nowMin >= s - 30 && ctx.nowMin <= e + 30;
+}
+async function pushContext() {
+  const now = new Date();
+  const { date, minutes } = jstNowParts(now);
+  const roles = {}, staffByEmail = {};
+  const [rs, ss] = await Promise.all([admin.firestore().collection("roleUsers").get(), admin.firestore().collection("payrollStaff").get()]);
+  rs.forEach((d) => { roles[d.id.toLowerCase()] = d.data(); });
+  ss.forEach((d) => { const v = d.data(); if (v.email && v.active !== false) staffByEmail[String(v.email).toLowerCase()] = d.id; });
+  return { today: date, nowMin: minutes, roles, staffByEmail };
+}
+async function sendPushTo(sub, payload) {
+  const webpush = require("web-push");
+  webpush.setVapidDetails("mailto:" + PUSH_OWNER_EMAIL, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY.value());
+  return webpush.sendNotification(sub, JSON.stringify(payload), { TTL: 6 * 3600, urgency: "high" });
+}
+// 登録済みの端末に送る。onlyPaths を渡すとその端末だけ（対応済みへの差し替え用）
+async function pushToStaff(payload, onlyPaths) {
+  const snap = await admin.database().ref("pushSubs").once("value");
+  const all = snap.val() || {};
+  const ctx = onlyPaths ? null : await pushContext();
+  const sent = [];
+  for (const uid of Object.keys(all)) {
+    if (!onlyPaths && !(await isPushRecipient(uid, ctx))) continue;
+    for (const sid of Object.keys(all[uid] || {})) {
+      const path = uid + "/" + sid;
+      if (onlyPaths && onlyPaths.indexOf(path) < 0) continue;
+      const rec = all[uid][sid];
+      if (!rec || !rec.sub) continue;
+      try { await sendPushTo(rec.sub, payload); sent.push(path); }
+      catch (err) {
+        const code = err && err.statusCode;
+        if (code === 404 || code === 410) await admin.database().ref("pushSubs/" + path).remove(); // 解除された端末は削除
+        else console.warn("通知の送信に失敗:", code, err && err.body);
+      }
+    }
+  }
+  return sent;
+}
+
+exports.pushNewReservation = onValueCreated(
+  { ref: "/reservations/{pushId}", instance: "koimari-tasting-default-rtdb", region: "asia-southeast1", secrets: [VAPID_PRIVATE_KEY] },
+  async (event) => {
+    const data = event.data.val();
+    if (!data) return;
+    const no = data.reservationNo ? "No." + String(data.reservationNo).padStart(4, "0") + " " : "";
+    const when = [data.pickupDate, data.pickupTime].filter(Boolean).join(" ");
+    const sent = await pushToStaff({
+      title: "新しいご予約 " + no,
+      body: (data.name || "お客様") + " 様　" + productLabel(data) + (when ? "　お引き取り " + when : "") + "\n確認電話をお願いします",
+      tag: "res-" + event.params.pushId, url: ADMIN_RES_URL, kind: "new"
+    });
+    if (sent.length) await admin.database().ref("pushLog/" + event.params.pushId).set({ paths: sent, at: Date.now() });
+  }
+);
+
+exports.pushReservationHandled = onValueUpdated(
+  { ref: "/reservations/{pushId}", instance: "koimari-tasting-default-rtdb", region: "asia-southeast1", secrets: [VAPID_PRIVATE_KEY] },
+  async (event) => {
+    const before = event.data.before.val() || {}, after = event.data.after.val() || {};
+    if (!after.confirmCallDone || before.confirmCallDone) return;
+    const logRef = admin.database().ref("pushLog/" + event.params.pushId);
+    const log = (await logRef.once("value")).val();
+    if (!log || !Array.isArray(log.paths) || !log.paths.length) return;
+    const no = after.reservationNo ? "No." + String(after.reservationNo).padStart(4, "0") + " " : "";
+    await pushToStaff({
+      title: "対応済み " + no,
+      body: (after.name || "お客様") + " 様のご予約は、確認電話が完了しました（対応不要です）",
+      tag: "res-" + event.params.pushId, url: ADMIN_RES_URL, kind: "handled", silent: true
+    }, log.paths);
+    await logRef.remove();
+  }
+);

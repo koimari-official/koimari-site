@@ -22,6 +22,11 @@ window.__idbReady = new Promise(function (resolve) {
 });
 </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="admin-manifest.json">
+<link rel="apple-touch-icon" href="koimari-temari-mark.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="こいまり予約">
 <title>管理ページ｜こいまり</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -478,6 +483,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
   <header class="admin-header">
     <div class="admin-header__logo">Koimari <span>管理ページ</span></div>
     <div class="admin-header__actions">
+      <button id="pushSetupBtn" type="button" title="予約の通知">🔔 通知</button>
       <a href="index.html" target="_blank">サイトを表示 ↗</a>
       <button id="logoutBtn">ログアウト</button>
     </div>
@@ -1326,6 +1332,14 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
 <div class="toast" id="toast"></div>
 
+<div id="pendingResAlert" style="display:none;position:fixed;left:0;right:0;top:0;z-index:1500;background:#b03b48;color:#fff;padding:12px 16px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-size:15px;line-height:1.6;">
+  <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto;">
+    <b id="pendingResTitle" style="font-size:17px;"></b>
+    <span id="pendingResList" style="flex:1;min-width:200px;font-size:13.5px;opacity:.95;"></span>
+    <button type="button" id="pendingResOpen" style="background:#fff;color:#b03b48;border:none;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;cursor:pointer;">予約一覧を開く</button>
+  </div>
+  <div id="pendingResSoundHint" style="display:none;max-width:1100px;margin:6px auto 0;font-size:12.5px;opacity:.9;">※音を鳴らすには、画面のどこかを一度タップしてください</div>
+</div>
 <div class="shop-alert-bar" id="shopAlertBar">
   <div class="shop-alert-bar__inner">
     <span class="shop-alert-bar__icon">🔔</span>
@@ -1613,6 +1627,49 @@ function handleNewSubmissionAlert(type, data) {
   if (notifyPanel && notifyPanel.classList.contains("active")) renderNotifyLog();
 }
 window.handleNewSubmissionAlert = handleNewSubmissionAlert;
+
+// ===== 未対応のご予約（2026-10-07）=====
+// 「確認電話」にチェックが入っていない新しい予約があれば、どの画面でも上部に赤いバナーを出し、1分ごとに音を鳴らす。
+// 状態は全端末で共有のデータ（confirmCallDone）から作るので、誰かが対応するとすべてのタブレット・スマホから同時に消える。
+// iPadが古く通知（Web Push）に対応していなくても、この画面を開いておけば知らせられる。
+let pendingChimeTimer = null;
+function updatePendingResAlert(entries) {
+  const box = document.getElementById("pendingResAlert");
+  if (!box) return;
+  const now = Date.now();
+  const pending = (entries || []).filter(([, r]) => r && r.category !== "kidsManager" && !r.confirmCallDone && r.status !== "キャンセル" && r.status !== "引取りなし" && r.submittedAt && now - new Date(r.submittedAt).getTime() < 7 * 86400000);
+  // 対応済みの予約の通知が端末に残っていたら閉じる
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+      const done = (entries || []).filter(([, r]) => r && r.confirmCallDone).map(([k]) => "res-" + k);
+      if (done.length) navigator.serviceWorker.controller.postMessage({ closeTags: done });
+    }
+  } catch (e) {}
+  if (!pending.length) {
+    box.style.display = "none"; document.body.style.paddingTop = "";
+    if (pendingChimeTimer) { clearInterval(pendingChimeTimer); pendingChimeTimer = null; }
+    return;
+  }
+  document.getElementById("pendingResTitle").textContent = "未対応のご予約 " + pending.length + "件（確認電話をお願いします）";
+  document.getElementById("pendingResList").textContent = pending.slice(0, 3).map(([, r]) => (r.name || "お客様") + "様" + (r.pickupDate ? "（" + r.pickupDate.slice(5).replace("-", "/") + "）" : "")).join("、") + (pending.length > 3 ? " ほか" : "");
+  document.getElementById("pendingResSoundHint").style.display = notifyAudioUnlocked ? "none" : "block";
+  box.style.display = "block";
+  document.body.style.paddingTop = box.offsetHeight + "px";
+  if (!pendingChimeTimer) {
+    if (notifyAudioUnlocked) notifyPlayChime();
+    pendingChimeTimer = setInterval(() => { if (notifyAudioUnlocked) notifyPlayChime(); }, 60000);
+  }
+}
+window.updatePendingResAlert = updatePendingResAlert;
+document.getElementById("pendingResOpen").addEventListener("click", () => { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+// スマホ・タブレットは一度タップするまで音を鳴らせないため、最初のタップで音を有効にする
+document.addEventListener("pointerdown", function unlockOnce() {
+  if (notifyAudioUnlocked) return;
+  notifyAudioUnlocked = true;
+  try { if (!notifyAudioCtx) notifyAudioCtx = new (window.AudioContext || window.webkitAudioContext)(); notifyAudioCtx.resume(); } catch (e) {}
+  const hint = document.getElementById("pendingResSoundHint"); if (hint) hint.style.display = "none";
+  if (typeof renderNotifyPanel === "function") try { renderNotifyPanel(); } catch (e) {}
+}, { passive: true });
 
 function renderNotifyLog() {
   const logEl = document.getElementById("notifyLog");
@@ -6124,6 +6181,7 @@ function syncReservationsFromFirebase() {
       entries.forEach(([k, data]) => { if (!prevKeys.has(k) && typeof window.handleNewSubmissionAlert === "function") window.handleNewSubmissionAlert("reservations", data); });
     }
     reservationsFirstLoad = false;
+    if (typeof window.updatePendingResAlert === "function") window.updatePendingResAlert(entries);
     reservationKeys = entries.map(([k]) => k);
     const list = entries.map(([, data]) => data);
     localStorage.setItem("koimari_reservations", JSON.stringify(list));
@@ -6301,6 +6359,72 @@ window.fbPurgeTrashBatch = async function (type, batchKey) {
 window.firebaseLogin = function (email, password) {
   return signInWithEmailAndPassword(fbAuth, email, password);
 };
+// ===== この端末で予約の通知を受け取る（Web Push、2026-10-07）=====
+// iPadは「ホーム画面に追加」したアイコンから開いた場合だけ通知を受け取れる（iPadOS 16.4以降）。古いiPadは通知に非対応のため、
+// 画面を開いたままにして、上部の赤いバナーと音でお知らせする方式を使う。
+const VAPID_PUBLIC_KEY = "BIEybZVJYMYQZ_2NHJ7xoDxU8MoMfG6ICNchRx5UihawOm0JvkqJPHjvJrIidkBngbx589oUajUeU5wGRsDQvcA";
+function b64ToU8(b64) { const p = "=".repeat((4 - b64.length % 4) % 4); const s = atob((b64 + p).replace(/-/g, "+").replace(/_/g, "/")); return Uint8Array.from(s, c => c.charCodeAt(0)); }
+function pushEnv() {
+  const ua = navigator.userAgent || "";
+  const ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+  const supported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+  const m = ua.match(/OS (\d+)_(\d+)/);
+  return { ios, standalone, supported, iosVer: m ? Number(m[1]) + Number(m[2]) / 100 : null };
+}
+function subId(endpoint) { let x = 0x811c9dc5; for (let i = 0; i < endpoint.length; i++) { x ^= endpoint.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; } return "s" + x.toString(36); }
+async function currentSubscription() {
+  if (!("serviceWorker" in navigator)) return null;
+  const reg = await navigator.serviceWorker.getRegistration("push-sw.js").catch(() => null) || await navigator.serviceWorker.getRegistration().catch(() => null);
+  return reg && reg.pushManager ? reg.pushManager.getSubscription() : null;
+}
+async function enablePush() {
+  const reg = await navigator.serviceWorker.register("push-sw.js");
+  await navigator.serviceWorker.ready;
+  const perm = await Notification.requestPermission();
+  if (perm !== "granted") throw new Error("通知が許可されませんでした。設定アプリで、このアプリの通知を「許可」にしてください");
+  const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToU8(VAPID_PUBLIC_KEY) });
+  const json = sub.toJSON();
+  await set(ref(fbDb, "pushSubs/" + fbAuth.currentUser.uid + "/" + subId(json.endpoint)), { sub: json, ua: navigator.userAgent.slice(0, 200), createdAt: Date.now() });
+}
+async function disablePush() {
+  const sub = await currentSubscription();
+  if (!sub) return;
+  await remove(ref(fbDb, "pushSubs/" + fbAuth.currentUser.uid + "/" + subId(sub.endpoint))).catch(() => {});
+  await sub.unsubscribe();
+}
+async function openPushSetup() {
+  const env = pushEnv();
+  const old = document.getElementById("pushModal"); if (old) old.remove();
+  const m = document.createElement("div");
+  m.id = "pushModal";
+  m.style.cssText = "position:fixed;inset:0;z-index:9500;background:rgba(30,20,14,.55);display:flex;align-items:center;justify-content:center;padding:16px;";
+  let body = "", action = "";
+  const sub = env.supported && (!env.ios || env.standalone) ? await currentSubscription() : null;
+  if (!env.supported || (env.ios && env.iosVer && env.iosVer < 16.4)) {
+    body = "<p>この端末（ブラウザ）は、通知の受け取りに対応していません" + (env.ios && env.iosVer ? "（iPadOS／iOS " + env.iosVer.toFixed(1).replace(".", ".") + "）" : "") + "。iPadの場合は iPadOS 16.4 以上が必要です。</p><p><b>代わりの方法：</b>この管理画面を開いたままにしておくと、新しいご予約が入ったときに、画面上部の赤いバナーと音でお知らせします（誰かが確認電話にチェックすると消えます）。画面が消えないよう、iPadの「設定 → 画面表示と明るさ → 自動ロック」を「なし」にしてください。</p>";
+  } else if (env.ios && !env.standalone) {
+    body = "<p>iPad／iPhoneで通知を受け取るには、先にホーム画面に追加してください。</p><ol style='margin:8px 0 0 1.2em;line-height:1.9;'><li>Safariの画面上部（または下部）の共有ボタン（□に↑）をタップ</li><li>「ホーム画面に追加」をタップ</li><li>ホーム画面にできた「こいまり予約」のアイコンから開き直し、もう一度この「🔔 通知」を押す</li></ol>";
+  } else if (sub) {
+    body = "<p><b style='color:#0b7a37;'>この端末は通知を受け取る設定になっています。</b></p><p>新しいご予約が入ると通知が届きます。誰かが確認電話にチェックすると、通知は「対応済み」に切り替わります。</p><p style='font-size:12.5px;color:#7a6a58;'>通知が届く人：オーナー・店長・お店のタブレットは常に。ほかの従業員は、シフトに入っている時間（前後30分）だけ。</p>";
+    action = '<button class="btn btn--small btn--ghost" id="pushOff" type="button">この端末の通知をやめる</button>';
+  } else {
+    body = "<p>この端末で、新しいご予約の通知を受け取れます。</p><p style='font-size:12.5px;color:#7a6a58;'>通知が届く人：オーナー・店長・お店のタブレットは常に。ほかの従業員は、シフトに入っている時間（前後30分）だけ。誰かが確認電話にチェックすると、通知は「対応済み」に切り替わります。</p>";
+    action = '<button class="btn btn--small" id="pushOn" type="button">この端末で通知を受け取る</button>';
+  }
+  m.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:520px;width:100%;padding:20px;font-size:14px;line-height:1.8;"><div style="font-weight:700;font-size:16px;margin-bottom:8px;">🔔 予約の通知</div>' + body +
+    '<div id="pushMsg" style="color:#b03b48;font-size:13px;margin-top:6px;"></div><div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;">' + action + '<button class="btn btn--small btn--ghost" id="pushClose" type="button">閉じる</button></div></div>';
+  document.body.appendChild(m);
+  m.addEventListener("click", e => { if (e.target === m) m.remove(); });
+  m.querySelector("#pushClose").addEventListener("click", () => m.remove());
+  const on = m.querySelector("#pushOn"), off = m.querySelector("#pushOff"), msg = m.querySelector("#pushMsg");
+  if (on) on.addEventListener("click", async () => { on.disabled = true; msg.textContent = ""; try { await enablePush(); showToast("この端末で通知を受け取れるようになりました"); openPushSetup(); } catch (e) { on.disabled = false; msg.textContent = (e && e.message) || String(e); } });
+  if (off) off.addEventListener("click", async () => { try { await disablePush(); showToast("この端末の通知をやめました"); openPushSetup(); } catch (e) { msg.textContent = (e && e.message) || String(e); } });
+}
+document.getElementById("pushSetupBtn").addEventListener("click", () => { openPushSetup().catch(e => showToast("通知の設定を開けませんでした: " + ((e && e.message) || e), "error")); });
+// 通知を受け取る設定済みの端末は、開くたびにサービスワーカーを最新にしておく
+if ("serviceWorker" in navigator) navigator.serviceWorker.getRegistration().then(r => { if (r) r.update(); }).catch(() => {});
+
 window.firebaseLogout = function () {
   return signOut(fbAuth);
 };

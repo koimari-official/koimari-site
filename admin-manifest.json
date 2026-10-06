@@ -1,0 +1,12 @@
+{
+  "name": "こいまり 予約管理",
+  "short_name": "こいまり予約",
+  "start_url": "admin.html#reservations",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdfaf6",
+  "theme_color": "#a88a52",
+  "icons": [
+    { "src": "koimari-temari-mark.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
