@@ -760,7 +760,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <input type="number" id="qbExtraLabor" class="input" placeholder="0" style="max-width:200px;">
         </div>
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--color-line);">
-          <div style="font-size:20px;font-weight:700;">合計目安（税抜）: ¥<span id="qbTotal">0</span></div>
+          <div style="font-size:20px;font-weight:700;">合計目安（税込）: ¥<span id="qbTotal">0</span></div>
           <div style="font-size:15px;color:var(--color-text-soft);margin-top:6px;">税込目安（<span id="qbTaxRateLabel">8</span>%）: ¥<span id="qbTotalTax">0</span></div>
           <div style="margin-top:6px;">
             <label style="font-size:12px;color:var(--color-text-soft);">税率
@@ -6826,7 +6826,7 @@ function initQuoteBuilder() {
     if (q.messageCount > 0) lines.push(`メッセージプレート: ${q.messageCount}枚${q.messageCost ? `（+¥${q.messageCost.toLocaleString()}）` : ""}`);
     if (q.note) lines.push(`仕様外のご要望・備考: ${q.note}`);
     if (q.extraLabor) lines.push(`仕様外の小計: +¥${q.extraLabor.toLocaleString()}`);
-    lines.push(`合計目安（税抜）: ¥${q.total.toLocaleString()}`);
+    lines.push(`合計目安（税込）: ¥${q.total.toLocaleString()}`);
     lines.push(`税込目安（${q.taxRate}%）: ¥${q.totalWithTax.toLocaleString()}`);
     const text = lines.join("\n");
     navigator.clipboard.writeText(text).then(() => {
