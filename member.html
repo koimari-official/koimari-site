@@ -196,12 +196,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveOmakaseField">
           <label class="field__label">おまかせデコレーション（オプション）</label>
-          <div class="field__hint" style="margin-bottom:10px;">パティシエがケーキに合わせて、オーナメントや砂糖菓子、チョコなどでデコレーションします。飾り付けの説明や納期は、別途スタッフからお電話でご案内します。</div>
+          <div class="field__hint" style="margin-bottom:10px;">パティシエがケーキに合わせて、オーナメントや砂糖菓子、チョコなどでデコレーションします。デコレーションの内容は、お客様のご希望に合わせて変わります。飾り付けの説明や納期は、別途スタッフからお電話でご案内します。</div>
           <div class="omakase-cards">
             <label class="omakase-card"><input type="radio" name="reserveOmakase" value="松"><span class="omakase-card__rank">松</span><span class="omakase-card__price">+¥3,000</span><span class="omakase-card__desc">いちばん豪華</span></label>
             <label class="omakase-card"><input type="radio" name="reserveOmakase" value="竹"><span class="omakase-card__rank">竹</span><span class="omakase-card__price">+¥2,000</span><span class="omakase-card__desc">しっかり華やか</span></label>
             <label class="omakase-card"><input type="radio" name="reserveOmakase" value="梅"><span class="omakase-card__rank">梅</span><span class="omakase-card__price">+¥1,000</span><span class="omakase-card__desc">さりげなく</span></label>
           </div>
+          <textarea id="reserveOmakaseWish" class="input" rows="2" maxlength="120" style="display:none;margin-top:10px;" placeholder="ご希望のイメージ（任意）例：ピンク系でかわいく、好きなキャラクター、お花を多めに など"></textarea>
           <label class="omakase-none"><input type="radio" name="reserveOmakase" value="" checked> おまかせデコレーションはつけない</label>
         </div>
         <div class="field" id="reserveTiersField" style="display:none;">
@@ -1084,6 +1085,8 @@ function specialReasons() {
   selectedToppings().forEach(t => r.push(t));
   return r;
 }
+function omakaseWish() { return selectedOmakase() ? ((document.getElementById("reserveOmakaseWish") || {}).value || "").trim() : ""; }
+document.addEventListener("change", (e) => { if (e.target && e.target.name === "reserveOmakase") { const w = document.getElementById("reserveOmakaseWish"); if (w) w.style.display = e.target.value ? "" : "none"; } });
 function selectedOmakase() { return (document.querySelector('input[name="reserveOmakase"]:checked') || {}).value || ""; }
 function selectedToppings() { return Array.from(document.querySelectorAll(".reserve-topping:checked")).map(e => e.value); }
 // ===== 進捗・おすすめ・あとで決める・名入れ文字プレビュー・前回と同じ注文（2026-09-26）=====
@@ -2080,7 +2083,7 @@ function renderReserveConfirm(data, targetId) {
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
     ${(data.decideLater || []).length ? `<dt>あとで相談</dt><dd>${data.decideLater.map(t => escape(t)).join("・")}</dd>` : ""}
-    ${data.omakaseDeco ? `<dt>おまかせデコレーション</dt><dd>${escape(data.omakaseDeco)}</dd>` : ""}
+    ${data.omakaseDeco ? `<dt>おまかせデコレーション</dt><dd>${escape(data.omakaseDeco)}${data.omakaseWish ? `<br>ご希望：${escape(data.omakaseWish)}` : ""}</dd>` : ""}
     ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金・納期は別途ご連絡）</dd>` : ""}
     ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
@@ -2150,7 +2153,7 @@ function buildReserveSummaryText(data) {
   if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
   if ((data.decideLater || []).length) lines.push(`あとで相談: ${data.decideLater.join("・")}`);
-  if (data.omakaseDeco) lines.push(`おまかせデコレーション: ${data.omakaseDeco}`);
+  if (data.omakaseDeco) lines.push(`おまかせデコレーション: ${data.omakaseDeco}${data.omakaseWish ? "（ご希望：" + data.omakaseWish + "）" : ""}`);
   if ((data.toppings || []).length) lines.push(`トッピング: ${data.toppings.join("・")}（料金・納期は別途ご連絡）`);
   (data.tierSpecs || []).forEach(t => lines.push(`${t.tier}: ${String(t.size).replace(/\(.*$/, "")} ${t.cream}${(t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""}`));
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
@@ -2553,6 +2556,7 @@ function setupReserveForm(uid, displayName) {
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isCake && selectedToppings().length ? { toppings: selectedToppings() } : {}),
         ...(isCake && selectedOmakase() ? { omakaseDeco: selectedOmakase() } : {}),
+        ...(isCake && omakaseWish() ? { omakaseWish: omakaseWish() } : {}),
         ...(isCake && laterList().length ? { decideLater: laterList() } : {}),
         ...(isCake && specialReasons().length ? { specialReasons: specialReasons() } : {}),
         ...(isXmasOrder ? { christmasOrder: true } : {}),

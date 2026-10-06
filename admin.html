@@ -5958,7 +5958,7 @@ function renderKitchen() {
     if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
     if (r.christmasOrder) extra.push("クリスマス（メリークリスマスプレート）");
     if (r.extraChargeNote || r.extraCharge) extra.push("<b>追加のご注文：" + kEsc(r.extraChargeNote || "") + (r.extraCharge ? " ¥" + Number(r.extraCharge).toLocaleString() : "") + "</b>");
-    if (r.omakaseDeco) extra.push("<b>おまかせデコレーション：" + kEsc(r.omakaseDeco) + "</b>");
+    if (r.omakaseDeco) extra.push("<b>おまかせデコレーション：" + kEsc(r.omakaseDeco) + (r.omakaseWish ? "（ご希望：" + kEsc(r.omakaseWish) + "）" : "") + "</b>");
     if (Array.isArray(r.toppings) && r.toppings.length) extra.push("トッピング：" + r.toppings.map(kEsc).join("・") + "（要連絡）");
     if (Array.isArray(r.addOns) && r.addOns.length) extra.push("追加商品：" + r.addOns.map(a => kEsc(a.name) + "×" + a.qty).join("、"));
     const msg = it.message ? '<div style="margin-top:8px;padding:10px 14px;border-radius:10px;background:#4a2a18;color:#fbe9c8;font-size:22px;font-weight:700;letter-spacing:.06em;">🍫 ' + kEsc(it.message) + '</div>' : "";

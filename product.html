@@ -569,7 +569,7 @@ function omakaseHtml() {
   const S = (window.CakePricing && window.CakePricing.SPEC.omakaseDeco) || { "松": 3000, "竹": 2000, "梅": 1000 };
   return '<div class="pd-omakase"><div class="pd-omakase__title">おまかせデコレーション（追加オプション）</div>' +
     '<div class="pd-omakase__list">' + ["松", "竹", "梅"].map(k => '<span><b>' + k + '</b>　+¥' + Number(S[k]).toLocaleString() + '</span>').join('') + '</div>' +
-    '<p class="pd-omakase__note">パティシエがケーキに合わせて、オーナメントや砂糖菓子、チョコなどでデコレーションします。ご予約時にお選びください。</p></div>';
+    '<p class="pd-omakase__note">パティシエがケーキに合わせて、オーナメントや砂糖菓子、チョコなどでデコレーションします。デコレーションの内容は、お客様のご希望に合わせて変わります。ご予約時にお選びください。</p></div>';
 }
 function renderSizeTable(item, photoSize) {
   const box = document.getElementById('pdSizes');

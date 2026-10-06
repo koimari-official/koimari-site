@@ -601,7 +601,7 @@ function buildStaffNotifyText(data) {
   if (Array.isArray(data.decideLater) && data.decideLater.length) {
     lines.push("あとで相談: " + data.decideLater.join("・"));
   }
-  if (data.omakaseDeco) lines.push("おまかせデコレーション: " + data.omakaseDeco);
+  if (data.omakaseDeco) lines.push("おまかせデコレーション: " + data.omakaseDeco + (data.omakaseWish ? "（ご希望：" + data.omakaseWish + "）" : ""));
   if (Array.isArray(data.toppings) && data.toppings.length) {
     lines.push("トッピング: " + data.toppings.join("・") + "（料金・納期は別途連絡）");
   }
