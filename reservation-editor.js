@@ -114,6 +114,12 @@
       omakase: r.omakaseDeco || "",
       fruitExtra: !!r.fruitExtra,
       extraNote: r.extraChargeNote || "",
+      // 表示用（お客様が選んだ仕様。この画面では変更しない）
+      cutCakes: (r.cutCakes || []).map(function (c) { return c.name + "×" + c.qty; }).join("、"),
+      toppings: (r.toppings || []).join("・"),
+      addOns: (r.addOns || []).map(function (a) { return (a.name || a) + (a.qty > 1 ? "×" + a.qty : ""); }).join("・"),
+      omakaseWish: r.omakaseWish || "",
+      note: r.note || "",
       extraAmount: Number(r.extraCharge) || 0,
       pickupDate: r.finalPickupDate || r.pickupDate || "",
       pickupTime: r.finalPickupTime || r.pickupTime || "",
@@ -148,7 +154,11 @@
     if (s.fruitExtra) opts.push("フルーツ増量");
     if (s.onsiteAssembly) opts.push("出張組み立て");
     if (!simple) rows.push(["オプション", opts.length ? opts.join("、") : "なし"]);
-    if (!simple) rows.push(["おまかせデコレーション", s.omakase || "なし"]);
+    if (!simple) rows.push(["おまかせデコレーション", (s.omakase || "なし") + (s.omakase && s.omakaseWish ? "（ご希望：" + s.omakaseWish + "）" : "")]);
+    if (s.cutCakes) rows.push(["上に載せるカットケーキ", s.cutCakes]);
+    if (s.toppings) rows.push(["トッピング", s.toppings]);
+    if (s.addOns) rows.push(["砂糖菓子・オーナメント等", s.addOns]);
+    if (s.note) rows.push(["備考", s.note]);
     if (s.extraNote || s.extraAmount) rows.push(["追加のご注文", (s.extraNote || "内容未記入") + (s.extraAmount ? "　" + yen(s.extraAmount) : "")]);
     rows.push(["お引き取り", (s.pickupDate || "未定") + " " + (s.pickupTime || "")]);
     rows.push(["金額（税込）", s.price ? yen(s.price) + (s.priceIsRange ? "〜" : "") : (s.subtotal ? yen(s.subtotal) + "〜（目安）" : "お電話でご案内")]);
