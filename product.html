@@ -395,9 +395,11 @@ function nl2p(s){return esc(String(s||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).sp
 
 function loadImages(){
   try{
+    // 2026-10-06：取得した最新データはメモリ上(window.__liveImages)を最優先する。ブラウザの保存領域が満杯だと
+    // localStorageへの保存が黙って失敗し、古いデータ（新しく追加した商品が無い）を読んで「見つかりませんでした」になっていた。
     const s = localStorage.getItem("koimari_images");
-    if(s){
-      const p = JSON.parse(s);
+    if(s || window.__liveImages){
+      const p = Object.assign({}, s ? JSON.parse(s) : {}, window.__liveImages || {});
       return {
         categories: p.categories||DEFAULT_CATEGORIES,
         recommended: p.recommended||DEFAULT_RECOMMENDED,
@@ -646,6 +648,8 @@ const DATABASE_URL = "https://koimari-tasting-default-rtdb.asia-southeast1.fireb
 
 function applySiteImagesData(key, list){
   if (!Array.isArray(list)) return;
+  window.__liveImages = window.__liveImages || {};
+  window.__liveImages[key] = list;
   try {
     const cur = JSON.parse(localStorage.getItem("koimari_images") || "{}");
     cur[key] = list;
