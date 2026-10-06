@@ -650,7 +650,7 @@ renderVoicesGrid();
 function applyFetchedGalleryData(val){
   const gal = Array.isArray(val) ? val : [];
   try { localStorage.setItem("koimari_gallery", JSON.stringify(gal)); } catch(e){}
-  galleryPortfolio = gal; buildGallery(); renderGalleryPage();
+  galleryPortfolio = gal; if (window.PhotoAdjust) window.PhotoAdjust.register(gal); buildGallery(); renderGalleryPage();
 }
 window.applyFetchedGalleryData = applyFetchedGalleryData;
 function applyFetchedVoicesData(val){

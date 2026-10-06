@@ -2216,6 +2216,7 @@ function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelet
     recropBtn.addEventListener("click", async () => {
       const cropSourceSrc = originalSrc || previewEl.querySelector("img")?.src;
       if (!cropSourceSrc) { showToast("先に画像を登録してください", "error"); return; }
+      if (!originalSrc) showToast("この写真は元の写真が保存されていないため、今の表示範囲の中でしか動かせません。「ファイルから選択」で写真を選び直すと、元の写真全体から選べるようになります", "error");
       _cropTargetWidth = maxWidth;
       try {
         const sourceForCrop = padToFit ? await padImageToAspectRatio(cropSourceSrc, aspectRatio) : cropSourceSrc;
@@ -2240,7 +2241,8 @@ function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelet
 // 「トップに設定」ボタンで、サブ画像をメイン画像と入れ替えられるようにする
 // （どの写真をトップページに出すか／サブ画像にするかを選び直せるようにするため）。
 // ===== 写真ごとの色味・表示位置の調整（2026-10-06）。写真データは加工せず、表示時の補正値だけを item.photoAdjust に保存 =====
-function openPhotoAdjust(item, src, onChange) {
+function openPhotoAdjust(item, src, onChange, opts) {
+  opts = opts || {};
   if (!src || !window.PhotoAdjust) return;
   const PA = window.PhotoAdjust, key = PA.hash(src);
   item.photoAdjust = item.photoAdjust || {};
@@ -2254,35 +2256,65 @@ function openPhotoAdjust(item, src, onChange) {
     (left ? '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8a7a68;"><span>' + left + '</span><span>' + right + '</span></div>' : '') + '</div>';
   m.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:18px;display:flex;gap:18px;flex-wrap:wrap;">' +
     '<div style="flex:1 1 300px;"><div style="font-weight:700;margin-bottom:6px;">プレビュー（サイトでの見え方）</div>' +
-    '<div id="paBox" style="width:100%;max-width:340px;aspect-ratio:1/1;overflow:hidden;border-radius:10px;background:#f4ede1;cursor:grab;touch-action:none;"><img id="paImg" src="' + src.replace(/"/g, "&quot;") + '" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></div>' +
-    '<div style="font-size:12px;color:#8a7a68;margin-top:6px;">写真をドラッグすると、表示される位置を動かせます</div>' +
-    '<div style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:12px;"><span>元の写真：</span><img src="' + src.replace(/"/g, "&quot;") + '" style="width:64px;height:64px;object-fit:contain;background:#eee;border-radius:6px;"></div></div>' +
+    '<div id="paBox" style="width:100%;max-width:340px;aspect-ratio:1/1;overflow:hidden;border-radius:10px;background:#f4ede1;"><img id="paImg" src="' + src.replace(/"/g, "&quot;") + '" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></div>' +
+    '<div style="font-weight:700;margin:14px 0 4px;">表示位置</div><div id="paPosArea" style="font-size:12.5px;color:#5a4a3a;line-height:1.7;">読み込み中…</div></div>' +
     '<div style="flex:1 1 260px;">' +
     sl("b", "明るさ", 60, 140, "暗く", "明るく") + sl("w", "色温度", -10, 10, "寒色（青み）", "暖色（黄み）") + sl("c", "コントラスト", 60, 140, "やわらかく", "くっきり") + sl("s", "鮮やかさ", 40, 160, "おだやか", "鮮やか") +
-    sl("x", "表示位置（横）", 0, 100, "左", "右") + sl("y", "表示位置（縦）", 0, 100, "上", "下") +
     '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;"><button type="button" class="btn btn--small btn--ghost" id="paReset">元に戻す</button><span style="flex:1"></span><button type="button" class="btn btn--small btn--ghost" id="paCancel">キャンセル</button><button type="button" class="btn btn--small" id="paOk">決定</button></div>' +
     '<p style="font-size:11.5px;color:#8a7a68;margin-top:8px;">写真そのものは加工しません（画質はそのまま）。決定後、画面下の「保存」でサイトに反映されます。</p></div></div>';
   document.body.appendChild(m);
   const img = m.querySelector("#paImg");
-  const fmt = { b: v => v + "%", c: v => v + "%", s: v => v + "%", w: v => (v > 0 ? "暖色 +" + v : v < 0 ? "寒色 " + v : "そのまま"), x: v => v + "%", y: v => v + "%" };
+  const fmt = { b: v => v + "%", c: v => v + "%", s: v => v + "%", w: v => (v > 0 ? "暖色 +" + v : v < 0 ? "寒色 " + v : "そのまま") };
+  let placeFrame = () => {};
   const sync = () => {
-    ["b", "c", "s", "w", "x", "y"].forEach(k => { m.querySelector("#paR_" + k).value = cur[k]; m.querySelector("#paV_" + k).textContent = fmt[k](cur[k]); });
+    ["b", "c", "s", "w"].forEach(k => { m.querySelector("#paR_" + k).value = cur[k]; m.querySelector("#paV_" + k).textContent = fmt[k](cur[k]); });
+    placeFrame();
     PA.applyTo(img, cur);
     if (PA.isDefault(cur)) { img.style.objectPosition = "50% 50%"; }
   };
-  ["b", "c", "s", "w", "x", "y"].forEach(k => m.querySelector("#paR_" + k).addEventListener("input", e => { cur[k] = Number(e.target.value); sync(); }));
-  const box = m.querySelector("#paBox");
-  let drag = null;
-  box.addEventListener("pointerdown", e => { drag = { x: e.clientX, y: e.clientY, ox: cur.x, oy: cur.y }; box.setPointerCapture(e.pointerId); box.style.cursor = "grabbing"; });
-  box.addEventListener("pointermove", e => {
-    if (!drag) return;
-    const r = box.getBoundingClientRect();
-    cur.x = Math.max(0, Math.min(100, Math.round(drag.ox - (e.clientX - drag.x) / r.width * 100)));
-    cur.y = Math.max(0, Math.min(100, Math.round(drag.oy - (e.clientY - drag.y) / r.height * 100)));
+  ["b", "c", "s", "w"].forEach(k => m.querySelector("#paR_" + k).addEventListener("input", e => { cur[k] = Number(e.target.value); sync(); }));
+  // 表示位置：元の写真全体を表示し、サイトで見える範囲（正方形の枠）をドラッグして決める（2026-10-06オーナー指示）。
+  // 正方形に切り抜き済みのメイン写真は、元画像から切り抜き直す（「位置を調整」）。
+  const posArea = m.querySelector("#paPosArea");
+  const probe = new Image();
+  probe.onload = () => {
+    const W = probe.naturalWidth, H = probe.naturalHeight;
+    if (Math.abs(W / H - 1) < 0.03) {
+      posArea.innerHTML = opts.isMain
+        ? (opts.hasOriginal ? "この写真は正方形に切り抜いて保存しています。表示位置は、元の写真から枠を動かして選び直します。" : "<b style='color:#b03b48;'>この写真は元の写真が保存されていないため、今は位置を動かせません。</b>写真の下の「ファイルから選択」でもう一度写真を選ぶと、以降は元の写真から位置を選び直せます。") +
+          (opts.onRecrop ? '<div><button type="button" class="btn btn--small" id="paRecrop" style="margin-top:8px;">元の写真から表示位置を選び直す</button></div>' : "")
+        : "この写真は正方形のため、表示位置の調整はありません（全体がそのまま表示されます）。";
+      const rb = m.querySelector("#paRecrop");
+      if (rb) rb.addEventListener("click", () => { m.remove(); opts.onRecrop(); });
+      return;
+    }
+    posArea.innerHTML = '<div style="margin-bottom:6px;">元の写真の上の枠（サイトで見える範囲）を、指でドラッグして動かしてください。</div>' +
+      '<div id="paFull" style="position:relative;width:100%;max-width:340px;touch-action:none;user-select:none;"><img src="' + src.replace(/"/g, "&quot;") + '" style="display:block;width:100%;height:auto;pointer-events:none;">' +
+      '<div id="paFrame" style="position:absolute;box-sizing:border-box;border:3px solid #fff;outline:2px solid #e08a00;box-shadow:0 0 0 9999px rgba(0,0,0,.45);cursor:grab;"></div></div>';
+    const full = m.querySelector("#paFull"), frame = m.querySelector("#paFrame");
+    full.style.overflow = "hidden";
+    const landscape = W > H;
+    placeFrame = () => {
+      const fw = full.clientWidth, fh = fw * H / W, side = Math.min(fw, fh);
+      frame.style.width = frame.style.height = side + "px";
+      frame.style.left = (landscape ? (fw - side) * cur.x / 100 : 0) + "px";
+      frame.style.top = (landscape ? 0 : (fh - side) * cur.y / 100) + "px";
+    };
+    let fd = null;
+    frame.addEventListener("pointerdown", e => { e.preventDefault(); fd = { x: e.clientX, y: e.clientY, ox: cur.x, oy: cur.y }; frame.setPointerCapture(e.pointerId); frame.style.cursor = "grabbing"; });
+    frame.addEventListener("pointermove", e => {
+      if (!fd) return;
+      const fw = full.clientWidth, fh = fw * H / W, side = Math.min(fw, fh);
+      if (landscape) cur.x = Math.max(0, Math.min(100, Math.round(fd.ox + (e.clientX - fd.x) / Math.max(1, fw - side) * 100)));
+      else cur.y = Math.max(0, Math.min(100, Math.round(fd.oy + (e.clientY - fd.y) / Math.max(1, fh - side) * 100)));
+      sync();
+    });
+    const fend = () => { fd = null; frame.style.cursor = "grab"; };
+    frame.addEventListener("pointerup", fend); frame.addEventListener("pointercancel", fend);
     sync();
-  });
-  const end = () => { drag = null; box.style.cursor = "grab"; };
-  box.addEventListener("pointerup", end); box.addEventListener("pointercancel", end);
+  };
+  probe.onerror = () => { posArea.textContent = "写真を読み込めませんでした"; };
+  probe.src = src;
   m.querySelector("#paReset").addEventListener("click", () => { Object.assign(cur, { b: 100, c: 100, s: 100, w: 0, x: 50, y: 50 }); sync(); });
   m.querySelector("#paCancel").addEventListener("click", () => m.remove());
   m.addEventListener("click", e => { if (e.target === m) m.remove(); });
@@ -2346,7 +2378,7 @@ function makeGalleryEditor(item, key, { maxWidth, max, onChange }) {
   mainAdj.style.cssText = "margin:4px 0 8px;font-size:12px;";
   const setMainLabel = () => { mainAdj.textContent = photoAdjusted(item, item[key]) ? "メイン写真の色・表示位置を調整（調整済み）" : "メイン写真の色・表示位置を調整"; };
   setMainLabel();
-  mainAdj.addEventListener("click", () => { if (!item[key]) { showToast("メイン写真が未設定です", "error"); return; } openPhotoAdjust(item, item[key], () => { setMainLabel(); onChange(); }); });
+  mainAdj.addEventListener("click", () => { if (!item[key]) { showToast("メイン写真が未設定です", "error"); return; } const card = wrap.closest(".img-item"); const recrop = card && Array.from(card.querySelectorAll(".img-item__actions button")).find(b => b.textContent === "位置を調整"); openPhotoAdjust(item, item[key], () => { setMainLabel(); onChange(); }, { isMain: true, hasOriginal: !!item[key + "Original"], onRecrop: recrop ? () => recrop.click() : null }); });
   wrap.insertBefore(mainAdj, wrap.firstChild.nextSibling);
   wrap.appendChild(thumbRow);
   if (images.length < max) {

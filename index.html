@@ -1609,6 +1609,7 @@ renderPhilosophyImages();
 onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
   const val = snapshot.val();
   galleryPortfolio = Array.isArray(val) ? val : [];
+  if (window.PhotoAdjust) window.PhotoAdjust.register(galleryPortfolio);
   renderCategories();
   renderQuickReserveStrip();
 });
