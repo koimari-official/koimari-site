@@ -354,6 +354,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script src="cake-pricing.js"></script>
+<script src="photo-adjust.js"></script>
 <script src="price-hint.js"></script>
 <script src="reserve-draft.js"></script>
 <script>
@@ -650,6 +651,7 @@ function applySiteImagesData(key, list){
   if (!Array.isArray(list)) return;
   window.__liveImages = window.__liveImages || {};
   window.__liveImages[key] = list;
+  if (window.PhotoAdjust) window.PhotoAdjust.register(list);
   try {
     const cur = JSON.parse(localStorage.getItem("koimari_images") || "{}");
     cur[key] = list;

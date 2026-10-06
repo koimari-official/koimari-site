@@ -668,6 +668,7 @@ function applyFetchedMenuItems(data, done){
   if (Array.isArray(data.rollcakes)) menuRollcakes = data.rollcakes;
   if (Array.isArray(data.baked)) menuBaked = data.baked;
   if (Array.isArray(data.gift)) menuGift = data.gift;
+  if (window.PhotoAdjust) [menuDecorationCakes, menuCutcakes, menuRollcakes, menuBaked, menuGift].forEach(l => window.PhotoAdjust.register(l));
   if (done !== false) menuSynced = true;
   buildGallery();
   renderGalleryPage();
@@ -719,6 +720,7 @@ document.addEventListener("keydown", e => {
 </script>
 
 <script src="cake-pricing.js"></script>
+<script src="photo-adjust.js"></script>
 <script src="reserve-draft.js"></script>
 <script src="price-hint.js"></script>
 <script type="module">

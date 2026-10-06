@@ -617,6 +617,7 @@ body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
 </style>
 <script src="i18n.js"></script>
+<script src="photo-adjust.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
 <style id="nav-large">
@@ -1231,6 +1232,7 @@ function applyFetchedFeaturedMenu(data){
   if(Array.isArray(data.rollcakes))menuRollcakes=data.rollcakes;
   if(Array.isArray(data.baked))menuBaked=data.baked;
   if(Array.isArray(data.gift))menuGift=data.gift;
+  if(window.PhotoAdjust)[menuDecorationCakes,menuCutcakes,menuRollcakes,menuBaked,menuGift].forEach(l=>window.PhotoAdjust.register(l));
   renderRecommended();
   renderCategories(); // 商品データがカテゴリーの参照解決より後に届いた場合に備えて再描画する
   if(typeof window.renderQuickReserveStrip==="function")window.renderQuickReserveStrip(); // 写真帯はmodule側で定義（Firebase購読と同じscript）
