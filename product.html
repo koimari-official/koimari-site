@@ -554,7 +554,7 @@ function renderInfo(item, plainName, config) {
   priceHintFor(item, productType).then(t => {
     if (!t) return;
     const isHint = !(item.price && /[1-9]/.test(String(item.price)));
-    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint && productType === 'cutcake' ? '<span class="pd-price__note">1個のお値段です（3個からご予約いただけます）</span>' : isHint ? '<span class="pd-price__note">' + (size ? '写真のサイズ（' + esc(size) + '）のお値段です。' : '') + 'ほかのサイズは下の表をご覧ください</span>' : '');
+    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint && productType === 'cutcake' ? '<span class="pd-price__note">1個のお値段です（3個からご予約いただけます）</span>' : isHint ? '<span class="pd-price__note">' + (size ? '写真のサイズ（' + esc(size) + '）のお値段です。' : '') + (onlySizeOf(item) ? 'このケーキは' + esc(onlySizeOf(item)) + 'のみのご用意です' : 'ほかのサイズは下の表をご覧ください') + '</span>' : '');
     const sp = document.getElementById('pdStickyPrice'); if (sp) sp.textContent = t;
   });
   renderSizeTable(item, size);
@@ -575,6 +575,12 @@ function omakaseHtml() {
   return '<div class="pd-omakase"><div class="pd-omakase__title">おまかせデコレーション（追加オプション）</div>' +
     '<div class="pd-omakase__list">' + ["松", "竹", "梅"].map(k => '<span><b>' + k + '</b>　+¥' + Number(S[k]).toLocaleString() + '</span>').join('') + '</div>' +
     '<p class="pd-omakase__note">パティシエがケーキに合わせて、オーナメントや砂糖菓子、チョコなどでデコレーションします。デコレーションの内容は、お客様のご希望に合わせて変わります。ご予約時にお選びください。</p></div>';
+}
+// ベースの種類で号数が1つに決まっているケーキ（例：グランマニエBOX＝ムース3号のみ）はその号数を返す
+function onlySizeOf(item) {
+  const cream = item && item.spec && item.spec.cream;
+  const a = cream && window.CakePricing && window.CakePricing.SPEC.baseSizes && window.CakePricing.SPEC.baseSizes[cream];
+  return a && a.length === 1 ? a[0] : '';
 }
 function renderSizeTable(item, photoSize) {
   const box = document.getElementById('pdSizes');

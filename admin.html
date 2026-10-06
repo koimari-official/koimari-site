@@ -6897,7 +6897,7 @@ function buildPriceTable() {
   html += group("1段ケーキの基本料金（生クリームBOX：いちご・ミックスフルーツ同額）", "LINE予約フォームのサイズの横に表示される価格です。生チョコクリームはこの金額＋「生チョコクリームへの変更」です。",
     table(row("4号（直径12cm）", yenIn("cfPrice4")) + row("5号（直径15cm）", yenIn("cfPrice5")) + row("6号（直径18cm）", yenIn("cfPrice6")) + row("7号（直径21cm）", yenIn("cfPrice7"))));
   let mx = '<div style="overflow-x:auto;"><table class="pt-table pt-matrix"><thead><tr><th>種類</th>' + CAKE_TYPE_PRICE_SIZES.map(n => "<th>" + n + "号</th>").join("") + "</tr></thead><tbody>";
-  CAKE_TYPE_PRICE_ROWS.forEach((name, i) => { mx += '<tr><td class="pt-label">' + name + "</td>" + CAKE_TYPE_PRICE_SIZES.map(n => "<td>" + yenIn("ctp_" + i + "_" + n, null, "取扱なし") + "</td>").join("") + "</tr>"; });
+  CAKE_TYPE_PRICE_ROWS.forEach((name, i) => { mx += '<tr><td class="pt-label">' + name + "</td>" + CAKE_TYPE_PRICE_SIZES.map(n => "<td>" + (n === 3 && name !== "ムース" ? '<span style="color:#b9a890;">—</span><input type="hidden" id="ctp_' + i + '_3" value="">' : yenIn("ctp_" + i + "_" + n, null, "取扱なし")) + "</td>").join("") + "</tr>"; });
   mx += "</tbody></table></div>";
   html += group("種類ごとの1段の価格", "空欄のサイズは「取り扱いなし・お電話で個別にご案内」になり、予約フォームでは金額を出しません。", mx);
   let cream = row("生チョコクリームへの変更", yenIn("cfChocoCreamSurcharge"), "段数に関わらず一律");
