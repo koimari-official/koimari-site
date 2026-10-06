@@ -111,6 +111,8 @@
       strawberryAdd: !!r.strawberryAdd,
       onsiteAssembly: !!r.onsiteAssembly,
       omakase: r.omakaseDeco || "",
+      extraNote: r.extraChargeNote || "",
+      extraAmount: Number(r.extraCharge) || 0,
       pickupDate: r.finalPickupDate || r.pickupDate || "",
       pickupTime: r.finalPickupTime || r.pickupTime || "",
       price: Number(r.finalPrice) || (r.priceIsFixed ? Number(r.subtotal) || 0 : 0),
@@ -144,6 +146,7 @@
     if (s.onsiteAssembly) opts.push("出張組み立て");
     if (!simple) rows.push(["オプション", opts.length ? opts.join("、") : "なし"]);
     if (!simple) rows.push(["おまかせデコレーション", s.omakase || "なし"]);
+    if (s.extraNote || s.extraAmount) rows.push(["追加のご注文", (s.extraNote || "内容未記入") + (s.extraAmount ? "　" + yen(s.extraAmount) : "")]);
     rows.push(["お引き取り", (s.pickupDate || "未定") + " " + (s.pickupTime || "")]);
     rows.push(["金額（税込）", s.price ? yen(s.price) + (s.priceIsRange ? "〜" : "") : (s.subtotal ? yen(s.subtotal) + "〜（目安）" : "お電話でご案内")]);
     return rows;
@@ -158,7 +161,8 @@
     ra.forEach(function (r) { if (!labelsB[r[0]]) out.push({ label: r[0], from: r[1], to: "—" }); });
     return out;
   }
-  function estimateOf(s, r) {
+  function estimateOf(s, r) { return withExtra(estimateOfBase(s, r), s); }
+  function estimateOfBase(s, r) {
     if (s.cuts) return cutEstimate(s);
     if (!window.CakePricing || !priceBase || !s.tiers.length) return null;
     return window.CakePricing.estimate({
@@ -173,6 +177,12 @@
       addOns: r.addOns || [], toppings: r.toppings || [], topCut: !!r.topCut, cutCakes: r.cutCakes || [],
       omakase: s.omakase || ""
     }, priceBase);
+  }
+  // 電話で受けた追加のご注文（選択肢にないもの）の金額を、料金表の計算結果に足す（2026-10-06）
+  function withExtra(est, s) {
+    if (!est || est.needsConsult || !s || !(Number(s.extraAmount) > 0)) return est;
+    var lines = (est.lines || []).concat([{ label: "追加のご注文" + (s.extraNote ? "（" + s.extraNote + "）" : ""), amount: Number(s.extraAmount) }]);
+    return Object.assign({}, est, { lines: lines, subtotal: est.subtotal + Number(s.extraAmount) });
   }
   // スナップショット → 予約データの更新内容（member.html が保存する形式にそろえる）
   function patchOf(s, r, est) {
@@ -205,6 +215,8 @@
     };
     var colors = s.tiers.filter(function (t) { return t.color; }).map(function (t) { return t.color; });
     p.colorCream = colors.length ? { count: colors.length, colors: colors, note: "" } : null;
+    p.extraCharge = Number(s.extraAmount) > 0 ? Number(s.extraAmount) : null;
+    p.extraChargeNote = s.extraNote || null;
     if (est && !est.needsConsult) { p.subtotal = est.subtotal; p.estimateLines = est.lines; p.estimateNotes = est.notes; }
     return p;
   }
@@ -329,6 +341,7 @@
         '<label class="re-check"><input type="checkbox" id="reStraw"' + (e.strawberryAdd ? " checked" : "") + "> いちごトッピング</label>" +
         (e.tiers.length === 3 ? '<label class="re-check"><input type="checkbox" id="reOnsite"' + (e.onsiteAssembly ? " checked" : "") + "> 出張組み立て</label>" : ""));
       var OMK = (window.CakePricing && window.CakePricing.SPEC.omakaseDeco) || {};
+      html += field("電話での追加のご注文（選択肢にないもの）", '<input class="input re-in" id="reExtraNote" value="' + esc(e.extraNote || "") + '" placeholder="例：チョコプレート追加、ドライフラワー" style="margin-bottom:6px;"><div class="re-yen"><input type="number" min="0" class="input re-in" id="reExtraAmt" value="' + esc(e.extraAmount || "") + '"> 円（税込・確定金額に加算されます）</div>');
       html += field("おまかせデコレーション", sel("reOmakase", ["", "梅", "竹", "松"], e.omakase || "", function (o) { return o ? o + "（+¥" + Number(OMK[o] || 0).toLocaleString() + "）" : "なし"; }));
     }
     if (e.cuts) {
@@ -384,6 +397,7 @@
       state.edit._priceManual = false; renderEdit();
     });
     document.getElementById("rePrice").addEventListener("input", function () { state.edit._priceManual = true; });
+    var xa = document.getElementById("reExtraAmt"); if (xa) xa.addEventListener("change", function () { readEdit(true); });
     document.getElementById("reCancel").addEventListener("click", function () { state.edit = null; renderView(); });
     document.getElementById("reSave").addEventListener("click", save);
     document.getElementById("reEditStaff").addEventListener("click", editStaff);
@@ -405,6 +419,7 @@
       e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;
       e.creamTopping = g("reTopping").checked; e.strawberryAdd = g("reStraw").checked; e.onsiteAssembly = g("reOnsite") ? g("reOnsite").checked : false;
       e.omakase = g("reOmakase") ? g("reOmakase").value : (e.omakase || "");
+      e.extraNote = g("reExtraNote") ? g("reExtraNote").value : (e.extraNote || ""); e.extraAmount = g("reExtraAmt") ? Number(g("reExtraAmt").value) || 0 : (e.extraAmount || 0);
     }
     if (e.cuts) {
       e.cuts = e.cuts.map(function (c, i) { return { name: c.name, qty: g("reCutQ" + i) ? Number(g("reCutQ" + i).value) || 0 : c.qty, price: c.price }; }).filter(function (c) { return c.qty > 0; });

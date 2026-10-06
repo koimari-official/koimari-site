@@ -898,6 +898,7 @@ function orderDetailLines(data) {
   if (data.onsiteAssembly) extras.push("出張組み立て");
   (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
   if (data.omakaseDeco) extras.push("おまかせデコレーション（" + data.omakaseDeco + "）");
+  if (data.extraChargeNote || data.extraCharge) extras.push("追加のご注文" + (data.extraChargeNote ? "（" + data.extraChargeNote + "）" : ""));
   (data.toppings || []).forEach((t) => extras.push(t));
   if (extras.length) lines.push(diamondLine("オプション", extras.join("、")));
   if (Array.isArray(data.decideLater) && data.decideLater.length) lines.push(diamondLine("あとで相談", data.decideLater.join("・")));

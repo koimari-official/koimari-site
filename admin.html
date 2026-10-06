@@ -5957,6 +5957,7 @@ function renderKitchen() {
     if (r.creamTopping) extra.push("生クリームたっぷり乗せ");
     if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
     if (r.christmasOrder) extra.push("クリスマス（メリークリスマスプレート）");
+    if (r.extraChargeNote || r.extraCharge) extra.push("<b>追加のご注文：" + kEsc(r.extraChargeNote || "") + (r.extraCharge ? " ¥" + Number(r.extraCharge).toLocaleString() : "") + "</b>");
     if (r.omakaseDeco) extra.push("<b>おまかせデコレーション：" + kEsc(r.omakaseDeco) + "</b>");
     if (Array.isArray(r.toppings) && r.toppings.length) extra.push("トッピング：" + r.toppings.map(kEsc).join("・") + "（要連絡）");
     if (Array.isArray(r.addOns) && r.addOns.length) extra.push("追加商品：" + r.addOns.map(a => kEsc(a.name) + "×" + a.qty).join("、"));
