@@ -310,7 +310,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div id="reserveCutGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;"></div>
             <div id="reserveCutStatus" class="field__hint" style="margin-top:8px;"></div>
             <div id="reserveCutTip" style="display:none;margin-top:6px;font-size:13.5px;font-weight:700;color:#a35a2a;"></div>
-            <div id="reserveCutMix" style="display:none;margin-top:6px;font-size:13px;color:#5a4a3a;">大きな土台は、カットケーキを<b>全部ちがう種類</b>にすると、写真映えして華やかです。</div>
+            <div id="reserveCutMix" style="display:none;margin-top:8px;background:#fffaf0;border:1px solid #e3c98f;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.7;color:#5a4a3a;">いま人気は、<b>たぬきちケーキ</b>を載せるスタイルです。<button type="button" id="reserveCutTanukiBtn" style="display:block;margin-top:8px;padding:8px 16px;border:1px solid #c8891e;background:#fff;color:#8a5a12;border-radius:999px;font-weight:700;cursor:pointer;">たぬきちを1個載せる</button></div>
             <div id="reserveCutBigger" style="display:none;margin-top:8px;background:#fffaf0;border:1px solid #e3c98f;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.7;color:#5a4a3a;">5号の土台なら、カットケーキを<b>3個まで</b>載せられます。<button type="button" id="reserveCutBiggerBtn" style="display:block;margin-top:8px;padding:8px 16px;border:1px solid #c8891e;background:#fff;color:#8a5a12;border-radius:999px;font-weight:700;cursor:pointer;">土台を5号にする</button></div>
             <div class="error" id="reserveCutError"></div>
           </div>
@@ -1214,6 +1214,12 @@ function canMoveCutBaseTo5() {
   return (i === 1 && sels.length === 2) || (i < 0 && sels.length === 1);
 }
 document.addEventListener("click", (e) => {
+  if (!e.target || e.target.id !== "reserveCutTanukiBtn") return;
+  const tk = cutCatalog.find(c => c.name.indexOf("たぬきち") >= 0);
+  if (!tk || cutTotal() >= cutMax()) return;
+  cutQty[tk.name] = (cutQty[tk.name] || 0) + 1; renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave();
+});
+document.addEventListener("click", (e) => {
   if (!e.target || e.target.id !== "reserveCutBiggerBtn") return;
   const bottom = document.querySelector('.tier-size-select[data-tier="0"]');
   if (!bottom) return;
@@ -1230,7 +1236,7 @@ function cutMax() { return CUT_MAX_BY_SIZE[cutBaseSize()] || 2; }
 let cutCatalog = [], cutPriceMap = {}, cutRaw = [];
 const cutQty = {};
 function rebuildCutCatalog() {
-  cutCatalog = cutRaw.filter(it => it && it.name && it.visible !== false && it.topperOk).map(it => {
+  cutCatalog = cutRaw.filter(it => it && it.name && it.visible !== false && it.topperOk).sort((a, b) => (String(b.name).indexOf("たぬきち") >= 0) - (String(a.name).indexOf("たぬきち") >= 0)).map(it => {
     const p = cutPriceMap[it.costName || ""] || cutPriceMap[it.name] || 0;
     return { name: String(it.name), img: it.img || "", price: p || parseYenNumber(it.price) };
   });
@@ -1263,7 +1269,7 @@ function renderCutPicker() {
     const q = cutQty[c.name] || 0;
     return '<div style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;' + (q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : "") + '">' +
       (c.img ? '<img src="' + escape(c.img) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">' : '<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;"></div>') +
-      '<div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(c.name) + '</div>' +
+      '<div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + (c.name.indexOf('たぬきち') >= 0 ? '<span style="display:inline-block;background:#c8891e;color:#fff;font-size:10.5px;border-radius:999px;padding:1px 7px;margin-right:4px;">人気</span>' : '') + escape(c.name) + '</div>' +
       '<div style="font-size:12px;color:#a88a52;">' + (c.price ? "¥" + c.price.toLocaleString() : "料金は別途") + '</div>' +
       '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">' +
       '<button type="button" class="cut-minus" data-i="' + i + '" style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;">−</button>' +
@@ -1274,7 +1280,9 @@ function renderCutPicker() {
   { const tipEl = document.getElementById("reserveCutTip");
     const baseK = cutBaseSize();
     const kinds = Object.keys(cutQty).filter(k => cutQty[k] > 0).length;
-    { const mx = document.getElementById("reserveCutMix"); if (mx) mx.style.display = (baseK === "6号" || baseK === "7号") && total > 0 && kinds < total ? "" : "none"; }
+    { // 人気の「たぬきち」を提案（2026-10-07オーナー：今の流行りはたぬきちを載せること）。まだ選んでいなくて、あと1個以上載せられる時だけ
+      const mx = document.getElementById("reserveCutMix"); const tk = cutCatalog.find(c => c.name.indexOf("たぬきち") >= 0);
+      if (mx) mx.style.display = tk && !(cutQty[tk.name] > 0) && total < CUT_MAX_NOW ? "" : "none"; }
     { const bg = document.getElementById("reserveCutBigger"); if (bg) bg.style.display = baseK === "4号" && total > 0 && canMoveCutBaseTo5() ? "" : "none"; }
     const tipOk = total > 0 && total < CUT_MAX_NOW && baseK !== "4号";
     if (tipEl) { tipEl.style.display = tipOk ? "" : "none"; tipEl.textContent = tipOk ? "あと" + (CUT_MAX_NOW - total) + "個まで載せられます。もう1個追加すると、ぐっとにぎやかになります" : ""; } }
