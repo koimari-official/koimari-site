@@ -703,7 +703,8 @@ onValue(ref(db, "siteImages/cakeAddOns"), (snap) => {
   const v = snap.val();
   const arr = Array.isArray(v) ? v : (v ? Object.values(v) : []);
   if (window.PhotoAdjust) window.PhotoAdjust.register(arr); // 管理画面で調整した色味・表示位置を反映
-  addOnCatalog = arr.filter(it => it && it.name && it.visible !== false).map(it => ({ name: String(it.name), priceNum: parseYenNumber(it.price), img: it.img || "", kind: it.kind || "", desc: it.desc || "" }));
+  // 写真が未登録・名前が初期値のままの商品（管理画面で追加しただけで未入力）はお客様に出さない（2026-10-07）
+  addOnCatalog = arr.filter(it => it && it.name && it.visible !== false && it.img && it.name !== "新しい商品").map(it => ({ name: String(it.name), priceNum: parseYenNumber(it.price), img: it.img || "", kind: it.kind || "", desc: it.desc || "" }));
   renderAddOns();
   updateCakeOptionUI();
   updateLivePriceDisplay();
@@ -718,7 +719,7 @@ function renderAddOns() {
   grid.innerHTML = addOnCatalog.map((it, i) => {
     const q = addOnQty[addOnKey(it)] || 0;
     return `<div class="addon-card" data-i="${i}" style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;${q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : ""}">
-      ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">` : `<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;"></div>`}
+      ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" style="width:76px;height:76px;object-fit:cover;border-radius:10px;display:block;margin:0 auto;">` : `<div style="width:76px;height:76px;margin:0 auto;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;"></div>`}
       <div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">${esc(it.name)}</div>
       <div style="font-size:12px;color:#a88a52;">${it.priceNum ? "¥" + it.priceNum.toLocaleString() : "料金は別途"}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">
@@ -727,7 +728,7 @@ function renderAddOns() {
         <button type="button" class="addon-plus" data-i="${i}" style="width:30px;height:30px;border-radius:50%;border:none;background:#f0a63a;color:#fff;font-size:18px;line-height:1;cursor:pointer;">＋</button>
       </div></div>`;
   }).join("");
-  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;margin-top:10px;";
+  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px;"; // 砂糖菓子は写真を小さめに（画素数が低いため）
   grid.querySelectorAll(".addon-plus, .addon-minus").forEach(btn => btn.addEventListener("click", () => {
     const it = addOnCatalog[Number(btn.dataset.i)];
     const k = addOnKey(it);
