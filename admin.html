@@ -2381,8 +2381,14 @@ function makeGalleryEditor(item, key, { maxWidth, max, onChange }) {
   mainAdj.type = "button";
   mainAdj.className = "btn btn--small btn--ghost";
   mainAdj.style.cssText = "margin:4px 0 8px;font-size:12px;";
-  const setMainLabel = () => { mainAdj.textContent = photoAdjusted(item, item[key]) ? "メイン写真の色・表示位置を調整（調整済み）" : "メイン写真の色・表示位置を調整"; };
+  // 管理画面のメイン写真のプレビューにも、調整した色味・位置を反映する（2026-10-06：調整しても表示画像が変わらないとの指摘）
+  const applyMainPreview = () => {
+    const card = wrap.closest(".img-item"); const pv = card && card.querySelector(".img-item__preview img");
+    if (pv && window.PhotoAdjust) window.PhotoAdjust.applyTo(pv, (item.photoAdjust || {})[window.PhotoAdjust.hash(item[key])] || null);
+  };
+  const setMainLabel = () => { mainAdj.textContent = photoAdjusted(item, item[key]) ? "メイン写真の色・表示位置を調整（調整済み）" : "メイン写真の色・表示位置を調整"; applyMainPreview(); };
   setMainLabel();
+  setTimeout(applyMainPreview, 0);
   mainAdj.addEventListener("click", () => { if (!item[key]) { showToast("メイン写真が未設定です", "error"); return; } const card = wrap.closest(".img-item"); const recrop = card && Array.from(card.querySelectorAll(".img-item__actions button")).find(b => b.textContent === "位置を調整"); openPhotoAdjust(item, item[key], () => { setMainLabel(); onChange(); }, { isMain: true, hasOriginal: !!item[key + "Original"], onRecrop: recrop ? () => recrop.click() : null }); });
   wrap.insertBefore(mainAdj, wrap.firstChild.nextSibling);
   wrap.appendChild(thumbRow);
