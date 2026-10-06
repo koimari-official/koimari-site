@@ -530,6 +530,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script src="cake-pricing.js"></script>
+<script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -701,6 +702,7 @@ function parseYenNumber(s) { const n = Number(String(s == null ? "" : s).replace
 onValue(ref(db, "siteImages/cakeAddOns"), (snap) => {
   const v = snap.val();
   const arr = Array.isArray(v) ? v : (v ? Object.values(v) : []);
+  if (window.PhotoAdjust) window.PhotoAdjust.register(arr); // 管理画面で調整した色味・表示位置を反映
   addOnCatalog = arr.filter(it => it && it.name && it.visible !== false).map(it => ({ name: String(it.name), priceNum: parseYenNumber(it.price), img: it.img || "", kind: it.kind || "", desc: it.desc || "" }));
   renderAddOns();
   updateCakeOptionUI();
@@ -1243,7 +1245,7 @@ function rebuildCutCatalog() {
   renderCutPicker(); updateCakeOptionUI(); updateLivePriceDisplay();
   try { renderShopPicker(); } catch (e) {}
 }
-onValue(ref(db, "siteImages/cutcakes"), (snap) => { const v = snap.val(); cutRaw = Array.isArray(v) ? v : (v ? Object.values(v) : []); rebuildCutCatalog(); });
+onValue(ref(db, "siteImages/cutcakes"), (snap) => { const v = snap.val(); cutRaw = Array.isArray(v) ? v : (v ? Object.values(v) : []); if (window.PhotoAdjust) window.PhotoAdjust.register(cutRaw); rebuildCutCatalog(); });
 onValue(ref(db, "koimariContent/costPublicPrices"), (snap) => {
   const v = snap.val() || {}; cutPriceMap = {};
   (v.list || []).forEach(p => { if (p && p.name) cutPriceMap[p.name] = Number(p.salePrice) || 0; });

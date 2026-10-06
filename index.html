@@ -1145,6 +1145,7 @@ let currentSlide=0;
 let heroInterval=null;
 function goToSlide(idx){const s=document.querySelectorAll(".hero__slide"),d=document.querySelectorAll(".hero__dot");if(!s.length)return;if(s[currentSlide])s[currentSlide].classList.remove("active");if(d[currentSlide])d[currentSlide].classList.remove("active");currentSlide=idx;if(s[currentSlide])s[currentSlide].classList.add("active");if(d[currentSlide])d[currentSlide].classList.add("active")}
 function renderHeroSlides(){
+  if(window.PhotoAdjust&&IMAGES)window.PhotoAdjust.register(IMAGES.hero); // 管理画面で調整した色味（写真ごと）
   heroEl.querySelectorAll(".hero__slide").forEach(el=>el.remove());
   dotsEl.innerHTML="";
   currentSlide=0;
@@ -1240,6 +1241,7 @@ function applyFetchedFeaturedMenu(data){
 window.applyFetchedFeaturedMenu=applyFetchedFeaturedMenu;
 
 function renderExperiences(){
+  if(window.PhotoAdjust&&IMAGES)window.PhotoAdjust.register(IMAGES.experiences);
   // 体験プログラムのセクションは一旦非表示にしたため、要素が無ければ何もしない（2026-09-29）
   if(!expGrid) return;
   expGrid.innerHTML='';
@@ -1275,6 +1277,7 @@ function renderNews(){
   newsList.innerHTML='';
   const en=I18nCtrl.isEn();
   const newsItems=loadNews();
+  if(window.PhotoAdjust)window.PhotoAdjust.register(newsItems);
   const igRow=instaNewsRow();
   if(igRow) newsList.appendChild(igRow);
   if(!newsItems.length&&!igRow){
@@ -1598,6 +1601,7 @@ window.renderQuickReserveStrip=renderQuickReserveStrip;
 // 見出し・本文はHTMLに固定のままで、写真だけを入れ替える（2026-09-29）。
 function renderPhilosophyImages(){
   const list=(IMAGES&&Array.isArray(IMAGES.philosophy))?IMAGES.philosophy:[];
+  if(window.PhotoAdjust)window.PhotoAdjust.register(list);
   for(let i=0;i<4;i++){
     const el=document.getElementById("img-philosophy-"+i);
     const src=list[i]&&list[i].img;

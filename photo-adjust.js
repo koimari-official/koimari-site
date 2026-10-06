@@ -48,7 +48,9 @@
     if (!img) return;
     if (isDefault(a)) { img.style.filter = ""; img.style.objectPosition = ""; return; }
     img.style.filter = filterOf(a);
-    img.style.objectPosition = (a.x == null ? 50 : a.x) + "% " + (a.y == null ? 50 : a.y) + "%";
+    // 表示位置は調整した時だけ上書きする（ヒーロー画像などの既存の位置指定を消さないため）
+    if ((a.x != null && a.x != 50) || (a.y != null && a.y != 50)) img.style.objectPosition = (a.x == null ? 50 : a.x) + "% " + (a.y == null ? 50 : a.y) + "%";
+    else if (img.dataset.paApplied) img.style.objectPosition = "";
   }
   // ---- 公開ページ用：登録した商品の写真に自動で反映 ----
   var map = {};

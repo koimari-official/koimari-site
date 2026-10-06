@@ -9,6 +9,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-MB2XHF6J');</script>
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
+<script src="photo-adjust.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ブログ・スタッフ日記｜こいまり｜大阪市城東区のケーキ屋</title>
@@ -384,6 +385,7 @@ function filteredPosts(){
 
 function renderList(){
   const posts = filteredPosts();
+  if (window.PhotoAdjust) window.PhotoAdjust.register(posts);
   const featuredWrap = document.getElementById('featuredWrap');
   const grid = document.getElementById('blogGrid');
   const ornament = document.getElementById('ornamentDiv');

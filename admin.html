@@ -2412,6 +2412,27 @@ function openPhotoAdjust(item, src, onChange, opts) {
   });
   sync();
 }
+// 画像を登録するカード（makeImageItem）に「色・表示位置を調整」を付ける共通部品（2026-10-07オーナー指示：
+// 画像を指定する画面は、明るさ等の調整と全体表示ができる状態で作る。新しい画像の画面を作る時は必ずこれを付ける）。
+function appendPhotoAdjust(itemEl, obj, key, onChange) {
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.className = "btn btn--small btn--ghost";
+  btn.style.cssText = "margin:6px 0;font-size:12px;";
+  const apply = () => {
+    btn.textContent = photoAdjusted(obj, obj[key]) ? "写真の色・表示位置を調整（調整済み）" : "写真の色・表示位置を調整";
+    const pv = itemEl.querySelector(".img-item__preview img");
+    if (pv && window.PhotoAdjust) window.PhotoAdjust.applyTo(pv, (obj.photoAdjust || {})[window.PhotoAdjust.hash(obj[key])] || null);
+  };
+  btn.addEventListener("click", () => {
+    if (!obj[key]) { showToast("先に写真を登録してください", "error"); return; }
+    const recrop = Array.from(itemEl.querySelectorAll(".img-item__actions button")).find(b => b.textContent === "位置を調整");
+    openPhotoAdjust(obj, obj[key], () => { apply(); onChange(); }, { isMain: true, hasOriginal: !!obj[key + "Original"], onRecrop: recrop ? () => recrop.click() : null });
+  });
+  const actions = itemEl.querySelector(".img-item__actions");
+  itemEl.insertBefore(btn, actions || null);
+  apply();
+}
 function photoAdjusted(item, src) { return !!(window.PhotoAdjust && item && item.photoAdjust && item.photoAdjust[window.PhotoAdjust.hash(src)]); }
 function makeGalleryEditor(item, key, { maxWidth, max, onChange }) {
   const images = item.gallery;
@@ -2725,10 +2746,12 @@ function renderHero() {
       onDelete: s.srcMobile ? () => { s.srcMobile = ""; s.srcMobileOriginal = ""; renderHero(); updateSaveBar(); } : null
     });
     appendImageHistoryUI(mobileItem, s, "srcMobile", () => { renderHero(); updateSaveBar(); });
+    appendPhotoAdjust(mobileItem, s, "srcMobile", () => updateSaveBar());
     mobileWrap.appendChild(mobileItem);
     item.appendChild(mobileWrap);
     appendVisibleToggle(item, () => workingData.hero[i].visible, () => { workingData.hero[i].visible = !workingData.hero[i].visible; renderHero(); updateSaveBar(); });
     appendReorderControls(item, workingData.hero, i, () => { renderHero(); updateSaveBar(); });
+    appendPhotoAdjust(item, s, "src", () => updateSaveBar());
     grid.appendChild(item);
   });
 }
@@ -2851,6 +2874,7 @@ function renderPhilosophy() {
     cap.style.cssText = "margin-bottom:10px;font-family:var(--font-mincho);font-size:14px;font-weight:700;";
     cap.textContent = (i + 1) + "枚目：" + (c.title || "");
     item.insertBefore(cap, item.firstChild);
+    appendPhotoAdjust(item, c, "img", () => updateSaveBar());
     grid.appendChild(item);
   });
 }
@@ -3275,6 +3299,7 @@ function renderCakeAddOns() {
       onDelete: () => { workingData.cakeAddOns.splice(i, 1); renderCakeAddOns(); updateSaveBar(); }
     });
     appendImageHistoryUI(item, r, "img", () => { renderCakeAddOns(); updateSaveBar(); });
+    appendPhotoAdjust(item, r, "img", () => updateSaveBar());
     appendVisibleToggle(item, () => workingData.cakeAddOns[i].visible, () => { workingData.cakeAddOns[i].visible = !workingData.cakeAddOns[i].visible; renderCakeAddOns(); updateSaveBar(); });
     appendReorderControls(item, workingData.cakeAddOns, i, () => { renderCakeAddOns(); updateSaveBar(); });
     grid.appendChild(item);
@@ -3323,6 +3348,7 @@ function renderExperiences() {
       const preview = item.querySelector(".img-item__preview");
       if (preview) preview.style.filter = "grayscale(0.5)";
     }
+    appendPhotoAdjust(item, e, "img", () => updateSaveBar());
     grid.appendChild(item);
   });
 }
@@ -5408,6 +5434,7 @@ function renderNewsAdmin() {
         onDelete: () => { if (confirm("削除しますか？")) { newsData.splice(i,1); renderNewsAdmin(); } }
       });
       appendVisibleToggle(item, () => newsData[i].visible, () => { newsData[i].visible = !newsData[i].visible; renderNewsAdmin(); });
+      appendPhotoAdjust(item, newsData[i], "img", () => {});
       grid.appendChild(item);
     });
     wrap.appendChild(grid);
@@ -5982,6 +6009,7 @@ function renderBlogAdmin() {
   });
   const sb = document.createElement("div"); sb.style.cssText = "grid-column:1/-1; margin-top:10px;";
   sb.innerHTML = '<button class="btn" id="saveBlogBtn">変更を保存</button>';
+  Array.from(grid.querySelectorAll(":scope > .img-item")).forEach((el, i) => { if (blogData[i]) appendPhotoAdjust(el, blogData[i], "img", () => {}); });
   grid.appendChild(sb);
   document.getElementById("saveBlogBtn").addEventListener("click", async () => {
     afterSave(await saveByKey(BLOG_KEY, blogData), merged => { blogData = merged; renderBlogAdmin(); }, "ブログを保存しました（サイトに反映されます）");
