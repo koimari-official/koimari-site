@@ -1131,7 +1131,8 @@ exports.lookupMyContact = onRequest(
 //  ・号数の無い商品（例：グランマニエBOX）や当てはまらない商品は取り込まず、「未対応」として記録する
 const COST_TYPE_ALIASES = { "グランマニエBOX": "ムース" };
 // 原価表の商品名に号数が無い商品の号数（オーナー確認済みのものだけ。原価計算アプリで「グランマニエBOX　4号」と名前に付ければ不要）
-const COST_DEFAULT_SIZE = { "グランマニエBOX": "4号" };
+const COST_DEFAULT_SIZE = { "グランマニエBOX": "3号" }; // 2026-10-07オーナー指示：3号相当
+const COST_SIZE_OVERRIDE = { "グランマニエBOX": "3号" };
 const COST_TYPE_NAMES = ["ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース"];
 function mapCostPricesToPriceTable(list) {
   const sizePrices = {}, typePrices = {}, mapped = [], unmapped = [];
@@ -1141,7 +1142,9 @@ function mapCostPricesToPriceTable(list) {
     let m = name.match(/^(.*?)[\s\u3000]+([3-7])号$/);
     if (!m && COST_DEFAULT_SIZE[name]) m = [name, name, COST_DEFAULT_SIZE[name].replace("号", "")];
     if (!m) { unmapped.push(name); return; }
-    const base = m[1].trim(), size = m[2] + "号", price = Number(p.salePrice);
+    const base = m[1].trim(), price = Number(p.salePrice);
+    // 原価表の名前の号数より優先する号数（2026-10-07オーナー指示：グランマニエBOXは3号相当。原価計算アプリの名前が「4号」のままでも3号として扱う）
+    const size = COST_SIZE_OVERRIDE[base] || (m[2] + "号");
     if (base.indexOf("生クリーム") >= 0 && base.indexOf("生チョコ") < 0) { sizePrices[size] = price; mapped.push({ name, target: "基本料金", size, price }); return; }
     const type = COST_TYPE_ALIASES[base] || COST_TYPE_NAMES.find((t) => base === t || base.indexOf(t) === 0);
     if (!type) { unmapped.push(name); return; }

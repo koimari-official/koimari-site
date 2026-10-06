@@ -236,7 +236,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> ムース（4号のみ）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> ムース（3号のみ）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="モンブラン"> モンブラン（フルオーダー・お見積もり）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ（お日にちをいただく場合があります）</label>
           </div>
@@ -1596,7 +1596,7 @@ function renderTierSizeSelects(tierCount) {
   if (tierCount === 1) {
     // ベースによって作れる号数が決まっている場合（ムース＝4号のみ）は、その号数だけを出す（2026-10-03）
     const allowed = (CakePricing.SPEC.baseSizes || {})[bottomCream()];
-    const opts = allowed ? SIZE_OPTIONS.filter((o, i) => i === 0 || allowed.includes(sizeKeyOf(o.value))) : SIZE_OPTIONS;
+    const opts = allowed ? [SIZE_OPTIONS[0], SIZE_3].concat(SIZE_OPTIONS.slice(1)).filter((o, i) => i === 0 || allowed.includes(sizeKeyOf(o.value))) : SIZE_OPTIONS;
     let val = prevSizes[0];
     if (allowed && !opts.some(o => o.value === val)) val = allowed.length === 1 ? ((opts.find(o => sizeKeyOf(o.value) === allowed[0]) || {}).value || "") : "";
     wrap.innerHTML = editableSizeSelectHtml(0, opts, val, 1);

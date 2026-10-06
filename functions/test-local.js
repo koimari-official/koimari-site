@@ -294,7 +294,7 @@ console.log("OK: buildCouponReplyText");
   ]);
   assertEqual(r.sizePrices["4号"], 3800, "生クリームは1段の基本料金へ");
   assertEqual(r.typePrices["フルーツタルトBOX"]["6号"], 7800, "タルト6号は原価計算アプリの金額");
-  assertEqual(r.typePrices["ムース"]["4号"], 3400, "グランマニエBOXは4号のムースとして取り込む（オーナー確認）");
+  assertEqual(r.typePrices["ムース"]["3号"], 3400, "グランマニエBOXは3号相当のムースとして取り込む（オーナー確認 2026-10-07）");
   assertEqual(r.unmapped.join(), "なにかのケーキ", "当てはまらない商品は取り込まない");
 }
 

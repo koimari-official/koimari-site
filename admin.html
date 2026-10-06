@@ -2981,7 +2981,7 @@ function appendExtraFlags(item, obj, onUpdate) {
 // reserve-draft.js の buildSpec() と完全に一致させること。未設定の項目は自動選択しない。
 const SPEC_OPTIONS = {
   tiers: [["1", "1段"], ["2", "2段"], ["3", "3段"]],
-  size: [["4号(約12cm/3-4名)", "4号（約12cm）"], ["5号(約15cm/5-6名)", "5号（約15cm）"], ["6号(約18cm/7-8名)", "6号（約18cm）"], ["7号(約21cm/9-10名)", "7号（約21cm）"]],
+  size: [["3号(約9cm)", "3号（約9cm・ムースのみ）"], ["4号(約12cm/3-4名)", "4号（約12cm）"], ["5号(約15cm/5-6名)", "5号（約15cm）"], ["6号(約18cm/7-8名)", "6号（約18cm）"], ["7号(約21cm/9-10名)", "7号（約21cm）"]],
   cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース", "モンブラン"].map((v) => [v, v]),
   decoration: ["いちごのみ", "バラエティフルーツ"].map((v) => [v, v]),
   occasion: ["バースデー", "クリスマス"].map((v) => [v, v]),
@@ -6871,7 +6871,7 @@ onValue(ref(fbDb, "koimariContent/costPublicPrices"), (snap) => { const v = snap
 const cakeCutContainerFeeRef = ref(fbDb, "koimariContent/cakeCutContainerFee");
 // member.htmlの種類別価格表（CakePricing.estimateのtypePrices）。種類名はフォームのクリームの種類の値と揃える。
 const CAKE_TYPE_PRICE_ROWS = ["フルーツタルトBOX","ストロベリータルトBOX","ミッシェルBOX","ガトーショコラBOX","ブルーベリーケーキ","ムース"]; // ムース：グランマニエBOX等（2026-10-03追加）
-const CAKE_TYPE_PRICE_SIZES = [4, 5, 6, 7];
+const CAKE_TYPE_PRICE_SIZES = [3, 4, 5, 6, 7]; // 3号はムース（グランマニエBOX）用（2026-10-07）
 const cakeCreamToppingPriceRef = ref(fbDb, "koimariContent/cakeCreamToppingPrice");
 const cakeChocoCreamSurchargeRef = ref(fbDb, "koimariContent/cakeChocoCreamSurcharge");
 const cakeCandleBagPriceNumberRef = ref(fbDb, "koimariContent/cakeCandleBagPriceNumber");
