@@ -559,6 +559,8 @@ function renderInfo(item, plainName, config) {
   const text = plainName + ' ' + String(item.desc || '');
   const pts = [];
   if (/フルーツ|いちご|苺|果実|ベリー|タルト/.test(text)) pts.push('季節のフルーツをたっぷり。見た目も味も華やかに仕上げます');
+  // デコレーションケーキ（オーダーケーキ含む）・ロールケーキは甘さ控えめ（2026-10-06オーナー指示）
+  if (productType === 'decorationCake' || productType === 'rollcake') pts.push('甘さを控えた設計で、素材の味を堪能していただけます');
   if (productType !== 'category' && productType !== 'recommended') pts.push('お店で一つひとつ手作りしています');
   pts.push('お酒はごく少量で、焼き上げの時にしっかり加熱して飛ばしています。小さなお子様にも安心です');
   document.getElementById('pdPoints').innerHTML = '<li class="pd-points__head">こいまりのこだわり</li>' + pts.map(t => '<li>' + esc(t) + '</li>').join('');
