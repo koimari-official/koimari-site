@@ -310,6 +310,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div id="reserveCutGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;"></div>
             <div id="reserveCutStatus" class="field__hint" style="margin-top:8px;"></div>
             <div id="reserveCutTip" style="display:none;margin-top:6px;font-size:13.5px;font-weight:700;color:#a35a2a;"></div>
+            <div id="reserveCutMix" style="display:none;margin-top:6px;font-size:13px;color:#5a4a3a;">大きな土台は、カットケーキを<b>全部ちがう種類</b>にすると、写真映えして華やかです。</div>
+            <div id="reserveCutBigger" style="display:none;margin-top:8px;background:#fffaf0;border:1px solid #e3c98f;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.7;color:#5a4a3a;">5号の土台なら、カットケーキを<b>3個まで</b>載せられます。<button type="button" id="reserveCutBiggerBtn" style="display:block;margin-top:8px;padding:8px 16px;border:1px solid #c8891e;background:#fff;color:#8a5a12;border-radius:999px;font-weight:700;cursor:pointer;">土台を5号にする</button></div>
             <div class="error" id="reserveCutError"></div>
           </div>
         </div>
@@ -1205,6 +1207,25 @@ function cutBaseSize() {
   if (i > 0) return CakePricing.tierKey(sels[i - 1].value); // 2段・3段：カットケーキのすぐ下の段
   return sels[0] ? CakePricing.tierKey(sels[0].value) : "";   // タルトに載せる場合：タルトの号数
 }
+// 4号の土台を5号にできるか（2段の一番下・タルトの場合だけ。3段の中段は組み合わせで決まるため対象外）
+function canMoveCutBaseTo5() {
+  const sels = Array.from(document.querySelectorAll(".tier-size-select"));
+  const i = sels.findIndex(s => String(s.value).indexOf("カットケーキ") === 0);
+  return (i === 1 && sels.length === 2) || (i < 0 && sels.length === 1);
+}
+document.addEventListener("click", (e) => {
+  if (!e.target || e.target.id !== "reserveCutBiggerBtn") return;
+  const bottom = document.querySelector('.tier-size-select[data-tier="0"]');
+  if (!bottom) return;
+  const v5 = Array.from(bottom.options).map(o => o.value).find(v => v.indexOf("5号") === 0);
+  if (!v5) return;
+  const wasTwoTier = document.querySelectorAll(".tier-size-select").length === 2;
+  bottom.value = v5; bottom.dispatchEvent(new Event("change", { bubbles: true }));
+  setTimeout(() => {
+    if (wasTwoTier) { const top = document.querySelector('.tier-size-select[data-tier="1"]'); const cv = top && Array.from(top.options).map(o => o.value).find(v => v.indexOf("カットケーキ") === 0); if (cv) { top.value = cv; top.dispatchEvent(new Event("change", { bubbles: true })); } }
+    renderCutPicker(); updateLivePriceDisplay();
+  }, 50);
+});
 function cutMax() { return CUT_MAX_BY_SIZE[cutBaseSize()] || 2; }
 let cutCatalog = [], cutPriceMap = {}, cutRaw = [];
 const cutQty = {};
@@ -1251,7 +1272,11 @@ function renderCutPicker() {
   }).join("");
   const st = document.getElementById("reserveCutStatus");
   { const tipEl = document.getElementById("reserveCutTip");
-    const tipOk = total > 0 && total < CUT_MAX_NOW && cutBaseSize() !== "4号";
+    const baseK = cutBaseSize();
+    const kinds = Object.keys(cutQty).filter(k => cutQty[k] > 0).length;
+    { const mx = document.getElementById("reserveCutMix"); if (mx) mx.style.display = (baseK === "6号" || baseK === "7号") && total > 0 && kinds < total ? "" : "none"; }
+    { const bg = document.getElementById("reserveCutBigger"); if (bg) bg.style.display = baseK === "4号" && total > 0 && canMoveCutBaseTo5() ? "" : "none"; }
+    const tipOk = total > 0 && total < CUT_MAX_NOW && baseK !== "4号";
     if (tipEl) { tipEl.style.display = tipOk ? "" : "none"; tipEl.textContent = tipOk ? "あと" + (CUT_MAX_NOW - total) + "個まで載せられます。もう1個追加すると、ぐっとにぎやかになります" : ""; } }
   if (st) st.textContent = total ? "選んだカットケーキ：" + total + "個" + (total >= CUT_MAX_NOW ? "（これ以上は載せられません）" : "（あと" + (CUT_MAX_NOW - total) + "個まで選べます）") : "1〜" + CUT_MAX_NOW + "個までお選びください";
   grid.querySelectorAll(".cut-plus").forEach(b => b.addEventListener("click", () => { if (cutTotal() >= cutMax()) return; const c = cutCatalog[Number(b.dataset.i)]; cutQty[c.name] = (cutQty[c.name] || 0) + 1; renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave(); }));

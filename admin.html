@@ -6531,14 +6531,37 @@ async function onGoogleToken(r) {
     await signInWithCustomToken(fbAuth, tj.token);
   } catch (e) { fail("ログインに失敗しました（" + (e && e.message ? e.message : e) + "）"); }
 }
-document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+// 2026-10-07：スマホで「popup_failed_to_open」。ボタンを押してから読み込み（await）していたため、iPhone/iPadが
+// 「ユーザーが押した操作」と見なさずポップアップを止めていた。ページを開いた時点で準備しておき、押した瞬間に開く。
+function initGTokenClient() {
+  if (gTokenClient || !(window.google && google.accounts && google.accounts.oauth2)) return;
   const btn = document.getElementById("googleLoginBtn"), err = document.getElementById("loginError");
-  if (err) err.textContent = ""; btn.disabled = true;
-  try {
-    await loadGis();
-    if (!gTokenClient) gTokenClient = google.accounts.oauth2.initTokenClient({ client_id: GOOGLE_CLIENT_ID, scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile", callback: onGoogleToken, error_callback: (e) => { btn.disabled = false; if (err) err.textContent = "Googleログインの画面が開けませんでした（" + ((e && e.type) || "") + "）。ポップアップを許可して、もう一度お試しください"; } });
-    gTokenClient.requestAccessToken({ prompt: "select_account" });
-  } catch (e) { btn.disabled = false; if (err) err.textContent = e.message || String(e); }
+  gTokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+    callback: onGoogleToken,
+    error_callback: (e) => {
+      btn.disabled = false;
+      const standalone = window.navigator.standalone === true || (window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+      if (err) err.innerHTML = "Googleのログイン画面が開けませんでした（" + escapeHtml((e && e.type) || "") + "）。" + (standalone
+        ? "ホーム画面のアイコンから開いている場合は、一度Safariでこのページを開いてログインしてください。<br><a href='" + location.href.split("#")[0] + "' target='_blank' rel='noopener'>Safariで開く</a>"
+        : "iPhone/iPadは「設定 → Safari → ポップアップブロック」をオフにして、もう一度お試しください。");
+    }
+  });
+}
+loadGis().then(initGTokenClient).catch(() => {});
+document.getElementById("googleLoginBtn").addEventListener("click", () => {
+  const btn = document.getElementById("googleLoginBtn"), err = document.getElementById("loginError");
+  if (err) err.textContent = "";
+  initGTokenClient();
+  if (!gTokenClient) {
+    if (err) err.textContent = "準備中です。数秒待ってから、もう一度押してください";
+    loadGis().then(initGTokenClient).catch((e) => { if (err) err.textContent = e.message || String(e); });
+    return;
+  }
+  btn.disabled = true;
+  setTimeout(() => { btn.disabled = false; }, 8000);
+  gTokenClient.requestAccessToken({ prompt: "select_account" }); // 押した瞬間に同期で開く（awaitを挟まない）
 });
 
 
