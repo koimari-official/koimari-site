@@ -1813,8 +1813,12 @@ onValue(ref(db, "koimariContent/cakeFlavors"), (snap) => {
   currentCakeFlavors = snap.val() || DEFAULT_CAKE_FLAVORS;
   if ((document.querySelector('input[name="reserveType"]:checked') || {}).value === "デコレーションケーキ") populateFlavorSelect(currentCakeFlavors);
 });
-onValue(ref(db, "koimariContent/rollCakeFlavors"), (snap) => {
-  currentRollFlavors = snap.val() || DEFAULT_ROLL_FLAVORS;
+// 2026-10-07：ロールケーキの種類は、管理画面の「ケーキの種類」ではなく、ギャラリーのロールケーキ（商品）から作る
+// （同じものを2か所で管理しないため。「ケーキの種類」タブは廃止）。
+onValue(ref(db, "siteImages/rollcakes"), (snap) => {
+  const v = snap.val();
+  const names = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).filter(it => it && it.name && it.visible !== false).map(it => String(it.name).replace(/<[^>]*>/g, ""));
+  currentRollFlavors = names.length ? names : DEFAULT_ROLL_FLAVORS;
   if ((document.querySelector('input[name="reserveType"]:checked') || {}).value === "ロールケーキ") populateFlavorSelect(currentRollFlavors);
 });
 function populateFlavorSelect(list) {

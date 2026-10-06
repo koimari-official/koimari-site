@@ -541,7 +541,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="experiences">体験プログラム</button>
       <button class="tab" data-panel="expDates">体験プログラム候補日</button>
       <button class="tab" data-panel="priceTable">料金表（単価）</button>
-      <button class="tab" data-panel="cakeFlavors">ケーキの種類</button>
+      <!-- 「ケーキの種類」タブは2026-10-07に廃止（デコレーションは未使用、ロールケーキはギャラリーの商品から自動で作る）。料金表の初期化に使う処理は残す -->
+      <button class="tab" data-panel="cakeFlavors" style="display:none;">ケーキの種類</button>
       <button class="tab" data-panel="holidays">営業日設定</button>
 
       <button class="tab" data-panel="christmas">クリスマスケーキ</button>
