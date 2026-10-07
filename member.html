@@ -1642,7 +1642,7 @@ function updateLivePriceDisplay() {
 function timeOptionsForDate(dateStr) {
   if (!dateStr) return TIME_OPTIONS;
   const d = new Date(dateStr);
-  const closeHour = (d.getDay() === 0 || JP_HOLIDAYS.has(dateKeyLocal(d))) ? 19 : 20;
+  const closeHour = (d.getDay() === 0 || (d.getDay() === 1 && JP_HOLIDAYS.has(dateKeyLocal(d)))) ? 19 : 20;
   const lastSlotMin = closeHour * 60;
   const opts = [];
   for (let m = 10 * 60; m <= lastSlotMin; m += 30) {
@@ -1948,9 +1948,23 @@ function birthdayBlockText(b) {
   const f = s => Number(s.slice(5, 7)) + "月" + Number(s.slice(8, 10)) + "日";
   return f(b.from) + (b.from !== b.to ? "〜" + f(b.to) : "") + "は、バースデーケーキのご予約をお受けしておりません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください。";
 }
+// 振替の定休日：定休日（月曜）が祝日で営業した場合、その後の最初の祝日でない日を休みにする（2026-10-08オーナー指示）
+function koimariSubstituteClosed(h, k) {
+  if (JP_HOLIDAYS.has(k)) return false;
+  const w = (h && h.weeklyClosed) || [1];
+  const p = new Date(k + "T00:00:00");
+  if (w.includes(p.getDay())) return false;
+  for (let i = 0; i < 7; i++) {
+    p.setDate(p.getDate() - 1);
+    const pk = p.getFullYear() + "-" + String(p.getMonth() + 1).padStart(2, "0") + "-" + String(p.getDate()).padStart(2, "0");
+    if (!JP_HOLIDAYS.has(pk)) return false;
+    if (w.includes(p.getDay())) return true;
+  }
+  return false;
+}
 function isClosedDate(d) {
   const key = dateKeyLocal(d);
-  const isWeeklyClosed = (reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key);
+  const isWeeklyClosed = ((reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key)) || koimariSubstituteClosed(reserveHolidays, key);
   return isWeeklyClosed || (reserveHolidays.extraClosed || []).includes(key);
 }
 // ご予約は引き取り希望日の3営業日前までにお願いする運用（2026-09-04オーナー指示、3営業日前に変更）。

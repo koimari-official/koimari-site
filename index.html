@@ -194,14 +194,14 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .bcal__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
 .bcal__dow{text-align:center;padding:3px 0;font-family:var(--font-mincho);font-size:13px;font-weight:600;background:var(--color-bg-soft);letter-spacing:.05em}
 .bcal__dow.sat{color:var(--color-info)}
-.bcal__dow.sun{color:var(--color-accent-dark)}
+.bcal__dow.sun{color:#c0392b}
 .bcal__cell{padding:2px 2px 1px;border:1px solid var(--color-line-soft);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:var(--font-sans);font-size:24px;font-weight:600;position:relative;overflow:hidden;min-height:36px}
 .bcal__cell.empty{border:none}
 .bcal__cell.closed{background:rgba(201,169,110,.12);color:var(--color-accent-dark)}
 .bcal__cell.closed::after{content:"休";font-family:var(--font-mincho);font-size:13px;color:var(--color-accent-dark);margin-top:auto;font-weight:600}
 .bcal__cell.today{background:var(--color-bg-soft);border-color:var(--color-accent-dark);font-weight:700;border-width:2px}
 .bcal__cell.today::before{content:"";position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:var(--color-accent)}
-.bcal__cell.holiday{color:var(--color-accent-dark)}
+.bcal__cell.holiday{color:#c0392b}
 .bcal__cell.saturday{color:var(--color-info)}
 .bcal__cell.has-event{background:linear-gradient(180deg,#fff 0%,#fdf5f3 100%)}
 .bcal__cell.has-event:not(.closed){border-color:var(--color-mom,#c75a6e)}
@@ -738,7 +738,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </a>
     <div class="flex items-center gap-4 text-[#e8dcc8] max-[900px]:hidden flex-shrink-0">
       <div id="statusPill" class="status-pill whitespace-nowrap"><span class="status-pill__dot"></span><span id="statusText">確認中…</span></div>
-      <div class="text-[14px] leading-[1.7] whitespace-nowrap" data-i18n="header.hours">火曜～土曜 10:00～20:00<br>日曜（月曜祝日）10:00～19:00 / 月曜定休（祝日を除く）</div>
+      <div class="text-[14px] leading-[1.7] whitespace-nowrap" data-i18n="header.hours">火曜～土曜 10:00～20:00<br>日曜（月曜祝日）10:00～19:00 / 月曜定休（祝日の場合は翌平日）</div>
       <a href="tel:07091580641" class="[font-family:var(--font-sans)] text-[22px] text-[var(--color-accent)] tracking-[.02em] font-bold whitespace-nowrap">070-9158-0641</a>
     </div>
     <div class="flex items-center gap-2 flex-shrink-0 max-[900px]:hidden">
@@ -849,7 +849,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <a href="https://lin.ee/tgXqHoK" class="quick-reserve__line-btn" target="_blank" rel="noopener" id="quickLineBtn"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="LINEで友だち追加" onerror="var a=document.getElementById('quickLineBtn');a.classList.add('is-fallback');a.textContent='LINEで友だち追加';"></a>
       <p class="quick-reserve__or">またはお電話で予約</p>
       <a class="quick-reserve__tel quick-reserve__tel--lg" href="tel:07091580641">070-9158-0641</a>
-      <p class="quick-reserve__telnote">受付時間：火曜～土曜 10:00～20:00 ／ 日曜（月曜祝日）10:00～19:00（月曜定休・祝日を除く）</p>
+      <p class="quick-reserve__telnote">受付時間：火曜～土曜 10:00～20:00 ／ 日曜（月曜祝日）10:00～19:00（月曜定休・祝日の場合は翌平日）</p>
       <p class="quick-reserve__nolinenote">パソコンでご覧の方は、ボタンを押した先の画面のQRコードを、スマートフォンのカメラで読み取ってください。</p>
     </div>
   </div>
@@ -934,7 +934,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="bcal__legend"><span><i style="background:rgba(201,169,110,.2);border:1px solid rgba(201,169,110,.5);"></i>定休日・臨時休業</span><span><i style="background:rgba(176,59,72,.15);border:1px solid rgba(176,59,72,.4);"></i>イベント</span></div>
       </div>
       <div class="bcal__grid" id="bcalGrid"></div>
-      <p class="bcal__note">基本定休日: 月曜日（祝日を除く）　/　火曜～土曜 10:00～20:00、日曜（月曜祝日）10:00～19:00　/　臨時休業や営業時間変更がある場合は上記をご確認ください</p>
+      <p class="bcal__note">基本定休日: 月曜日（祝日の場合は翌平日）　/　火曜～土曜 10:00～20:00、日曜（月曜祝日）10:00～19:00　/　臨時休業や営業時間変更がある場合は上記をご確認ください</p>
     </div>
   </div>
 </section>
@@ -949,7 +949,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <tr><th>住所</th><td>〒536-0007<br>大阪府大阪市城東区成育2丁目13-15<br>アイビーマンション 1階</td></tr>
       <tr><th>電話</th><td>070-9158-0641</td></tr>
       <tr><th>営業時間</th><td>火曜～土曜 10:00～20:00<br>日曜（月曜祝日）10:00～19:00</td></tr>
-      <tr><th>定休日</th><td>月曜日（祝日を除く）</td></tr>
+      <tr><th>定休日</th><td>月曜日（祝日の場合は翌平日）</td></tr>
       <tr><th>目印</th><td>スーパーライフ 関目店・コーナン 関目店と同じ交差点内</td></tr>
       <tr><th>駐車場</th><td>近隣駐車場をご利用ください。<br>お電話頂ければお伝えも可能です。</td></tr>
     </table>
@@ -1008,7 +1008,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div>
       <div class="footer__logo-en">Koimari</div>
       <div class="footer__logo-jp">こ い ま り</div>
-      <p>〒536-0007<br>大阪府大阪市城東区成育2丁目13-15<br>アイビーマンション 1階<br>TEL: 070-9158-0641<br>火曜～土曜 10:00～20:00<br>日曜（月曜祝日）10:00～19:00<br>定休日 月曜（祝日を除く）</p>
+      <p>〒536-0007<br>大阪府大阪市城東区成育2丁目13-15<br>アイビーマンション 1階<br>TEL: 070-9158-0641<br>火曜～土曜 10:00～20:00<br>日曜（月曜祝日）10:00～19:00<br>定休日 月曜（祝日の場合は翌平日）</p>
     </div>
     <div>
       <div class="footer__nav-title">ご案内</div>
@@ -1130,8 +1130,22 @@ const JP_HOLIDAYS = new Set([
   "2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11",
   "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23"
 ]);
+// 振替の定休日：定休日（月曜）が祝日で営業した場合、その後の最初の祝日でない日を休みにする（2026-10-08オーナー指示）
+function koimariSubstituteClosed(h, k) {
+  if (JP_HOLIDAYS.has(k)) return false;
+  const w = (h && h.weeklyClosed) || [1];
+  const p = new Date(k + "T00:00:00");
+  if (w.includes(p.getDay())) return false;
+  for (let i = 0; i < 7; i++) {
+    p.setDate(p.getDate() - 1);
+    const pk = p.getFullYear() + "-" + String(p.getMonth() + 1).padStart(2, "0") + "-" + String(p.getDate()).padStart(2, "0");
+    if (!JP_HOLIDAYS.has(pk)) return false;
+    if (w.includes(p.getDay())) return true;
+  }
+  return false;
+}
 function isWeeklyClosedDay(h,dow,k){
-  return (h.weeklyClosed||[]).includes(dow) && !JP_HOLIDAYS.has(k);
+  return ((h.weeklyClosed||[]).includes(dow) && !JP_HOLIDAYS.has(k)) || koimariSubstituteClosed(h,k);
 }
 const DEFAULT_SPOTLIGHT = {
   badge: "今月の主役", badgeEn: "Pick of the Month",
@@ -1437,7 +1451,7 @@ function renderBcal(){
     const closed=isWeeklyClosedDay(h,dow,k)||(h.extraClosed||[]).includes(k);
     const eventName=events[k]||events[mmdd]||"";
     const cell=document.createElement("div");cell.className="bcal__cell";
-    if(dow===0)cell.classList.add("holiday");else if(dow===6)cell.classList.add("saturday");
+    if(dow===0||JP_HOLIDAYS.has(k))cell.classList.add("holiday");else if(dow===6)cell.classList.add("saturday");
     if(closed)cell.classList.add("closed");
     if(k===tk)cell.classList.add("today");
     if(eventName&&!closed)cell.classList.add("has-event");
@@ -1461,7 +1475,7 @@ function updateStatus(){
   const isClosed=isWeeklyClosedDay(h,dow,k)||(h.extraClosed||[]).includes(k);
   const hour=now.getHours()+now.getMinutes()/60;
   // 日曜・祝日は19時まで、それ以外(火-土)は20時まで
-  const closeHour = (dow === 0 || JP_HOLIDAYS.has(k)) ? 19 : 20;
+  const closeHour = (dow === 0 || (dow === 1 && JP_HOLIDAYS.has(k))) ? 19 : 20;
   const inHours=hour>=10&&hour<closeHour;
   const pill=document.getElementById("statusPill");
   const text=document.getElementById("statusText");

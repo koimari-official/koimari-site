@@ -46,14 +46,14 @@ main{padding:28px 24px 56px}
 .bcal__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
 .bcal__dow{text-align:center;padding:8px 0;font-family:var(--font-mincho);font-size:17px;font-weight:700;background:var(--color-bg-soft);letter-spacing:.06em}
 .bcal__dow.sat{color:var(--color-info)}
-.bcal__dow.sun{color:var(--color-accent-dark)}
+.bcal__dow.sun{color:#c0392b}
 .bcal__cell{padding:8px 4px 6px;border:1px solid var(--color-line-soft);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;font-family:var(--font-sans);font-size:22px;font-weight:600;position:relative;overflow:hidden;min-height:96px}
 .bcal__cell.empty{border:none}
 .bcal__cell.closed{background:rgba(201,169,110,.12);color:var(--color-accent-dark)}
 .bcal__cell.closed::after{content:"休";font-family:var(--font-mincho);font-size:20px;color:var(--color-accent-dark);margin-top:auto;font-weight:700}
 .bcal__cell.today{background:var(--color-bg-soft);border-color:var(--color-accent-dark);font-weight:800;border-width:2px}
 .bcal__cell.today::before{content:"";position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--color-accent)}
-.bcal__cell.holiday{color:var(--color-accent-dark)}
+.bcal__cell.holiday{color:#c0392b}
 .bcal__cell.saturday{color:var(--color-info)}
 .bcal__cell.has-event{background:linear-gradient(180deg,#fff 0%,#fdf5f3 100%)}
 .bcal__cell.has-event:not(.closed){border-color:var(--color-mom)}
@@ -103,7 +103,6 @@ main{padding:28px 24px 56px}
         <button id="bcalPrev" aria-label="前の月">◀</button>
         <div class="bcal__title" id="bcalTitle"></div>
         <button id="bcalNext" aria-label="次の月">▶</button>
-        <button type="button" class="bcal__today" id="bcalToday">今月</button>
       </div>
       <div class="bcal__legend">
         <span><i style="background:rgba(201,169,110,.2);border:1px solid rgba(201,169,110,.5);"></i>定休日・臨時休業</span>
@@ -150,7 +149,21 @@ const JP_HOLIDAYS = new Set([
   "2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11",
   "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23"
 ]);
-function isWeeklyClosedDay(h,dow,k){ return (h.weeklyClosed||[]).includes(dow) && !JP_HOLIDAYS.has(k); }
+// 振替の定休日：定休日（月曜）が祝日で営業した場合、その後の最初の祝日でない日を休みにする（2026-10-08オーナー指示）
+function koimariSubstituteClosed(h, k) {
+  if (JP_HOLIDAYS.has(k)) return false;
+  const w = (h && h.weeklyClosed) || [1];
+  const p = new Date(k + "T00:00:00");
+  if (w.includes(p.getDay())) return false;
+  for (let i = 0; i < 7; i++) {
+    p.setDate(p.getDate() - 1);
+    const pk = p.getFullYear() + "-" + String(p.getMonth() + 1).padStart(2, "0") + "-" + String(p.getDate()).padStart(2, "0");
+    if (!JP_HOLIDAYS.has(pk)) return false;
+    if (w.includes(p.getDay())) return true;
+  }
+  return false;
+}
+function isWeeklyClosedDay(h,dow,k){ return ((h.weeklyClosed||[]).includes(dow) && !JP_HOLIDAYS.has(k)) || koimariSubstituteClosed(h,k); }
 
 const EVENTS = {
   "01-01":"元日","02-03":"節分","02-14":"バレンタイン",
@@ -186,7 +199,7 @@ function renderBcal(){
     const closed=isWeeklyClosedDay(h,dow,k)||(h.extraClosed||[]).includes(k);
     const eventName=EVENTS[k]||EVENTS[mmdd]||"";
     const cell=document.createElement("div"); cell.className="bcal__cell";
-    if(dow===0) cell.classList.add("holiday"); else if(dow===6) cell.classList.add("saturday");
+    if(dow===0||JP_HOLIDAYS.has(k)) cell.classList.add("holiday"); else if(dow===6) cell.classList.add("saturday");
     if(closed) cell.classList.add("closed");
     if(k===tk) cell.classList.add("today");
     if(eventName&&!closed) cell.classList.add("has-event");
@@ -198,7 +211,7 @@ function renderBcal(){
 }
 document.getElementById("bcalPrev").addEventListener("click",()=>{ bcalMonth.setMonth(bcalMonth.getMonth()-1); renderBcal(); });
 document.getElementById("bcalNext").addEventListener("click",()=>{ bcalMonth.setMonth(bcalMonth.getMonth()+1); renderBcal(); });
-document.getElementById("bcalToday").addEventListener("click",()=>{ bcalMonth=new Date(); bcalMonth.setDate(1); renderBcal(); });
+// 「今月」ボタンは不要とのオーナー判断で削除（2026-10-08）
 document.getElementById("calClose").addEventListener("click",()=>{
   window.close();
   // 別タブで開かれていない場合はwindow.close()が効かないため、トップページへ戻す

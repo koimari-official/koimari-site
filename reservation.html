@@ -935,7 +935,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <span class="same-day__sub">ネット予約は3営業日前までです。3営業日前を切る場合は、ギャラリーで選んだ仕様をお伝えのうえ、お電話でお願いいたします。<br><span id="xmasCakeNote" style="display:none;">（クリスマスケーキは、お渡し日前に店頭にて代金のお支払いをお願い致します。お支払いをもってご予約完了とさせて頂きます。ご予約が埋まり次第、受付を終了します。）<br></span>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
       </div>
       <a href="tel:07091580641" class="same-day__tel">
-        <span>070-9158-0641<small>火曜～土曜 10:00～20:00 / 日曜（月曜祝日）10:00～19:00（月曜定休・祝日を除く）</small></span>
+        <span>070-9158-0641<small>火曜～土曜 10:00～20:00 / 日曜（月曜祝日）10:00～19:00（月曜定休・祝日の場合は翌平日）</small></span>
       </a>
     </div>
 
@@ -1019,7 +1019,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 ]);
     var WEEK = ["日", "月", "火", "水", "木", "金", "土"];
     function key(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
-    function closed(d, hol) { var k = key(d); return (((hol.weeklyClosed || [1]).indexOf(d.getDay()) >= 0) && !JP_HOLIDAYS.has(k)) || (hol.extraClosed || []).indexOf(k) >= 0; }
+    function subClosed(k, hol) { if (JP_HOLIDAYS.has(k)) return false; var w = hol.weeklyClosed || [1], p = new Date(k + "T00:00:00"); if (w.indexOf(p.getDay()) >= 0) return false; for (var i = 0; i < 7; i++) { p.setDate(p.getDate() - 1); var pk = key(p); if (!JP_HOLIDAYS.has(pk)) return false; if (w.indexOf(p.getDay()) >= 0) return true; } return false; }
+    function closed(d, hol) { var k = key(d); return (((hol.weeklyClosed || [1]).indexOf(d.getDay()) >= 0) && !JP_HOLIDAYS.has(k)) || subClosed(k, hol) || (hol.extraClosed || []).indexOf(k) >= 0; }
     function deadline(pick, hol) { var d = new Date(pick), n = 0, g = 0; while (n < 3 && g < 30) { d.setDate(d.getDate() - 1); if (!closed(d, hol)) n++; g++; } return d; }
     function label(d) { return (d.getMonth() + 1) + "月" + d.getDate() + "日（" + WEEK[d.getDay()] + "）"; }
     fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/koimariContent/holidays.json").then(function (r) { return r.json(); }).catch(function () { return null; }).then(function (hol) {
