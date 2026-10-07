@@ -726,6 +726,7 @@ function hasMeaningfulNote(note) {
 }
 // 「¥◯◯〜」で案内する理由の注記。備考にご希望がある場合は、内容確認のうえ電話で価格・納期を回答する。
 function estimateReasonLines(data) {
+  if (data && (data.toppings || []).length && ((data.items || [])[0] || {}).category === "カットケーキ") return ["　※トッピング費用が追加になります", "　　確定金額はお電話でご案内します"];
   if (data && hasMeaningfulNote(data.note)) {
     return ["　※ご要望の内容を確認のうえ、", "　　お電話で価格・納期を", "　　ご案内いたします"];
   }

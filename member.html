@@ -105,6 +105,10 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .footer__mark{font-family:var(--font-mincho);font-size:13px;letter-spacing:.4em;color:#b09a82;margin-bottom:10px}
 @media(max-width:700px){body{font-size:18px}.header__inner{flex-wrap:wrap;row-gap:12px}.header__logo-mark{width:56px;height:56px}.header__logo-en{font-size:26px}.header__logo-jp{font-size:15px}.page-head{padding:44px 22px 40px}main{padding:40px 16px 80px}.notice-box,.profile-card,.section{padding:22px 20px}}
 .addon-toggle{width:100%;text-align:left;border:1px dashed #d8baa4;background:#fffaf3;color:#6b4a2a;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:700;cursor:pointer}
+#cakeFieldsWrap[data-shop] #reserveColorCreamField,#cakeFieldsWrap[data-shop] #reserveAddOnsField,#cakeFieldsWrap[data-shop] #reserveTopCutField,#cakeFieldsWrap[data-shop] #reserveStrawberryAddField,#cakeFieldsWrap[data-shop] #refImageBox{display:none!important}
+#cakeFieldsWrap[data-shop="addon"] #reserveToppingsField,#cakeFieldsWrap[data-shop="xmas"] #reserveToppingsField{display:none!important}
+#reserveCutToppingNote{display:none}
+#cakeFieldsWrap[data-shop="cut"] #reserveCutToppingNote{display:block}
 </style>
 </head>
 <body>
@@ -314,6 +318,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveToppingsField">
           <label class="field__label">トッピング（オプション）</label>
+          <div id="reserveCutToppingNote" style="margin-bottom:8px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:8px 12px;font-size:13.5px;color:#6b4a12;line-height:1.7;">カットケーキへのトッピングは、トッピング費用が追加になります（確定のお見積もりは、お電話の際またはその後にご案内します）</div>
           <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・アラザンを選んだ場合は、数量によって金額が異なる場合がございます。別途お見積もりさせていただきます。</div>
           <div class="field__hint" style="margin-top:6px;">※金箔は取り寄せとなるため、お渡しまでお日にちをいただきます。</div>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
@@ -1352,6 +1357,7 @@ function renderShopPicker() {
   const field = document.getElementById("reserveShopField");
   if (!field) return;
   const m = shopMode();
+  { const w = document.getElementById("cakeFieldsWrap"); if (w) { if (m) w.dataset.shop = m; else delete w.dataset.shop; } }
   field.style.display = m ? "" : "none";
   const dateEl = document.getElementById("reserveDate");
   if (dateEl) {
@@ -1442,10 +1448,11 @@ function buildShopReservation(base) {
   if (m === "cut") {
     const sel = shopCutSelected();
     d.type = "カットケーキ予約";
+    { const tp = selectedToppings(); if (tp.length) { d.toppings = tp; d.estimateNotes = ["トッピング費用が追加になります（確定のお見積もりは、お電話の際またはその後にご案内します）"]; } }
     d.items = sel.length ? sel.map(c => ({ category: "カットケーキ", image: c.img, size: "", flavor: c.name, qty: c.qty, price: c.price, message: "" })) : [{ category: "カットケーキ", image: "", size: "", flavor: "", qty: 0, message: "" }];
     d.cutOrder = { count: t.count };
     d.subtotal = t.subtotal;
-    d.priceIsFixed = !!t.priced && !hasMeaningfulNote(d.note);
+    d.priceIsFixed = !!t.priced && !hasMeaningfulNote(d.note) && !(d.toppings || []).length;
   } else {
     const c = ((xmasConf && xmasConf.items) || [])[xmasPick.i] || {};
     d.type = "クリスマスケーキ予約";
@@ -1464,7 +1471,8 @@ function shopConfirmRows(data) {
   const isCut = data.type === "カットケーキ予約" || isAddonOnly;
   const title = isCut ? (isAddonOnly ? "砂糖菓子・オーナメント" : "カットケーキ") + "（合計" + ((data.cutOrder || {}).count || 0) + "個）" : "クリスマスケーキ";
   const rows = isCut ? data.items.map(it => it.flavor + " × " + it.qty + (it.price ? "（¥" + (it.price * it.qty).toLocaleString() + "）" : "")) : [(data.xmasCake || {}).name + "（" + (data.xmasCake || {}).size + "）"];
-  const price = data.subtotal ? yenFixed(data.subtotal) + "（税込）" : "お電話でご案内します";
+  if ((data.toppings || []).length) rows.push("トッピング：" + data.toppings.join("・") + "（費用は追加）");
+  const price = data.subtotal ? yenFixed(data.subtotal) + ((data.toppings || []).length ? "〜（税込・トッピング費用は別途）" : "（税込）") : "お電話でご案内します";
   return { title, rows, price };
 }
 
@@ -1605,7 +1613,8 @@ function updateLivePriceDisplay() {
     const t = shopTotal();
     bar.style.display = "flex";
     const msg = sm === "cut" && t.count < SHOP_CUT_MIN ? "カットケーキは合計3個からご予約いただけます" : !t.count ? "ケーキとサイズを選ぶと、ここに表示されます" : !t.priced ? (sm === "xmas" ? "お値段は決まり次第ご案内します" : "料金はお電話でご案内します") : "";
-    bar.innerHTML = msg ? `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">${msg}</span>` : `<span class="live-total-bar__label">お支払い金額</span><span class="live-total-bar__amount">${yenFixed(t.subtotal)}<small>（税込）</small></span>`;
+    const tpOn = sm === "cut" && selectedToppings().length > 0;
+    bar.innerHTML = msg ? `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">${msg}</span>` : tpOn ? `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__amount">${yenFixed(t.subtotal)}〜<small>（税込）</small></span><span class="live-total-bar__consult">トッピング費用が追加になります</span>` : `<span class="live-total-bar__label">お支払い金額</span><span class="live-total-bar__amount">${yenFixed(t.subtotal)}<small>（税込）</small></span>`;
     return;
   }
   const result = computeCakeSubtotal();
@@ -1873,7 +1882,7 @@ onValue(ref(db, "koimariContent/cakeFlavors"), (snap) => {
 // （同じものを2か所で管理しないため。「ケーキの種類」タブは廃止）。
 onValue(ref(db, "siteImages/rollcakes"), (snap) => {
   const v = snap.val();
-  const names = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).filter(it => it && it.name && it.visible !== false).map(it => String(it.name).replace(/<[^>]*>/g, ""));
+  const names = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).filter(it => it && it.name && it.visible !== false && !it.notForSale).map(it => String(it.name).replace(/<[^>]*>/g, ""));
   currentRollFlavors = names.length ? names : DEFAULT_ROLL_FLAVORS;
   if ((document.querySelector('input[name="reserveType"]:checked') || {}).value === "ロールケーキ") populateFlavorSelect(currentRollFlavors);
 });
@@ -2439,7 +2448,7 @@ let refLastKey = "";
     const res = await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/decorationCakes.json");
     const data = res.ok ? await res.json() : null;
     const arr = Array.isArray(data) ? data : Object.values(data || {});
-    refCakes = arr.filter(it => it && it.img && it.visible !== false && it.orderMode !== "custom").map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }));
+    refCakes = arr.filter(it => it && it.img && it.visible !== false && it.orderMode !== "custom" && !it.notForSale).map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }));
   } catch (e) { refCakes = []; }
   updateRefImage();
 })();
