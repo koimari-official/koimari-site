@@ -568,8 +568,8 @@ function renderInfo(item, plainName, config) {
   const priceEl = document.getElementById('pdPrice');
   priceEl.innerHTML = '';
   if (isCustom) {
-    priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__note">写真のケーキをもとに、パティシエがお見積もり・納期をご回答します</span>';
-    if (PH) PH.load().then(pr => { const g = PH.guideText(item, pr); currentGuide = g; if (g) priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__guide">目安：' + esc(g) + '<small>（税込）</small></span><span class="pd-price__note">写真のケーキをもとに、パティシエがお見積もり・納期をご回答します</span>'; }).catch(() => {});
+    priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__note">写真のケーキをもとに、スタッフがお見積もり・納期をご回答します</span>';
+    if (PH) PH.load().then(pr => { const g = PH.guideText(item, pr); currentGuide = g; if (g) priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__guide">目安：' + esc(g) + '<small>（税込）</small></span><span class="pd-price__note">写真のケーキをもとに、スタッフがお見積もり・納期をご回答します</span>'; }).catch(() => {});
   }
   priceHintFor(item, productType).then(t => {
     if (!t) return;
@@ -628,7 +628,7 @@ function renderSizeTable(item, photoSize) {
     box.innerHTML = '<table class="pd-size-table"><thead><tr><th>サイズ</th><th>直径</th><th>人数の目安</th>' + (custom ? '' : '<th>お値段（税込）</th>') + '</tr></thead><tbody>' +
       rows.map(r => '<tr' + (r.size === photoSize ? ' class="is-photo"' : '') + '><td><b>' + r.size + '</b>' + (r.size === photoSize ? '<span class="pd-size-tag">写真のサイズ</span>' : '') + '</td><td>' + esc(r.cm) + '</td><td>' + esc(r.serves) + '</td>' +
         (custom ? '' : '<td class="pd-size-price">' + (r.price ? '¥' + Number(r.price).toLocaleString() : '<span class="pd-size-special">特殊仕様<br>（お電話で確認）</span>') + '</td>') + '</tr>').join('') + '</tbody></table>' +
-      (custom ? '<p class="pd-size-note">このケーキはフルオーダーのため、お値段はご予約後にパティシエがご回答します。</p>'
+      (custom ? '<p class="pd-size-note">このケーキはフルオーダーのため、お値段はご予約後にスタッフがご回答します。</p>'
         : '<p class="pd-included">ろうそく5本（1袋）とメッセージプレート1枚は、お値段に含まれています。</p>' + omakaseHtml());
     if (rows.length === 1 && !custom) renderBiggerSuggest(box, rows[0]);
   });

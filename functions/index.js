@@ -75,7 +75,7 @@ const STORE_INFO = `
 店名: こいまり（ケーキ屋）
 住所: 大阪府大阪市城東区成育2丁目13-15 アイビーマンション1階
 電話番号: 070-9158-0641
-基本営業時間: 火〜土 10:00-20:00 ／ 日 10:00-19:00
+基本営業時間: 火曜～土曜 10:00～20:00 ／ 日曜（月曜祝日）10:00～19:00 ／ 月曜定休（祝日を除く）
 定休日: 月曜日（月曜が祝日の場合はその月曜は営業） ※臨時休業がある場合は上記と異なることがあります
 `.trim();
 
@@ -804,7 +804,7 @@ function buildFollowMessage(pick, coupons) {
     "",
     "◆ご予約の流れ",
     "◇予約フォームで日時・お名前を入力",
-    "◇送信後、パティシエより",
+    "◇送信後、スタッフより",
     "　お電話で内容を確認いたします",
     "",
     "◆ご予約の締切",
@@ -937,7 +937,7 @@ function buildReceivedMessage(data) {
   if (data.quoteSeparately) lines.push("　※納期は別途ご回答いたします");
   lines.push("", data.christmasOrder && data.priceIsFixed ? "◆お支払い金額" : fixedNow && !data.quoteSeparately ? "◆お支払い金額（確定）" : "◆お見積もり");
   if (data.quoteSeparately) {
-    lines.push("◇別途、パティシエより", "　お見積もりをご回答いたします");
+    lines.push("◇別途、スタッフより", "　お見積もりをご回答いたします");
     const guide = data.galleryPick && /^目安/.test(String(data.galleryPick.price || "")) ? String(data.galleryPick.price).replace(/^目安\s*/, "") : "";
     if (guide) lines.push("　（目安：" + guide + "・税込）");
   }
@@ -952,7 +952,7 @@ function buildReceivedMessage(data) {
     lines.push(
       "",
       "◆このあとの流れ",
-      data.quoteSeparately ? "◇パティシエがお見積もり・納期を" : "◇パティシエが内容確認のお電話をします",
+      data.quoteSeparately ? "◇スタッフがお見積もり・納期を" : "◇スタッフが内容確認のお電話をします",
       data.quoteSeparately ? "　お電話でご回答します" : "　（070-9158-0641から発信）",
       "◇お電話がつながらない場合は、",
       "　ご予約をキャンセルさせて",

@@ -278,7 +278,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="page-head__inner">
     <span class="page-head__en">Gallery &amp; Voices</span>
     <h1 class="page-head__title">みんなの「美味しい！」を集めました</h1>
-    <p class="page-head__lead">写真から気になるケーキを選んで、そのままLINEでご予約いただけます。<br>仕様・お値段・お受け取り日は、ご予約後にパティシエがお電話で確定いたしますので、ご安心ください。</p>
+    <p class="page-head__lead">写真から気になるケーキを選んで、そのままLINEでご予約いただけます。<br>仕様・お値段・お受け取り日は、ご予約後にスタッフがお電話で確定いたしますので、ご安心ください。</p>
   </div>
 </div>
 <main>
@@ -556,7 +556,7 @@ function renderGrid(){
           ${g.date ? `<span class="gal-card__date">${escape(g.date)}</span>` : ""}
         </div>
         <button type="button" class="gal-card__cta gal-card__reserve" data-reserve-no="${g.__no}">この内容で予約する</button>
-        <p class="gal-card__line-note">オーダーメイドのため、ご予約後にパティシエがお見積もり・納期をお電話でご回答します</p>`;
+        <p class="gal-card__line-note">オーダーメイドのため、ご予約後にスタッフがお見積もり・納期をお電話でご回答します</p>`;
     card.innerHTML = `
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
@@ -715,7 +715,7 @@ function openLightbox(photos, title, g) {
   if (info) {
     if (g && g.__no) {
       const no = String(g.__no).padStart(2, "0");
-      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><button type="button" class="lightbox__info-btn gal-card__reserve" data-reserve-no="${g.__no}">この内容で予約する</button><div class="lightbox__info-note">ご予約後にパティシエがお見積もり・納期をお電話でご回答します</div>`;
+      info.innerHTML = `<div class="lightbox__info-title">作品 No.${no}　${escape(title || "")}</div><button type="button" class="lightbox__info-btn gal-card__reserve" data-reserve-no="${g.__no}">この内容で予約する</button><div class="lightbox__info-note">ご予約後にスタッフがお見積もり・納期をお電話でご回答します</div>`;
       info.classList.add("show");
       info.onclick = e => { e.stopPropagation(); const b = e.target.closest("[data-reserve-no]"); if (b) reservePortfolio(b); };
     } else { info.classList.remove("show"); info.innerHTML = ""; }
@@ -795,13 +795,13 @@ async function fetchSiteImagesKey(key){
 (async () => {
   const keys = ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns"];
   const data = {};
-  // 5種類を同時に取得し、届いたカテゴリーから順に表示する（以前は1つずつ順番に取得し、全部そろうまで何も出なかった）
+  // 6種類を同時に取得し、全部そろってから一度に表示する
   await Promise.all(keys.map(async (key) => {
     for (let attempt = 0; attempt < 2; attempt++) {
       if (attempt > 0) await new Promise(r => setTimeout(r, 400));
       try { data[key] = await fetchSiteImagesKey(key); break; } catch (e) { /* リトライ */ }
     }
-    if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems({ [key]: data[key] }, false);
+    // 2026-10-08オーナー指示：届いたカテゴリーから順に出すと件数が段階的に増えて見えるため、全部そろってから一度に表示する
   }));
   if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems(data, true);
 })();

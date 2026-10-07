@@ -1559,7 +1559,7 @@ function estimateIsFixed(data) {
   return (data.items || []).length === 1;
 }
 function estimateHeadline(data) {
-  if (data.quoteSeparately) return "別途、パティシエよりお見積もり・納期をご回答いたします" + (data.galleryPick && /^目安/.test(data.galleryPick.price || "") ? "（" + data.galleryPick.price.replace(/^目安\s*/, "目安：") + "・税込）" : "");
+  if (data.quoteSeparately) return "別途、スタッフよりお見積もり・納期をご回答いたします" + (data.galleryPick && /^目安/.test(data.galleryPick.price || "") ? "（" + data.galleryPick.price.replace(/^目安\s*/, "目安：") + "・税込）" : "");
   if (data.priceNeedsConsult) return "特殊仕様のため、スタッフがお電話で仕様・料金を確認いたします";
   if (estimateIsFixed(data)) return yenFixed(data.subtotal) + "（税込）";
   return CakePricing.fromYen(data.subtotal) + "（税込）";
@@ -1574,7 +1574,7 @@ function paymentNoticeText(data) {
 }
 function estimateDisclaimer(data) {
   const pay = paymentNoticeText(data);
-  if (data && data.quoteSeparately) return (data.customBase ? data.customBase + "はフルオーダーのため、内容を確認のうえ" : "ギャラリーで選んだ写真の仕様は、内容を確認のうえ") + "パティシエよりお電話でお見積もり・納期をご回答いたします。" + pay;
+  if (data && data.quoteSeparately) return (data.customBase ? data.customBase + "はフルオーダーのため、内容を確認のうえ" : "ギャラリーで選んだ写真の仕様は、内容を確認のうえ") + "スタッフよりお電話でお見積もり・納期をご回答いたします。" + pay;
   if (data && hasMeaningfulNote(data.note) && !estimateIsFixed(data)) {
     return "備考にご記入いただいた内容を確認のうえ、お電話にて価格・納期をご案内いたします。" + pay;
   }
@@ -2810,7 +2810,7 @@ function setupReserveForm(uid, displayName) {
       thanksDesc.textContent = (isPhotoChristmas(data)
           ? "ご予約内容の控えと、お選びいただいたケーキの写真を、この後LINEのトークにお送りします。写真は昨年のケーキのため、砂糖菓子や一部の仕様が異なる場合がございます。仕様が確定しましたら、確定のケーキ画像をLINEでお送りします。"
           : data.quoteSeparately
-            ? "ご予約内容の控えを、この後LINEのトークにお送りします。ギャラリーで選んだ写真の仕様を確認のうえ、パティシエよりお電話でお見積もり・納期をご回答いたします。"
+            ? "ご予約内容の控えを、この後LINEのトークにお送りします。ギャラリーで選んだ写真の仕様を確認のうえ、スタッフよりお電話でお見積もり・納期をご回答いたします。"
             : "ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。")
         + paymentNoticeText(data)
         + "ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。";
