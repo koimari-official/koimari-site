@@ -4788,14 +4788,14 @@ function resCakeTitle(r) {
   const pick = r.galleryPick && r.galleryPick.name ? (r.galleryPick.no ? cakeNoLabel(r.galleryPick.no) + " " : "") + r.galleryPick.name : "";
   if (it.category === "ロールケーキ") return "ロールケーキ" + (it.flavor ? "（" + it.flavor + "）" : "");
   if (it.category === "焼き菓子") return "焼き菓子・ギフト";
-  if (it.category === "カットケーキ") return "カットケーキ（合計" + r.items.reduce((s, x) => s + (Number(x.qty) || 1), 0) + "個）";
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・オーナメント") return it.category + "（合計" + r.items.reduce((s, x) => s + (Number(x.qty) || 1), 0) + "個）";
   const occ = r.occasion === "その他" && r.occasionOther ? r.occasionOther : r.occasion;
   return (pick || ((occ && occ !== "その他" ? occ : "") + "デコレーションケーキ")) + (pick && occ ? "（" + occ + "）" : "");
 }
 function resCakeSpecLine(r) {
   const items = Array.isArray(r.items) ? r.items : [];
   const it = items[0] || {};
-  if (it.category === "カットケーキ") return items.map((x) => (x.flavor || "") + " × " + (x.qty || 1) + "個").join("、");
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・オーナメント") return items.map((x) => (x.flavor || "") + " × " + (x.qty || 1) + "個").join("、");
   if (it.category === "焼き菓子") return r.note ? String(r.note).slice(0, 80) : "";
   const parts = [];
   if (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1) {
@@ -4811,7 +4811,7 @@ function resCakeSpecLine(r) {
 function resExtrasLine(r) {
   const out = [];
   const it = (Array.isArray(r.items) && r.items[0]) || {};
-  if (it.category === "カットケーキ") return r.note ? "備考：" + r.note : "";
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・オーナメント") return r.note ? "備考：" + r.note : "";
   if (Array.isArray(r.cutCakes) && r.cutCakes.length) out.push("上に載せるカットケーキ：" + r.cutCakes.map((c) => c.name + "×" + c.qty).join("、"));
   if (r.colorCream && !(Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1)) out.push("カラークリーム " + r.colorCream.count + "色" + ((r.colorCream.colors || []).length ? "（" + r.colorCream.colors.join("・") + "）" : "") + (r.colorCream.note ? "：" + r.colorCream.note : ""));
   if (r.fruitExtra) out.push("フルーツ増量");
@@ -4919,7 +4919,7 @@ function resDaySummary(rows) {
     if (!items.length) { cnt[resCakeTitle(r)] = (cnt[resCakeTitle(r)] || 0) + 1; return; }
     items.forEach((it, i) => {
       const base = (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? "" : (r.creamType || it.category || ""));
-      const k = it.category === "カットケーキ" ? "カット " + it.flavor : (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
+      const k = it.category === "カットケーキ" ? "カット " + it.flavor : it.category === "砂糖菓子・オーナメント" ? it.flavor : (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
       cnt[k] = (cnt[k] || 0) + (Number(it.qty) || 1);
     });
   });

@@ -75,6 +75,9 @@ a.gal-card .gal-card__img{cursor:pointer}
 .gal-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .gal-card:hover .gal-card__img img{transform:scale(1.06)}
 .gal-card__cat{position:absolute;z-index:2;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
+#galleryGrid.is-addon{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))!important}
+#galleryGrid.is-addon .gal-card__cat{display:none}
+#galleryGrid.is-addon .gal-card__img img{object-fit:contain;background:#fff}
 .gal-card__seasonal{position:absolute;z-index:2;top:12px;right:12px;background:rgba(74,58,42,.88);color:#f5d6a8;font-family:var(--font-mincho);font-size:11.5px;letter-spacing:.06em;padding:5px 11px;font-weight:600;backdrop-filter:blur(4px)}
 /* 2026-09-22、既存の「featured」データ（おすすめ商品に使われている実際のフラグ）を流用した人気バッジ */
 .gal-card__popular{position:absolute;z-index:2;bottom:12px;left:12px;background:rgba(176,59,72,.92);color:#fff;font-family:var(--font-mincho);font-size:11.5px;letter-spacing:.06em;padding:5px 11px;font-weight:600;backdrop-filter:blur(4px);border-radius:999px}
@@ -355,6 +358,7 @@ const CATEGORIES = [
   { key: "roll", name: "ロールケーキ" },
   { key: "baked", name: "焼き菓子" },
   { key: "gift", name: "ギフト" },
+  { key: "addon", name: "砂糖菓子・オーナメント" },
   { key: "seasonal", name: "季節限定" }
 ];
 // 「季節限定」は他カテゴリーと並列の商品分類ではなく、各カテゴリーを横断するタグとして
@@ -417,6 +421,7 @@ let menuCutcakes = [];
 let menuRollcakes = [];
 let menuBaked = [];
 let menuGift = [];
+let menuAddOns = []; // 砂糖菓子・オーナメント（siteImages/cakeAddOns。2026-10-07）
 let menuSynced = false; // Firebase同期前は「準備中」ではなく「読み込み中」を出す
 let gallery = [];
 let voices = loadList("koimari_voices", DEFAULT_VOICES);
@@ -456,11 +461,13 @@ function buildGallery(){
     .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "gift", idx, "gift"));
   gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img).map(g => Object.assign({}, g, { title: isPlaceholderTitle(g.title) ? "" : g.title })), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
+  // 砂糖菓子・オーナメントは専用タブだけに出す（「すべて」には入れない。写真が小さめのため）
+  gallery = gallery.concat(menuAddOns.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img && c.name && c.name !== "新しい商品").map(({ c, idx }) => menuItemToCard(c, "addon", idx, "addOn")));
 }
 buildGallery();
 
 function getCount(catKey){
-  if (catKey === "all") return gallery.length;
+  if (catKey === "all") return gallery.filter(g => g.category !== "addon").length;
   if (CROSS_TAG_CATEGORIES.has(catKey)) return gallery.filter(g => g[catKey]).length;
   return gallery.filter(g => g.category === catKey).length;
 }
@@ -469,7 +476,7 @@ function getCount(catKey){
 function coverOf(catKey){
   // 「すべて」は、管理画面で「ギャラリーの『すべて』の写真にする」を付けた商品・作品の写真を優先（2026-10-02）
   if (catKey === "all") { const pinned = gallery.find(g => g.galleryCover && g.img); if (pinned) return pinned.img; }
-  const list = catKey === "all" ? gallery : CROSS_TAG_CATEGORIES.has(catKey) ? gallery.filter(g => g[catKey]) : gallery.filter(g => g.category === catKey);
+  const list = catKey === "all" ? gallery.filter(g => g.category !== "addon") : CROSS_TAG_CATEGORIES.has(catKey) ? gallery.filter(g => g[catKey]) : gallery.filter(g => g.category === catKey);
   const first = list.find(g => g.isMenuItem && g.img) || list.find(g => g.img);
   return first ? first.img : "";
 }
@@ -494,7 +501,8 @@ function renderTabs(){
 function renderGrid(){
   const grid = document.getElementById("galleryGrid");
   grid.innerHTML = "";
-  const filtered = currentCat === "all" ? gallery
+  grid.classList.toggle("is-addon", currentCat === "addon");
+  const filtered = currentCat === "all" ? gallery.filter(g => g.category !== "addon")
     : CROSS_TAG_CATEGORIES.has(currentCat) ? gallery.filter(g => g[currentCat])
     : gallery.filter(g => g.category === currentCat);
   if (!filtered.length) {
@@ -668,6 +676,7 @@ function applyFetchedMenuItems(data, done){
   if (Array.isArray(data.rollcakes)) menuRollcakes = data.rollcakes;
   if (Array.isArray(data.baked)) menuBaked = data.baked;
   if (Array.isArray(data.gift)) menuGift = data.gift;
+  if (Array.isArray(data.cakeAddOns)) menuAddOns = data.cakeAddOns;
   if (window.PhotoAdjust) [menuDecorationCakes, menuCutcakes, menuRollcakes, menuBaked, menuGift].forEach(l => window.PhotoAdjust.register(l));
   if (done !== false) menuSynced = true;
   buildGallery();
@@ -773,7 +782,7 @@ async function fetchSiteImagesKey(key){
   return res.json();
 }
 (async () => {
-  const keys = ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift"];
+  const keys = ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns"];
   const data = {};
   // 5種類を同時に取得し、届いたカテゴリーから順に表示する（以前は1つずつ順番に取得し、全部そろうまで何も出なかった）
   await Promise.all(keys.map(async (key) => {

@@ -396,7 +396,8 @@ const TYPE_CONFIG = {
   cutcake:        { key: "cutcakes",   back: "gallery.html?cat=cutcake", enField: "nameEn" },
   rollcake:       { key: "rollcakes",  back: "gallery.html?cat=roll", enField: "nameEn" },
   baked:          { key: "baked",      back: "gallery.html?cat=baked", enField: "nameEn" },
-  gift:           { key: "gift",       back: "gallery.html?cat=gift", enField: "nameEn" }
+  gift:           { key: "gift",       back: "gallery.html?cat=gift", enField: "nameEn" },
+  addOn:          { key: "cakeAddOns", back: "gallery.html?cat=addon", enField: "nameEn" }
 };
 
 function esc(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
@@ -509,7 +510,7 @@ function renderProductPage(){
   renderRelated(list, config);
 }
 
-const TYPE_LABELS = { decorationCake: 'デコレーションケーキ', cutcake: 'カットケーキ', rollcake: 'ロールケーキ', baked: '焼き菓子', gift: 'ギフト', category: '商品・ケーキ', recommended: 'おすすめ' };
+const TYPE_LABELS = { decorationCake: 'デコレーションケーキ', cutcake: 'カットケーキ', rollcake: 'ロールケーキ', baked: '焼き菓子', gift: 'ギフト', addOn: '砂糖菓子・オーナメント', category: '商品・ケーキ', recommended: 'おすすめ' };
 function priceHintFor(it, type) {
   if (!window.KoimariPriceHint) return Promise.resolve('');
   // カットケーキは価格欄が空なら、原価計算アプリの販売価格（管理画面で紐づけた商品名→商品名の一致）を出す（2026-10-04）
@@ -630,7 +631,9 @@ function renderLeadAndTel(item, size) {
   lead.style.display = howto.style.display = isProduct ? '' : 'none';
   if (!isProduct) return;
   const custom = productType === 'decorationCake' && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === 'custom';
-  const rows = productType === 'cutcake'
+  const rows = productType === 'addOn'
+    ? ['ケーキのご予約に<b>追加</b>することも、<b>砂糖菓子・オーナメントだけ</b>のご注文もできます。', 'ご注文はお受け取りの<b>3営業日前まで</b>承ります。', '3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。']
+    : productType === 'cutcake'
     ? ['カットケーキのご予約は<b>3個から</b>、<b>お引き取りの3営業日前まで</b>承ります。', '2個以下のご注文や、3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。']
     : ['お引き渡し日は資材の在庫状況によります。お早めのご相談をおすすめいたします。',
        custom ? 'フルオーダーのケーキ：<b>14日程度</b>お日にちをいただく場合がございます。' : '定番ケーキ：<b>3営業日以降</b>のお引き取り',
