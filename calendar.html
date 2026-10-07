@@ -76,6 +76,9 @@ main{padding:28px 24px 56px}
   .bcal__dow{font-size:15px}
   .bcal__note{font-size:16px}
 }
+body.embed .cal-head,body.embed .cal-title,body.embed .cal-back{display:none!important}
+body.embed main{padding-top:12px!important}
+body.embed,html:has(body.embed){min-height:0!important;height:auto!important}
 </style>
 </head>
 <body>
@@ -113,7 +116,7 @@ main{padding:28px 24px 56px}
   </div>
 
   <p class="bcal__note">
-    基本定休日：<strong>月曜日</strong>（月曜が祝日の場合は営業します）<br>
+    基本定休日：<strong>月曜日</strong>（月曜が祝日の場合は営業し、翌平日がお休みです）<br>
     営業時間：火曜～土曜 <strong>10:00～20:00</strong> ／ 日曜（月曜祝日） <strong>10:00～19:00</strong><br>
     臨時休業や営業時間の変更がある場合は、このカレンダーに反映しています。
   </p>
@@ -177,6 +180,9 @@ const EVENTS = {
 };
 
 let bcalMonth = new Date(); bcalMonth.setDate(1);
+// お知らせに載せるとき（2026-10-08）：?m=2026-11 でその月を表示、?embed=1 でヘッダー等を省いて高さを親ページへ伝える
+{ const q = new URLSearchParams(location.search); const m = (q.get("m") || "").match(/^(\d{4})-(\d{2})$/); if (m) bcalMonth = new Date(+m[1], +m[2] - 1, 1);
+  if (q.get("embed") === "1") { document.body.classList.add("embed"); const send = () => { try { const mn = document.querySelector("main"); parent.postMessage({ koimariCalHeight: Math.ceil(mn.getBoundingClientRect().bottom + window.scrollY + 16) }, "*"); } catch (e) {} }; new ResizeObserver(send).observe(document.body); window.addEventListener("load", send); } }
 
 function renderBcal(){
   const h = holidays || DEFAULT_HOLIDAYS;

@@ -5578,6 +5578,7 @@ function renderNewsAdmin() {
     grid.className = "img-grid";
     newsData.forEach((n, i) => {
       if (n.visible === undefined) n.visible = true;
+      if (!n.id) n.id = "n" + Date.now().toString(36) + i; // 詳細ページ（news.html?id=）のための固定ID
       const item = makeImageItem({
         preview: n.img,
         originalSrc: n.imgOriginal,
@@ -5587,7 +5588,7 @@ function renderNewsAdmin() {
           { label: "日付（例: 2026.04.20）", key: "date", value: n.date||"", type: "input" },
           { label: "タグ（NEW・おすすめ・お知らせ等）", key: "tag", value: n.tag||"", type: "input" },
           { label: "タイトル", key: "title", value: n.title||"", type: "input" },
-          { label: "概要文（カードに表示されます）", key: "excerpt", value: n.excerpt||"", type: "textarea" },
+          { label: "本文（お知らせの詳細ページに表示されます）", key: "excerpt", value: n.excerpt||"", type: "textarea" },
           { label: "リンク先URL（例: reservation.html / #recommended / https://...）", key: "url", value: n.url||"", type: "input" },
           { label: "アイキャッチ画像URL", key: "img", value: n.img||"", type: "input" }
         ],
@@ -5602,6 +5603,19 @@ function renderNewsAdmin() {
       });
       appendVisibleToggle(item, () => newsData[i].visible, () => { newsData[i].visible = !newsData[i].visible; renderNewsAdmin(); });
       appendPhotoAdjust(item, newsData[i], "img", () => {});
+      // 営業日のお知らせ用：お知らせの詳細ページに営業日カレンダーを載せる（2026-10-08オーナー指示）
+      {
+        const cb = document.createElement("div");
+        cb.style.cssText = "margin-top:10px;padding:10px 12px;background:#f3f8f2;border-left:3px solid #5d8a4e;font-size:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;";
+        const now = new Date(), months = [0, 1, 2, 3].map((k) => { const d = new Date(now.getFullYear(), now.getMonth() + k, 1); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); });
+        if (n.calMonth && !months.includes(n.calMonth)) months.unshift(n.calMonth);
+        cb.innerHTML = '<label style="display:flex;align-items:center;gap:6px;font-weight:700;cursor:pointer;"><input type="checkbox" class="nw-cal-on"' + (n.showCalendar ? " checked" : "") + '> 営業日カレンダーを載せる</label>' +
+          '<select class="nw-cal-m" style="padding:4px 8px;"' + (n.showCalendar ? "" : " disabled") + '>' + months.map((m) => '<option value="' + m + '"' + ((n.calMonth || months[n.calMonth ? 0 : 1]) === m ? " selected" : "") + ">" + m.replace("-", "年") + "月</option>").join("") + "</select>" +
+          '<span style="color:var(--color-text-soft);">チェックすると、トップのお知らせを押した先にカレンダーが表示されます</span>';
+        cb.querySelector(".nw-cal-on").addEventListener("change", (e) => { newsData[i].showCalendar = e.target.checked; if (e.target.checked && !newsData[i].calMonth) newsData[i].calMonth = cb.querySelector(".nw-cal-m").value; cb.querySelector(".nw-cal-m").disabled = !e.target.checked; });
+        cb.querySelector(".nw-cal-m").addEventListener("change", (e) => { newsData[i].calMonth = e.target.value; });
+        item.appendChild(cb);
+      }
       grid.appendChild(item);
     });
     wrap.appendChild(grid);
@@ -5636,7 +5650,7 @@ document.getElementById("addNews").addEventListener("click", () => {
   if (!newsData) newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
   const today = new Date();
   const ds = `${today.getFullYear()}.${(today.getMonth()+1).toString().padStart(2,"0")}.${today.getDate().toString().padStart(2,"0")}`;
-  newsData.unshift({ date: ds, tag: "NEW", title: "新しいお知らせ", excerpt: "", url: "#", img: "", visible: true });
+  newsData.unshift({ id: "n" + Date.now().toString(36), date: ds, tag: "NEW", title: "新しいお知らせ", excerpt: "", url: "#", img: "", visible: true });
   renderNewsAdmin();
 });
 
