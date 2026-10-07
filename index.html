@@ -1187,7 +1187,8 @@ const DEFAULT_INSTA = { visible: false }; // 管理画面で最新投稿を登�
 function loadImages(){try{const s=localStorage.getItem("koimari_images");if(s){const p=JSON.parse(s);return{hero:p.hero||[],greeting:p.greeting||DEFAULT_IMAGES.greeting,categories:p.categories||DEFAULT_IMAGES.categories,experiences:p.experiences||DEFAULT_IMAGES.experiences}}}catch(e){}return {hero:[],greeting:DEFAULT_IMAGES.greeting,categories:DEFAULT_IMAGES.categories,experiences:DEFAULT_IMAGES.experiences}}
 function loadNews(){try{const r=localStorage.getItem("koimari_news");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_NEWS}
 function loadHolidays(){try{const r=localStorage.getItem("koimari_holidays");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_HOLIDAYS}
-function loadSpotlight(){try{const r=localStorage.getItem("koimari_spotlight");if(r){const d=JSON.parse(r);if(Array.isArray(d)){const v=d.find(s=>s.visible!==false);return v||DEFAULT_SPOTLIGHT}return d}}catch(e){}return DEFAULT_SPOTLIGHT}
+// 公開中の特集が無いとき（管理画面で「非表示にする」）は、見本（母の日）を出さずに特集枠ごと隠す（2026-10-08）
+function loadSpotlight(){try{const r=localStorage.getItem("koimari_spotlight");if(r){const d=JSON.parse(r);if(Array.isArray(d)){return d.find(s=>s&&s.visible!==false)||null}return d}}catch(e){}return null}
 function loadStats(){try{const r=localStorage.getItem("koimari_stats");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_STATS}
 function loadVoices(){try{const r=localStorage.getItem("koimari_voices");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_VOICES}
 function loadInsta(){try{const r=localStorage.getItem("koimari_insta");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_INSTA}
@@ -1353,6 +1354,7 @@ function renderNews(){
 function renderSpotlight(){
   const en=I18nCtrl.isEn();
   const sp=loadSpotlight();
+  { const sec=document.getElementById("spotlight"); const ok=!!(sp&&sp.img&&String(sp.title||"").trim()); if(sec) sec.style.display=ok?"":"none"; if(!ok) return; }
   const badge=en?(sp.badgeEn||sp.badge):sp.badge;
   const title=en?(sp.titleEn||sp.title):sp.title;
   const sub=en?(sp.subEn||sp.sub):sp.sub;
