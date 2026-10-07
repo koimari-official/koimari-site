@@ -444,7 +444,7 @@ let currentCat = CATEGORIES.some(c => c.key === urlCat) ? urlCat : "all";
 
 function menuItemToCard(item, catKey, idx, productType){
   const custom = productType === "decorationCake" && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === "custom";
-  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, featured: !!item.featured, galleryCover: !!item.galleryCover, custom, cakeNo: productType === "decorationCake" ? Number(item.no) || 0 : 0 };
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, notForSale: !!item.notForSale, featured: !!item.featured, galleryCover: !!item.galleryCover, custom, cakeNo: productType === "decorationCake" ? Number(item.no) || 0 : 0 };
 }
 // 画像が未設定の商品は、公開ページではエラーのように見えてしまうため一覧に出さない（2026-09-28オーナー指示）。
 // 並び順は「作品ポートフォリオ→デコレーション→カット→ロール→焼き菓子→ギフト」で、各カテゴリー内は管理画面の並び順。
@@ -561,6 +561,7 @@ function renderGrid(){
       <div class="gal-card__img">
         ${catName ? `<span class="gal-card__cat">${escape(catName)}</span>` : ""}
         ${g.seasonal ? `<span class="gal-card__seasonal">季節限定</span>` : ""}
+        ${g.notForSale ? `<span class="gal-card__seasonal" style="top:auto;bottom:12px;background:rgba(80,80,80,.85);color:#fff;">ただいま販売休止中</span>` : ""}
         ${g.featured ? `<span class="gal-card__popular">★ 人気</span>` : ""}
         ${!g.isMenuItem ? `<span class="gal-card__custom">オーダーメイド</span>` : (g.category === "cake" ? (g.custom ? `<span class="gal-card__custom">フルオーダー</span>` : `<span class="gal-card__standard">定番</span>`) : "")}
         <img src="${escape(g.img)}" alt="${escape(g.title)}" loading="lazy" decoding="async">

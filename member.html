@@ -710,7 +710,7 @@ onValue(ref(db, "siteImages/cakeAddOns"), (snap) => {
   const arr = Array.isArray(v) ? v : (v ? Object.values(v) : []);
   if (window.PhotoAdjust) window.PhotoAdjust.register(arr); // 管理画面で調整した色味・表示位置を反映
   // 写真が未登録・名前が初期値のままの商品（管理画面で追加しただけで未入力）はお客様に出さない（2026-10-07）
-  addOnCatalog = arr.filter(it => it && it.name && it.visible !== false && it.img && it.name !== "新しい商品").map(it => ({ name: String(it.name), priceNum: parseYenNumber(it.price), img: it.img || "", kind: it.kind || "", desc: it.desc || "" }));
+  addOnCatalog = arr.filter(it => it && it.name && it.visible !== false && it.img && it.name !== "新しい商品" && !it.notForSale).map(it => ({ name: String(it.name), priceNum: parseYenNumber(it.price), img: it.img || "", kind: it.kind || "", desc: it.desc || "" }));
   renderAddOns();
   updateCakeOptionUI();
   updateLivePriceDisplay();
@@ -1248,7 +1248,7 @@ function cutMax() { return CUT_MAX_BY_SIZE[cutBaseSize()] || 2; }
 let cutCatalog = [], cutPriceMap = {}, cutRaw = [];
 const cutQty = {};
 function rebuildCutCatalog() {
-  cutCatalog = cutRaw.filter(it => it && it.name && it.visible !== false && it.topperOk).sort((a, b) => (String(b.name).indexOf("たぬきち") >= 0) - (String(a.name).indexOf("たぬきち") >= 0)).map(it => {
+  cutCatalog = cutRaw.filter(it => it && it.name && it.visible !== false && it.topperOk && !it.notForSale).sort((a, b) => (String(b.name).indexOf("たぬきち") >= 0) - (String(a.name).indexOf("たぬきち") >= 0)).map(it => {
     const p = cutPriceMap[it.costName || ""] || cutPriceMap[it.name] || 0;
     return { name: String(it.name), img: it.img || "", price: p || parseYenNumber(it.price) };
   });
@@ -1318,7 +1318,7 @@ function shopMode() {
   return v === "カットケーキ" ? "cut" : v === "クリスマスケーキ" ? "xmas" : v === "砂糖菓子・オーナメント" ? "addon" : "";
 }
 function shopCutCatalog() {
-  return cutRaw.filter(it => it && it.name && it.visible !== false && it.img).map(it => ({
+  return cutRaw.filter(it => it && it.name && it.visible !== false && it.img && !it.notForSale).map(it => ({
     name: String(it.name).replace(/<[^>]*>/g, ""), img: it.img || "",
     price: cutPriceMap[it.costName || ""] || cutPriceMap[it.name] || parseYenNumber(it.price) || 0
   }));

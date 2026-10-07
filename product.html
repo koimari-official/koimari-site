@@ -500,7 +500,7 @@ function renderProductPage(){
   // ここでのカテゴリー(type=category)は商品ではないため対象外。
   const oldReserve = document.getElementById('productReserve');
   if (oldReserve) oldReserve.remove();
-  if (productType !== 'category' && productType !== 'recommended' && window.KoimariDraft) {
+  if (productType !== 'category' && productType !== 'recommended' && window.KoimariDraft && !item.notForSale) {
     const box = document.createElement('div');
     box.id = 'productReserve';
     box.className = 'product-reserve';
@@ -518,6 +518,7 @@ function renderProductPage(){
     });
   }
   setupSticky(item);
+  if (item.notForSale) { const st = document.getElementById('pdSticky'); if (st) st.remove(); } // 販売休止中は予約ボタンを出さない
   renderRelated(list, config);
 }
 
@@ -649,6 +650,7 @@ function renderLeadAndTel(item, size) {
     : ['お引き渡し日は資材の在庫状況によります。お早めのご相談をおすすめいたします。',
        custom ? 'フルオーダーのケーキ：<b>14日程度</b>お日にちをいただく場合がございます。' : '定番ケーキ：<b>3営業日以降</b>のお引き取り',
        '3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。'];
+  if (item.notForSale) rows.unshift('<b>この商品は、ただいま販売をお休みしています。</b>再開の時期はお電話でお問い合わせください。');
   lead.innerHTML = '<h2 class="pd-block__h">お引き渡しの目安・ご注意</h2><ul class="pd-lead__list">' + rows.map(r => '<li>' + r + '</li>').join('') + '</ul>';
   const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
   const say = no ? '「' + no + (size ? '・' + esc(size) : '') + '」' : '「' + esc(String(item.name || '').replace(/<[^>]*>/g, '')) + '」';

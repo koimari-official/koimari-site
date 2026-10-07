@@ -393,6 +393,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-short{margin-top:6px;background:#fdeeea;border:2px solid #b03b48;border-radius:8px;padding:8px 10px;font-size:13.5px;color:#8a2a1a;line-height:1.6}
 .rc-short__btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 .rc-short__btns button{font-size:13px;font-weight:700;border:1px solid #b03b48;background:#fff;color:#b03b48;border-radius:999px;padding:6px 12px;cursor:pointer}
+.add-bottom{display:flex;justify-content:center;margin:18px 0 6px}
+.add-bottom .btn{min-width:240px}
 .move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
 .move-cat label{font-weight:700;color:#4a6f9c}
 .move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
@@ -2704,19 +2706,42 @@ function appendReorderControls(item, arr, i, onChange, catKey) {
     }
   }
   if (arr.length < 2) return;
-  const box = document.createElement("div");
-  box.style.cssText = "display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;";
-  const mk = (label, fn) => {
-    const btn = document.createElement("button");
-    btn.type = "button"; btn.textContent = label; btn.className = "btn btn--small btn--ghost"; btn.style.fontSize = "12px";
-    btn.addEventListener("click", fn);
-    box.appendChild(btn);
+  const build = (top) => {
+    const box = document.createElement("div");
+    box.className = "reorder-box" + (top ? " reorder-box--top" : "");
+    box.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;" + (top ? "margin:0 0 10px;" : "margin-top:10px;");
+    const mk = (label, fn) => {
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.textContent = label; btn.className = "btn btn--small btn--ghost"; btn.style.fontSize = "12px";
+      btn.addEventListener("click", fn);
+      box.appendChild(btn);
+    };
+    if (i > 0) mk("⤒ 先頭へ", () => { const [t] = arr.splice(i, 1); arr.unshift(t); onChange(); });
+    if (i > 0) mk("↑ 上へ", () => { const t = arr[i - 1]; arr[i - 1] = arr[i]; arr[i] = t; onChange(); });
+    if (i < arr.length - 1) mk("↓ 下へ", () => { const t = arr[i + 1]; arr[i + 1] = arr[i]; arr[i] = t; onChange(); });
+    if (i < arr.length - 1) mk("⤓ 最後へ", () => { const [t] = arr.splice(i, 1); arr.push(t); onChange(); });
+    return box;
   };
-  if (i > 0) mk("⤒ 先頭へ", () => { const [t] = arr.splice(i, 1); arr.unshift(t); onChange(); });
-  if (i > 0) mk("↑ 上へ", () => { const t = arr[i - 1]; arr[i - 1] = arr[i]; arr[i] = t; onChange(); });
-  if (i < arr.length - 1) mk("↓ 下へ", () => { const t = arr[i + 1]; arr[i + 1] = arr[i]; arr[i] = t; onChange(); });
-  item.appendChild(box);
+  item.insertBefore(build(true), item.firstChild);
+  item.appendChild(build(false));
 }
+// 「＋ 商品を追加」ボタンを一覧の下にも置く（2026-10-08オーナー指示）。下のボタンは上のボタンと同じ動きをする
+document.addEventListener("DOMContentLoaded", () => {
+  ["addDecorationCake", "addCutcake", "addRollcake", "addBaked", "addGift", "addCakeAddOn", "addGallery", "addCategory", "addHero", "addNews"].forEach((id) => {
+    const top = document.getElementById(id);
+    if (!top) return;
+    const head = top.closest(".panel__head");
+    const wrap = head && head.parentElement;
+    if (!wrap || wrap.querySelector(".add-bottom[data-for='" + id + "']")) return;
+    const box = document.createElement("div");
+    box.className = "add-bottom"; box.dataset.for = id;
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "btn"; b.textContent = top.textContent;
+    b.addEventListener("click", () => { top.click(); setTimeout(() => box.scrollIntoView({ block: "end", behavior: "smooth" }), 150); });
+    box.appendChild(b);
+    wrap.appendChild(box);
+  });
+});
 
 function renderHero() {
   const grid = document.getElementById("heroGrid"); grid.innerHTML = "";
@@ -3033,6 +3058,8 @@ function appendExtraFlags(item, obj, onUpdate) {
   };
   box.appendChild(mk("★ おすすめ商品に表示", "featured"));
   box.appendChild(mk("❄ 季節限定", "seasonal"));
+  // 今は作っていない商品（2026-10-08オーナー指示）。ギャラリーには「販売休止中」と出し、予約フォームでは選べなくする
+  box.appendChild(mk("販売休止中（予約で選べなくする）", "notForSale"));
   // ギャラリーのジャンル選択「すべて」の丸い写真に使う（2026-10-02オーナー指示）。複数に付けた場合はギャラリーで前に並ぶものが優先
   box.appendChild(mk("ギャラリーの「すべて」の写真にする", "galleryCover"));
   item.appendChild(box);
