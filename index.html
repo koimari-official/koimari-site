@@ -1489,12 +1489,21 @@ window.renderInstaCard=renderInstaCard;
 renderInstaCard();
 
 (function(){
-  if (location.hash !== "#shop") return;
+  // #shop、またはLINEのリッチメニュー（open.html経由）からの ?go=shop のとき（Chromeで開くとき#が渡せないため）
+  if (location.hash !== "#shop" && !/[?&]go=shop/.test(location.search)) return;
   let userMoved = false;
   ["wheel", "touchstart", "keydown"].forEach((ev) => window.addEventListener(ev, () => { userMoved = true; }, { once: true, passive: true }));
+  // iPhone（Safari・LINE内ブラウザ）は表示位置の自動補正が無いため、上の写真やお知らせが後から読み込まれると画面がずれる。
+  // 読み込みが落ち着くまで（最大15秒・お客様が画面に触れるまで）、ページの高さが変わるたびに「店舗情報・アクセス」へ戻す（2026-10-07）
   const go = () => { if (!userMoved) { const el = document.getElementById("shop"); if (el) el.scrollIntoView({ block: "start" }); } };
-  [300, 900, 1800, 3000].forEach((t) => setTimeout(go, t));
+  [0, 300, 900, 1800, 3000].forEach((t) => setTimeout(go, t));
   window.addEventListener("load", go);
+  if (window.ResizeObserver) {
+    const ro = new ResizeObserver(() => go());
+    ro.observe(document.body);
+    setTimeout(() => ro.disconnect(), 15000);
+    ["wheel", "touchstart", "keydown"].forEach((ev) => window.addEventListener(ev, () => ro.disconnect(), { once: true, passive: true }));
+  }
 })();
 (function(){
   const nav = document.getElementById("globalNav"), btn = document.getElementById("menuToggle");

@@ -1292,8 +1292,9 @@ exports.sendCustomerReservationEmail = onValueCreated(
 // 「クーポン」タップ時はメッセージが送信され、下のlineWebhook側でkoimariOps/coupons
 // （admin.html「クーポン」タブ）を見て、有効なクーポンがあればその内容を、無ければ
 // その旨を返信する。クーポン切れでもアイコン自体は常設のままでよいというオーナー判断（2026-08-31）。
-const GALLERY_URL = "https://koimari-official.github.io/koimari-site/gallery.html";
-const SHOP_INFO_URL = "https://koimari-official.github.io/koimari-site/index.html#shop";
+// 2026-10-07：LINEの中ではなくブラウザで開く選択肢を出すため、open.html（どこで開くかの案内）を経由する
+const GALLERY_URL = "https://koimari-official.github.io/koimari-site/open.html?to=gallery.html";
+const SHOP_INFO_URL = "https://koimari-official.github.io/koimari-site/open.html?to=index.html%3Fgo%3Dshop";
 const RICHMENU_MAIN_IMAGE_PATH = path.join(__dirname, "assets", "richmenu-main.jpg");
 const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 
@@ -1301,7 +1302,7 @@ const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 // koimariOps/richMenuIds/version と一致しなくなった時点でensureRichMenuが自動的に
 // 作り直す（画像だけ差し替えてこの値を更新し忘れると、古いデザインのままになる）。
 // 詳しい変更手順は assets/richmenu-src/README.md を参照。
-const RICHMENU_VERSION = "2026-09-08-stampcard-v1";
+const RICHMENU_VERSION = "2026-10-07-open-in-browser-v1";
 
 async function lineApi(method, url, accessToken, body, isBinary) {
   const headers = { Authorization: `Bearer ${accessToken}` };

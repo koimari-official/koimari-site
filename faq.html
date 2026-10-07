@@ -105,6 +105,7 @@ main{max-width:880px;margin:0 auto;padding:80px 24px 100px}
   .sub-nav li:last-child:nth-child(odd){grid-column:1/-1}
   .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
 }
+.faq-cal-link{color:#0b7a37;font-weight:700;text-decoration:underline;text-underline-offset:3px}
 </style>
 </head>
 <body>
@@ -209,7 +210,7 @@ function renderFaqPage(){
     section.className = "faq-cat";
     let html = `<h2 class="faq-cat__title">${escape(cat.category)}</h2>`;
     cat.items.forEach(it => {
-      html += `<div class="faq-item"><div class="faq-item__q">${escape(it.q)}</div><div class="faq-item__a">${escape(String(it.a||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</div></div>`;
+      html += `<div class="faq-item"><div class="faq-item__q">${escape(it.q)}</div><div class="faq-item__a">${escape(String(it.a||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>").replace("営業日カレンダー", '<a href="calendar.html" target="_blank" rel="noopener" class="faq-cal-link">営業日カレンダー（新しい画面で開きます）</a>')}</div></div>`;
     });
     section.innerHTML = html;
     container.appendChild(section);
