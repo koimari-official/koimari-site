@@ -437,7 +437,8 @@ function loadImages(){
 
 const params = new URLSearchParams(location.search);
 const productType = TYPE_CONFIG[params.get('type')] ? params.get('type') : 'category';
-const productIdx = parseInt(params.get('idx'), 10);
+let productIdx = parseInt(params.get('idx'), 10);
+const productNameHint = params.get('n') || ''; // 特集などから来たときの商品名（並び替えで順番が変わっても名前で探す）
 
 function openLightbox(src, alt){
   document.getElementById('lightboxImg').src = src;
@@ -455,6 +456,7 @@ function renderProductPage(){
   const IMAGES = loadImages();
   const config = TYPE_CONFIG[productType];
   const list = IMAGES[config.key];
+  if (productNameHint && Array.isArray(list)) { const pl = (x) => String((x && x.name) || '').replace(/<[^>]*>/g, ''); if (pl(list[productIdx]) !== productNameHint) { const f = list.findIndex((x) => pl(x) === productNameHint); if (f >= 0) productIdx = f; } }
   const item = Array.isArray(list) ? list[productIdx] : null;
   document.getElementById('backToSection').href = config.back;
 

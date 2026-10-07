@@ -5497,11 +5497,16 @@ async function saveByKey(key, data) {
   // 超えて発生した事例で判明）。
   try { localStorage.setItem(key, JSON.stringify(merged)); }
   catch(e) { console.warn("ローカルキャッシュへの保存に失敗（無視して続行）:", e); }
+  // 自分の保存は、Firebaseが保存完了より先にライブ更新として返してくる。先に基準を今回の内容にしておかないと、
+  // 自分の保存を「他の人の更新」と判定して警告を出していた（2026-10-08）
+  const prevBase = savedContentByKey[contentKey];
+  savedContentByKey[contentKey] = JSON.parse(JSON.stringify(merged));
   try {
     if (typeof window.fbSaveContentKey === "function") {
       await window.fbSaveContentKey(contentKey, merged);
     }
   } catch(e) {
+    savedContentByKey[contentKey] = prevBase;
     showToast("サーバーへの保存に失敗しました: " + (e && e.message ? e.message : String(e)), "error");
     return null;
   }
@@ -5701,6 +5706,41 @@ async function saveSpotlightList() {
 let spotlightEditIdx = null; // 編集中の投稿（spotlightListの位置）。null＝公開中の投稿
 // 未保存の変更があるか。画像を選んだ直後などの描き直しで、保存済みの内容に戻して変更が消えていた不具合の対策（2026-10-08）
 let spotlightDirty = false;
+
+// 「この特集の商品」（2026-10-08オーナー指示）：特集の下に、ギャラリーの商品を3〜6点の小さな写真で並べる。
+// 選んだ時点の名前・写真・価格を特集に記録する（トップページで全商品のデータを読まずに済むように）。
+// 商品ページへは「種類＋並び順＋名前」で飛び、並び替えで順番が変わっても名前で探し直す。
+const SP_PICK_KEYS = [["decorationCakes", "decorationCake", "デコレーションケーキ"], ["cutcakes", "cutcake", "カットケーキ"], ["rollcakes", "rollcake", "ロールケーキ"], ["baked", "baked", "焼き菓子"], ["gift", "gift", "ギフト"], ["cakeAddOns", "addOn", "砂糖菓子・オーナメント"]];
+async function spPickCatalog() {
+  const out = [];
+  for (const [k, type, label] of SP_PICK_KEYS) {
+    let list = workingData && Array.isArray(workingData[k]) ? workingData[k] : null;
+    if (!list) { try { list = await (await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/" + k + ".json")).json(); } catch (e) { list = []; } }
+    (Array.isArray(list) ? list : Object.values(list || {})).forEach((it, idx) => {
+      if (!it || !it.name || !it.img || it.visible === false || it.name === "新しい商品") return;
+      out.push({ k, type, label, idx, name: String(it.name).replace(/<[^>]*>/g, ""), img: /^https?:/.test(it.img) ? it.img : "", price: it.price && /[1-9]/.test(String(it.price)) ? String(it.price) : "", seasonal: !!it.seasonal });
+    });
+  }
+  return out;
+}
+async function renderSpotlightPicks(sp) {
+  const box = document.getElementById("spPicks");
+  if (!box) return;
+  sp.picks = Array.isArray(sp.picks) ? sp.picks : [];
+  const cat = await spPickCatalog();
+  const draw = () => {
+    box.innerHTML = '<div style="font-weight:700;margin-bottom:6px;">この特集の商品（3〜6点がおすすめ）</div>' +
+      '<div style="font-size:12.5px;color:var(--color-text-soft);margin-bottom:10px;">選んだ商品が、トップページの特集の下に小さな写真で並びます。押すと各商品のページが開きます。「季節限定」の印が付いた商品が上に出ます。</div>' +
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">' + (sp.picks.length ? sp.picks.map((p, i) => '<div style="width:110px;font-size:12px;text-align:center;">' + (p.img ? '<img src="' + escapeHtml(p.img) + '" style="width:110px;height:110px;object-fit:cover;border-radius:8px;display:block;">' : '<div style="width:110px;height:110px;background:#f3ece1;border-radius:8px;"></div>') + '<div style="margin:4px 0;line-height:1.4;">' + escapeHtml(p.name) + '</div><button type="button" class="btn btn--small btn--ghost" data-spk-left="' + i + '"' + (i ? "" : " disabled") + '>←</button> <button type="button" class="btn btn--small btn--ghost" data-spk-del="' + i + '" style="color:#b03b48;border-color:#b03b48;">外す</button></div>').join("") : '<span style="font-size:13px;color:var(--color-text-soft);">まだ選んでいません</span>') + "</div>" +
+      (sp.picks.length < 6 ? '<select id="spPickAdd" style="padding:8px;max-width:100%;"><option value="">＋ 商品を追加する</option>' + cat.slice().sort((a, b) => b.seasonal - a.seasonal).filter((c) => !sp.picks.some((p) => p.k === c.k && p.name === c.name)).map((c, j) => '<option value="' + cat.indexOf(c) + '">' + (c.seasonal ? "【季節限定】" : "") + escapeHtml(c.label + "：" + c.name) + "</option>").join("") + "</select>" : '<div style="font-size:12.5px;color:var(--color-text-soft);">6点まで選べます</div>');
+    const add = document.getElementById("spPickAdd");
+    if (add) add.addEventListener("change", () => { const c = cat[Number(add.value)]; if (!c) return; sp.picks.push({ k: c.k, type: c.type, idx: c.idx, name: c.name, img: c.img, price: c.price }); spotlightDirty = true; draw(); });
+    box.querySelectorAll("[data-spk-del]").forEach((b) => b.addEventListener("click", () => { sp.picks.splice(+b.dataset.spkDel, 1); spotlightDirty = true; draw(); }));
+    box.querySelectorAll("[data-spk-left]").forEach((b) => b.addEventListener("click", () => { const i = +b.dataset.spkLeft; if (i > 0) { [sp.picks[i - 1], sp.picks[i]] = [sp.picks[i], sp.picks[i - 1]]; spotlightDirty = true; draw(); } }));
+  };
+  draw();
+}
+
 function newSpotlightItem() { return { badge: "今月の主役", period: "", en: "Pick of the Month", title: "", sub: "", desc: "", price: "", priceNote: "", cta: "ご予約はこちら", ctaUrl: "reservation.html", img: "", visible: false, draft: true }; }
 function renderSpotlightAdmin() {
   if (!spotlightList || !spotlightDirty) spotlightList = loadSpotlightList();
@@ -5736,9 +5776,10 @@ function renderSpotlightAdmin() {
     });
     html += `<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
       <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
+      <div id="spPicks" style="width:100%;background:#faf6ef;border:1px solid var(--color-line);border-radius:8px;padding:12px 14px;margin-bottom:6px;"></div>
       <button type="button" class="btn btn--small btn--ghost" id="spAdjust">写真の色・表示位置を調整${photoAdjusted(sp, sp.img) ? "（調整済み）" : ""}</button>
-      <button class="btn btn--ghost" id="spSave">保存する</button>
-      ${isActive ? '<button class="btn btn--ghost" id="spHide" style="border-color:#b03b48;color:#b03b48;">非表示にする（トップページに出さない）</button>' : '<button class="btn" id="spPublish">この投稿を公開する' + (activeIdx >= 0 ? "（今の公開中と入れ替え）" : "") + "</button>"}
+      <button class="btn btn--ghost" id="spSave">${isActive ? "保存する" : "下書きとして保存"}</button>
+      ${isActive ? '<button class="btn btn--ghost" id="spHide" style="border-color:#b03b48;color:#b03b48;">非表示にする（トップページに出さない）</button>' : '<button class="btn" id="spPublish">保存して公開する' + (activeIdx >= 0 ? "（今の公開中と入れ替え）" : "") + "</button>"}
       ${!isActive && activeIdx >= 0 ? '<button class="btn btn--small btn--ghost" id="spBackToActive">公開中の投稿の編集に戻る</button>' : ""}
     </div>`;
   } else {
@@ -5753,7 +5794,8 @@ function renderSpotlightAdmin() {
   document.getElementById("spNew").addEventListener("click", async () => {
     spotlightList.unshift(newSpotlightItem());
     spotlightEditIdx = 0; spotlightDirty = true;
-    await save("下書きを作成しました。書き終えたら「この投稿を公開する」を押してください");
+    renderSpotlightAdmin();
+    showToast("新しい投稿を作りました。内容を入れて「保存して公開する」を押してください（あとで公開するなら「下書きとして保存」）");
   });
   if (sp) {
     wrap.querySelectorAll("input[data-k], textarea[data-k]").forEach((el) => {
@@ -5775,6 +5817,7 @@ function renderSpotlightAdmin() {
     });
     // ギャラリーと同じ、写真の色味（明るさ・コントラスト・鮮やかさ・色温度）と表示位置の調整（写真そのものは加工しない）
     { const pv = document.getElementById("spotlightPreview"); if (pv && sp.img && window.PhotoAdjust) window.PhotoAdjust.applyTo(pv, (sp.photoAdjust || {})[window.PhotoAdjust.hash(sp.img)] || null); }
+    renderSpotlightPicks(sp);
     document.getElementById("spAdjust").addEventListener("click", () => {
       if (!sp.img) { showToast("先に写真を入れてください", "error"); return; }
       openPhotoAdjust(sp, sp.img, () => { spotlightDirty = true; const pv = document.getElementById("spotlightPreview"); if (pv) window.PhotoAdjust.applyTo(pv, (sp.photoAdjust || {})[window.PhotoAdjust.hash(sp.img)] || null); document.getElementById("spAdjust").textContent = "写真の色・表示位置を調整（調整済み）"; }, { isMain: true });
