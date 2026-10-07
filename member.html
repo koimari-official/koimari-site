@@ -170,7 +170,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="error" id="reserveStoreConfirmError"></div>
           <label class="field__check" style="margin-top:10px;">
             <input type="checkbox" id="reserveLeadConfirm">
-            <span>お受取日の<strong>3営業日前まで</strong>のご予約です（3営業日前を切る場合は、お電話 070-9158-0641 でご相談ください）。特別仕様は、お渡しまでお時間をいただく場合があります。<br>本ページで仕様を選択いただいてからお電話いただきますと、スムーズにご案内できます。</span>
+            <span>お受取日の<strong>3営業日前まで</strong>のご予約が基本です。<strong>3営業日前を切る場合は、ご予約内容を送信いただき、お電話（070-9158-0641）をお願いいたします</strong>（ご予約の確定はお電話で対応可否を確認してからになります）。特別仕様は、お渡しまでお時間をいただく場合があります。<br>本ページで仕様を選択いただいてからお電話いただきますと、スムーズにご案内できます。</span>
           </label>
           <div class="error" id="reserveLeadConfirmError"></div>
         </div>
@@ -2111,7 +2111,7 @@ function validateReserve(data) {
   let ok = true;
   ["reserveStoreConfirmError","reserveLeadConfirmError","reserveSizeError","reserveFlavorError","reserveOccasionError","reserveCreamTypeError","reserveDecorationError","reserveCandleError","reserveDateError","reserveTimeError","reserveFuriganaError","reserveNameError","reserveTelError","reserveEmailError","reserveConsentError","reserveNoteError","reserveReceiptNameError","kmChildNameError","kmGradeError","kmBakingExperienceError","kmDateError","kmCountError"].forEach(id => setReserveError(id, ""));
 
-  if (!data.leadConfirmed) { setReserveError("reserveLeadConfirmError", "お受取日の3営業日前までのご予約であることをご確認ください"); ok = false; }
+  if (!data.leadConfirmed) { setReserveError("reserveLeadConfirmError", "上の確認事項をお読みのうえ、チェックをお願いいたします"); ok = false; }
   if (!data.storeConfirmed) { setReserveError("reserveStoreConfirmError", "「ケーキ屋さんこいまり 城東」のご予約で間違いないかご確認ください"); ok = false; }
 
   if (data.category === "kidsManager") {
@@ -2149,7 +2149,7 @@ function validateReserve(data) {
       if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
       else if (!isBaked && data.occasion === "バースデー" && birthdayBlockFor(data.pickupDate)) { setReserveError("reserveDateError", birthdayBlockText(birthdayBlockFor(data.pickupDate))); ok = false; }
       else if (!isBaked && (reserveHolidays.cakeFullDates || []).includes(dateKeyLocal(pick))) { setReserveError("reserveDateError", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください"); ok = false; }
-      else if (today > computeOrderDeadline(pick)) { setReserveError("reserveDateError", "ご予約は3営業日前までにお願いいたします（それ以降はお電話でご相談ください）"); ok = false; }
+      else if (today > computeOrderDeadline(pick)) { data.shortLead = true; } // 3営業日前を切る：送信は受け付け、未確定（お電話で対応可否を確認）
       else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
       else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
     }
@@ -2620,11 +2620,12 @@ function updateReservePhoneNotice() {
   const esc = s => String(s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   el.style.display = "block";
   el.innerHTML = '<div style="margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.8;">' +
-    '<div style="font-weight:700;color:#8a5a12;margin-bottom:6px;">お受取日まで日数が少ないため、お電話でご予約ください</div>' +
+    '<div style="font-weight:700;color:#b03b48;margin-bottom:6px;">3営業日前を切ってのご予約です</div>' +
+    '<div style="color:#2e2118;margin-bottom:8px;">このままご予約内容を送信いただけますが、<b>ご予約を確定するものではありませんのでご了承ください</b>。送信後、<b>必ず店舗へお電話</b>をお願いいたします。対応できるかを確認し、場合によってはお引き渡し日や仕様のご相談をさせていただきます。</div>' +
     '<div style="color:#4a3a2a;">お電話でこちらの内容をお伝えください：</div>' +
     '<ul style="margin:4px 0 10px 1.2em;padding:0;color:#2e2118;"><li>引き取り希望日：' + esc(v) + '</li><li>商品：' + esc(productLine) + '</li>' + (priceLine ? '<li>' + esc(priceLine) + '</li>' : '') + '</ul>' +
     '<div style="color:#4a3a2a;margin-bottom:10px;">ギャラリーで選んだ仕様をお伝えいただくと、お見積もり・お引き取り日をスムーズにご案内できます。オーダー内容によっては、取り寄せが必要な材料・資材がある場合は別途ご相談させていただきます。</div>' +
-    '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">070-9158-0641 に電話する</a></div>';
+    '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">送信後にお電話ください：070-9158-0641</a></div>';
 }
 
 // ===== 友だち未登録の方への案内（2026-09-24）=====
@@ -2788,6 +2789,7 @@ function setupReserveForm(uid, displayName) {
     }
     banner.style.display = "none";
     pendingData = data;
+    setTimeout(() => { const sm = document.getElementById("reserveConfirmSummary"); if (sm && data.shortLead && !sm.querySelector(".short-lead-note")) sm.insertAdjacentHTML("afterbegin", '<div class="short-lead-note" style="background:#fdeeea;border:1px solid #e6a698;border-radius:10px;padding:12px 14px;margin-bottom:14px;color:#8a2a1a;font-size:14px;line-height:1.8;"><b>3営業日前を切ってのご予約です。</b><br>ご予約を確定するものではありませんのでご了承ください。送信後、必ず店舗（070-9158-0641）へお電話をお願いいたします。</div>'); }, 0);
     renderReserveConfirm(data);
     renderConfirmUpsell(data);
     document.getElementById("reserveFormWrap").style.display = "none";
@@ -2870,6 +2872,9 @@ function setupReserveForm(uid, displayName) {
             : "ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。")
         + paymentNoticeText(data)
         + "ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。";
+    }
+    if (data.shortLead && thanksDesc) {
+      thanksDesc.innerHTML = '<div style="background:#fdeeea;border:1px solid #e6a698;border-radius:12px;padding:14px 16px;color:#8a2a1a;line-height:1.8;"><b style="font-size:16px;">ご予約はまだ確定しておりません</b><br>3営業日前を切ってのご予約のため、対応できるかを確認させていただきます。<b>必ず店舗へお電話をお願いいたします。</b><a href="tel:07091580641" style="display:block;text-align:center;background:#b03b48;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:14px;font-size:16px;margin-top:10px;">店舗へ電話する（070-9158-0641）</a></div>';
     }
     renderReserveConfirm(data, "reserveThanksSummary");
     // 予約番号はCloud Functions側で予約保存の直後に採番されるため、この時点ではまだ付いていないことがある。

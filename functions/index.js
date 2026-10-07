@@ -590,6 +590,7 @@ function buildStaffNotifyText(data) {
   const product = productLabel(data);
   const channel = data.channel === "LINE" ? "LINE公式アカウント" : "こいまりHP";
   const lines = [
+    ...(data.shortLead ? ["⚠⚠ 短納期依頼が届いております（3営業日前を切るご予約・未確定）", "対応できるか確認し、お断り・お引き渡し日の変更・仕様の変更をお電話でご相談ください", ""] : []),
     "📋 新しいご予約が入りました",
     ...(data.reservationNo ? [`予約番号: ${formatReservationNo(data.reservationNo)}`] : []),
     `受付経路: ${channel}`,
@@ -925,13 +926,14 @@ function buildReceivedMessage(data) {
     name + "様、ご予約ありがとうございます🎂",
     "ご注文を以下の内容で承りました。",
   ];
+  if (data.shortLead) lines.push("", "◆ご予約はまだ確定していません", "◇3営業日前を切ってのご予約のため", "　店舗へお電話をお願いいたします", "　070-9158-0641");
   if (data.reservationNo) lines.push("", "◆予約番号", "◇" + formatReservationNo(data.reservationNo));
   lines.push("", "◆ご注文内容");
   lines.push(...orderDetailLines(data));
   const photoXmas = isPhotoChristmas(data);
   if (photoXmas) lines.push("", "◆お写真について", "◇写真は昨年のケーキです。", "　砂糖菓子や一部の仕様が", "　異なる場合がございます");
   // クリスマスケーキは店頭での前払いをもってご予約確定のため、受付時点では「確定」と書かない
-  const fixedNow = data.priceIsFixed && !data.christmasOrder;
+  const fixedNow = data.priceIsFixed && !data.christmasOrder && !data.shortLead;
   lines.push("", data.quoteSeparately ? "◆お引き取り（ご希望）" : fixedNow ? "◆お引き取り（確定）" : "◆お引き取り");
   lines.push("◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime));
   if (data.quoteSeparately) lines.push("　※納期は別途ご回答いたします");
@@ -952,11 +954,9 @@ function buildReceivedMessage(data) {
     lines.push(
       "",
       "◆このあとの流れ",
-      data.quoteSeparately ? "◇スタッフがお見積もり・納期を" : "◇スタッフが内容確認のお電話をします",
-      data.quoteSeparately ? "　お電話でご回答します" : "　（070-9158-0641から発信）",
-      "◇お電話がつながらない場合は、",
-      "　ご予約をキャンセルさせて",
-      "　いただくことがあります"
+      data.shortLead ? "◇お手数ですが、店舗へ" : data.quoteSeparately ? "◇スタッフがお見積もり・納期を" : "◇スタッフが内容確認のお電話をします",
+      data.shortLead ? "　お電話をお願いいたします" : data.quoteSeparately ? "　お電話でご回答します" : "　（070-9158-0641から発信）",
+      ...(data.shortLead ? [] : ["◇お電話がつながらない場合は、", "　ご予約をキャンセルさせて", "　いただくことがあります"])
     );
   }
   lines.push(
@@ -1533,8 +1533,8 @@ exports.pushNewReservation = onValueCreated(
     const no = data.reservationNo ? "No." + String(data.reservationNo).padStart(4, "0") + " " : "";
     const when = [data.pickupDate, data.pickupTime].filter(Boolean).join(" ");
     const sent = await pushToStaff({
-      title: "新しいご予約 " + no,
-      body: (data.name || "お客様") + " 様　" + productLabel(data) + (when ? "　お引き取り " + when : "") + "\n確認電話をお願いします",
+      title: (data.shortLead ? "⚠ 短納期依頼 " : "新しいご予約 ") + no,
+      body: (data.name || "お客様") + " 様　" + productLabel(data) + (when ? "　お引き取り " + when : "") + (data.shortLead ? "\n3営業日前を切るご予約です。対応できるか確認してください" : "\n確認電話をお願いします"),
       tag: "res-" + event.params.pushId, url: ADMIN_RES_URL, kind: "new"
     });
     if (sent.length) await admin.database().ref("pushLog/" + event.params.pushId).set({ paths: sent, at: Date.now() });

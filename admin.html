@@ -390,6 +390,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-tag--tel{color:#4a6f9c;border:1px solid #4a6f9c}
 .cf-blockbox{display:flex;gap:10px;align-items:flex-start;background:#fdf3f4;border:1px solid #e3a2aa;padding:12px 14px;margin-bottom:14px;font-size:14px;line-height:1.7}
 .cf-blockbox input{width:18px;height:18px;margin-top:3px}
+.rc-short{margin-top:6px;background:#fdeeea;border:2px solid #b03b48;border-radius:8px;padding:8px 10px;font-size:13.5px;color:#8a2a1a;line-height:1.6}
+.rc-short__btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.rc-short__btns button{font-size:13px;font-weight:700;border:1px solid #b03b48;background:#fff;color:#b03b48;border-radius:999px;padding:6px 12px;cursor:pointer}
 .move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
 .move-cat label{font-weight:700;color:#4a6f9c}
 .move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
@@ -4884,6 +4887,14 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// 短納期依頼をお断りした場合（2026-10-08）：キャンセルにして、メモに記録する
+function declineShortLead(idx) {
+  const r = loadList(RES_KEY)[idx];
+  if (!r || !confirm((r.name || "お客様") + " 様に「対応できない」とお伝えしましたか？\nこのご予約をキャンセルにします。")) return;
+  updateResNotes(idx, ((r.notes || "") + "\n" + new Date().toLocaleDateString("ja-JP") + " 短納期のため対応できないとお伝えしキャンセル").trim());
+  updateResStatus(idx, "キャンセル");
+  renderReservations();
+}
 // ===== 予約一覧の見やすい表示（2026-10-03オーナー指示）=====
 // 「どんなケーキの予約が入っているか」を一目で見られるカード表示（お引き取り日ごと）と、
 // 何日に何件入っているかを見るカレンダー表示を追加。従来の表は「表」で残す。表示の切替はこの端末だけに記憶する。
@@ -4998,13 +5009,14 @@ function resCardHtml(r, idx, byTel) {
   const nth = visits.indexOf(r) + 1;
   const allergy = (r.allergy || []).filter((a) => a && a !== "なし");
   const extras = resExtrasLine(r);
-  const alertHtml = customerAlertHtml(r, loadList(RES_KEY));
+  const alertHtml = (r.shortLead && status !== "キャンセル" && !r.reservationConfirmed ? '<div class="rc-short"><b>短納期依頼（3営業日前を切るご予約・未確定）</b><br>対応できるか確認し、お客様へお電話でご連絡ください。<div class="rc-short__btns"><button type="button" onclick="openReservationEditor(' + idx + ')">お引き渡し日・仕様を変更する</button><button type="button" onclick="declineShortLead(' + idx + ')">対応できないとお伝えした（キャンセルにする）</button></div></div>' : "") + customerAlertHtml(r, loadList(RES_KEY));
   return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + (customerFlagsFor(r).length ? " rc--flag" : "") + '">' +
     '<button type="button" class="rc-photo" onclick="openReservationEditor(' + idx + ')" title="詳細・変更">' + reservationThumbHtml(r) + "</button>" +
     '<div class="rc-body">' +
       '<div class="rc-top"><span class="rc-time">' + escapeHtml(resPickupTime(r) || "時間未定") + "</span>" +
         (r.reservationNo ? '<span class="rc-no">' + formatReservationNo(r.reservationNo) + '</span>' : '') +
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
+        (r.shortLead ? '<span class="rc-tag" style="background:#b03b48;color:#fff;">短納期</span>' : "") +
         (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : "") +
         (r.channel === "電話" ? '<span class="rc-tag rc-tag--tel">電話' + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
