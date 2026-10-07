@@ -5699,9 +5699,11 @@ async function saveSpotlightList() {
 //  ・「＋ 新しい投稿を作成」…下書きとして作る。公開中の投稿はそのまま。書き終えて「この投稿を公開する」で入れ替わる
 //  ・ストック／下書きは「編集する」「公開する」「削除」
 let spotlightEditIdx = null; // 編集中の投稿（spotlightListの位置）。null＝公開中の投稿
+// 未保存の変更があるか。画像を選んだ直後などの描き直しで、保存済みの内容に戻して変更が消えていた不具合の対策（2026-10-08）
+let spotlightDirty = false;
 function newSpotlightItem() { return { badge: "今月の主役", period: "", en: "Pick of the Month", title: "", sub: "", desc: "", price: "", priceNote: "", cta: "ご予約はこちら", ctaUrl: "reservation.html", img: "", visible: false, draft: true }; }
 function renderSpotlightAdmin() {
-  spotlightList = loadSpotlightList();
+  if (!spotlightList || !spotlightDirty) spotlightList = loadSpotlightList();
   const wrap = document.getElementById("spotlightForm");
   const fields = [
     { k: "badge", l: "バッジ（左上のラベル / 例: 今月の主役、限定）", t: "input" },
@@ -5734,6 +5736,7 @@ function renderSpotlightAdmin() {
     });
     html += `<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
       <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
+      <button type="button" class="btn btn--small btn--ghost" id="spAdjust">写真の色・表示位置を調整${photoAdjusted(sp, sp.img) ? "（調整済み）" : ""}</button>
       <button class="btn btn--ghost" id="spSave">保存する</button>
       ${isActive ? '<button class="btn btn--ghost" id="spHide" style="border-color:#b03b48;color:#b03b48;">非表示にする（トップページに出さない）</button>' : '<button class="btn" id="spPublish">この投稿を公開する' + (activeIdx >= 0 ? "（今の公開中と入れ替え）" : "") + "</button>"}
       ${!isActive && activeIdx >= 0 ? '<button class="btn btn--small btn--ghost" id="spBackToActive">公開中の投稿の編集に戻る</button>' : ""}
@@ -5746,16 +5749,16 @@ function renderSpotlightAdmin() {
     html += `<div style="margin-top:40px;padding-top:28px;border-top:1px solid var(--color-line);"><h3 style="font-family:var(--font-mincho);font-size:16px;letter-spacing:.1em;margin-bottom:16px;color:var(--color-text-soft);">下書き・ストック（公開していない特集）</h3><div id="spotlightStockList"></div></div>`;
   }
   wrap.innerHTML = html;
-  const save = async (msg) => afterSave(await saveSpotlightList(), () => renderSpotlightAdmin(), msg);
+  const save = async (msg) => { const res = await saveSpotlightList(); if (res) spotlightDirty = false; afterSave(res, () => renderSpotlightAdmin(), msg); };
   document.getElementById("spNew").addEventListener("click", async () => {
     spotlightList.unshift(newSpotlightItem());
-    spotlightEditIdx = 0;
+    spotlightEditIdx = 0; spotlightDirty = true;
     await save("下書きを作成しました。書き終えたら「この投稿を公開する」を押してください");
   });
   if (sp) {
     wrap.querySelectorAll("input[data-k], textarea[data-k]").forEach((el) => {
       el.addEventListener("input", () => {
-        sp[el.dataset.k] = el.value;
+        sp[el.dataset.k] = el.value; spotlightDirty = true;
         if (el.dataset.k === "img") { const p = document.getElementById("spotlightPreview"); if (p) { p.src = el.value; p.style.display = el.value ? "block" : "none"; } }
       });
     });
@@ -5765,9 +5768,16 @@ function renderSpotlightAdmin() {
       try {
         // 画質を落とさないよう、元のファイルのまま保存する
         sp.img = typeof window.fbUploadImage === "function" ? await window.fbUploadImage(file, file.type) : await fileToDataUrl(file);
+        spotlightDirty = true;
         renderSpotlightAdmin();
         showToast("画像を入れました。「保存する」を押すと反映されます");
       } catch (err) { showToast(err.message || "画像の読み込みに失敗しました", "error"); }
+    });
+    // ギャラリーと同じ、写真の色味（明るさ・コントラスト・鮮やかさ・色温度）と表示位置の調整（写真そのものは加工しない）
+    { const pv = document.getElementById("spotlightPreview"); if (pv && sp.img && window.PhotoAdjust) window.PhotoAdjust.applyTo(pv, (sp.photoAdjust || {})[window.PhotoAdjust.hash(sp.img)] || null); }
+    document.getElementById("spAdjust").addEventListener("click", () => {
+      if (!sp.img) { showToast("先に写真を入れてください", "error"); return; }
+      openPhotoAdjust(sp, sp.img, () => { spotlightDirty = true; const pv = document.getElementById("spotlightPreview"); if (pv) window.PhotoAdjust.applyTo(pv, (sp.photoAdjust || {})[window.PhotoAdjust.hash(sp.img)] || null); document.getElementById("spAdjust").textContent = "写真の色・表示位置を調整（調整済み）"; }, { isMain: true });
     });
     document.getElementById("spSave").addEventListener("click", () => save(isActive ? "保存しました（トップページに反映されます）" : "保存しました（まだ公開されていません）"));
     const hide = document.getElementById("spHide");

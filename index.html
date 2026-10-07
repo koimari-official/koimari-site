@@ -1379,6 +1379,7 @@ function renderSpotlight(){
       ${sp.price?`<div class="spotlight__price">${escape(sp.price)}<span>${escape(priceNote||"")}</span></div>`:""}
       <a href="${escape(sp.ctaUrl||"reservation.html")}" class="spotlight__cta">${escape(cta||"詳しく見る")}</a>
     </div>`;
+  if(window.PhotoAdjust)window.PhotoAdjust.register([sp]); // 管理画面で調整した色味・表示位置（2026-10-08）
 }
 
 function renderStats(){
