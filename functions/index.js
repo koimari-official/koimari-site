@@ -37,13 +37,15 @@ ${RESERVE_LIFF_URL}
 
 ◆ご予約できる商品
 ◇デコレーションケーキ
+◇カットケーキ（3個から）
 ◇ロールケーキ
 ◇焼き菓子・ギフト
+◇砂糖菓子・オーナメント
 
 ◆ネット予約の締切
 ◇お引き取り希望日の3営業日前まで
 
-◆2営業日前以降・お急ぎの場合
+◆3営業日前を切る・お急ぎの場合
 ◇お電話（070-9158-0641）へ
 
 ホームページのギャラリーで選んだ仕様をお伝えいただくと、よりスムーズにご案内できます🍓`;
@@ -1294,7 +1296,7 @@ exports.sendCustomerReservationEmail = onValueCreated(
 // その旨を返信する。クーポン切れでもアイコン自体は常設のままでよいというオーナー判断（2026-08-31）。
 // 2026-10-07：LINEの中ではなくブラウザで開く選択肢を出すため、open.html（どこで開くかの案内）を経由する
 const GALLERY_URL = "https://koimari-official.github.io/koimari-site/open.html?to=gallery.html";
-const SHOP_INFO_URL = "https://koimari-official.github.io/koimari-site/open.html?to=index.html%3Fgo%3Dshop";
+const SHOP_INFO_URL = "https://koimari-official.github.io/koimari-site/open.html?to=shop.html";
 const RICHMENU_MAIN_IMAGE_PATH = path.join(__dirname, "assets", "richmenu-main.jpg");
 const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 
@@ -1302,7 +1304,7 @@ const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 // koimariOps/richMenuIds/version と一致しなくなった時点でensureRichMenuが自動的に
 // 作り直す（画像だけ差し替えてこの値を更新し忘れると、古いデザインのままになる）。
 // 詳しい変更手順は assets/richmenu-src/README.md を参照。
-const RICHMENU_VERSION = "2026-10-07-open-in-browser-v1";
+const RICHMENU_VERSION = "2026-10-08-shop-page-v1";
 
 async function lineApi(method, url, accessToken, body, isBinary) {
   const headers = { Authorization: `Bearer ${accessToken}` };
