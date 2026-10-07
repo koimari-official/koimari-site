@@ -1098,6 +1098,27 @@ exports.sendReservationImage = onValueCreated(
 // 電話番号等を誰でも読める場所に置かないよう、LIFFのアクセストークンをLINEに問い合わせて本人確認できた場合だけ、
 // その本人の直近の予約から連絡先を返す（他人のLINE IDを指定して読み出すことはできない）。
 const LIFF_CHANNEL_ID = "2011059940";
+// 要注意のお客様のネット予約を止める（2026-10-08オーナー指示）。管理画面の切り替え（koimariOps/blockDeclinedCustomers）がONのときだけ、
+// 「ご予約をお断りする」に登録したお客様（電話・LINE・メールのどれかが一致）なら ok:false を返す。お客様の情報は一切返さない。
+exports.reservationGate = onRequest(
+  { region: "asia-northeast1", cors: ["https://koimari-official.github.io"] },
+  async (req, res) => {
+    if (req.method !== "POST") { res.status(405).json({}); return; }
+    try {
+      const on = (await admin.database().ref("koimariOps/blockDeclinedCustomers").once("value")).val() === true;
+      if (!on) { res.json({ ok: true }); return; }
+      const b = req.body || {};
+      const flags = Object.values((await admin.database().ref("customerFlags").once("value")).val() || {});
+      const t = cfTelKey(b.tel), m = String(b.email || "").trim().toLowerCase(), l = String(b.lineUserId || "");
+      const hit = flags.some((f) => f && f.level === "decline" && ((t && cfTelKey(f.tel) === t) || (l && f.lineUserId === l) || (m && /@/.test(m) && String(f.email || "").trim().toLowerCase() === m)));
+      res.json({ ok: !hit });
+    } catch (e) {
+      console.warn("reservationGate:", e.message);
+      res.json({ ok: true });
+    }
+  }
+);
+
 exports.lookupMyContact = onRequest(
   { region: "asia-northeast1", cors: ["https://koimari-official.github.io"] },
   async (req, res) => {

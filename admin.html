@@ -374,6 +374,22 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc--flag{border:2px solid #b03b48}
 .rc-flagbtn{margin-top:6px;font-size:12.5px;border:1px solid #b03b48;color:#b03b48;background:#fff;border-radius:999px;padding:4px 12px;cursor:pointer}
 .store-mode .rc-flagbtn{display:none}
+
+/* 電話予約の登録（2026-10-08） */
+.pr-modal{position:fixed;inset:0;background:rgba(30,20,12,.45);z-index:3000;display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:24px 12px}
+.pr-modal.show{display:flex}
+.pr-dialog{position:relative;background:#fff;border-radius:14px;max-width:760px;width:100%;padding:22px 22px 18px}
+.pr-dialog h3{margin:0 0 4px;font-size:20px}
+.pr-close{position:absolute;top:8px;right:12px;border:0;background:none;font-size:28px;cursor:pointer;color:#a88a52}
+.pr-hint{font-size:13px;color:#6b5a48;margin:0 0 12px}
+.pr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px 14px;margin-bottom:10px}
+.pr-grid label,.pr-wide{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:700;color:#4a3a2a}
+.pr-wide{margin-bottom:10px}
+.pr-dialog input,.pr-dialog select,.pr-dialog textarea{font-size:16px;padding:9px 10px;border:1px solid #d8c8b0;border-radius:8px;font-weight:500;font-family:inherit}
+.pr-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:8px}
+.rc-tag--tel{color:#4a6f9c;border:1px solid #4a6f9c}
+.cf-blockbox{display:flex;gap:10px;align-items:flex-start;background:#fdf3f4;border:1px solid #e3a2aa;padding:12px 14px;margin-bottom:14px;font-size:14px;line-height:1.7}
+.cf-blockbox input{width:18px;height:18px;margin-top:3px}
 .move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
 .move-cat label{font-weight:700;color:#4a6f9c}
 .move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
@@ -713,6 +729,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
             <input type="checkbox" id="resUnpaidOnly" onchange="renderReservations()"> 未払いのみ表示
           </label>
+          <button class="btn btn--small" type="button" onclick="openPhoneReservation()">＋ 電話予約を登録</button>
           <button class="btn btn--small btn--ghost" id="exportRes">CSV出力</button>
           <button class="btn btn--small btn--ghost" id="trashToggleRes">ゴミ箱</button>
           <button class="btn btn--small btn--danger" id="clearRes">全削除</button>
@@ -1293,6 +1310,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-customerFlags">
       <div class="panel__head"><h2 class="panel__title">要注意のお客様</h2></div>
       <p class="panel__desc">無断でお引き取りに来られない・キャンセルが多い・カスタマーハラスメントがあったお客様を登録します。登録したお客様から新しいご予約が入ると、<b>予約一覧に赤い「要注意」</b>が付き、<b>スタッフのLINE通知</b>にも表示されます（お電話番号・LINE・メールのどれかが一致したとき）。お客様側の画面には一切表示されません。個人情報のため、事実だけを簡潔に記録してください。</p>
+      <label class="cf-blockbox"><input type="checkbox" id="cfBlockToggle"><span><b>「ご予約をお断りする」に設定したお客様のネット予約を受け付けない</b><br>ONにすると、該当するお客様がLINEの予約フォームで送信したときに「お電話（070-9158-0641）にて承ります」とご案内し、予約は登録されません。<b>今はOFF（すべて受け付ける）</b>です。問題が起きたときにONにしてください。</span></label>
       <div class="cf-form" id="cfForm">
         <div class="cf-grid">
           <label>お名前<input class="input" id="cfName" placeholder="例：山田 花子"></label>
@@ -4669,6 +4687,100 @@ async function updateResConfirmed(idx, checked) {
 setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
 
 
+
+// ===== 電話予約の登録（2026-10-08） =====
+// その日シフトに入っているスタッフが電話で受けた予約を、聞き取りながら入力する画面。
+// 日付・時間はプルダウン（曜日つき）。保存すると予約一覧・カレンダー・製造の目安に入り、受付経路は「電話」になる。
+const PR_TYPES = ["デコレーションケーキ", "カットケーキ", "ロールケーキ", "焼き菓子・ギフト", "砂糖菓子・オーナメント", "クリスマスケーキ"];
+const PR_SIZES = ["4号", "5号", "6号", "7号", "2段", "3段", "その他（内容に記入）"];
+const PR_BASES = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース", "モンブラン"];
+const PR_DECOS = ["", "いちごのみ", "バラエティフルーツ"];
+const PR_OCCASIONS = ["", "バースデー", "クリスマス", "その他"];
+const PR_TIMES = (() => { const a = []; for (let m = 600; m <= 1170; m += 30) a.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0")); return a; })();
+function prEsc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
+function prOptions(list, sel, labelFn) { return list.map((v) => '<option value="' + prEsc(v) + '"' + (v === sel ? " selected" : "") + ">" + prEsc(labelFn ? labelFn(v) : (v || "指定なし")) + "</option>").join(""); }
+async function openPhoneReservation() {
+  const hol = window.fbGetHolidays ? await window.fbGetHolidays() : {};
+  const weekly = hol.weeklyClosed || [1], extra = hol.extraClosed || [];
+  const W = ["日", "月", "火", "水", "木", "金", "土"];
+  const days = [];
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  for (let i = 0; i < 120; i++) {
+    const d = new Date(t.getTime() + i * 86400000);
+    const key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const closed = extra.includes(key) || weekly.includes(d.getDay());
+    days.push({ key, label: (d.getMonth() + 1) + "月" + d.getDate() + "日（" + W[d.getDay()] + "）" + (i === 0 ? " 今日" : i === 1 ? " 明日" : "") + (closed ? " ※定休日" + (weekly.includes(d.getDay()) && d.getDay() === 1 ? "（祝日なら営業）" : "") : "") });
+  }
+  let staff = [];
+  try { staff = (await window.fbResEditorApi.getStaff()) || []; } catch (e) {}
+  if (!staff.length) staff = ["楠田", "永山", "小見", "お母さん", "橋本", "木村", "オーナー"];
+  let m = document.getElementById("prModal");
+  if (!m) { m = document.createElement("div"); m.id = "prModal"; m.className = "pr-modal"; document.body.appendChild(m); m.addEventListener("click", (e) => { if (e.target === m) m.classList.remove("show"); }); }
+  m.innerHTML = '<div class="pr-dialog"><button type="button" class="pr-close" onclick="document.getElementById(\'prModal\').classList.remove(\'show\')">×</button>' +
+    '<h3>電話予約を登録</h3><p class="pr-hint">お電話で伺いながら、上から順に入力してください。<b>＊は必須</b>です。</p>' +
+    '<div class="pr-grid">' +
+      '<label>受付担当＊<select id="prStaff"><option value="">選んでください</option>' + prOptions(staff, "", (v) => v) + '</select></label>' +
+      '<label>お名前＊<input id="prName" placeholder="山田 花子"></label>' +
+      '<label>ふりがな<input id="prKana" placeholder="やまだ はなこ"></label>' +
+      '<label>お電話番号＊<input id="prTel" inputmode="tel" placeholder="090-1234-5678"></label>' +
+    '</div><div id="prFlag"></div>' +
+    '<div class="pr-grid">' +
+      '<label>商品＊<select id="prType">' + prOptions(PR_TYPES, "デコレーションケーキ", (v) => v) + '</select></label>' +
+      '<label class="pr-cake">サイズ<select id="prSize"><option value="">選んでください</option>' + prOptions(PR_SIZES, "", (v) => v) + '</select></label>' +
+      '<label class="pr-cake">ベースの種類<select id="prBase"><option value="">選んでください</option>' + prOptions(PR_BASES, "", (v) => v) + '</select></label>' +
+      '<label class="pr-cake">飾り付け<select id="prDeco">' + prOptions(PR_DECOS, "") + '</select></label>' +
+      '<label class="pr-cake">ご利用シーン<select id="prOcc">' + prOptions(PR_OCCASIONS, "") + '</select></label>' +
+      '<label class="pr-cake">メッセージプレートの文字<input id="prMsg" placeholder="たろうくん おたんじょうび おめでとう"></label>' +
+    '</div>' +
+    '<label class="pr-wide">ご注文内容（個数・ろうそく・その他のご希望など）<textarea id="prDetail" rows="2" placeholder="例：ろうそく大1本・小5本／カットケーキ いちごショート×3、モンブラン×2"></textarea></label>' +
+    '<div class="pr-grid">' +
+      '<label>お引き取り日＊<select id="prDate"><option value="">選んでください</option>' + days.map((d) => '<option value="' + d.key + '">' + prEsc(d.label) + "</option>").join("") + '</select></label>' +
+      '<label>お引き取り時間＊<select id="prTime"><option value="">選んでください</option>' + prOptions(PR_TIMES, "", (v) => v) + '</select></label>' +
+      '<label>金額（税込・分かれば）<input id="prPrice" type="number" min="0" placeholder="3800"></label>' +
+      '<label>アレルギー<input id="prAllergy" placeholder="なし／卵 など"></label>' +
+    '</div>' +
+    '<label class="pr-wide">スタッフメモ<textarea id="prNote" rows="2" placeholder="例：誕生日のお子様は5歳、受け取りはご主人"></textarea></label>' +
+    '<div class="pr-actions"><button type="button" class="btn btn--ghost" onclick="document.getElementById(\'prModal\').classList.remove(\'show\')">やめる</button><button type="button" class="btn" id="prSave">この内容で登録する</button></div></div>';
+  m.classList.add("show");
+  const g = (id) => document.getElementById(id);
+  const syncType = () => { const cake = g("prType").value === "デコレーションケーキ" || g("prType").value === "クリスマスケーキ"; m.querySelectorAll(".pr-cake").forEach((el) => { el.style.display = cake ? "" : "none"; }); };
+  g("prType").addEventListener("change", syncType); syncType();
+  g("prTel").addEventListener("input", () => {
+    const flags = customerFlagsFor({ tel: g("prTel").value }), h = customerHistoryFor({ tel: g("prTel").value }, loadList(RES_KEY));
+    g("prFlag").innerHTML = (flags.length ? '<div class="cf-alert"><b>要注意のお客様</b>　' + flags.map((f) => prEsc(f.type || "") + "（" + prEsc(CF_LEVEL_LABEL[f.level] || "注意して対応") + "）" + (f.note ? "：" + prEsc(f.note) : "")).join("<br>") + "</div>" : "") +
+      (h.cancel || h.noShow ? '<div class="cf-hist">これまでに ' + [h.noShow ? "お引き取りなし " + h.noShow + "回" : "", h.cancel ? "キャンセル " + h.cancel + "回" : ""].filter(Boolean).join("・") + "</div>" : "");
+  });
+  g("prSave").addEventListener("click", async () => {
+    const v = (id) => (g(id).value || "").trim();
+    if (!v("prStaff")) { alert("受付担当を選んでください"); return; }
+    if (!v("prName") || !v("prTel")) { alert("お名前とお電話番号を入力してください"); return; }
+    if (!v("prDate") || !v("prTime")) { alert("お引き取り日と時間を選んでください"); return; }
+    const type = v("prType"), cake = type === "デコレーションケーキ" || type === "クリスマスケーキ";
+    const price = Number(v("prPrice")) || 0, now = new Date().toISOString();
+    const size = cake ? v("prSize") : "";
+    const data = {
+      category: "cake", channel: "電話", type: type + "予約", phoneTakenBy: v("prStaff"),
+      name: v("prName"), furigana: v("prKana"), tel: v("prTel"), email: "",
+      items: [{ category: type, image: "", size, flavor: cake ? "" : v("prDetail"), message: cake ? v("prMsg") : "" }],
+      ...(cake ? { creamType: v("prBase"), decoration: v("prDeco"), occasion: v("prOcc") } : {}),
+      ...(type === "クリスマスケーキ" || v("prOcc") === "クリスマス" ? { christmasOrder: true } : {}),
+      pickupDate: v("prDate"), pickupTime: v("prTime"),
+      note: [cake ? v("prDetail") : "", v("prAllergy") && v("prAllergy") !== "なし" ? "アレルギー：" + v("prAllergy") : ""].filter(Boolean).join("／"),
+      allergy: v("prAllergy") ? [v("prAllergy")] : [], notes: v("prNote"),
+      ...(price ? { subtotal: price, finalPrice: price, priceIsFixed: true } : {}),
+      status: "受付済", confirmCallDone: true, confirmCallAt: now, submittedAt: now, privacyConsent: true
+    };
+    const flags = customerFlagsFor(data);
+    if (flags.some((f) => f.level === "decline") && !confirm("このお客様は「ご予約をお断りする」に登録されています。それでも登録しますか？")) return;
+    g("prSave").disabled = true; g("prSave").textContent = "登録中…";
+    try {
+      await window.fbAddPhoneReservation(data);
+      m.classList.remove("show");
+      showToast(data.name + " 様の電話予約を登録しました（" + v("prDate").slice(5).replace("-", "/") + " " + v("prTime") + "）");
+    } catch (e) { alert("登録に失敗しました：" + (e && e.message || e)); g("prSave").disabled = false; g("prSave").textContent = "この内容で登録する"; }
+  });
+}
+
 // ===== 要注意のお客様（2026-10-04） ⚠️ 機密：個人情報 =====
 function cfTelKey(t) { let d = String(t || "").replace(/\D/g, ""); if (d.indexOf("81") === 0 && d.length >= 11) d = "0" + d.slice(2); return d.length >= 10 ? d : ""; }
 function cfMailKey(m) { m = String(m || "").trim().toLowerCase(); return /@/.test(m) ? m : ""; }
@@ -4757,7 +4869,20 @@ document.addEventListener("click", (e) => {
   window.fbSaveCustomerFlag(id, data).then(() => { document.getElementById("cfMsg").textContent = id ? "更新しました" : "登録しました"; cfResetForm(); setTimeout(() => { const m = document.getElementById("cfMsg"); if (m) m.textContent = ""; }, 3000); })
     .catch(() => { document.getElementById("cfMsg").textContent = "保存できませんでした（この画面は管理者アカウントのみ登録できます）"; });
 });
-document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest('.tab[data-panel="customerFlags"]')) window.renderCustomerFlags(); });
+document.addEventListener("click", (e) => {
+  if (!(e.target.closest && e.target.closest('.tab[data-panel="customerFlags"]'))) return;
+  window.renderCustomerFlags();
+  const cb = document.getElementById("cfBlockToggle");
+  if (cb && !cb.dataset.bound && window.fbOnBlockDeclined) {
+    cb.dataset.bound = "1";
+    window.fbOnBlockDeclined((on) => { cb.checked = on; });
+    cb.addEventListener("change", () => {
+      const on = cb.checked;
+      if (on && !confirm("「ご予約をお断りする」のお客様のネット予約を受け付けない設定にします。よろしいですか？")) { cb.checked = false; return; }
+      window.fbSetBlockDeclined(on).then(() => showToast(on ? "お断り設定のお客様のネット予約を止めました" : "すべてのネット予約を受け付ける設定に戻しました")).catch(() => { cb.checked = !on; showToast("保存できませんでした（管理者アカウントのみ変更できます）", "error"); });
+    });
+  }
+});
 
 // ===== 予約一覧の見やすい表示（2026-10-03オーナー指示）=====
 // 「どんなケーキの予約が入っているか」を一目で見られるカード表示（お引き取り日ごと）と、
@@ -4881,6 +5006,7 @@ function resCardHtml(r, idx, byTel) {
         (r.reservationNo ? '<span class="rc-no">' + formatReservationNo(r.reservationNo) + '</span>' : '') +
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
         (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : "") +
+        (r.channel === "電話" ? '<span class="rc-tag rc-tag--tel">電話' + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
         '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
       '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + "</div>" +
@@ -6465,6 +6591,12 @@ onAuthStateChanged(fbAuth, (u) => {
 window.fbSaveCustomerFlag = (id, data) => id ? update(ref(fbDb, "customerFlags/" + id), data) : push(ref(fbDb, "customerFlags"), data);
 window.fbDeleteCustomerFlag = (id) => remove(ref(fbDb, "customerFlags/" + id));
 window.fbCurrentEmail = () => (fbAuth.currentUser && fbAuth.currentUser.email) || "";
+
+// 電話で受けた予約を登録する（予約一覧・カレンダー・製造の目安に入るように）／要注意のお客様のネット予約を止める設定
+window.fbAddPhoneReservation = (data) => push(ref(fbDb, "reservations"), data);
+window.fbGetHolidays = () => get(ref(fbDb, "koimariContent/holidays")).then((s) => s.val() || {}).catch(() => ({}));
+window.fbOnBlockDeclined = (cb) => onValue(ref(fbDb, "koimariOps/blockDeclinedCustomers"), (s) => cb(s.val() === true), () => {});
+window.fbSetBlockDeclined = (on) => set(ref(fbDb, "koimariOps/blockDeclinedCustomers"), !!on);
 window.fbResEditorApi = {
   getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
   multiUpdate: (patch) => update(ref(fbDb), patch),

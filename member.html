@@ -1019,6 +1019,7 @@ async function autosaveNow(force) {
       if (res.ok) {
         lastServerSavedJson = json;
         try { localStorage.setItem(AUTOSAVE_LS_KEY, JSON.stringify({ savedAt: now, spec, code })); } catch (e) {}
+        if (memberUid) update(ref(db, "lineMembers/" + memberUid + "/profile"), { autosaveDraft: code, autosaveAt: now }).catch(() => {});
         renderAutosaveBadge(code);
         return;
       }
@@ -2534,7 +2535,7 @@ function savePendingDraft(code) {
 }
 function clearPendingDraft() {
   if (!memberUid) return;
-  update(ref(db, "lineMembers/" + memberUid + "/profile"), { pendingDraft: null, pendingDraftAt: null }).catch(() => {});
+  update(ref(db, "lineMembers/" + memberUid + "/profile"), { pendingDraft: null, pendingDraftAt: null, autosaveDraft: null, autosaveAt: null }).catch(() => {});
 }
 async function pendingDraftCode() {
   if (!memberUid) return "";
@@ -2545,10 +2546,52 @@ async function pendingDraftCode() {
     return normalizeDraftCode(p.pendingDraft);
   } catch (e) { return ""; }
 }
+const AUTOSAVE_KEEP_DAYS = 14;
+// 途中保存（この端末 → なければLINEアカウントに記録したコード）のうち、新しい方を返す
+async function latestAutosave() {
+  let local = null;
+  try { local = JSON.parse(localStorage.getItem(AUTOSAVE_LS_KEY) || "null"); } catch (e) {}
+  if (local && !(local.savedAt > Date.now() - AUTOSAVE_KEEP_DAYS * 86400000 && specIsMeaningful(local.spec))) local = null;
+  let remote = null;
+  if (memberUid) {
+    try {
+      const p = (await get(ref(db, "lineMembers/" + memberUid + "/profile"))).val() || {};
+      if (p.autosaveDraft && p.autosaveAt > Date.now() - AUTOSAVE_KEEP_DAYS * 86400000 && !(local && local.savedAt >= p.autosaveAt)) {
+        const d = await fetchDraft(normalizeDraftCode(p.autosaveDraft));
+        if (d && d.productType === "autosave") remote = { savedAt: p.autosaveAt, spec: JSON.parse(d.spec), code: p.autosaveDraft };
+      }
+    } catch (e) {}
+  }
+  return remote || local;
+}
+function showRestoredNotice(saved) {
+  const el = document.getElementById("resumeBanner");
+  if (!el) return;
+  const d = new Date(saved.savedAt);
+  const when = (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  el.style.display = "block";
+  el.innerHTML = '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#f3f8f2;border:1px solid #9ad9b0;border-radius:12px;padding:10px 14px;margin-bottom:16px;font-size:13.5px;color:#0b5a28;line-height:1.6;">' +
+    '<span style="flex:1;min-width:200px;">途中まで選んでいた内容（' + escape(when) + '）を呼び出しました。続きからお選びください。</span>' +
+    '<button type="button" id="resumeReset" style="padding:8px 14px;border:1px solid #9ad9b0;border-radius:999px;background:#fff;color:#0b5a28;font-weight:700;cursor:pointer;">最初から選び直す</button></div>';
+  document.getElementById("resumeReset").addEventListener("click", () => {
+    try { localStorage.removeItem(AUTOSAVE_LS_KEY); localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {}
+    const done = () => { location.href = location.pathname + location.hash; };
+    if (memberUid) update(ref(db, "lineMembers/" + memberUid + "/profile"), { autosaveDraft: null, autosaveAt: null, pendingDraft: null, pendingDraftAt: null }).then(done, done); else done();
+  });
+}
 async function initDraftFeature() {
   renderDraftBanner();
   let code = draftCodeFromUrl();
+  const fromUrl = !!code; // ギャラリーから今まさに選んで来た場合は、そのケーキを優先する
   if (!code) code = await pendingDraftCode();
+  if (!fromUrl) {
+    const saved = await latestAutosave();
+    if (saved) {
+      // ギャラリーで選んだケーキ（選んだ商品の表示・お見積もりの扱い）は残したまま、その上に途中までの選択を戻す
+      if (code) { const d = await fetchDraft(code); if (d && d.productType !== "autosave") applyDraft(d); }
+      applyFormSpec(saved.spec); showRestoredNotice(saved); return;
+    }
+  }
   let shown = false;
   if (code) {
     const d = await fetchDraft(code);
@@ -2768,6 +2811,19 @@ function setupReserveForm(uid, displayName) {
 
     // reservation.htmlと同じ制約：お客様（未ログイン扱い）は新規作成のみ許可のため、
     // メール送信結果は保存前に確定させ、最初のpush()に含める（保存後のupdate()は権限エラーになる）。
+    // 要注意のお客様（管理画面で「ご予約をお断りする」）のネット予約を止める設定がONのときだけ、送信前に確認する（2026-10-08）。
+    // サーバーは「受け付けてよいか」だけを返し、お客様の情報は返さない。確認できない場合は受け付ける。
+    try {
+      const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 3500);
+      const gr = await fetch("https://asia-northeast1-koimari-tasting.cloudfunctions.net/reservationGate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ tel: data.tel || "", email: data.email || "", lineUserId: data.lineUserId || "" }), signal: ctl.signal });
+      clearTimeout(tm);
+      const gj = gr.ok ? await gr.json() : { ok: true };
+      if (gj && gj.ok === false) {
+        finalBtn.disabled = false; backBtn.disabled = false; finalBtn.textContent = "この内容でご予約を確定する";
+        errEl.textContent = "申し訳ございません。こちらのご予約は、お電話（070-9158-0641）にて承ります。";
+        return;
+      }
+    } catch (e) { /* 確認できない場合は受け付ける */ }
     const emailSent = await withTimeout(sendReserveToFormspree(data), 8000, "メール通知").catch(() => false);
     data.emailSent = !!emailSent;
 
