@@ -674,10 +674,30 @@ body:not(.chrome-visible) .fab{display:none!important}
   #globalNav li::before{display:none!important}
   #globalNav .nav-link{display:flex!important;justify-content:space-between;align-items:center;width:100%;padding:16px 24px!important;font-size:17px!important;text-align:left}
   #globalNav .nav-link::after{display:none}
+  /* 書式を全項目で必ずそろえる（他のスタイルや英語表示の影響を受けないように固定） */
+  #globalNav .nav-link,#globalNav .nav-link:visited,#globalNav .nav-link:hover{font-family:var(--font-mincho,"Shippori Mincho","Yu Mincho",serif)!important;font-weight:700!important;font-style:normal!important;letter-spacing:.08em!important;line-height:1.9!important;color:var(--color-text,#2e2118)!important;text-decoration:none!important;background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;transform:none!important}
   .nav-close{position:absolute;top:10px;right:14px;width:40px;height:40px;border:0;background:none;color:var(--color-accent-dark,#a88a52);font-size:30px;line-height:1;cursor:pointer}
   .nav-backdrop{position:fixed;inset:0;background:rgba(30,20,12,.38);z-index:2000;opacity:0;pointer-events:none;transition:opacity .3s}
   .nav-backdrop.show{opacity:1;pointer-events:auto}
   body.nav-open{overflow:hidden}
+}
+</style>
+<style id="shop-layout">
+/* 店舗情報・アクセス（2026-10-07オーナー指示）：見出しを中央に置き、その下に
+   PC・スマホ横＝左に地図・右に店舗情報、スマホ縦＝地図→店舗情報 の順で縦に並べる */
+#shop.shop{display:block!important;padding:64px 0 0!important;background:var(--color-bg);scroll-margin-top:calc(var(--header-h,72px) + 8px)}
+.shop__title{font-family:var(--font-mincho);font-size:30px;font-weight:600;letter-spacing:.12em;text-align:center;margin:0 0 30px;color:var(--color-text)}
+.shop__body{display:grid;grid-template-columns:1fr 1fr;max-width:1180px;margin:0 auto;border-top:1px solid var(--color-line)}
+.shop__body .shop__map{min-height:460px;position:relative}
+.shop__body .shop__map iframe{position:absolute;inset:0;width:100%;height:100%}
+.quick-reserve__steps + .quick-reserve__line-btn{margin-top:20px}
+.shop__body .shop__info{padding:40px 48px 56px!important}
+@media(max-width:700px){
+  #shop.shop{padding:40px 0 0!important}
+  .shop__title{font-size:24px;margin-bottom:20px}
+  .shop__body{grid-template-columns:1fr}
+  .shop__body .shop__map{min-height:300px;height:300px}
+  .shop__body .shop__info{padding:28px 20px 40px!important}
 }
 </style>
 </head>
@@ -821,13 +841,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="quick-reserve__line">
       <h3><span class="nb">ご予約は</span><span class="nb">LINEまたはお電話で</span></h3>
       <p>LINEなら、スマートフォンから<strong>ご希望を選んでご予約</strong>いただけます。<br><strong>お電話でも同じようにご予約を承ります。</strong></p>
-      <a href="https://lin.ee/tgXqHoK" class="quick-reserve__line-btn" target="_blank" rel="noopener" id="quickLineBtn"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="LINEで友だち追加" onerror="var a=document.getElementById('quickLineBtn');a.classList.add('is-fallback');a.textContent='LINEで友だち追加';"></a>
       <ol class="quick-reserve__steps">
         <li>LINEで<br>友だち追加</li>
         <li>トーク画面の下の<br>「ご予約」を押す</li>
         <li>ご希望を選んで<br>送信</li>
       </ol>
-      <p class="quick-reserve__or">またはお電話で</p>
+      <a href="https://lin.ee/tgXqHoK" class="quick-reserve__line-btn" target="_blank" rel="noopener" id="quickLineBtn"><img src="https://scdn.line-apps.com/n/line_add_friends/btn/ja.png" alt="LINEで友だち追加" onerror="var a=document.getElementById('quickLineBtn');a.classList.add('is-fallback');a.textContent='LINEで友だち追加';"></a>
+      <p class="quick-reserve__or">またはお電話で予約</p>
       <a class="quick-reserve__tel quick-reserve__tel--lg" href="tel:07091580641">070-9158-0641</a>
       <p class="quick-reserve__telnote">受付時間：火〜土 10:00-20:00 ／ 日 10:00-19:00（月曜定休・祝日は営業）</p>
       <p class="quick-reserve__nolinenote">パソコンでご覧の方は、ボタンを押した先の画面のQRコードを、スマートフォンのカメラで読み取ってください。</p>
@@ -919,10 +939,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 </section>
 
-<section class="shop" id="shop" style="padding:0;">
+<section class="shop" id="shop">
+  <h2 class="shop__title">店舗情報・アクセス</h2>
+  <div class="shop__body">
   <div class="shop__map"><iframe src="https://www.google.com/maps?q=%E5%A4%A7%E9%98%AA%E5%BA%9C%E5%A4%A7%E9%98%AA%E5%B8%82%E5%9F%8E%E6%9D%B1%E5%8C%BA%E6%88%90%E8%82%B22%E4%B8%81%E7%9B%AE13-15&output=embed" loading="lazy" title="店舗の地図"></iframe></div>
   <div class="shop__info">
-    <h2>店舗情報・アクセス</h2>
     <table class="shop__table">
       <tr><th>店名</th><td>ケーキ屋さん こいまり 城東</td></tr>
       <tr><th>住所</th><td>〒536-0007<br>大阪府大阪市城東区成育2丁目13-15<br>アイビーマンション 1階</td></tr>
@@ -934,6 +955,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </table>
     <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="inline-block mt-[22px] px-[46px] py-[18px] [font-family:var(--font-mincho)] text-[17px] tracking-[.18em] font-medium text-[var(--color-on-accent)] bg-[var(--color-accent)] border border-[var(--color-accent)] cursor-pointer transition duration-200 hover:bg-[var(--color-accent-dark)] hover:border-[var(--color-accent-dark)] hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(168,138,82,.4)]">ご予約・お問合せ</a>
     <p class="mt-4"><a href="kadoma.html" class="[font-family:var(--font-mincho)] text-[20px] font-bold tracking-[.06em] text-[var(--color-text)] underline underline-offset-4 decoration-[var(--color-gold)] decoration-2 hover:text-[var(--color-accent-dark)]">こいまりのルーツについて →</a></p>
+  </div>
   </div>
 </section>
 
@@ -1466,6 +1488,14 @@ function renderInstaCard(){
 window.renderInstaCard=renderInstaCard;
 renderInstaCard();
 
+(function(){
+  if (location.hash !== "#shop") return;
+  let userMoved = false;
+  ["wheel", "touchstart", "keydown"].forEach((ev) => window.addEventListener(ev, () => { userMoved = true; }, { once: true, passive: true }));
+  const go = () => { if (!userMoved) { const el = document.getElementById("shop"); if (el) el.scrollIntoView({ block: "start" }); } };
+  [300, 900, 1800, 3000].forEach((t) => setTimeout(go, t));
+  window.addEventListener("load", go);
+})();
 (function(){
   const nav = document.getElementById("globalNav"), btn = document.getElementById("menuToggle");
   const back = document.createElement("div"); back.className = "nav-backdrop"; document.body.appendChild(back);

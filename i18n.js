@@ -157,6 +157,7 @@ const KOIMARI_I18N_PHRASES = [
   ['トーク画面の下の「ご予約」を押す', 'Tap "Reserve"<br>below the chat'],
   ['ご希望を選んで送信', 'Choose and<br>send'],
   ['またはお電話で', 'Or call us'],
+  ['またはお電話で予約', 'Or call us to reserve'],
   ['受付時間：火〜土 10:00-20:00 ／ 日 10:00-19:00（月曜定休・祝日は営業）', 'Hours: Tue–Sat 10:00–20:00 / Sun 10:00–19:00 (closed Mon; open on national holidays)'],
   ['パソコンでご覧の方は、ボタンを押した先の画面のQRコードを、スマートフォンのカメラで読み取ってください。', 'On a computer? Scan the QR code shown after pressing the button with your smartphone camera.'],
   // 物語・ギャラリー
@@ -256,6 +257,8 @@ const KoimariPhrase = (function () {
       if (!key || !/[぀-ヿ一-龯]/.test(key)) return;
       const en = map.get(key);
       if (en === undefined) return;
+      // 子要素（リンク等）が同じ文面なら、子の方を訳す（親ごと置き換えるとリンクや書式が消えるため。2026-10-07）
+      if (Array.from(el.children).some((c) => norm(c.textContent) === key)) return;
       if (!orig.has(el)) orig.set(el, el.innerHTML);
       el.innerHTML = en;
       el.setAttribute('data-i18n-auto', '');
