@@ -273,6 +273,17 @@ section{padding:90px 24px}
 @media(max-width:900px){#globalNav ul,.sub-nav ul{flex-wrap:wrap;gap:4px 0}}
 @media(max-width:700px){#globalNav ul,.sub-nav ul{flex-wrap:wrap;gap:6px 20px;padding:10px 12px}#globalNav li+li::before,.sub-nav li+li::before{display:none}#globalNav .nav-link,.sub-nav .nav-link{font-size:17px;letter-spacing:.08em}}
 </style>
+<style id="nav-mobile-grid">
+/* 2026-10-07オーナー指摘：スマホでメニューの境目が分からない。上質さを崩さないよう、ボタン調にはせず
+   金の細い罫線で区切った2列の目次にする（奇数個のときは最後の項目を横いっぱいに）。 */
+@media(max-width:700px){
+  .sub-nav ul{display:grid!important;grid-template-columns:1fr 1fr;gap:1px!important;padding:0!important;margin:0;background:rgba(201,169,110,.5)}
+  .sub-nav li{display:block!important;background:var(--color-bg-soft,#ede3d4)}
+  .sub-nav li::before{display:none!important}
+  .sub-nav li:last-child:nth-child(odd){grid-column:1/-1}
+  .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
+}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->

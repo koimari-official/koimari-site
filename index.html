@@ -662,6 +662,24 @@ body:not(.chrome-visible) .fab{display:none!important}
 @media(max-width:700px){.greeting__inner{grid-template-columns:1fr;gap:26px}.greeting__text h2{font-size:29px}.greeting__text p{font-size:21px;line-height:1.95}.greeting__sign-name{font-size:17px}.greeting__kakuin{width:56px;height:56px}}
 @media(max-width:800px){.philosophy{padding:64px 16px}.philosophy__grid{grid-template-columns:1fr;gap:24px}.philosophy__card img{height:220px}.philosophy__body{padding:24px 22px 28px}}
 </style>
+<style id="nav-drawer">
+/* 2026-10-07オーナー指示：スマホの三本線は、右側から表題リストが出る引き出しにする（以前はヘッダーの下に開くだけで分かりにくかった） */
+@media(max-width:900px){
+  #globalNav{position:fixed!important;top:0;right:0;bottom:0;left:auto;width:min(82vw,340px);z-index:2001;display:block!important;
+    transform:translateX(105%);transition:transform .32s ease;overflow-y:auto;border:0!important;border-left:1px solid var(--color-gold,#c9a96e)!important;
+    box-shadow:-10px 0 30px rgba(30,20,12,.18);padding:58px 0 30px;background:var(--color-bg-soft,#ede3d4)}
+  #globalNav.open{transform:none}
+  #globalNav ul{display:flex!important;flex-direction:column;align-items:stretch!important;gap:0!important;padding:8px 0 0!important;border-top:1px solid rgba(201,169,110,.5)}
+  #globalNav li{display:block!important;border-bottom:1px solid rgba(201,169,110,.5)}
+  #globalNav li::before{display:none!important}
+  #globalNav .nav-link{display:flex!important;justify-content:space-between;align-items:center;width:100%;padding:16px 24px!important;font-size:17px!important;text-align:left}
+  #globalNav .nav-link::after{display:none}
+  .nav-close{position:absolute;top:10px;right:14px;width:40px;height:40px;border:0;background:none;color:var(--color-accent-dark,#a88a52);font-size:30px;line-height:1;cursor:pointer}
+  .nav-backdrop{position:fixed;inset:0;background:rgba(30,20,12,.38);z-index:2000;opacity:0;pointer-events:none;transition:opacity .3s}
+  .nav-backdrop.show{opacity:1;pointer-events:auto}
+  body.nav-open{overflow:hidden}
+}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -745,6 +763,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <li><a href="gallery.html" data-i18n="nav.gallery" class="nav-link">ギャラリー</a></li>
     <li><a href="faq.html" data-i18n="nav.faq" class="nav-link">よくある質問</a></li>
     <li><a href="calendar.html" class="nav-link" target="_blank" rel="noopener">営業日カレンダー</a></li>
+    <li><a href="reservation.html" class="nav-link">ご予約</a></li>
   </ul>
 </nav>
 
@@ -1447,7 +1466,18 @@ function renderInstaCard(){
 window.renderInstaCard=renderInstaCard;
 renderInstaCard();
 
-document.getElementById("menuToggle").addEventListener("click",()=>document.getElementById("globalNav").classList.toggle("open"));
+(function(){
+  const nav = document.getElementById("globalNav"), btn = document.getElementById("menuToggle");
+  const back = document.createElement("div"); back.className = "nav-backdrop"; document.body.appendChild(back);
+  const x = document.createElement("button"); x.type = "button"; x.className = "nav-close"; x.setAttribute("aria-label", "閉じる"); x.textContent = "×"; nav.prepend(x);
+  const set = (open) => { nav.classList.toggle("open", open); back.classList.toggle("show", open); document.body.classList.toggle("nav-open", open); btn.setAttribute("aria-expanded", open ? "true" : "false"); };
+  btn.addEventListener("click", () => set(!nav.classList.contains("open")));
+  back.addEventListener("click", () => set(false));
+  x.addEventListener("click", () => set(false));
+  nav.addEventListener("click", (e) => { if (e.target.closest("a")) set(false); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") set(false); });
+  window.addEventListener("resize", () => { if (window.innerWidth > 900) set(false); });
+})();
 document.querySelectorAll("#globalNav a").forEach(a=>a.addEventListener("click",()=>document.getElementById("globalNav").classList.remove("open")));
 
 // 全動的コンテンツを初期表示
