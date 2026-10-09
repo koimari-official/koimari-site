@@ -403,7 +403,7 @@ exports._internal = {
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
-  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost, customerFlagLines,
+  assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost, customerFlagLines, birthdayReminderText, birthdayReminderTargets,
 };
 
 exports.lineWebhook = onRequest(
@@ -543,6 +543,65 @@ const REMINDER_STAGES = [
   { key: "oneHour", minHours: 0, maxHours: 2 },
 ];
 
+
+// ===== お誕生日リマインダー（2026-10-09オーナー指示） =====
+// 去年「バースデー」でケーキをご予約いただいたLINEのお客様へ、今年のお誕生日の◯日前（管理画面で設定）に
+// 「今年もこいまりで」とご案内する。管理画面の「お誕生日リマインダー」でONにするまで送らない（koimariOps/birthdayReminder）。
+// 送るのは毎日10時台の最初の1回だけ。同じお客様・同じ日付には年1回まで（koimariOps/birthdayReminderLog）。
+function birthdayReminderText(data, pickupDate) {
+  const m = String(pickupDate || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const md = m ? Number(m[2]) + "月" + Number(m[3]) + "日" : "";
+  return [
+    (data.name || "お客様") + "様",
+    "いつもありがとうございます。",
+    "ケーキ屋さん こいまり 城東です。",
+    "",
+    "昨年の" + md + "は、",
+    "お誕生日のケーキを",
+    "ご用意させていただきました。",
+    "",
+    "今年のお祝いも、ぜひ",
+    "こいまりにお任せください。",
+    "",
+    "◆ご予約",
+    "◇トーク画面の下の「ご予約」",
+    "◇お電話 070-9158-0641",
+    "　（3営業日前までに",
+    "　ご予約ください）",
+  ].join("\n");
+}
+function birthdayReminderTargets(all, today, daysBefore) {
+  // today：日本時間の今日 "YYYY-MM-DD"。お誕生日（去年以前にバースデーで受け取った日の月日）が daysBefore 日後の予約を返す
+  const t = new Date(today + "T00:00:00+09:00");
+  const target = new Date(t.getTime() + daysBefore * 86400000);
+  const jstTarget = new Date(target.getTime() + 9 * 3600000); const tmdJst = jstTarget.toISOString().slice(5, 10), tyJst = jstTarget.getUTCFullYear();
+  const out = [];
+  Object.entries(all || {}).forEach(([key, d]) => {
+    if (!d || !d.lineUserId || d.status === "キャンセル" || d.status === "引取りなし") return;
+    if (d.occasion !== "バースデー") return;
+    const pd = String(d.finalPickupDate || d.pickupDate || "");
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(pd)) return;
+    if (pd.slice(5) !== tmdJst || Number(pd.slice(0, 4)) >= tyJst) return;
+    out.push({ key, d, pd, year: tyJst });
+  });
+  return out;
+}
+async function sendBirthdayReminders(all, accessToken, now) {
+  const cfg = (await admin.database().ref("koimariOps/birthdayReminder").once("value")).val() || {};
+  if (!cfg.enabled) return;
+  const jst = new Date(now.getTime() + 9 * 3600000);
+  if (jst.getUTCHours() !== 10 || jst.getUTCMinutes() >= 15) return; // 毎日10:00〜10:14の1回だけ
+  const today = jst.toISOString().slice(0, 10);
+  const days = Number(cfg.daysBefore) || 30;
+  const logRef = admin.database().ref("koimariOps/birthdayReminderLog");
+  for (const t of birthdayReminderTargets(all, today, days)) {
+    const logKey = t.d.lineUserId + "_" + t.year + "-" + t.pd.slice(5);
+    if ((await logRef.child(logKey).once("value")).exists()) continue;
+    const ok = await pushLineMessage(t.d.lineUserId, birthdayReminderText(t.d, t.pd), accessToken);
+    if (ok) await logRef.child(logKey).set({ sentAt: now.toISOString(), reservation: t.key, name: t.d.name || "" });
+  }
+}
+
 exports.sendPickupReminders = onSchedule(
   {
     schedule: "every 15 minutes",
@@ -573,6 +632,7 @@ exports.sendPickupReminders = onSchedule(
         }
       }
     }
+    try { await sendBirthdayReminders(all, accessToken, now); } catch (e) { console.warn("お誕生日リマインダー:", e.message); }
   }
 );
 

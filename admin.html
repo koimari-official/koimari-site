@@ -395,6 +395,19 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-short__btns button{font-size:13px;font-weight:700;border:1px solid #b03b48;background:#fff;color:#b03b48;border-radius:999px;padding:6px 12px;cursor:pointer}
 .add-bottom{display:flex;justify-content:center;margin:18px 0 6px}
 .add-bottom .btn{min-width:240px}
+
+/* お誕生日リマインダー・通販（BASE）（2026-10-09） */
+.bd-box{background:#fff;border:1px solid var(--color-line);padding:16px 18px;max-width:720px;display:flex;flex-direction:column;gap:10px}
+.bd-row{display:flex;gap:8px;align-items:center;font-size:15px}
+.bd-h{font-size:16px;margin:22px 0 8px}
+.bd-preview{background:#06c755;color:#fff;border-radius:14px;padding:14px 16px;max-width:300px;white-space:pre-wrap;font-family:inherit;font-size:14px;line-height:1.7}
+.bs-links{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.bs-check{display:flex;gap:8px;align-items:flex-start;font-size:14px;padding:6px 0;border-bottom:1px dashed var(--color-line)}
+.bs-fee{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;margin-bottom:10px}
+.bs-prod{background:#fff;border:1px solid var(--color-line);padding:12px 14px;margin-bottom:10px;display:flex;flex-wrap:wrap;gap:10px 14px;font-size:12.5px}
+.bs-prod label{display:flex;flex-direction:column;gap:3px}
+.bs-prod input,.bs-prod select{padding:6px 8px;font-size:14px;border:1px solid #d8c8b0;border-radius:6px}
+.bs-profit{width:100%;font-size:14px}
 .move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
 .move-cat label{font-weight:700;color:#4a6f9c}
 .move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
@@ -568,6 +581,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
       <button class="tab" data-panel="christmas">クリスマスケーキ</button>
       <button class="tab" data-panel="customerFlags">要注意のお客様</button>
+      <button class="tab" data-panel="birthday">お誕生日リマインダー</button>
+      <button class="tab" data-panel="base">通販（BASE）</button>
 
       <span class="tab-group-label">販促・システム設定</span>
       <button class="tab" data-panel="i18n">英語翻訳</button>
@@ -1330,6 +1345,43 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <div class="cf-actions"><button class="btn" id="cfSave">登録する</button><button class="btn btn--ghost btn--small" id="cfReset" type="button">入力を消す</button><span class="small" id="cfMsg"></span></div>
       </div>
       <div id="cfList"></div>
+    </section>
+
+
+    <!-- ===== お誕生日リマインダー（2026-10-09） ===== -->
+    <section class="panel" id="panel-birthday">
+      <div class="panel__head"><h2 class="panel__title">お誕生日リマインダー</h2></div>
+      <p class="panel__desc">昨年「バースデー」でケーキをご予約いただいたLINEのお客様へ、今年のお誕生日の少し前に「今年もこいまりで」とLINEでお知らせします。毎日10時に自動で送ります。<b>ONにするまで送りません。</b></p>
+      <div class="bd-box">
+        <label class="bd-row"><input type="checkbox" id="bdEnabled"> <b>お誕生日リマインダーを送る</b></label>
+        <label class="bd-row">お誕生日の <select id="bdDays"><option value="14">14</option><option value="21">21</option><option value="30">30</option><option value="45">45</option></select> 日前に送る</label>
+        <p class="small">※LINE公式アカウントは、月に送れる無料のメッセージ数に上限があります（予約の受付・確定・リマインダーなどと合計で数えます）。下の「これから送る予定」の件数を目安にしてください。</p>
+        <button class="btn" id="bdSave">設定を保存</button> <span class="small" id="bdMsg"></span>
+      </div>
+      <h3 class="bd-h">送る文面（見本）</h3>
+      <pre class="bd-preview" id="bdPreview"></pre>
+      <h3 class="bd-h">これから送る予定（60日先まで）</h3>
+      <div id="bdUpcoming"></div>
+    </section>
+
+    <!-- ===== 通販（BASE）（2026-10-09） ===== -->
+    <section class="panel" id="panel-base">
+      <div class="panel__head"><h2 class="panel__title">通販（BASE）</h2></div>
+      <p class="panel__desc">BASEでの通販・Instagram販売の準備と、通販する商品の管理をまとめる画面です。注文の確認・発送はBASEの管理画面で行います。</p>
+      <div class="bs-links">
+        <a class="btn" href="https://admin.thebase.com/" target="_blank" rel="noopener">BASEの管理画面を開く ↗</a>
+        <a class="btn btn--ghost" id="bsShopLink" href="#" target="_blank" rel="noopener" style="display:none;">こいまりのBASEショップを開く ↗</a>
+        <label class="small">ショップのURL <input id="bsShopUrl" placeholder="https://koimari.base.shop など" style="width:260px;"></label>
+      </div>
+      <h3 class="bd-h">開店までのチェックリスト</h3>
+      <div id="bsChecklist"></div>
+      <h3 class="bd-h">通販する商品（利益の試算つき）</h3>
+      <p class="small">手数料率はBASEの料金プランで変わるため、BASEの料金ページで確認した数字を入れてください（初期値は空欄）。</p>
+      <div class="bs-fee"><label>決済手数料など（％）<input id="bsFeeRate" type="number" step="0.1" min="0" style="width:80px;"></label><label>1件ごとの手数料（円）<input id="bsFeeFixed" type="number" min="0" style="width:80px;"></label></div>
+      <div id="bsProducts"></div>
+      <button class="btn btn--ghost btn--small" id="bsAddProduct">＋ 通販する商品を追加</button>
+      <div style="margin-top:16px;"><button class="btn" id="bsSave">保存</button> <span class="small" id="bsMsg"></span></div>
+      <p class="small" style="margin-top:18px;">BASEの注文をこの画面に自動で取り込む連携は、BASEの開発者登録（無料）をしていただいた後に作れます。</p>
     </section>
 
     <!-- ===== クリスマスケーキ（2026-10-03） ===== -->
@@ -4811,6 +4863,121 @@ async function openPhoneReservation() {
   });
 }
 
+
+// ===== お誕生日リマインダー（2026-10-09） =====
+function bdText(name, pd) {
+  const m = String(pd || "").match(/^(\d{4})-(\d{2})-(\d{2})$/), md = m ? Number(m[2]) + "月" + Number(m[3]) + "日" : "";
+  return [(name || "お客様") + "様", "いつもありがとうございます。", "ケーキ屋さん こいまり 城東です。", "", "昨年の" + md + "は、", "お誕生日のケーキを", "ご用意させていただきました。", "", "今年のお祝いも、ぜひ", "こいまりにお任せください。", "", "◆ご予約", "◇トーク画面の下の「ご予約」", "◇お電話 070-9158-0641", "　（3営業日前までに", "　ご予約ください）"].join("\n");
+}
+async function renderBirthdayPanel() {
+  const cfg = (await window.fbOpsGet("birthdayReminder")) || {};
+  document.getElementById("bdEnabled").checked = !!cfg.enabled;
+  document.getElementById("bdDays").value = String(cfg.daysBefore || 30);
+  const draw = () => {
+    const days = Number(document.getElementById("bdDays").value) || 30;
+    document.getElementById("bdPreview").textContent = bdText("山田", "2025-11-20");
+    const list = loadList(RES_KEY), today = new Date(); today.setHours(0, 0, 0, 0);
+    const rows = [];
+    list.forEach((r) => {
+      if (!r || !r.lineUserId || r.occasion !== "バースデー" || r.status === "キャンセル" || r.status === "引取りなし") return;
+      const pd = String(r.finalPickupDate || r.pickupDate || ""); if (!/^\d{4}-\d{2}-\d{2}$/.test(pd)) return;
+      for (let y = today.getFullYear(); y <= today.getFullYear() + 1; y++) {
+        const bday = new Date(y, Number(pd.slice(5, 7)) - 1, Number(pd.slice(8, 10)));
+        if (y <= Number(pd.slice(0, 4))) continue;
+        const send = new Date(bday.getTime() - days * 86400000);
+        const diff = Math.round((send - today) / 86400000);
+        if (diff >= 0 && diff <= 60) rows.push({ send, bday, r });
+      }
+    });
+    rows.sort((a, b) => a.send - b.send);
+    const f = (d) => (d.getMonth() + 1) + "/" + d.getDate();
+    document.getElementById("bdUpcoming").innerHTML = rows.length ? '<table class="res-table"><thead><tr><th>送る日</th><th>お誕生日</th><th>お名前</th><th>昨年のご予約</th></tr></thead><tbody>' + rows.map((x) => "<tr><td>" + f(x.send) + "</td><td>" + f(x.bday) + "</td><td>" + escapeHtml(x.r.name || "") + " 様</td><td>" + escapeHtml(resCakeTitle ? resCakeTitle(x.r) : "") + "</td></tr>").join("") + "</tbody></table>" : '<div class="empty">60日以内に送る予定のお客様はいません（昨年のバースデーのご予約が増えると、ここに出てきます）</div>';
+  };
+  draw();
+  const sel = document.getElementById("bdDays");
+  if (!sel.dataset.bound) {
+    sel.dataset.bound = "1";
+    sel.addEventListener("change", draw);
+    document.getElementById("bdSave").addEventListener("click", async () => {
+      const v = { enabled: document.getElementById("bdEnabled").checked, daysBefore: Number(sel.value) || 30, updatedAt: new Date().toISOString() };
+      if (v.enabled && !confirm("お誕生日リマインダーを送る設定にします。毎日10時に、対象のお客様へLINEが自動で届きます。よろしいですか？")) return;
+      try { await window.fbOpsSet("birthdayReminder", v); document.getElementById("bdMsg").textContent = v.enabled ? "保存しました（送る設定）" : "保存しました（送らない設定）"; } catch (e) { document.getElementById("bdMsg").textContent = "保存できませんでした（管理者アカウントのみ変更できます）"; }
+    });
+  }
+}
+
+// ===== 通販（BASE）（2026-10-09） =====
+const BS_CHECKS = [
+  ["shop", "BASEでショップを開設する（ショップ名・ロゴ・お店の紹介文）"],
+  ["law", "特定商取引法に基づく表記をBASEに入れる（サイトの表記と同じ内容）"],
+  ["permit", "冷凍品を通販してよいか、今の菓子製造業の許可のままでよいかを保健所に確認する"],
+  ["label", "食品表示（名称・原材料・アレルギー・内容量・賞味期限・保存方法・製造者）のラベルを用意する"],
+  ["pack", "冷凍便の箱・保冷剤・緩衝材を用意し、実際に自分あてに送って状態を確かめる"],
+  ["ship", "送料と配送方法（クール便・冷凍）をBASEで設定する"],
+  ["item", "商品ページ（写真・説明・価格・日持ち・届いてからの食べ方）をBASEで作る"],
+  ["insta", "BASEの「Instagram販売」Appで、Instagramの投稿に商品をタグ付けできるようにする"],
+  ["test", "知り合いにテスト注文をしてもらい、注文→発送→到着まで確かめる"],
+];
+let bsData = null;
+function bsNewProduct() { return { name: "", price: "", cost: "", shipping: "", limit: "", shelf: "", storage: "冷凍", url: "", status: "準備中" }; }
+function bsProfit(p) {
+  const price = Number(p.price) || 0, cost = Number(p.cost) || 0, ship = Number(p.shipping) || 0;
+  const rate = Number(document.getElementById("bsFeeRate").value) || 0, fixed = Number(document.getElementById("bsFeeFixed").value) || 0;
+  if (!price) return "";
+  const fee = Math.round(price * rate / 100) + fixed, profit = price - cost - ship - fee;
+  return "手数料 ¥" + fee.toLocaleString() + "　1個あたりの利益 <b style='color:" + (profit >= 0 ? "#0b5a28" : "#b03b48") + "'>¥" + profit.toLocaleString() + "</b>（" + Math.round(profit / price * 100) + "%）";
+}
+function bsDraw() {
+  const d = bsData;
+  const link = document.getElementById("bsShopLink"); document.getElementById("bsShopUrl").value = d.shopUrl || "";
+  if (/^https?:\/\//.test(d.shopUrl || "")) { link.href = d.shopUrl; link.style.display = ""; } else link.style.display = "none";
+  document.getElementById("bsFeeRate").value = d.feeRate ?? ""; document.getElementById("bsFeeFixed").value = d.feeFixed ?? "";
+  const done = BS_CHECKS.filter(([k]) => d.checks && d.checks[k]).length;
+  document.getElementById("bsChecklist").innerHTML = '<div class="small" style="margin-bottom:6px;">' + done + " / " + BS_CHECKS.length + " 完了</div>" + BS_CHECKS.map(([k, t]) => '<label class="bs-check"><input type="checkbox" data-bschk="' + k + '"' + (d.checks && d.checks[k] ? " checked" : "") + "> " + escapeHtml(t) + "</label>").join("");
+  const F = (i, k, label, w, type) => '<label>' + label + '<input data-bsp="' + i + '" data-k="' + k + '" value="' + escapeHtml(d.products[i][k] || "") + '"' + (type ? ' type="' + type + '"' : "") + ' style="width:' + w + ';"></label>';
+  document.getElementById("bsProducts").innerHTML = d.products.length ? d.products.map((p, i) => '<div class="bs-prod">' +
+    F(i, "name", "商品名", "220px") + F(i, "price", "販売価格（税込・円）", "110px", "number") + F(i, "cost", "原価（円）", "100px", "number") + F(i, "shipping", "送料のお店負担（円）", "110px", "number") +
+    F(i, "limit", "週の販売上限（個）", "90px", "number") + F(i, "shelf", "賞味期限（例：冷凍30日）", "160px") +
+    '<label>保存方法<select data-bsp="' + i + '" data-k="storage">' + ["冷凍", "冷蔵", "常温"].map((x) => '<option' + (p.storage === x ? " selected" : "") + ">" + x + "</option>").join("") + "</select></label>" +
+    '<label>状態<select data-bsp="' + i + '" data-k="status">' + ["準備中", "販売中", "休止"].map((x) => '<option' + (p.status === x ? " selected" : "") + ">" + x + "</option>").join("") + "</select></label>" +
+    F(i, "url", "BASEの商品ページURL", "260px") +
+    '<div class="bs-profit">' + bsProfit(p) + "</div>" +
+    '<div>' + (/^https?:\/\//.test(p.url || "") ? '<a href="' + escapeHtml(p.url) + '" target="_blank" rel="noopener">BASEで見る ↗</a>　' : "") + '<button type="button" class="btn btn--small btn--ghost" data-bsdel="' + i + '" style="color:#b03b48;border-color:#b03b48;">削除</button></div></div>').join("") : '<div class="empty">まだ商品がありません。「＋ 通販する商品を追加」から入れてください（例：バスクチーズケーキ）。</div>';
+}
+async function renderBasePanel() {
+  if (!bsData) { bsData = (await window.fbOpsGet("baseShop")) || {}; bsData.products = bsData.products || []; bsData.checks = bsData.checks || {}; }
+  bsDraw();
+  const panel = document.getElementById("panel-base");
+  if (panel.dataset.bound) return;
+  panel.dataset.bound = "1";
+  panel.addEventListener("input", (e) => {
+    const t = e.target;
+    if (t.dataset.bsp !== undefined) { bsData.products[+t.dataset.bsp][t.dataset.k] = t.value; const box = t.closest(".bs-prod"); if (box) box.querySelector(".bs-profit").innerHTML = bsProfit(bsData.products[+t.dataset.bsp]); }
+    if (t.id === "bsShopUrl") bsData.shopUrl = t.value.trim();
+    if (t.id === "bsFeeRate" || t.id === "bsFeeFixed") { bsData.feeRate = document.getElementById("bsFeeRate").value; bsData.feeFixed = document.getElementById("bsFeeFixed").value; document.querySelectorAll(".bs-prod").forEach((box, i) => { box.querySelector(".bs-profit").innerHTML = bsProfit(bsData.products[i]); }); }
+  });
+  panel.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.dataset.bschk) { bsData.checks[t.dataset.bschk] = t.checked; bsDraw(); }
+    if (t.tagName === "SELECT" && t.dataset.bsp !== undefined) bsData.products[+t.dataset.bsp][t.dataset.k] = t.value;
+  });
+  panel.addEventListener("click", (e) => {
+    const del = e.target.closest("[data-bsdel]");
+    if (del && confirm("この商品を一覧から削除しますか？")) { bsData.products.splice(+del.dataset.bsdel, 1); bsDraw(); }
+  });
+  document.getElementById("bsAddProduct").addEventListener("click", () => { bsData.products.push(bsNewProduct()); bsDraw(); });
+  document.getElementById("bsSave").addEventListener("click", async () => {
+    try { bsData.updatedAt = new Date().toISOString(); await window.fbOpsSet("baseShop", bsData); document.getElementById("bsMsg").textContent = "保存しました"; bsDraw(); }
+    catch (e) { document.getElementById("bsMsg").textContent = "保存できませんでした（管理者アカウントのみ変更できます）"; }
+  });
+}
+document.addEventListener("click", (e) => {
+  const t = e.target.closest && e.target.closest(".tab[data-panel]");
+  if (!t) return;
+  if (t.dataset.panel === "birthday") renderBirthdayPanel();
+  if (t.dataset.panel === "base") renderBasePanel();
+});
+
 // ===== 要注意のお客様（2026-10-04） ⚠️ 機密：個人情報 =====
 function cfTelKey(t) { let d = String(t || "").replace(/\D/g, ""); if (d.indexOf("81") === 0 && d.length >= 11) d = "0" + d.slice(2); return d.length >= 10 ? d : ""; }
 function cfMailKey(m) { m = String(m || "").trim().toLowerCase(); return /@/.test(m) ? m : ""; }
@@ -6716,6 +6883,10 @@ window.fbAddPhoneReservation = (data) => push(ref(fbDb, "reservations"), data);
 window.fbGetHolidays = () => get(ref(fbDb, "koimariContent/holidays")).then((s) => s.val() || {}).catch(() => ({}));
 window.fbOnBlockDeclined = (cb) => onValue(ref(fbDb, "koimariOps/blockDeclinedCustomers"), (s) => cb(s.val() === true), () => {});
 window.fbSetBlockDeclined = (on) => set(ref(fbDb, "koimariOps/blockDeclinedCustomers"), !!on);
+
+// ===== お誕生日リマインダー・通販（BASE）（2026-10-09） =====
+window.fbOpsGet = (k) => get(ref(fbDb, "koimariOps/" + k)).then((s) => s.val()).catch(() => null);
+window.fbOpsSet = (k, v) => set(ref(fbDb, "koimariOps/" + k), v);
 window.fbResEditorApi = {
   getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
   multiUpdate: (patch) => update(ref(fbDb), patch),
