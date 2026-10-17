@@ -524,7 +524,7 @@ function renderProductPage(){
   renderRelated(list, config);
 }
 
-const TYPE_LABELS = { decorationCake: 'デコレーションケーキ', cutcake: 'カットケーキ', rollcake: 'ロールケーキ', baked: '焼き菓子', gift: 'ギフト', addOn: '砂糖菓子・オーナメント', category: '商品・ケーキ', recommended: 'おすすめ' };
+const TYPE_LABELS = { decorationCake: 'デコレーションケーキ', cutcake: 'カットケーキ', rollcake: 'ロールケーキ', baked: '焼き菓子', gift: 'ギフト', addOn: '砂糖菓子・ゼリー菓子', category: '商品・ケーキ', recommended: 'おすすめ' };
 function priceHintFor(it, type) {
   if (!window.KoimariPriceHint) return Promise.resolve('');
   // カットケーキは価格欄が空なら、原価計算アプリの販売価格（管理画面で紐づけた商品名→商品名の一致）を出す（2026-10-04）
@@ -646,7 +646,7 @@ function renderLeadAndTel(item, size) {
   if (!isProduct) return;
   const custom = productType === 'decorationCake' && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === 'custom';
   const rows = productType === 'addOn'
-    ? ['ケーキのご予約に<b>追加</b>することも、<b>砂糖菓子・オーナメントだけ</b>のご注文もできます。', 'ご注文はお受け取りの<b>3営業日前まで</b>承ります。', '3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。']
+    ? ['ケーキのご予約に<b>追加</b>することも、<b>砂糖菓子・ゼリー菓子だけ</b>のご注文もできます。', 'ご注文はお受け取りの<b>3営業日前まで</b>承ります。', '3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。']
     : productType === 'cutcake'
     ? ['カットケーキのご予約は<b>3個から</b>、<b>お引き取りの3営業日前まで</b>承ります。', '2個以下のご注文や、3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。']
     : ['お引き渡し日は資材の在庫状況によります。お早めのご相談をおすすめいたします。',

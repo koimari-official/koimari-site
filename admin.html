@@ -566,9 +566,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="rollcakes" style="display:none;">ロールケーキ</button>
       <button class="tab" data-panel="baked" style="display:none;">焼き菓子</button>
       <button class="tab" data-panel="gift" style="display:none;">ギフト</button>
+      <!-- 砂糖菓子・ゼリー菓子（cakeAddOns）も2026-10-17からギャラリーの種類の1つとして、カテゴリーボタンから開く -->
 
       <span class="tab-group-label">専用ページ・機能</span>
-      <button class="tab" data-panel="cakeAddOns">追加商品（砂糖菓子）</button>
+      <button class="tab" data-panel="cakeAddOns" style="display:none;">砂糖菓子・ゼリー菓子</button>
       <button class="tab" data-panel="faq">FAQ管理</button>
       <button class="tab" data-panel="galleryAdmin">ギャラリー</button>
       <button class="tab" data-panel="blogAdmin">ブログ</button>
@@ -946,8 +947,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="img-grid" id="giftGrid"></div>
     </section>
     <section class="panel" id="panel-cakeAddOns">
-      <div class="panel__head"><h2 class="panel__title">デコレーション追加商品（砂糖菓子・オーナメント）</h2><button class="btn btn--small" id="addCakeAddOn">＋ 商品を追加</button></div>
-      <p class="panel__desc">予約フォームで、お客様が<strong>写真を見ながら追加できる商品</strong>です（砂糖菓子・オーナメントなど）。お子様と一緒に選んでワクワクできるよう、かわいい写真を登録してください。価格は<strong>1個あたり（税込）</strong>で、選ばれた個数分がお見積もりに加算されます。表示ON/OFF・並び替えもできます。登録が1件も無い間は、予約フォームにこの欄は出ません。</p>
+      <div class="panel__head"><h2 class="panel__title">砂糖菓子・ゼリー菓子</h2><button class="btn btn--small" id="addCakeAddOn">＋ 商品を追加</button></div>
+      <p class="panel__desc">ギャラリーの「砂糖菓子・ゼリー菓子」と、トップページの「砂糖菓子・ゼリー菓子だけでも買えます」の欄に表示される商品です。ケーキのご予約に<strong>追加</strong>することも、<strong>これだけのご購入</strong>（予約フォームの「砂糖菓子・ゼリー菓子のみ」）もできます。写真は画質を落とさずに保存されます。</p>
       <div class="img-grid" id="cakeAddOnsGrid"></div>
     </section>
     <section class="panel" id="panel-experiences">
@@ -3378,7 +3379,7 @@ function renderGift() {
     grid.appendChild(item);
   });
 }
-// 2026-09-24：予約フォームの「デコレーション追加」（砂糖菓子・オーナメント）の商品。写真と1個あたりの
+// 2026-09-24：予約フォームの「デコレーション追加」（砂糖菓子・ゼリー菓子）の商品。写真と1個あたりの
 // 金額を登録すると、お客様が画像を見ながら個数を選び、お見積もりに加算される（member.html）。
 function renderCakeAddOns() {
   const grid = document.getElementById("cakeAddOnsGrid"); if (!grid) return; grid.innerHTML = "";
@@ -3393,7 +3394,7 @@ function renderCakeAddOns() {
       fields: [
         { label: "商品名（例: くまの砂糖菓子）", key: "name", value: r.name, type: "input" },
         { label: "価格（税込・1個あたり。例: ¥300）", key: "price", value: r.price, type: "input" },
-        { label: "分類（砂糖菓子／オーナメント など・自由入力）", key: "kind", value: r.kind || "", type: "input" },
+        { label: "分類（砂糖菓子／ゼリー菓子 など・自由入力）", key: "kind", value: r.kind || "", type: "input" },
         { label: "説明文（任意）", key: "desc", value: r.desc || "", type: "textarea" },
         { label: "画像URL", key: "img", value: r.img, type: "input" }
       ],
@@ -3476,6 +3477,7 @@ const GALLERY_NAV_ITEMS = [
   { key: "rollcakes", label: "ロールケーキ" },
   { key: "baked", label: "焼き菓子" },
   { key: "gift", label: "ギフト" },
+  { key: "cakeAddOns", label: "砂糖菓子・ゼリー菓子" },
   { key: "galleryAdmin", label: "オーダーメイド" }
 ];
 function mountGalleryCatNav(currentPanel) {
@@ -4776,7 +4778,7 @@ setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
 // ===== 電話予約の登録（2026-10-08） =====
 // その日シフトに入っているスタッフが電話で受けた予約を、聞き取りながら入力する画面。
 // 日付・時間はプルダウン（曜日つき）。保存すると予約一覧・カレンダー・製造の目安に入り、受付経路は「電話」になる。
-const PR_TYPES = ["デコレーションケーキ", "カットケーキ", "ロールケーキ", "焼き菓子・ギフト", "砂糖菓子・オーナメント", "クリスマスケーキ"];
+const PR_TYPES = ["デコレーションケーキ", "カットケーキ", "ロールケーキ", "焼き菓子・ギフト", "砂糖菓子・ゼリー菓子", "クリスマスケーキ"];
 const PR_SIZES = ["4号", "5号", "6号", "7号", "2段", "3段", "その他（内容に記入）"];
 const PR_BASES = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース", "モンブラン"];
 const PR_DECOS = ["", "いちごのみ", "バラエティフルーツ"];
@@ -5121,14 +5123,14 @@ function resCakeTitle(r) {
   const pick = r.galleryPick && r.galleryPick.name ? (r.galleryPick.no ? cakeNoLabel(r.galleryPick.no) + " " : "") + r.galleryPick.name : "";
   if (it.category === "ロールケーキ") return "ロールケーキ" + (it.flavor ? "（" + it.flavor + "）" : "");
   if (it.category === "焼き菓子") return "焼き菓子・ギフト";
-  if (it.category === "カットケーキ" || it.category === "砂糖菓子・オーナメント") return it.category + "（合計" + r.items.reduce((s, x) => s + (Number(x.qty) || 1), 0) + "個）";
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return it.category + "（合計" + r.items.reduce((s, x) => s + (Number(x.qty) || 1), 0) + "個）";
   const occ = r.occasion === "その他" && r.occasionOther ? r.occasionOther : r.occasion;
   return (pick || ((occ && occ !== "その他" ? occ : "") + "デコレーションケーキ")) + (pick && occ ? "（" + occ + "）" : "");
 }
 function resCakeSpecLine(r) {
   const items = Array.isArray(r.items) ? r.items : [];
   const it = items[0] || {};
-  if (it.category === "カットケーキ" || it.category === "砂糖菓子・オーナメント") return items.map((x) => (x.flavor || "") + " × " + (x.qty || 1) + "個").join("、");
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return items.map((x) => (x.flavor || "") + " × " + (x.qty || 1) + "個").join("、");
   if (it.category === "焼き菓子") return r.note ? String(r.note).slice(0, 80) : "";
   const parts = [];
   if (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1) {
@@ -5144,7 +5146,7 @@ function resCakeSpecLine(r) {
 function resExtrasLine(r) {
   const out = [];
   const it = (Array.isArray(r.items) && r.items[0]) || {};
-  if (it.category === "カットケーキ" || it.category === "砂糖菓子・オーナメント") return r.note ? "備考：" + r.note : "";
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return r.note ? "備考：" + r.note : "";
   if (Array.isArray(r.cutCakes) && r.cutCakes.length) out.push("上に載せるカットケーキ：" + r.cutCakes.map((c) => c.name + "×" + c.qty).join("、"));
   if (r.colorCream && !(Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1)) out.push("カラークリーム " + r.colorCream.count + "色" + ((r.colorCream.colors || []).length ? "（" + r.colorCream.colors.join("・") + "）" : "") + (r.colorCream.note ? "：" + r.colorCream.note : ""));
   if (r.fruitExtra) out.push("フルーツ増量");
@@ -5254,7 +5256,7 @@ function resDaySummary(rows) {
     if (!items.length) { cnt[resCakeTitle(r)] = (cnt[resCakeTitle(r)] || 0) + 1; return; }
     items.forEach((it, i) => {
       const base = (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? "" : (r.creamType || it.category || ""));
-      const k = it.category === "カットケーキ" ? "カット " + it.flavor : it.category === "砂糖菓子・オーナメント" ? it.flavor : (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
+      const k = it.category === "カットケーキ" ? "カット " + it.flavor : it.category === "砂糖菓子・ゼリー菓子" ? it.flavor : (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
       cnt[k] = (cnt[k] || 0) + (Number(it.qty) || 1);
     });
   });
@@ -5880,7 +5882,7 @@ let spotlightDirty = false;
 // 「この特集の商品」（2026-10-08オーナー指示）：特集の下に、ギャラリーの商品を3〜6点の小さな写真で並べる。
 // 選んだ時点の名前・写真・価格を特集に記録する（トップページで全商品のデータを読まずに済むように）。
 // 商品ページへは「種類＋並び順＋名前」で飛び、並び替えで順番が変わっても名前で探し直す。
-const SP_PICK_KEYS = [["decorationCakes", "decorationCake", "デコレーションケーキ"], ["cutcakes", "cutcake", "カットケーキ"], ["rollcakes", "rollcake", "ロールケーキ"], ["baked", "baked", "焼き菓子"], ["gift", "gift", "ギフト"], ["cakeAddOns", "addOn", "砂糖菓子・オーナメント"]];
+const SP_PICK_KEYS = [["decorationCakes", "decorationCake", "デコレーションケーキ"], ["cutcakes", "cutcake", "カットケーキ"], ["rollcakes", "rollcake", "ロールケーキ"], ["baked", "baked", "焼き菓子"], ["gift", "gift", "ギフト"], ["cakeAddOns", "addOn", "砂糖菓子・ゼリー菓子"]];
 async function spPickCatalog() {
   const out = [];
   for (const [k, type, label] of SP_PICK_KEYS) {
@@ -7482,7 +7484,7 @@ function buildPriceTable() {
     html += group("おまかせデコレーション", "パティシエがケーキに合わせて飾り付けるオプション", table(["松", "竹", "梅"].map(k => row(k, yenIn("cso_omakase_" + k, SO.omakaseDeco[k]))).join("")));
     html += group("その他", "", table(row("3段の出張組み立て料", yenIn("cso_onsite", SO.onsiteAssemblyFee), "交通費は別途")));
   }
-  html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・オーナメントなどの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
+  html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・ゼリー菓子などの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
   html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。<b>原価表にない組み合わせは「特殊仕様」</b>となり、予約フォームでは金額を出さず、スタッフがお電話で仕様・料金を確認します。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div><details style="margin-top:8px;"><summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6f9c;">原価計算アプリとの対応表を見る（自動判定が正しいか確認できます）</summary><div id="ptSourceMap" style="margin-top:8px;overflow-x:auto;"></div></details></div>' + html;
   wrap.innerHTML = html;
   // 原価計算アプリから反映された欄を書き換え不可にする（koimariContent/priceTableSource）

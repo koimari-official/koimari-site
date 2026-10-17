@@ -75,6 +75,9 @@ a.gal-card .gal-card__img{cursor:pointer}
 .gal-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .gal-card:hover .gal-card__img img{transform:scale(1.06)}
 .gal-card__cat{position:absolute;z-index:2;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
+.gal-sugar-lead{display:flex;flex-direction:column;gap:6px;text-align:center;background:#fff7ea;border:1px solid #e8cf9f;border-radius:14px;padding:16px 18px;margin-bottom:6px}
+.gal-sugar-lead b{font-family:var(--font-mincho);font-size:clamp(18px,2.4vw,22px);letter-spacing:.06em;color:#3a2a1c}
+.gal-sugar-lead span{font-size:15px;line-height:1.8;color:#4a3a2a}
 #galleryGrid.is-addon{grid-template-columns:repeat(auto-fill,minmax(160px,1fr))!important}
 #galleryGrid.is-addon .gal-card__cat{display:none}
 #galleryGrid.is-addon .gal-card__img img{object-fit:contain;background:#fff}
@@ -369,7 +372,7 @@ const CATEGORIES = [
   { key: "roll", name: "ロールケーキ" },
   { key: "baked", name: "焼き菓子" },
   { key: "gift", name: "ギフト" },
-  { key: "addon", name: "砂糖菓子・オーナメント" },
+  { key: "addon", name: "砂糖菓子・ゼリー菓子" },
   { key: "seasonal", name: "季節限定" }
 ];
 // 「季節限定」は他カテゴリーと並列の商品分類ではなく、各カテゴリーを横断するタグとして
@@ -432,7 +435,7 @@ let menuCutcakes = [];
 let menuRollcakes = [];
 let menuBaked = [];
 let menuGift = [];
-let menuAddOns = []; // 砂糖菓子・オーナメント（siteImages/cakeAddOns。2026-10-07）
+let menuAddOns = []; // 砂糖菓子・ゼリー菓子（siteImages/cakeAddOns。2026-10-07）
 let menuSynced = false; // Firebase同期前は「準備中」ではなく「読み込み中」を出す
 let gallery = [];
 let voices = loadList("koimari_voices", DEFAULT_VOICES);
@@ -472,7 +475,7 @@ function buildGallery(){
     .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "gift", idx, "gift"));
   gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img).map(g => Object.assign({}, g, { title: isPlaceholderTitle(g.title) ? "" : g.title })), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
-  // 砂糖菓子・オーナメントは専用タブだけに出す（「すべて」には入れない。写真が小さめのため）
+  // 砂糖菓子・ゼリー菓子は専用タブだけに出す（「すべて」には入れない。写真が小さめのため）
   gallery = gallery.concat(menuAddOns.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img && c.name && c.name !== "新しい商品").map(({ c, idx }) => menuItemToCard(c, "addon", idx, "addOn")));
 }
 buildGallery();
@@ -516,6 +519,9 @@ function renderGrid(){
   const filtered = currentCat === "all" ? gallery.filter(g => g.category !== "addon")
     : CROSS_TAG_CATEGORIES.has(currentCat) ? gallery.filter(g => g[currentCat])
     : gallery.filter(g => g.category === currentCat);
+  if (currentCat === "addon" && filtered.length) {
+    grid.insertAdjacentHTML("beforeend", '<div class="gal-sugar-lead" style="grid-column:1/-1;"><b>砂糖菓子・ゼリー菓子だけのご購入もできます</b><span>おうちのケーキのデコレーションに、ちょっとしたプレゼントに。写真を押すと、くわしい説明とご予約に進めます。</span></div>');
+  }
   if (!filtered.length) {
     grid.innerHTML = menuSynced
       ? '<div class="empty">このカテゴリの作品は現在準備中です。</div>'

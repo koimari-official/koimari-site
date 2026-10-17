@@ -222,6 +222,9 @@ const KOIMARI_I18N_PHRASES = [
   // フッター
   ['こ い ま り', 'K O I M A R I'],
   ['ご予約', 'Reserve'],
+  ['砂糖菓子・ゼリー菓子', 'Sugar & Jelly Decorations'],
+  ['砂糖菓子・ゼリー菓子だけのご購入もできます。おうちで作るケーキのデコレーションに、ちょっとしたプレゼントに。かわいい飾りを多数そろえています。', '<b>You can buy our sugar and jelly decorations on their own.</b><br>Perfect for decorating a homemade cake, or as a small gift.'],
+  ['砂糖菓子・ゼリー菓子をすべて見る →', 'See all decorations →'],
   ['火-土 10:00-20:00', 'Tue–Sat 10:00–20:00'],
   ['日 10:00-19:00', 'Sun 10:00–19:00'],
   ['過去につくった', 'From our collection of'],

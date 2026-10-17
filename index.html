@@ -711,6 +711,21 @@ body:not(.chrome-visible) .fab{display:none!important}
   .shop__body .shop__info{padding:28px 20px 40px!important}
 }
 </style>
+<style id="sugar-section">
+/* 砂糖菓子・ゼリー菓子の小売コーナー（2026-10-17） */
+.sugar{background:var(--color-bg-soft,#ede3d4)}
+.sugar__lead{text-align:center;font-size:16.5px;line-height:1.9;margin:-6px auto 22px;max-width:720px}
+.sugar__lead b{font-family:var(--font-mincho);font-size:clamp(18px,2.4vw,22px);color:#8a3a2a;letter-spacing:.04em}
+.sugar__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;max-width:960px;margin:0 auto}
+.sugar__item{display:flex;flex-direction:column;align-items:center;background:#fff;border:1px solid var(--color-line);border-radius:14px;padding:12px;text-decoration:none;color:var(--color-text);transition:transform .2s,box-shadow .2s}
+.sugar__item:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(58,42,35,.12)}
+.sugar__item img{width:100%;max-width:150px;aspect-ratio:1;object-fit:contain;display:block}
+.sugar__name{font-size:14px;font-weight:700;margin-top:8px;text-align:center;line-height:1.5}
+.sugar__price{font-family:var(--font-sans);font-size:14px;color:var(--color-accent-dark);font-weight:700}
+.sugar__cta{text-align:center;margin-top:22px}
+.sugar__btn{display:inline-block;background:var(--color-accent);color:#fff;font-weight:700;border-radius:999px;padding:14px 30px;text-decoration:none;font-size:16px}
+@media(max-width:700px){.sugar__grid{grid-template-columns:repeat(2,1fr);gap:10px}.sugar__lead{font-size:15.5px;text-align:left}}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -823,6 +838,30 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="categories__grid" id="categoriesGrid"></div>
   </div>
 </section>
+
+
+<!-- 砂糖菓子・ゼリー菓子の小売コーナー（2026-10-17オーナー指示：砂糖菓子だけのご購入も大きく打ち出す） -->
+<section class="sugar" id="sugar" style="display:none;">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">Sugar &amp; Jelly Decorations</span><h2 class="section__title">砂糖菓子・ゼリー菓子</h2></div>
+    <p class="sugar__lead"><b>砂糖菓子・ゼリー菓子だけのご購入もできます。</b><br>おうちで作るケーキのデコレーションに、ちょっとしたプレゼントに。かわいい飾りを多数そろえています。</p>
+    <div class="sugar__grid" id="sugarGrid"></div>
+    <div class="sugar__cta"><a href="gallery.html?cat=addon" class="sugar__btn">砂糖菓子・ゼリー菓子をすべて見る →</a></div>
+  </div>
+</section>
+<script>
+(function () {
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/cakeAddOns.json").then((r) => r.json()).then((v) => {
+    const arr = (Array.isArray(v) ? v : Object.values(v || {})).map((it, idx) => ({ it, idx })).filter(({ it }) => it && it.name && it.img && it.visible !== false && it.name !== "新しい商品" && !it.notForSale);
+    if (!arr.length) return;
+    const pick = arr.filter(({ it }) => it.featured).concat(arr.filter(({ it }) => !it.featured)).slice(0, 8);
+    document.getElementById("sugarGrid").innerHTML = pick.map(({ it, idx }) => '<a class="sugar__item" href="product.html?type=addOn&idx=' + idx + '&n=' + encodeURIComponent(String(it.name).replace(/<[^>]*>/g, "")) + '"><img src="' + esc(it.img) + '" alt="" loading="lazy"><span class="sugar__name">' + esc(String(it.name).replace(/<[^>]*>/g, "")) + "</span>" + (it.price && /[1-9]/.test(String(it.price)) ? '<span class="sugar__price">' + esc(it.price) + "</span>" : "") + "</a>").join("");
+    if (window.PhotoAdjust) window.PhotoAdjust.register(arr.map((x) => x.it));
+    document.getElementById("sugar").style.display = "";
+  }).catch(() => {});
+})();
+</script>
 
 <!-- ケーキ集（2026-09-29並び替え）。実際にお作りしたケーキを先に見ていただき、その直後に予約導線を置く。
      写真帯(#quickReserveStrip)はギャラリー「すべて」の1〜5番目を自動で表示する。 -->

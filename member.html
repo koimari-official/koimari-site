@@ -195,7 +195,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="デコレーションケーキ" checked> デコレーションケーキ</label>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="ロールケーキ"> ロールケーキ</label>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="カットケーキ"> カットケーキ（3個から）</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveType" value="砂糖菓子・オーナメント"> 砂糖菓子・オーナメントのみ</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveType" value="砂糖菓子・ゼリー菓子"> 砂糖菓子・ゼリー菓子のみ</label>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="焼き菓子・ギフト"> 焼き菓子・ギフト</label>
             <label class="radio-list__opt" id="reserveTypeXmasOpt" style="display:none;"><input type="radio" name="reserveType" value="クリスマスケーキ"> クリスマスケーキ（12月22日〜25日お渡し）</label>
           </div>
@@ -371,7 +371,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <!-- 2026-09-22新設：ここまでの選択内容に応じたリアルタイム合計金額表示(CRO改修指示書) -->
         <div class="field" id="reserveAddOnsField" style="display:none;">
-          <button type="button" id="reserveAddOnsToggle" class="addon-toggle">＋ 砂糖菓子・オーナメント・クッキーを写真から選ぶ（任意）</button>
+          <button type="button" id="reserveAddOnsToggle" class="addon-toggle">＋ 砂糖菓子・ゼリー菓子・クッキーを写真から選ぶ（任意）</button>
           <div id="reserveAddOnsBody" style="display:none;">
             <div class="field__hint" style="margin-top:8px;">かわいい飾りを、写真を見ながら追加できます。＋−で個数をえらんでください</div>
             <div id="reserveAddOnsGrid"></div>
@@ -697,7 +697,7 @@ onValue(ref(db, "koimariContent/cakeMessagePlatePrice"), (snap) => { currentMess
 // 2026-09-24：概算見積もりは cake-pricing.js（オーナー提供の仕様）で計算する。入力の集約と表示だけここで行う。
 // 従来のこの関数と送信確認ステップの計算は同じ関数を共用（二重管理でズレないようにする）。
 // 表示は必ず「¥○○○〜」（あくまで概算。確定金額はご予約内容の確認後にスタッフよりご案内）。
-// ===== 追加商品（砂糖菓子・オーナメント等）と、ケーキの種類別の単段価格（2026-09-24）=====
+// ===== 追加商品（砂糖菓子・ゼリー菓子等）と、ケーキの種類別の単段価格（2026-09-24）=====
 // 追加商品は admin.html「デコレーション追加商品」で、写真・名前・金額を登録する（Firebase siteImages/cakeAddOns）。
 // お子様と一緒に写真を見ながら選べるよう、画像つきのカードで＋−で個数を選ぶ。登録が無い間は欄ごと非表示。
 // ケーキの種類（ミッシェルBOX等）ごとに単段の金額が異なるため、種類別の価格表（koimariContent/cakeTypePrices）を持つ。
@@ -740,7 +740,7 @@ function renderAddOns() {
       </div></div>`;
   }).join("");
   { const total = selectedAddOns().reduce((s, a) => s + a.qty, 0); const tg = document.getElementById("reserveAddOnsToggle"), body = document.getElementById("reserveAddOnsBody");
-    if (tg) tg.textContent = total ? "砂糖菓子・オーナメント・クッキー：" + total + "個 選択中（タップで" + (body && body.style.display !== "none" ? "閉じる" : "開く") + "）" : (body && body.style.display !== "none" ? "− 閉じる（砂糖菓子・オーナメント・クッキー）" : "＋ 砂糖菓子・オーナメント・クッキーを写真から選ぶ（任意）"); }
+    if (tg) tg.textContent = total ? "砂糖菓子・ゼリー菓子・クッキー：" + total + "個 選択中（タップで" + (body && body.style.display !== "none" ? "閉じる" : "開く") + "）" : (body && body.style.display !== "none" ? "− 閉じる（砂糖菓子・ゼリー菓子・クッキー）" : "＋ 砂糖菓子・ゼリー菓子・クッキーを写真から選ぶ（任意）"); }
   grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px;"; // 砂糖菓子は写真を小さめに（画素数が低いため）
   grid.querySelectorAll(".addon-plus, .addon-minus").forEach(btn => btn.addEventListener("click", () => {
     const it = addOnCatalog[Number(btn.dataset.i)];
@@ -1125,7 +1125,7 @@ function selectedOmakase() { return (document.querySelector('input[name="reserve
 function selectedToppings() { return Array.from(document.querySelectorAll(".reserve-topping:checked")).map(e => e.value); }
 // ===== 進捗・おすすめ・あとで決める・名入れ文字プレビュー・前回と同じ注文（2026-09-26）=====
 // 画面下に「あと◯項目」と概算金額を常に表示する（離脱防止）。
-const LATER_ITEMS = [["reserveLaterColor", "クリームの色"], ["reserveLaterDeco", "砂糖菓子・オーナメント・トッピング"], ["reserveLaterMsg", "名入れチョコレートの文字"]];
+const LATER_ITEMS = [["reserveLaterColor", "クリームの色"], ["reserveLaterDeco", "砂糖菓子・ゼリー菓子・トッピング"], ["reserveLaterMsg", "名入れチョコレートの文字"]];
 function laterList() { return LATER_ITEMS.filter(([id]) => { const e = document.getElementById(id); return e && e.checked; }).map(x => x[1]); }
 function remainingItems() {
   const v = id => ((document.getElementById(id) || {}).value || "").trim();
@@ -1320,7 +1320,7 @@ let xmasPick = { i: -1, size: "" };
 let pendingAddonName = ""; // 商品ページ（砂糖菓子）から来たとき、最初から1個選んでおく商品名
 function shopMode() {
   const v = (document.querySelector('input[name="reserveType"]:checked') || {}).value;
-  return v === "カットケーキ" ? "cut" : v === "クリスマスケーキ" ? "xmas" : v === "砂糖菓子・オーナメント" ? "addon" : "";
+  return v === "カットケーキ" ? "cut" : v === "クリスマスケーキ" ? "xmas" : v === "砂糖菓子・ゼリー菓子" ? "addon" : "";
 }
 function shopCutCatalog() {
   return cutRaw.filter(it => it && it.name && it.visible !== false && it.img && !it.notForSale).map(it => ({
@@ -1391,9 +1391,9 @@ function renderShopPicker() {
     return;
   }
   if (m === "addon") {
-    // 砂糖菓子・オーナメントだけのご注文（2026-10-07オーナー指示）。ケーキに付ける欄（reserveAddOnsGrid）と同じ商品・同じ個数の記録を使う
-    label.innerHTML = '砂糖菓子・オーナメント<span class="req-mark">必須</span>';
-    notice.innerHTML = box("ケーキと一緒でなくても、<b>砂糖菓子・オーナメントだけ</b>でご注文いただけます。お受け取りの<b>3営業日前まで</b>承ります。");
+    // 砂糖菓子・ゼリー菓子だけのご注文（2026-10-07オーナー指示）。ケーキに付ける欄（reserveAddOnsGrid）と同じ商品・同じ個数の記録を使う
+    label.innerHTML = '砂糖菓子・ゼリー菓子<span class="req-mark">必須</span>';
+    notice.innerHTML = box("ケーキと一緒でなくても、<b>砂糖菓子・ゼリー菓子だけ</b>でご注文いただけます。お受け取りの<b>3営業日前まで</b>承ります。");
     if (pendingAddonName) { const it = addOnCatalog.find(a => a.name === pendingAddonName); if (it) { addOnQty[addOnKey(it)] = Math.max(1, addOnQty[addOnKey(it)] || 0); pendingAddonName = ""; } }
     grid.innerHTML = addOnCatalog.length ? addOnCatalog.map((it, i) => {
       const q = addOnQty[addOnKey(it)] || 0;
@@ -1438,8 +1438,8 @@ function buildShopReservation(base) {
   d.estimateLines = []; d.estimateNotes = [];
   if (m === "addon") {
     const sel = selectedAddOns();
-    d.type = "砂糖菓子・オーナメント予約";
-    d.items = sel.length ? sel.map(a => { const it = addOnCatalog.find(x => x.name === a.name) || {}; return { category: "砂糖菓子・オーナメント", image: /^https?:/.test(it.img || "") ? it.img : "", size: "", flavor: a.name, qty: a.qty, price: a.price, message: "" }; }) : [{ category: "砂糖菓子・オーナメント", image: "", size: "", flavor: "", qty: 0, message: "" }];
+    d.type = "砂糖菓子・ゼリー菓子予約";
+    d.items = sel.length ? sel.map(a => { const it = addOnCatalog.find(x => x.name === a.name) || {}; return { category: "砂糖菓子・ゼリー菓子", image: /^https?:/.test(it.img || "") ? it.img : "", size: "", flavor: a.name, qty: a.qty, price: a.price, message: "" }; }) : [{ category: "砂糖菓子・ゼリー菓子", image: "", size: "", flavor: "", qty: 0, message: "" }];
     d.cutOrder = { count: t.count };
     d.subtotal = t.subtotal;
     d.priceIsFixed = !!t.priced && !hasMeaningfulNote(d.note);
@@ -1467,9 +1467,9 @@ function buildShopReservation(base) {
   return d;
 }
 function shopConfirmRows(data) {
-  const isAddonOnly = data.type === "砂糖菓子・オーナメント予約";
+  const isAddonOnly = data.type === "砂糖菓子・ゼリー菓子予約";
   const isCut = data.type === "カットケーキ予約" || isAddonOnly;
-  const title = isCut ? (isAddonOnly ? "砂糖菓子・オーナメント" : "カットケーキ") + "（合計" + ((data.cutOrder || {}).count || 0) + "個）" : "クリスマスケーキ";
+  const title = isCut ? (isAddonOnly ? "砂糖菓子・ゼリー菓子" : "カットケーキ") + "（合計" + ((data.cutOrder || {}).count || 0) + "個）" : "クリスマスケーキ";
   const rows = isCut ? data.items.map(it => it.flavor + " × " + it.qty + (it.price ? "（¥" + (it.price * it.qty).toLocaleString() + "）" : "")) : [(data.xmasCake || {}).name + "（" + (data.xmasCake || {}).size + "）"];
   if ((data.toppings || []).length) rows.push("トッピング：" + data.toppings.join("・") + "（費用は追加）");
   const price = data.subtotal ? yenFixed(data.subtotal) + ((data.toppings || []).length ? "〜（税込・トッピング費用は別途）" : "（税込）") : "お電話でご案内します";
@@ -2051,7 +2051,7 @@ function updateReserveFieldVisibility() {
   const isCake = category === "デコレーションケーキ";
   const isRoll = category === "ロールケーキ";
   const isBaked = category === BAKED_GOODS_CATEGORY;
-  const isShop = category === "カットケーキ" || category === "クリスマスケーキ" || category === "砂糖菓子・オーナメント";
+  const isShop = category === "カットケーキ" || category === "クリスマスケーキ" || category === "砂糖菓子・ゼリー菓子";
 
   document.getElementById("reserveTiersField").style.display = isCake ? "" : "none";
   { const of = document.getElementById("reserveOmakaseField"); if (of) of.style.display = isCake && currentReserveCategory() !== "kidsManager" ? "" : "none"; if (!isCake) { const n = document.querySelector('input[name="reserveOmakase"][value=""]'); if (n) n.checked = true; } }
@@ -2144,9 +2144,9 @@ function validateReserve(data) {
     if (!data.pickupDate) { setReserveError("kmDateError", "参加希望日をお選びください"); ok = false; }
     if (!data.participantCount || Number(data.participantCount) < 1) { setReserveError("kmCountError", "参加人数をご入力ください"); ok = false; }
   } else {
-    const isShopCut = data.type === "カットケーキ予約", isShopXmas = data.type === "クリスマスケーキ予約", isShopAddon = data.type === "砂糖菓子・オーナメント予約";
+    const isShopCut = data.type === "カットケーキ予約", isShopXmas = data.type === "クリスマスケーキ予約", isShopAddon = data.type === "砂糖菓子・ゼリー菓子予約";
     const isBaked = data.type === "焼き菓子予約" || isShopCut || isShopXmas || isShopAddon;
-    if (isShopAddon && !((data.cutOrder || {}).count > 0)) { setReserveError("reserveShopError", "砂糖菓子・オーナメントを1個以上お選びください"); ok = false; } // カット・クリスマスはケーキの仕様の入力が無いので焼き菓子と同じ扱い
+    if (isShopAddon && !((data.cutOrder || {}).count > 0)) { setReserveError("reserveShopError", "砂糖菓子・ゼリー菓子を1個以上お選びください"); ok = false; } // カット・クリスマスはケーキの仕様の入力が無いので焼き菓子と同じ扱い
     const isRoll = data.items[0] && data.items[0].category === "ロールケーキ";
     setReserveError("reserveShopError", "");
     if (isShopCut && ((data.cutOrder || {}).count || 0) < SHOP_CUT_MIN) { setReserveError("reserveShopError", "カットケーキは合計3個からご予約いただけます（2個以下はお電話でお問い合わせください）"); ok = false; }
@@ -2206,7 +2206,7 @@ function renderConfirmUpsell(data) {
   if (!data.omakaseDeco) opts.push({ key: "ume", label: "おまかせデコレーション「梅」", price: "+¥1,000" });
   if (!data.fruitExtra && fp && g("reserveDecorationField") && g("reserveDecorationField").style.display !== "none") opts.push({ key: "fruit", label: "フルーツの増量", price: "+¥" + fp.toLocaleString() });
   if (!(Number(data.messageCount) > 0)) opts.push({ key: "msg", label: "名入れチョコレート", price: "無料" });
-  if (!(data.addOns || []).length && typeof addOnCatalog !== "undefined" && addOnCatalog.length) opts.push({ key: "addon", label: "砂糖菓子・オーナメント・クッキー", price: "写真から選べます" });
+  if (!(data.addOns || []).length && typeof addOnCatalog !== "undefined" && addOnCatalog.length) opts.push({ key: "addon", label: "砂糖菓子・ゼリー菓子・クッキー", price: "写真から選べます" });
   if (!opts.length) { el.innerHTML = ""; return; }
   el.innerHTML = '<div style="margin:14px 0 4px;border:1px solid #e3c98f;background:#fffaf0;border-radius:12px;padding:12px 14px;"><div style="font-weight:700;color:#7a5418;margin-bottom:8px;">あわせていかがですか</div>' +
     opts.map(o => '<button type="button" class="confirm-upsell" data-k="' + o.key + '" style="display:flex;justify-content:space-between;align-items:center;width:100%;margin:0 0 6px;padding:10px 12px;border:1px solid #e3c98f;background:#fff;border-radius:10px;cursor:pointer;font-size:14px;"><span>＋ ' + escape(o.label) + '</span><b style="color:#a35a2a;">' + escape(o.price) + '</b></button>').join("") + "</div>";
@@ -2237,7 +2237,7 @@ function renderReserveConfirm(data, targetId) {
     `;
     return;
   }
-  if (data.type === "カットケーキ予約" || data.type === "クリスマスケーキ予約" || data.type === "砂糖菓子・オーナメント予約") {
+  if (data.type === "カットケーキ予約" || data.type === "クリスマスケーキ予約" || data.type === "砂糖菓子・ゼリー菓子予約") {
     const s = shopConfirmRows(data);
     el.innerHTML = `
       <dt>商品</dt><dd>${escape(s.title)}<div style="font-size:13px;margin-top:4px;line-height:1.8;">${s.rows.map(r => escape(r)).join("<br>")}</div></dd>
@@ -2314,7 +2314,7 @@ function buildReserveSummaryText(data) {
     lines.push("", "内容の確認後、スタッフよりご連絡いたします。");
     return lines.join("\n");
   }
-  if (data.type === "カットケーキ予約" || data.type === "クリスマスケーキ予約" || data.type === "砂糖菓子・オーナメント予約") {
+  if (data.type === "カットケーキ予約" || data.type === "クリスマスケーキ予約" || data.type === "砂糖菓子・ゼリー菓子予約") {
     const s = shopConfirmRows(data);
     const lines = ["【ご予約を送信しました】", "商品: " + s.title, ...s.rows.map(r => "　" + r), "お支払い金額: " + s.price, "※" + paymentNoticeText(data)];
     lines.push(`引き取り希望日時: ${data.pickupDate} ${data.pickupTime}`, `お名前（ふりがな）: ${data.furigana}`, `お名前: ${data.name}`, `お電話番号: ${data.tel}`, `メールアドレス: ${data.email}`);
@@ -2398,7 +2398,7 @@ async function fetchDraft(code) {
     return d && d.name ? Object.assign({ code }, d) : null;
   } catch (e) { return null; }
 }
-const DRAFT_TYPE_TO_RADIO = { decorationCake: "デコレーションケーキ", rollcake: "ロールケーキ", baked: "焼き菓子・ギフト", gift: "焼き菓子・ギフト", cutcake: "カットケーキ", christmasCake: "クリスマスケーキ", addOn: "砂糖菓子・オーナメント" };
+const DRAFT_TYPE_TO_RADIO = { decorationCake: "デコレーションケーキ", rollcake: "ロールケーキ", baked: "焼き菓子・ギフト", gift: "焼き菓子・ギフト", cutcake: "カットケーキ", christmasCake: "クリスマスケーキ", addOn: "砂糖菓子・ゼリー菓子" };
 function applyDraft(d) {
   if (d && d.productType === "autosave") { try { applyFormSpec(JSON.parse(d.spec)); } catch (e) {} return; }
   currentDraft = d;
