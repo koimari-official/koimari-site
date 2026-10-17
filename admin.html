@@ -7234,17 +7234,31 @@ function initXmasPanel() {
       if (!xmData.pickupFrom || !xmData.pickupTo) { alert("お渡し期間を入れてください"); return; }
       if (missing.length) { alert("受付中にする前に、次のケーキの名前・写真・サイズ・お値段を入れてください：\n" + missing.map((c) => "・" + (c.name || "（名前なし）")).join("\n")); return; }
     }
+    const btn = document.getElementById("xmSave");
+    btn.disabled = true; btn.textContent = "保存中…";
     try {
       await set(ref(fbDb, "koimariContent/christmas"), { ...xmData, updatedAt: new Date().toISOString() });
       wrap.dataset.dirty = "";
-      note.textContent = "保存しました（" + ({ preparing: "準備中", open: "受付中", closed: "受付終了" }[xmData.status] || "") + "）";
+      const stLabel = { preparing: "準備中", open: "受付中", closed: "受付終了" }[xmData.status] || "";
+      const t = new Date();
+      note.textContent = "保存しました（" + stLabel + "・" + t.getHours() + ":" + String(t.getMinutes()).padStart(2, "0") + "）";
+      note.style.color = "#0b5a28"; note.style.fontWeight = "700";
+      showToast("クリスマスケーキを保存しました（" + stLabel + "）");
       if (xmData.status === "open" && confirm("トップページのお知らせバナーを「クリスマスケーキのご予約受付中」に切り替えますか？\n（いま出ているバナーの内容は置き換わります）")) {
         const md = (ds) => { const m = String(ds).match(/^\d{4}-(\d{2})-(\d{2})$/); return m ? (+m[1]) + "/" + (+m[2]) : ""; };
         await update(ref(fbDb, "siteConfig"), { eventBanner: { show: true, eventName: "クリスマス", label: "Christmas", text: "クリスマスケーキのご予約受付中（" + md(xmData.pickupFrom) + "〜" + md(xmData.pickupTo) + "お渡し・埋まり次第終了）", link: "christmas.html", linkText: "ケーキを見る →", until: xmData.pickupTo } });
         note.textContent += "・トップのバナーも切り替えました";
       }
-    } catch (err) { console.warn(err); note.textContent = "保存に失敗しました"; }
+    } catch (err) {
+      console.warn(err);
+      note.textContent = "保存に失敗しました"; note.style.color = "#b03b48"; note.style.fontWeight = "700";
+      showToast("保存に失敗しました：" + (err && err.message ? err.message : String(err)), "error");
+    } finally { btn.disabled = false; btn.textContent = "保存して反映"; }
   });
+  // 入力したら「未保存の変更があります」と出す（保存すると消える）
+  const markDirty = () => { const n = document.getElementById("xmNote"); if (n) { n.textContent = "未保存の変更があります。「保存して反映」を押してください"; n.style.color = "#a35a12"; n.style.fontWeight = "700"; } };
+  document.getElementById("panel-christmas").addEventListener("input", markDirty);
+  document.getElementById("panel-christmas").addEventListener("change", (e) => { if (!e.target.classList.contains("xm-file")) markDirty(); });
 }
 document.addEventListener("click", (e) => { if (e.target.closest && e.target.closest('.tab[data-panel="christmas"]')) initXmasPanel(); });
 
