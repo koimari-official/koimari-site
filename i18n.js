@@ -36,9 +36,9 @@ const KOIMARI_I18N_EN = {
 
   // Greeting
   'greeting.heading': 'Four Seasons<br>on a Plate.',
-  'greeting.body1':   'Koimari is a handcrafted cake and pastry shop rooted in the flavors of each season. Every piece is baked with care, bringing small moments of joy to everyday life.',
-  'greeting.body2':   'From birthday and anniversary cakes to boxed pastry gifts, we are here to make your most cherished moments even more special. Please feel free to reach out.',
-  'greeting.body3':   'We spare no time-honored effort and care for quality ingredients, making every single item by hand with attention to detail.',
+  'greeting.body1':   'Thank you very much for visiting our website.',
+  'greeting.body2':   'We want to be a shop that our community loves. Local junior high schools rate us as their most popular work-experience placement year after year, and many students come back to work part-time after graduating, or visit us with their families.',
+  'greeting.body3':   'We bake every day hoping to be loved by customers of all ages, from little ones to grandparents. We want this circle of connection to keep growing, and with that wish, we open our doors again today.',
 
   // Social
   'social.lead': 'We share our latest updates on social media too.<br>Following us means a lot to our team.<br>Our whole staff is looking forward to connecting with you.',
@@ -168,7 +168,7 @@ const KOIMARI_I18N_PHRASES = [
   ['ギャラリーを見る →', 'View gallery →'],
   // こだわり
   ['地域に愛される店舗でありたい', 'A shop loved by our neighborhood'],
-  ['地域に愛される店舗でありたいと考えています。地元中学校の職業体験では、毎年一番人気の職場としてご評価いただき、卒業後もアルバイトに来てくれるスタッフもいます。お子様からご年配の方まで、すべての世代のご家族に愛していただける、「実家みたい」と言っていただけるような安心できる存在を目指して日々お菓子を焼き上げております。この輪を、より広いエリアへと広げていきたいと考えています。', 'We want to be a shop the neighborhood loves. Every year, local junior high school students rate us the most popular workplace for their job experience, and some come back to work with us after graduating. We bake every day hoping to be a place families of every generation, from children to grandparents, can feel at home — "just like home," as some say. We hope to spread this circle to a wider area.'],
+  ['地元のお客様から「実家みたい」と言っていただけるような、気軽に立ち寄れて、安心できるお店であり続けたいと考えています。城東の街で育まれたこの輪を、より広いエリアへと広げていきます。', 'We want to remain a shop where you can drop in anytime and feel at ease, one our local customers say feels "like home." From here in Joto, we hope to share this circle of warmth with more and more people.'],
   ['小さなお子様からご年配の方まで安心して', 'Safe for everyone, from small children to seniors'],
   ['お菓子に使用するお酒は、素材の風味を引き立てるためのごく少量にとどめ、焼き上げの加熱工程でアルコール分はしっかりと飛ばすことを基本としています。小さなお子様やご年配の方はもちろん、妊娠中の方やお酒が苦手な方にも、安心して召し上がっていただけるお菓子作りに努めています。', 'We use only a very small amount of liqueur to bring out the flavor of our ingredients, and the alcohol is cooked off during baking. We aim to make sweets that small children, seniors, expectant mothers and anyone who avoids alcohol can enjoy with peace of mind.'],
   ['大阪市城東区から、大阪の魅力を', 'Sharing the charm of Osaka from Joto Ward'],
