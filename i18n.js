@@ -38,6 +38,7 @@ const KOIMARI_I18N_EN = {
   'greeting.heading': 'Four Seasons<br>on a Plate.',
   'greeting.body1':   'Thank you very much for visiting our website.',
   'greeting.body2':   'We want to be a shop that our community loves. Local junior high schools rate us as their most popular work-experience placement year after year, and many students come back to work part-time after graduating, or visit us with their families.',
+  'greeting.bodyFruit': 'What we treasure most in our cakes is the luxury of generous seasonal fruit: sweet-tart strawberries in spring, ripe, tender figs and bursting muscat grapes in summer, and fragrant grapes, chestnuts and pumpkin in autumn. We pile on whatever tastes best that season, until it almost spills over.',
   'greeting.body3':   'We bake every day hoping to be loved by customers of all ages, from little ones to grandparents. We want this circle of connection to keep growing, and with that wish, we open our doors again today.',
 
   // Social
