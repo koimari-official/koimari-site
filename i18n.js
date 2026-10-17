@@ -174,7 +174,7 @@ const KOIMARI_I18N_PHRASES = [
   ['大阪市城東区から、大阪の魅力を', 'Sharing the charm of Osaka from Joto Ward'],
   ['私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。', 'From Joto Ward in Osaka, we want to share what makes Osaka wonderful. Rooted in our community, we deliver the warmth of this town and the joy of good sweets through each carefully made treat.'],
   ['果実をたっぷりと、心まで満たす一切れに', 'Packed with fruit — a slice that fills your heart'],
-  ['旬のフルーツを惜しみなく使い、ひと切れでも満足感のある食べ応えにこだわっています。断面いっぱいに広がる果実の彩りと、しっかりとしたボリューム感。見た目の華やかさだけでなく、口いっぱいに広がる果実の美味しさをお楽しみいただけます。', 'We use seasonal fruit generously so that even one slice is truly satisfying. Enjoy colorful fruit across every cross-section and a generous volume — not just beautiful to look at, but full of fruity flavor in every bite.'],
+ ['フォークを入れると、しっとりと濃厚な生地に、ふわりと軽い特製の生クリーム。断面いっぱいの旬の果実が、ひと口ごとにみずみずしく広がります。数あるお菓子屋さんの中からこいまりを選んでくださった方に、心から満足していただけるよう、独自の配合の生地から一台ずつ丁寧に焼き上げています。', 'As your fork slides in: moist, rich sponge and light, airy house-made cream. Seasonal fruit fills every layer, juicy in every bite. To truly delight everyone who chooses KOIMARI among so many pastry shops, we bake each cake with care, starting from our own original sponge recipe.'],
   // お知らせ・今月の主役
   ['春限定 苺のショートケーキ販売中', 'Spring special: strawberry shortcake now available'],
   ['おすすめ', 'Recommended'],
