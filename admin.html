@@ -408,6 +408,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .bs-prod label{display:flex;flex-direction:column;gap:3px}
 .bs-prod input,.bs-prod select{padding:6px 8px;font-size:14px;border:1px solid #d8c8b0;border-radius:6px}
 .bs-profit{width:100%;font-size:14px}
+.copy-ed{margin-top:10px;background:#fffdf8;border:1px solid #e8dcc8;border-radius:8px;padding:8px 12px;font-size:13px}
+.copy-ed summary{cursor:pointer;font-weight:700;color:#6b4a2a}
+.copy-ed label{display:flex;flex-direction:column;gap:3px;margin-top:8px;color:#6b5a48}
+.copy-ed input,.copy-ed textarea{font-size:14px;padding:7px 9px;border:1px solid #d8c8b0;border-radius:6px;font-family:inherit}
+.copy-ed__tip{margin:8px 0 0;color:#8a5a12;line-height:1.6}
+.copy-ed__pt{border-top:1px dashed #e8dcc8;margin-top:8px}
+.copy-ed__row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0 10px}
 .move-cat{margin-top:10px;padding:8px 12px;background:#f3f6fb;border-left:3px solid #4a6f9c;display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:13px}
 .move-cat label{font-weight:700;color:#4a6f9c}
 .move-cat select{font-size:13px;padding:5px 8px;border:1px solid #c5d3e6;border-radius:6px;background:#fff}
@@ -3097,6 +3104,35 @@ function appendTopperControls(item, obj, onUpdate) {
   box.appendChild(row);
   item.appendChild(box);
 }
+
+// 商品ページの文章（2026-10-17）：ひとことのキャッチ・3つのこだわり・召し上がり方・商品情報。空欄の項目は商品ページに出さない。
+// ケーキ類は日持ち・保存方法・召し上がり方が空欄なら標準（当日中がおすすめ・冷蔵で翌日まで／冷蔵／冷蔵庫から出して10分で食べごろ）を表示する。
+function appendCopyEditor(item, obj, onUpdate) {
+  const box = document.createElement("details");
+  box.className = "copy-ed";
+  const filled = !!(obj.catch || (obj.points || []).some((p) => p && p.title));
+  box.innerHTML = '<summary>商品ページの文章（キャッチ・こだわり・召し上がり方・商品情報）' + (filled ? '　<b style="color:#0b5a28;">入力済み</b>' : "") + "</summary>" +
+    '<p class="copy-ed__tip">落ち着いた「〜です」調で。絵文字・「！」の連続・根拠のない「日本一」などは使わない。数字や作り方など、こいまりだけの事実を書くと伝わります。</p>' +
+    '<label>ひとことのキャッチ<input data-ck="catch" placeholder="例：ひと切れに、いちご4粒半。"></label>' +
+    [0, 1, 2].map((i) => '<div class="copy-ed__pt"><label>こだわり' + (i + 1) + '（見出し）<input data-pt="' + i + '" data-f="title" placeholder="例：断面いっぱいのいちご"></label><label>こだわり' + (i + 1) + '（本文）<textarea data-pt="' + i + '" data-f="text" rows="2" placeholder="例：ひと切れ4.5粒以上。どこを食べても、いちごに当たります。"></textarea></label></div>').join("") +
+    '<label>おいしい召し上がり方<input data-ck="howTo" placeholder="空欄ならケーキは「冷蔵庫から出して10分ほどおくと、食べごろです。」"></label>' +
+    '<div class="copy-ed__row"><label>内容量<input data-ck="amount" placeholder="例：1個／直径12cm"></label><label>日持ち<input data-ck="shelf" placeholder="ケーキは空欄で「当日中がおすすめ（冷蔵で翌日まで）」"></label><label>保存方法<input data-ck="storage" placeholder="ケーキは空欄で「冷蔵」"></label></div>' +
+    '<div class="copy-ed__row"><label>アレルギー<input data-ck="allergens" placeholder="例：卵・乳・小麦"></label><label>主な原材料<input data-ck="ingredients" placeholder="例：いちご、生クリーム、小麦粉、卵、砂糖"></label></div>';
+  box.querySelectorAll("[data-ck]").forEach((el) => { el.value = obj[el.dataset.ck] || ""; el.addEventListener("input", () => { if (el.value.trim()) obj[el.dataset.ck] = el.value; else delete obj[el.dataset.ck]; onUpdate(); }); });
+  box.querySelectorAll("[data-pt]").forEach((el) => {
+    const i = +el.dataset.pt, f = el.dataset.f;
+    el.value = ((obj.points || [])[i] || {})[f] || "";
+    el.addEventListener("input", () => {
+      const pts = Array.isArray(obj.points) ? obj.points.slice() : [];
+      while (pts.length < 3) pts.push({ title: "", text: "" });
+      pts[i] = Object.assign({}, pts[i], { [f]: el.value });
+      const kept = pts.filter((p) => p && (String(p.title || "").trim() || String(p.text || "").trim()));
+      if (kept.length) obj.points = pts.map((p) => ({ title: p.title || "", text: p.text || "" })); else delete obj.points;
+      onUpdate();
+    });
+  });
+  item.appendChild(box);
+}
 function appendExtraFlags(item, obj, onUpdate) {
   const box = document.createElement("div");
   box.style.cssText = "padding:10px 14px;margin-top:8px;background:rgba(201,169,110,0.08);border-left:3px solid var(--color-accent);display:flex;gap:18px;flex-wrap:wrap;align-items:center;";
@@ -3118,6 +3154,7 @@ function appendExtraFlags(item, obj, onUpdate) {
   // ギャラリーのジャンル選択「すべて」の丸い写真に使う（2026-10-02オーナー指示）。複数に付けた場合はギャラリーで前に並ぶものが優先
   box.appendChild(mk("ギャラリーの「すべて」の写真にする", "galleryCover"));
   item.appendChild(box);
+  appendCopyEditor(item, obj, onUpdate);
 }
 // 商品ごとの「予約フォームの自動選択」（2026-09-29オーナー指示）。ギャラリーでこのケーキを選んで予約に進んだとき、
 // LINE予約フォーム（member.html）のサイズ・クリーム・飾り付け・ご利用シーン・段数を自動で選ぶための設定を、
@@ -3405,6 +3442,7 @@ function renderCakeAddOns() {
     appendImageHistoryUI(item, r, "img", () => { renderCakeAddOns(); updateSaveBar(); });
     appendPhotoAdjust(item, r, "img", () => updateSaveBar());
     appendVisibleToggle(item, () => workingData.cakeAddOns[i].visible, () => { workingData.cakeAddOns[i].visible = !workingData.cakeAddOns[i].visible; renderCakeAddOns(); updateSaveBar(); });
+    appendCopyEditor(item, r, () => updateSaveBar());
     appendReorderControls(item, workingData.cakeAddOns, i, () => { renderCakeAddOns(); updateSaveBar(); });
     grid.appendChild(item);
   });

@@ -129,6 +129,8 @@ const KOIMARI_I18N_PHRASES = [
   ['営業日カレンダー', 'Business Calendar'],
   ['こいまりについて', 'About Koimari'],
   ['今日はどれにする？こいまりのお品書き', 'What will it be today?<br>The Koimari Menu'],
+  ['こいまりのお品書き', 'The Koimari Menu'],
+  ['飾る楽しみを、ひとつから。砂糖菓子・ゼリー菓子は、ひとつからお買い求めいただけます。おうちのケーキに、贈り物に添えて。', '<b>The joy of decorating, from just one piece.</b><br>Our sugar and jelly decorations can be bought individually — for a homemade cake, or to add to a gift.'],
   ['おすすめ商品', 'Recommended'],
   ['こいまりの物語', 'Our Stories'],
   ['こいまりのこだわり', 'What We Care About'],

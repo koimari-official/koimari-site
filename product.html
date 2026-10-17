@@ -264,6 +264,23 @@ main.pd{max-width:1120px;padding:20px 24px 60px}
 .pd-points{margin-top:26px}
 @media(max-width:860px){.pd-block{padding:18px 16px}.pd-tel-btn b{font-size:22px}}
 </style>
+<style id="product-copy">
+/* 商品ページの文章（2026-10-17）。落ち着いた明朝の見出し・細い罫線で、チラシ調にしない */
+.pd-catch{font-family:var(--font-mincho);font-size:clamp(17px,1.9vw,20px);color:var(--color-accent-dark);letter-spacing:.08em;margin:-4px 0 14px;line-height:1.7}
+.pd-feat,.pd-enjoy{margin:0 0 22px;background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:18px 22px}
+.pd-feat__h{font-family:var(--font-mincho);font-size:16px;font-weight:700;letter-spacing:.1em;color:var(--color-text);margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid #eadcc8}
+.pd-feat__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:14px}
+.pd-feat__list li{display:flex;gap:14px;align-items:flex-start}
+.pd-feat__no{flex:0 0 30px;height:30px;border:1px solid var(--color-gold);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-sans);font-size:14px;color:var(--color-accent-dark)}
+.pd-feat__list b{font-family:var(--font-mincho);font-size:16.5px;letter-spacing:.04em;display:block;margin-top:3px}
+.pd-feat__list p{margin:4px 0 0;font-size:15.5px;line-height:1.9;color:#4a3a2a}
+.pd-enjoy__how{margin-bottom:16px}
+.pd-enjoy__how p{margin:0;font-size:15.5px;line-height:1.9}
+.pd-enjoy__table{width:100%;border-collapse:collapse;font-size:15px}
+.pd-enjoy__table th{width:7em;text-align:left;font-weight:600;color:var(--color-text-soft);padding:9px 0;border-bottom:1px dashed var(--color-line);vertical-align:top}
+.pd-enjoy__table td{padding:9px 0;border-bottom:1px dashed var(--color-line);line-height:1.7}
+@media(max-width:860px){.pd-feat,.pd-enjoy{padding:16px}}
+</style>
 <style id="nav-large">
 /* ナビゲーション（2026-09-28）：ピル型ボタンは安っぽく見えるため、上質な和菓子店のような「金の細線で挟んだ、
    明朝体の文字リンク＋小さな金のひし形の区切り」に変更。文字は20pxで大きく、ホバー/フォーカスで金の下線が伸びる */
@@ -321,9 +338,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="pd-badges" id="pdBadges"></div>
       <span class="pd-en" id="pageEn"></span>
       <h1 class="pd-title" id="pageTitle">読み込み中…</h1>
+      <p class="pd-catch" id="pdCatch" style="display:none;"></p>
       <div class="pd-price" id="pdPrice"></div>
       <div class="pd-chips" id="pdChips"></div>
       <section class="pd-about"><h2 class="pd-about__h">このケーキについて</h2><div class="product-desc" id="productDesc"></div></section>
+      <section class="pd-feat" id="pdFeat" style="display:none;"></section>
+      <section class="pd-enjoy" id="pdEnjoy" style="display:none;"></section>
       <div class="pd-sizes" id="pdSizes"></div>
       <section class="pd-block pd-lead" id="pdLead" style="display:none;"></section>
       <section class="pd-block pd-howto" id="pdHowto" style="display:none;">
@@ -589,7 +609,8 @@ function renderInfo(item, plainName, config) {
   if (productType === 'decorationCake' || productType === 'rollcake') pts.push('甘さを控えた設計で、パティシエ厳選のフルーツや素材の味を堪能していただけます');
   if (productType !== 'category' && productType !== 'recommended') pts.push('お店で一つひとつ手作りしています');
   pts.push('お酒はごく少量で、焼き上げの時にしっかり加熱して飛ばしています。小さなお子様にも安心です');
-  document.getElementById('pdPoints').innerHTML = '<li class="pd-points__head">こいまりのこだわり</li>' + pts.map(t => '<li>' + esc(t) + '</li>').join('');
+  document.getElementById('pdPoints').innerHTML = '<li class="pd-points__head">お店のこだわり</li>' + pts.map(t => '<li>' + esc(t) + '</li>').join('');
+  renderProductCopy(item);
 }
 // 号数ごとの表（2026-10-03オーナー指示：電話で予約する方にも、サイズとお値段が一目で分かるように）
 // おまかせデコレーション（2026-10-06）。金額は cake-pricing.js の SPEC.omakaseDeco と同じにすること。
@@ -617,6 +638,33 @@ function renderBiggerSuggest(box, onlyRow) {
     picks.map(o => '<a class="pd-bigger__item" href="product.html?type=decorationCake&idx=' + o.idx + '"><img src="' + esc(o.it.img) + '" alt="" loading="lazy"><span class="pd-bigger__name">' + esc(String(o.it.name || '').replace(/<[^>]*>/g, '')) + '</span><span class="pd-bigger__price" data-i="' + o.idx + '"></span></a>').join('') + '</div>';
   box.appendChild(div);
   picks.forEach(o => priceHintFor(o.it, 'decorationCake').then(t => { const el = div.querySelector('.pd-bigger__price[data-i="' + o.idx + '"]'); if (el && t) el.textContent = t + '（税込）'; }).catch(() => {}));
+}
+// 商品ごとの文章（管理画面「商品ページの文章」で入力。2026-10-17）。入力の無い項目は出さない。
+// ケーキ類は日持ち・保存・召し上がり方の標準を出す（オーナー確認：当日中がおすすめ・冷蔵で翌日まで、冷蔵庫から出して10分で食べごろ）。
+// 焼き菓子の日持ちは商品ごとに変わるため、標準は出さない（入力したものだけ）。
+const COPY_DEFAULTS = {
+  cake: { shelf: '当日中がおすすめです（冷蔵で翌日まで）', storage: '冷蔵', howTo: '冷蔵庫から出して10分ほどおくと、食べごろです。' }
+};
+function renderProductCopy(item) {
+  const isCake = productType === 'decorationCake' || productType === 'cutcake' || productType === 'rollcake';
+  const d = isCake ? COPY_DEFAULTS.cake : {};
+  const v = (k) => String((item && item[k]) || d[k] || '').trim();
+  const catchEl = document.getElementById('pdCatch');
+  if (catchEl) { const c = v('catch'); catchEl.textContent = c; catchEl.style.display = c ? '' : 'none'; }
+  const feat = document.getElementById('pdFeat');
+  const pts = (Array.isArray(item && item.points) ? item.points : []).filter(p => p && (p.title || p.text));
+  if (feat) {
+    feat.style.display = pts.length ? '' : 'none';
+    feat.innerHTML = pts.length ? '<h2 class="pd-feat__h">' + (pts.length === 3 ? '3つのこだわり' : 'こだわり') + '</h2><ol class="pd-feat__list">' + pts.map((p, i) => '<li><span class="pd-feat__no">' + (i + 1) + '</span><div><b>' + esc(p.title || '') + '</b>' + (p.text ? '<p>' + esc(p.text) + '</p>' : '') + '</div></li>').join('') + '</ol>' : '';
+  }
+  const enjoy = document.getElementById('pdEnjoy');
+  if (enjoy) {
+    const rows = [['内容量', v('amount')], ['日持ち', v('shelf')], ['保存方法', v('storage')], ['アレルギー', v('allergens')], ['主な原材料', v('ingredients')]].filter(r => r[1]);
+    const how = v('howTo');
+    enjoy.style.display = rows.length || how ? '' : 'none';
+    enjoy.innerHTML = (how ? '<div class="pd-enjoy__how"><h2 class="pd-feat__h">おいしい召し上がり方</h2><p>' + esc(how) + '</p></div>' : '') +
+      (rows.length ? '<h2 class="pd-feat__h">商品情報</h2><table class="pd-enjoy__table">' + rows.map(r => '<tr><th>' + r[0] + '</th><td>' + esc(r[1]) + '</td></tr>').join('') + '</table>' : '');
+  }
 }
 function renderSizeTable(item, photoSize) {
   const box = document.getElementById('pdSizes');
