@@ -5783,6 +5783,39 @@ async function saveByOpsKey(key, data) {
 
 /* ============ お知らせ管理 ============ */
 let newsData = null;
+// 保存前のお知らせを、お客様が見るお知らせページ（news.html の確認モード）で表示する
+function openNewsPreview(item) {
+  let modal = document.getElementById("nwPreviewModal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "nwPreviewModal";
+    modal.style.cssText = "position:fixed;inset:0;z-index:6000;background:rgba(30,20,14,.6);display:flex;flex-direction:column;align-items:center;padding:14px 10px;overflow:auto;";
+    modal.innerHTML =
+      '<div style="background:#fff;border-radius:10px;padding:10px 12px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center;margin-bottom:10px;max-width:100%;">' +
+        '<strong style="font-size:14px;">お客様からの見え方（確認用・まだ公開されていません）</strong>' +
+        '<button type="button" class="btn btn--small" data-w="390">スマホ</button>' +
+        '<button type="button" class="btn btn--small btn--ghost" data-w="1100">PC</button>' +
+        '<button type="button" class="btn btn--small btn--ghost" data-close="1">閉じる</button>' +
+      '</div>' +
+      '<iframe title="お知らせの確認" style="width:390px;max-width:100%;height:80vh;border:0;border-radius:10px;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.35);flex-shrink:0;"></iframe>';
+    document.body.appendChild(modal);
+    const frame = modal.querySelector("iframe");
+    modal.querySelectorAll("[data-w]").forEach((b) => b.addEventListener("click", () => {
+      frame.style.width = b.dataset.w + "px";
+      modal.querySelectorAll("[data-w]").forEach((x) => x.classList.toggle("btn--ghost", x !== b));
+    }));
+    modal.querySelector("[data-close]").addEventListener("click", () => { modal.style.display = "none"; frame.src = "about:blank"; });
+    modal.addEventListener("click", (e) => { if (e.target === modal) modal.querySelector("[data-close]").click(); });
+    // 確認ページの準備ができたら、保存前の内容を渡す
+    window.addEventListener("message", (e) => {
+      if (e.origin !== location.origin || !e.data || !e.data.koimariNewsPreviewReady || e.source !== frame.contentWindow) return;
+      frame.contentWindow.postMessage({ koimariNewsPreview: modal._item }, location.origin);
+    });
+  }
+  modal._item = JSON.parse(JSON.stringify(item || {}));
+  modal.style.display = "flex";
+  modal.querySelector("iframe").src = "news.html?preview=1&t=" + Date.now();
+}
 function renderNewsAdmin() {
   if (!newsData) newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
   const wrap = document.getElementById("newsList");
@@ -5830,6 +5863,14 @@ function renderNewsAdmin() {
         cb.querySelector(".nw-cal-on").addEventListener("change", (e) => { newsData[i].showCalendar = e.target.checked; if (e.target.checked && !newsData[i].calMonth) newsData[i].calMonth = cb.querySelector(".nw-cal-m").value; cb.querySelector(".nw-cal-m").disabled = !e.target.checked; });
         cb.querySelector(".nw-cal-m").addEventListener("change", (e) => { newsData[i].calMonth = e.target.value; });
         item.appendChild(cb);
+      }
+      {
+        const pv = document.createElement("button");
+        pv.type = "button"; pv.className = "btn btn--small";
+        pv.style.cssText = "margin-top:10px;width:100%;";
+        pv.textContent = "お客様からの見え方を確認（保存前でも見られます）";
+        pv.addEventListener("click", () => openNewsPreview(newsData[i]));
+        item.appendChild(pv);
       }
       grid.appendChild(item);
     });
