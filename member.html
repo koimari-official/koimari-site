@@ -1642,7 +1642,7 @@ function updateLivePriceDisplay() {
 function timeOptionsForDate(dateStr) {
   if (!dateStr) return TIME_OPTIONS;
   const d = new Date(dateStr);
-  const closeHour = (d.getDay() === 0 || (d.getDay() === 1 && JP_HOLIDAYS.has(dateKeyLocal(d)))) ? 19 : 20;
+  const closeHour = (d.getDay() === 0 || JP_HOLIDAYS.has(dateKeyLocal(d))) ? 19 : 20; // 日曜・祝日は19時まで
   const lastSlotMin = closeHour * 60;
   const opts = [];
   for (let m = 10 * 60; m <= lastSlotMin; m += 30) {
