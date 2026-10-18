@@ -1386,8 +1386,8 @@ function renderNews(){
       const a=document.createElement("a");
       a.className="news-row";
       // 本文やカレンダーがあるお知らせは詳細ページへ（2026-10-08）。リンク先だけのお知らせは今までどおり
-      const plain=!n.url||n.url==="#";
-      a.href=(n.showCalendar||(plain&&n.excerpt))?"news.html?"+(n.id?"id="+encodeURIComponent(n.id):"i="+newsItems.indexOf(n)):escape(n.url||"#");
+      const rawUrl=String(n.url||"#");
+      a.href=(n.showCalendar||n.excerpt)?"news.html?"+(n.id?"id="+encodeURIComponent(n.id):"i="+newsItems.indexOf(n)):(/^\s*javascript:/i.test(rawUrl)?"#":rawUrl);
       const tag=en?(n.tagEn||n.tag):n.tag;
       const title=en?(n.titleEn||n.title):n.title;
       a.innerHTML=`<span class="news-row__date">${escape(n.date||"")}</span>${tag?`<span class="news-row__tag">${escape(tag)}</span>`:'<span></span>'}<span class="news-row__title">${escape(title)}</span><span class="news-row__arrow">→</span>`;
