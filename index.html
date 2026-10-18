@@ -89,11 +89,10 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
    ヘッダーの実測高さ（--header-h）ぶんだけ上余白を確保する（他は詰めたまま）。 */
 .greeting{background:var(--color-bg-soft);padding-top:calc(var(--header-h, 90px) + 12px);padding-bottom:44px}
 .greeting .section__head{margin-bottom:22px}
-.greeting__inner{display:grid;grid-template-columns:1.15fr 1fr;gap:56px;align-items:start;max-width:1320px;margin:0 auto}
-.greeting__inner>*{min-width:0}.greeting__text{position:relative;z-index:2}
-.greeting__text h2.greeting__heading{display:flex;justify-content:flex-end;white-space:nowrap;position:relative;z-index:2;margin-top:clamp(20px,4vw,56px)}
-.greeting__text h2.greeting__heading>span{display:block;flex-shrink:0;background:var(--color-bg-soft);padding:.12em .1em .12em .5em}
-@media(max-width:700px){.greeting__text h2.greeting__heading{justify-content:flex-start;margin-left:-12px;margin-top:-62px;font-size:min(29px,calc((100vw - 60px) / 15.6))}.greeting__text h2.greeting__heading>span{padding:.3em .4em .2em .5em}}
+.greeting__inner{display:grid;grid-template-columns:1.15fr 1fr;gap:56px;align-items:center;max-width:1320px;margin:0 auto}
+.greeting__inner>*{min-width:0}
+.greeting__heading{font-family:var(--font-mincho);font-size:clamp(30px,3.6vw,48px);font-weight:700;letter-spacing:.1em;line-height:1.5;text-align:center;white-space:nowrap;margin:0 auto clamp(28px,3.5vw,48px)}
+@media(max-width:700px){.greeting__heading{font-size:min(29px,calc((100vw - 40px) / 15.6));margin-bottom:22px}}
 .greeting__img{border-radius:4px;overflow:hidden;box-shadow:0 18px 48px rgba(58,42,35,.18);aspect-ratio:4/3.6}
 .greeting__img img{width:100%;height:100%;object-fit:cover}
 .greeting__text h2{font-family:var(--font-mincho);font-size:clamp(34px,3.9vw,50px);margin-bottom:30px;letter-spacing:.1em;font-weight:700;line-height:1.6}
@@ -820,10 +819,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="greeting" id="about">
   <div class="section__inner">
     <div class="section__head"><span class="section__en">About Us</span><h2 class="section__title">こいまりについて</h2></div>
+    <h2 data-i18n="greeting.heading" class="greeting__heading">四季の彩りをひと皿のお菓子に。</h2>
     <div class="greeting__inner">
       <div class="greeting__img"><img id="img-greeting" src="" alt="こいまり 店主" loading="lazy"></div>
       <div class="greeting__text">
-        <h2 data-i18n="greeting.heading" class="greeting__heading"><span>四季の彩りをひと皿のお菓子に。</span></h2>
         <p data-i18n="greeting.body1"><strong>私たちが何より大切にしているのは、素材の味を最大限に引き出すこと。</strong>素材の甘みや香り、コクを打ち消さないよう、スポンジと生クリームは甘さ控えめの独自の配合で、しっとり濃厚に仕上げています。</p>
         <p data-i18n="greeting.body2">そして、いつまでも<strong>地域に愛されるお店</strong>でありたい。地元の中学校の職業体験では毎年いちばん人気の受け入れ先とご評価いただき、卒業後もアルバイトやご家族でのご来店につながっています。</p>
         <p data-i18n="greeting.body4">ここまでお読みいただき、ありがとうございます。店頭でお会いできる日を、心より楽しみにしております。</p>
