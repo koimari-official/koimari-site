@@ -662,6 +662,7 @@ body:not(.chrome-visible) .fab{display:none!important}
 </style>
 <style id="philosophy-css">
 /* こいまりのこだわり：4つの細切れセクションを2x2のカードに統合（2026-09-28、Gemini案を採用しサイトの配色・書体に合わせて実装） */
+.sec-tone-a{background:var(--color-bg-soft)!important}.sec-tone-b{background:var(--color-bg)!important}
 .philosophy{background:var(--color-bg-soft);padding:60px 24px}
 .philosophy__grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:1080px;margin:0 auto}
 .philosophy__card{background:#fff;border:1px solid var(--color-line-soft);border-radius:10px;overflow:hidden;box-shadow:0 12px 30px rgba(58,42,35,.08);display:flex;flex-direction:column}
@@ -882,6 +883,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- ご予約について（2026-09-29並び替え）。ケーキ集を見た直後に置く。LINEとお電話を同格に案内する。 -->
 <section class="quick-reserve quick-reserve--guide" id="reserveGuide">
+  <div class="section__head"><span class="section__en">Reservation</span><h2 class="section__title">ご予約について</h2></div>
   <div class="quick-reserve__inner">
     <div class="quick-reserve__lead">
       <h3>ご予約からお引き取りまでのお日にち</h3>
@@ -1767,6 +1769,27 @@ onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
   renderCategories();
   renderQuickReserveStrip();
 });
+</script>
+<script>
+(function(){
+  const SKIP = ["hero"]; // 写真そのものが背景のものは対象外
+  function paint(){
+    let n = 0;
+    document.querySelectorAll("body > section, body > main > section").forEach(function(sec){
+      sec.classList.remove("sec-tone-a", "sec-tone-b");
+      if (SKIP.some(function(c){ return sec.classList.contains(c); })) return;
+      if (getComputedStyle(sec).display === "none") return;
+      sec.classList.add(n % 2 === 0 ? "sec-tone-a" : "sec-tone-b");
+      n++;
+    });
+  }
+  window.koimariPaintSections = paint;
+  paint();
+  // 後から表示・非表示が切り替わるセクションに追従する
+  const mo = new MutationObserver(function(){ clearTimeout(paint._t); paint._t = setTimeout(paint, 50); });
+  document.querySelectorAll("body > section, body > main > section").forEach(function(sec){ mo.observe(sec, { attributes: true, attributeFilter: ["style", "class", "hidden"] }); });
+  window.addEventListener("load", paint);
+})();
 </script>
 </body>
 </html>
