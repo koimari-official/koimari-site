@@ -111,7 +111,7 @@ main{max-width:820px;margin:0 auto;padding:70px 24px 60px}
   .cta-banner__btns{flex-direction:column;align-items:stretch}
   .cta-banner__btn{padding:15px 26px;font-size:14px}
 }
-</style>
+img[src=""],img:not([src]){visibility:hidden}</style>
 <style id="product-v3">
 /* 2026-10-03オーナー指摘：PCではズームしすぎに見えて読みにくい → 全体を一回り小さく、写真と情報が1画面に収まるように。
    ただし子供〜ご年配の方が読めるよう、本文は16〜17px以上を保つ。 */
@@ -398,22 +398,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="reserve-draft.js"></script>
 <script>
 const DEFAULT_CATEGORIES = [
-  {name:"デコレーションケーキ",en:"Decoration Cake",img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
-  {name:"カットケーキ",en:"Cut Cake",img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
-  {name:"ロールケーキ",en:"Roll Cake",img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
-  {name:"焼き菓子",en:"Baked Sweets",img:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
-  {name:"ギフト",en:"Gift",img:"https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&q=80",desc:"贈り物のご用意は、こいまりにお任せください。ご予算に合わせて中身をお選びすることも、定番の詰め合わせからお選びいただくこともできます。お店で一つひとつ手作りしている焼き菓子なので、ほかの方の手土産と重なる心配もありません。\n熨斗は無料で、表書きやお名前の印刷まで承ります。手提げ袋も基本無料でお付けします。領収書の発行にも対応しておりますので、お取引先へのごあいさつや訪問先への手土産、異動・ご退職のお礼など、お仕事での贈り物にも安心してお使いください。\nまとまった数のご注文も、ご予約いただければ事前にご用意します（在庫により承れない場合もございます）。ラッピングはご予約不要です（クリスマス期間を除く）。お誕生日や内祝い、お供えなど、ご家族の贈り物にも。",gallery:[]}
+  {name:"デコレーションケーキ",en:"Decoration Cake",img:"",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
+  {name:"カットケーキ",en:"Cut Cake",img:"",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
+  {name:"ロールケーキ",en:"Roll Cake",img:"",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
+  {name:"焼き菓子",en:"Baked Sweets",img:"",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
+  {name:"ギフト",en:"Gift",img:"",desc:"贈り物のご用意は、こいまりにお任せください。ご予算に合わせて中身をお選びすることも、定番の詰め合わせからお選びいただくこともできます。お店で一つひとつ手作りしている焼き菓子なので、ほかの方の手土産と重なる心配もありません。\n熨斗は無料で、表書きやお名前の印刷まで承ります。手提げ袋も基本無料でお付けします。領収書の発行にも対応しておりますので、お取引先へのごあいさつや訪問先への手土産、異動・ご退職のお礼など、お仕事での贈り物にも安心してお使いください。\nまとまった数のご注文も、ご予約いただければ事前にご用意します（在庫により承れない場合もございます）。ラッピングはご予約不要です（クリスマス期間を除く）。お誕生日や内祝い、お供えなど、ご家族の贈り物にも。",gallery:[]}
 ];
-const DEFAULT_RECOMMENDED = [
-  {name:"苺のショートケーキ",nameEn:"Strawberry Shortcake",price:"¥520",img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=500&q=80",desc:"地元農家から届く朝採れ苺をふんだんに使用した、当店の看板商品です。",gallery:[]},
-  {name:"ガトーショコラ",nameEn:"Gateau au Chocolat",price:"¥480",img:"https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=500&q=80",desc:"濃厚なチョコレートをじっくりと焼き上げました。しっとりとした食感が自慢です。",gallery:[]},
-  {name:"モンブラン",nameEn:"Mont Blanc",price:"¥560",img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=500&q=80",desc:"栗の風味を存分に楽しめる人気商品。渋皮栗のペーストを使用しています。",gallery:[]},
-  {name:"フルーツタルト",nameEn:"Seasonal Fruit Tart",price:"¥620",img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80",desc:"季節ごとに変わるフルーツをたっぷりと盛り付けた、彩り豊かなタルトです。",gallery:[]},
-  {name:"マドレーヌ",nameEn:"Madeleine",price:"¥220",img:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=500&q=80",desc:"バターの香り豊かな、しっとり食感の焼き菓子です。",gallery:[]},
-  {name:"フィナンシェ",nameEn:"Financier",price:"¥240",img:"https://images.unsplash.com/photo-1509440159596-0249088772ff?w=500&q=80",desc:"アーモンドの香ばしさが際立つ、上品な味わいの焼き菓子です。",gallery:[]},
-  {name:"プリン",nameEn:"Crème Caramel",price:"¥380",img:"https://images.unsplash.com/photo-1488477181946-6428a0291777?w=500&q=80",desc:"卵とミルクの優しい甘さに、ほろ苦いカラメルを添えました。",gallery:[]},
-  {name:"アップルパイ",nameEn:"Apple Pie",price:"¥460",img:"https://images.unsplash.com/photo-1535920527002-b35e96722eb9?w=500&q=80",desc:"りんごをじっくり煮込み、サクサクのパイ生地で包みました。",gallery:[]}
-];
+const DEFAULT_RECOMMENDED = [];
 const DEFAULT_DECORATION_CAKES = [];
 const DEFAULT_CUTCAKES = [];
 const DEFAULT_ROLLCAKES = [];

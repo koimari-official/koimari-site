@@ -630,7 +630,7 @@ body.chrome-visible .site-header{opacity:1;pointer-events:auto}
    だけでは自然に現れないため、JSでbody.chrome-visibleを付け外しして合わせている。 */
 body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
-</style>
+img[src=""],img:not([src]){visibility:hidden}</style>
 <script src="koimari-hours.js"></script>
 <script src="i18n.js"></script>
 <script src="photo-adjust.js"></script>
@@ -1135,7 +1135,7 @@ const DEFAULT_IMAGES = {
   // 2026-09-08、複数スライドの自動切り替えでFirebase側と食い違うと数秒後に
   // 見覚えのない写真へ切り替わって見えるため、当面は1枚だけに固定する（オーナー指摘）。
   hero:[
-    {src:"https://images.unsplash.com/photo-1596567836640-3c13eb102106?w=2400&h=1350&fit=crop&q=80",titleEn:"Seasonal Sweets",titleJp:"季節のフルーツをたっぷり使った、<br>色とりどりの手作りケーキと焼き菓子"}
+    {src:"",titleEn:"Seasonal Sweets",titleJp:"季節のフルーツをたっぷり使った、<br>色とりどりの手作りケーキと焼き菓子"}
   ],
   greeting:"brand-story-community.jpg",
   // 「こいまりのこだわり」4カードの写真（2026-09-29、管理画面から1枚ずつ差し替えられるようにした）。
@@ -1148,22 +1148,20 @@ const DEFAULT_IMAGES = {
   ],
 
   categories:[
-    {name:"デコレーションケーキ",en:"Decoration Cake",img:"https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
-    {name:"カットケーキ",en:"Cut Cake",img:"https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
-    {name:"ロールケーキ",en:"Roll Cake",img:"https://images.unsplash.com/photo-1587668178277-295251f900ce?w=600&q=80",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
-    {name:"焼き菓子",en:"Baked Sweets",img:"https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=600&q=80",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
-    {name:"ギフト",en:"Gift",img:"https://images.unsplash.com/photo-1549007994-cb92caebd54b?w=600&q=80",desc:"贈り物のご用意は、こいまりにお任せください。ご予算に合わせて中身をお選びすることも、定番の詰め合わせからお選びいただくこともできます。お店で一つひとつ手作りしている焼き菓子なので、ほかの方の手土産と重なる心配もありません。\n熨斗は無料で、表書きやお名前の印刷まで承ります。手提げ袋も基本無料でお付けします。領収書の発行にも対応しておりますので、お取引先へのごあいさつや訪問先への手土産、異動・ご退職のお礼など、お仕事での贈り物にも安心してお使いください。\nまとまった数のご注文も、ご予約いただければ事前にご用意します（在庫により承れない場合もございます）。ラッピングはご予約不要です（クリスマス期間を除く）。お誕生日や内祝い、お供えなど、ご家族の贈り物にも。",gallery:[]}
+    {name:"デコレーションケーキ",en:"Decoration Cake",img:"",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
+    {name:"カットケーキ",en:"Cut Cake",img:"",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
+    {name:"ロールケーキ",en:"Roll Cake",img:"",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
+    {name:"焼き菓子",en:"Baked Sweets",img:"",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
+    {name:"ギフト",en:"Gift",img:"",desc:"贈り物のご用意は、こいまりにお任せください。ご予算に合わせて中身をお選びすることも、定番の詰め合わせからお選びいただくこともできます。お店で一つひとつ手作りしている焼き菓子なので、ほかの方の手土産と重なる心配もありません。\n熨斗は無料で、表書きやお名前の印刷まで承ります。手提げ袋も基本無料でお付けします。領収書の発行にも対応しておりますので、お取引先へのごあいさつや訪問先への手土産、異動・ご退職のお礼など、お仕事での贈り物にも安心してお使いください。\nまとまった数のご注文も、ご予約いただければ事前にご用意します（在庫により承れない場合もございます）。ラッピングはご予約不要です（クリスマス期間を除く）。お誕生日や内祝い、お供えなど、ご家族の贈り物にも。",gallery:[]}
   ],
   experiences:[
-    {key:"ichinichi-tencho",title:"お子様 一日店長体験",titleEn:"One-Day Shop Manager Experience",en:"One Day Manager",target:"対象 / 小学1年生〜6年生",targetEn:"For / Elementary students (Grades 1–6)",img:"https://images.unsplash.com/photo-1607478900766-efe13248b125?w=800&q=80",desc:"ケーキの飾りつけや、お客様への接客、レジ体験まで。お菓子屋さんのお仕事をひと通り体験していただける、お子様向けのプログラムです。",descEn:"From cake decorating and customer service to operating the register — a program where children experience the full range of work at a pastry shop.",duration:"約2時間",durationEn:"Approx. 2 hours",fee:"3,000円(材料費込)",feeEn:"¥3,000 (materials included)",visible:true},
-    {key:"shokugyo-taiken",title:"中高生 職業体験",titleEn:"Career Experience Program",en:"Career Experience",target:"対象 / 中学生・高校生",targetEn:"For / Middle &amp; high school students",img:"https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80",desc:"製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。",descEn:"Hands-on experience from kitchen prep and baking to sales. Suitable for school vocational training and internship programs.",duration:"要相談",durationEn:"Please inquire",fee:"無料（学校関係者様限定）",feeEn:"Free (school staff/teachers only)",visible:true},
-    {key:"kunren-kenshu",title:"製菓 訓練・研修",titleEn:"Professional Baking Training",en:"Training Program",target:"対象 / 専門学生・社会人",targetEn:"For / Culinary students &amp; working professionals",img:"https://images.unsplash.com/photo-1556910103-1c02745aae4d?w=800&q=80",desc:"本格的にお菓子作りを学びたい方向けの研修プログラムです。基礎から応用まで、現場での実践を通して技術を習得していただけます。",descEn:"A training program for those who want to seriously study pastry-making. From fundamentals to advanced techniques, all through hands-on kitchen practice.",duration:"1週間〜",durationEn:"1 week or more",fee:"要相談",feeEn:"Please inquire",visible:true}
+    {key:"ichinichi-tencho",title:"お子様 一日店長体験",titleEn:"One-Day Shop Manager Experience",en:"One Day Manager",target:"対象 / 小学1年生〜6年生",targetEn:"For / Elementary students (Grades 1–6)",img:"",desc:"ケーキの飾りつけや、お客様への接客、レジ体験まで。お菓子屋さんのお仕事をひと通り体験していただける、お子様向けのプログラムです。",descEn:"From cake decorating and customer service to operating the register — a program where children experience the full range of work at a pastry shop.",duration:"約2時間",durationEn:"Approx. 2 hours",fee:"3,000円(材料費込)",feeEn:"¥3,000 (materials included)",visible:true},
+    {key:"shokugyo-taiken",title:"中高生 職業体験",titleEn:"Career Experience Program",en:"Career Experience",target:"対象 / 中学生・高校生",targetEn:"For / Middle &amp; high school students",img:"",desc:"製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。",descEn:"Hands-on experience from kitchen prep and baking to sales. Suitable for school vocational training and internship programs.",duration:"要相談",durationEn:"Please inquire",fee:"無料（学校関係者様限定）",feeEn:"Free (school staff/teachers only)",visible:true},
+    {key:"kunren-kenshu",title:"製菓 訓練・研修",titleEn:"Professional Baking Training",en:"Training Program",target:"対象 / 専門学生・社会人",targetEn:"For / Culinary students &amp; working professionals",img:"",desc:"本格的にお菓子作りを学びたい方向けの研修プログラムです。基礎から応用まで、現場での実践を通して技術を習得していただけます。",descEn:"A training program for those who want to seriously study pastry-making. From fundamentals to advanced techniques, all through hands-on kitchen practice.",duration:"1週間〜",durationEn:"1 week or more",fee:"要相談",feeEn:"Please inquire",visible:true}
   ]
 };
 const DEFAULT_NEWS = [
-  {date:"2026.04.20",tag:"NEW",tagEn:"NEW",title:"春限定 苺のショートケーキ販売中",titleEn:"Spring Special: Strawberry Shortcake",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。",excerptEn:"Freshly picked strawberries from local farms, used generously. A limited-season treat not to be missed.",img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",url:"#recommended"},
-  {date:"2026.04.05",tag:"おすすめ",tagEn:"Featured",title:"母の日ケーキのご予約承り中",titleEn:"Mother's Day Cakes: Now Accepting Reservations",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。",excerptEn:"A special whole cake adorned with flower-like piping — a heartfelt gift of appreciation.",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
-  {date:"2026.03.18",tag:"お知らせ",tagEn:"Notice",title:"5月の営業日についてのご案内",titleEn:"May Operating Hours",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",excerptEn:"Information on Golden Week hours and Mother's Day pickup arrangements.",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
+  // 架空の初期お知らせは削除（2026-10-18）。お知らせは管理画面のデータだけを表示する
 ];
 const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };
 // 国民の祝日（内閣府発表分、2026-2027年）。定休日(月曜)が祝日と重なる日は営業する。
@@ -1194,33 +1192,13 @@ function isWeeklyClosedDay(h,dow,k){
   return ((h.weeklyClosed||[]).includes(dow) && !JP_HOLIDAYS.has(k)) || koimariSubstituteClosed(h,k);
 }
 const DEFAULT_SPOTLIGHT = {
-  badge: "今月の主役", badgeEn: "Pick of the Month",
-  period: "2026.05.01 - 05.31",
-  en: "Pick of the Month",
-  title: "母の日の<br>フラワーケーキ",
-  titleEn: "Mother's Day<br>Flower Cake",
-  sub: "感謝のひと皿に、季節の花を咲かせて。",
-  subEn: "A plateful of gratitude, blooming with seasonal flowers.",
-  desc: "苺と季節のフルーツを花のように飾った、母の日限定のデコレーションケーキです。生クリームをそっと絞ってお花のかたちに。お母様への「ありがとう」を、ひと皿のお菓子に込めて。",
-  descEn: "A Mother's Day exclusive: a whole cake adorned with strawberries and seasonal fruits arranged like flowers, finished with softly piped fresh cream. A heartfelt way to say thank you.",
-  price: "¥4,200",
-  priceNote: "5号(直径15cm)/4〜6名様",
-  priceNoteEn: "5-inch (15 cm) / Serves 4–6",
-  cta: "ご予約はこちら", ctaEn: "Reserve Now",
-  ctaUrl: "reservation.html",
-  img: "https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=1000&q=80"
+  title: "", titleEn: "", sub: "", subEn: "", desc: "", descEn: "",
+  price: "", priceNote: "", priceNoteEn: "",
+  cta: "ご予約はこちら", ctaEn: "Reserve Now", ctaUrl: "reservation.html",
+  img: ""
 };
-const DEFAULT_STATS = [
-  { num: "12",    unit: "年",   unitEn: "yrs",  label: "創業からの年月",      labelEn: "Years of History"   },
-  { num: "3,000", unit: "件＋", unitEn: "+",    label: "オーダーケーキ実績",  labelEn: "Custom Cakes Made"  },
-  { num: "92",    unit: "%",    unitEn: "%",    label: "リピートのお客様",    labelEn: "Repeat Customers"   },
-  { num: "4.8",   unit: "/5.0", unitEn: "/5.0", label: "Googleレビュー評価", labelEn: "Google Rating"      }
-];
-const DEFAULT_VOICES = [
-  { stars:5, text:"娘の誕生日にオーダーしました。本人がとても気に入っていたキャラクターを丁寧に再現していただき、家族みんなで感動しました。お味も上品で大満足です。", textEn:"I ordered a custom cake for my daughter's birthday. They beautifully recreated her favorite character, and the whole family was moved to tears. The flavor was refined and absolutely wonderful.", name:"M.S.様", attr:"お子様のお誕生日", attrEn:"Child's Birthday" },
-  { stars:5, text:"職場へのお礼の品として焼き菓子の詰め合わせをお願いしました。包装も上品で、皆さんからとても好評でした。リピートさせていただきます。", textEn:"I ordered a box of assorted baked sweets as a thank-you gift for my colleagues. The elegant packaging was greatly appreciated by everyone. I will definitely order again.", name:"K.T.様", attr:"贈答品", attrEn:"Corporate Gift" },
-  { stars:5, text:"母の傘寿のお祝いに、特別なケーキをご相談しました。希望をしっかり聞いてくださり、想像以上の出来栄えに感激しました。", textEn:"I consulted on a special cake for my mother's 80th birthday. They listened carefully to all my wishes, and the result far exceeded my expectations. I was truly moved.", name:"H.K.様", attr:"記念日のお祝い", attrEn:"Special Anniversary" }
-];
+const DEFAULT_STATS = [];
+const DEFAULT_VOICES = [];
 const DEFAULT_INSTA = { visible: false }; // 管理画面で最新投稿を登録するまで表示しない（見本を「最新」と誤って出さないため）
 
 // 2026-09-11判明：初回表示時（またはlocalStorageに何もキャッシュが無い時）、コード内に

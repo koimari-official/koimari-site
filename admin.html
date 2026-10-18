@@ -5664,11 +5664,7 @@ const GALLERY_KEY = "koimari_gallery";
 const VOICES_KEY = "koimari_voices";
 const BLOG_KEY = "koimari_blog";
 
-const DEFAULT_NEWS_LIST = [
-  {date:"2026.04.20",tag:"NEW",title:"春限定 苺のショートケーキ販売中",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。",img:"https://images.unsplash.com/photo-1558961363-fa8fdf82db35?w=800&q=80",url:"#recommended"},
-  {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
-  {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
-];
+const DEFAULT_NEWS_LIST = [];
 const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[], specialHours:{}, cakeFullDates:[], birthdayBlocks:[] };
 const DEFAULT_FAQ = [
   { category: "ご予約について", items: [
@@ -5987,24 +5983,12 @@ document.getElementById("addNews").addEventListener("click", () => {
 const SPOTLIGHT_KEY = "koimari_spotlight";
 const STATS_KEY = "koimari_stats";
 const DEFAULT_SPOTLIGHT = {
-  badge: "今月の主役",
-  period: "2026.05.01 - 05.31",
-  en: "Pick of the Month",
-  title: "母の日の<br>フラワーケーキ",
-  sub: "感謝のひと皿に、季節の花を咲かせて。",
-  desc: "苺と季節のフルーツを花のように飾った、母の日限定のデコレーションケーキです。生クリームをそっと絞ってお花のかたちに。お母様への「ありがとう」を、ひと皿のお菓子に込めて。",
-  price: "¥4,200",
-  priceNote: "5号(直径15cm)/4〜6名様",
-  cta: "ご予約はこちら",
-  ctaUrl: "reservation.html",
-  img: "https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=1000&q=80"
+  badge: "今月の主役", period: "", en: "Pick of the Month",
+  title: "", sub: "", desc: "", price: "", priceNote: "",
+  cta: "ご予約はこちら", ctaUrl: "reservation.html",
+  img: ""
 };
-const DEFAULT_STATS_LIST = [
-  { num: "12", unit: "年", label: "創業からの年月" },
-  { num: "3,000", unit: "件＋", label: "オーダーケーキ実績" },
-  { num: "92", unit: "%", label: "リピートのお客様" },
-  { num: "4.8", unit: "/5.0", label: "Googleレビュー評価" }
-];
+const DEFAULT_STATS_LIST = [];
 
 let spotlightList = null;
 function loadSpotlightList() {
@@ -8078,11 +8062,7 @@ function i18nSaveKey(){
 
 // 翻訳対象データを収集
 function i18nCollectData(){
-  const news=JSON.parse(localStorage.getItem('koimari_news')||'null')||[
-    {date:"2026.04.20",tag:"NEW",title:"春限定 苺のショートケーキ販売中",excerpt:"地元農家さんから届く朝採れ苺を贅沢に。今だけの味わいをお楽しみください。"},
-    {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。"},
-    {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。"}
-  ];
+  const news=JSON.parse(localStorage.getItem('koimari_news')||'null')||[];
   const spRaw=JSON.parse(localStorage.getItem('koimari_spotlight')||'null');
   const sp=(Array.isArray(spRaw)?spRaw.find(s=>s.visible!==false):spRaw)||{badge:"今月の主役",title:"母の日の フラワーケーキ",sub:"感謝のひと皿に、季節の花を咲かせて。",desc:"苺と季節のフルーツを花のように飾った母の日限定のデコレーションケーキです。",priceNote:"5号(直径15cm)/4〜6名様",cta:"ご予約はこちら"};
   const voices=JSON.parse(localStorage.getItem('koimari_voices')||'null')||[
