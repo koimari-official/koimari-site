@@ -1012,6 +1012,17 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <button class="btn btn--small" id="addExtraDate">＋ 追加</button>
         </div>
         <div id="extraClosedList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;"></div>
+        <h3 style="font-family:var(--font-mincho); font-size:17px; margin-bottom:6px; font-weight:600;">特別営業時間（お盆・クリスマス・お正月など）</h3>
+        <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:12px;">いつもと違う時間で営業する日を登録します。営業日カレンダーにその日の時間が赤字で出て、「ただいま営業中」の表示と予約フォームの受け取り時間もこの時間に合わせます。定休日（月曜など）に登録すると、その日は営業日になります。お休みにする日は上の「臨時休業日」に登録してください。</p>
+        <div style="display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap; align-items:center;">
+          <input type="date" id="spDate" class="input" style="min-width:170px;">
+          <select id="spOpen" class="input" style="width:auto;"><option value="06:00">06:00</option><option value="06:30">06:30</option><option value="07:00">07:00</option><option value="07:30">07:30</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00" selected>10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00">20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option><option value="22:30">22:30</option><option value="23:00">23:00</option></select>
+          <span>〜</span>
+          <select id="spClose" class="input" style="width:auto;"><option value="06:00">06:00</option><option value="06:30">06:30</option><option value="07:00">07:00</option><option value="07:30">07:30</option><option value="08:00">08:00</option><option value="08:30">08:30</option><option value="09:00">09:00</option><option value="09:30">09:30</option><option value="10:00">10:00</option><option value="10:30">10:30</option><option value="11:00">11:00</option><option value="11:30">11:30</option><option value="12:00">12:00</option><option value="12:30">12:30</option><option value="13:00">13:00</option><option value="13:30">13:30</option><option value="14:00">14:00</option><option value="14:30">14:30</option><option value="15:00">15:00</option><option value="15:30">15:30</option><option value="16:00">16:00</option><option value="16:30">16:30</option><option value="17:00">17:00</option><option value="17:30">17:30</option><option value="18:00">18:00</option><option value="18:30">18:30</option><option value="19:00">19:00</option><option value="19:30">19:30</option><option value="20:00" selected>20:00</option><option value="20:30">20:30</option><option value="21:00">21:00</option><option value="21:30">21:30</option><option value="22:00">22:00</option><option value="22:30">22:30</option><option value="23:00">23:00</option></select>
+          <input type="text" id="spNote" class="input" placeholder="メモ（例：クリスマス）" style="min-width:160px; flex:1;">
+          <button class="btn btn--small" id="addSpecialHours">＋ 追加</button>
+        </div>
+        <div id="specialHoursList" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:24px;"></div>
         <h3 style="font-family:var(--font-mincho); font-size:17px; margin-bottom:6px; font-weight:600;">ケーキのご注文が満席の日</h3>
         <p style="font-size:13px;color:var(--color-text-soft);margin-bottom:12px;">営業はしているが、ケーキのネット予約を受け付けない日（製造がいっぱいの日）です。予約フォームで選べなくなり、お電話案内になります。</p>
         <div style="display:flex; gap:12px; margin-bottom:18px; flex-wrap:wrap;">
@@ -5658,7 +5669,7 @@ const DEFAULT_NEWS_LIST = [
   {date:"2026.04.05",tag:"おすすめ",title:"母の日ケーキのご予約承り中",excerpt:"お花のような絞りで彩った特別なデコレーションケーキ。大切なお母様への感謝を込めて。",img:"https://images.unsplash.com/photo-1557925923-cd4648e211a0?w=800&q=80",url:"reservation.html"},
   {date:"2026.03.18",tag:"お知らせ",title:"5月の営業日についてのご案内",excerpt:"ゴールデンウィーク中の営業日と母の日の引き取り対応について。",img:"https://images.unsplash.com/photo-1486427944299-d1955d23e34d?w=800&q=80",url:"blog.html"}
 ];
-const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[], cakeFullDates:[], birthdayBlocks:[] };
+const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[], specialHours:{}, cakeFullDates:[], birthdayBlocks:[] };
 const DEFAULT_FAQ = [
   { category: "ご予約について", items: [
     { q: "デコレーションケーキの予約はいつまでに必要ですか？", a: "デコレーションケーキは原則として引き取り希望日の3営業日前までにご予約をお願いしております。それ以降のお急ぎのご予約はお電話にてご相談ください。" }
@@ -6271,6 +6282,22 @@ function renderHolidaysAdmin() {
       bdList.appendChild(tag);
     });
   }
+  const spList = document.getElementById("specialHoursList");
+  if (spList) {
+    spList.innerHTML = "";
+    const sp = holidaysData.specialHours || {};
+    const keys = Object.keys(sp).sort();
+    if (!keys.length) spList.innerHTML = '<span style="color:var(--color-text-soft); font-size:14px;">特別営業時間は設定されていません</span>';
+    keys.forEach((date) => {
+      const v = sp[date] || {};
+      const wd = "日月火水木金土"[new Date(date + "T00:00:00").getDay()];
+      const tag = document.createElement("span");
+      tag.style.cssText = "display:inline-flex; align-items:center; gap:8px; padding:8px 14px; background:rgba(176,59,72,0.08); color:var(--color-accent-dark); font-size:14px;";
+      tag.innerHTML = escapeHtml(date + "（" + wd + "） " + v.open + "〜" + v.close + (v.note ? " " + v.note : "")) + ' <button style="background:none; border:none; color:var(--color-accent-dark); cursor:pointer; font-size:16px; line-height:1;" aria-label="削除">×</button>';
+      tag.querySelector("button").addEventListener("click", () => { delete holidaysData.specialHours[date]; renderHolidaysAdmin(); });
+      spList.appendChild(tag);
+    });
+  }
   const list = document.getElementById("extraClosedList");
   list.innerHTML = "";
   if (!holidaysData.extraClosed || !holidaysData.extraClosed.length) {
@@ -6307,6 +6334,19 @@ document.getElementById("addFullDate").addEventListener("click", () => {
   if (!holidaysData.cakeFullDates.includes(v)) holidaysData.cakeFullDates.push(v);
   document.getElementById("fullDateInput").value = "";
   renderHolidaysAdmin();
+});
+document.getElementById("addSpecialHours").addEventListener("click", () => {
+  const date = document.getElementById("spDate").value, open = document.getElementById("spOpen").value, close = document.getElementById("spClose").value;
+  const note = document.getElementById("spNote").value.trim();
+  if (!date) { showToast("日付を選択してください", "error"); return; }
+  if (close <= open) { showToast("閉店時刻は開店時刻より後にしてください", "error"); return; }
+  if (!holidaysData) holidaysData = loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS);
+  if ((holidaysData.extraClosed || []).includes(date)) { showToast(date + " は臨時休業日に入っています。営業する場合は先に臨時休業日から外してください", "error"); return; }
+  if (!holidaysData.specialHours || Array.isArray(holidaysData.specialHours)) holidaysData.specialHours = {};
+  holidaysData.specialHours[date] = note ? { open, close, note } : { open, close };
+  document.getElementById("spDate").value = ""; document.getElementById("spNote").value = "";
+  renderHolidaysAdmin();
+  showToast(date + " を " + open + "〜" + close + " で追加しました。「保存」を押すとサイトに反映されます");
 });
 document.getElementById("addExtraDate").addEventListener("click", () => {
   const v = document.getElementById("extraDateInput").value;

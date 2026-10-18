@@ -9,6 +9,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 })(window,document,'script','dataLayer','GTM-MB2XHF6J');</script>
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
+<script src="koimari-hours.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
@@ -1642,10 +1643,13 @@ function updateLivePriceDisplay() {
 function timeOptionsForDate(dateStr) {
   if (!dateStr) return TIME_OPTIONS;
   const d = new Date(dateStr);
-  const closeHour = (d.getDay() === 0 || JP_HOLIDAYS.has(dateKeyLocal(d))) ? 19 : 20; // 日曜・祝日は19時まで
-  const lastSlotMin = closeHour * 60;
+  const key = dateKeyLocal(d);
+  // その日の営業時間（特別営業時間を含む）の開店〜閉店まで。判定は koimari-hours.js に一本化
+  const info = KoimariHours.dayInfo(reserveHolidays, key, d.getDay(), JP_HOLIDAYS.has(key), false);
+  const firstSlotMin = KoimariHours.toMinutes(info.open) || 10 * 60;
+  const lastSlotMin = KoimariHours.toMinutes(info.close) || 20 * 60;
   const opts = [];
-  for (let m = 10 * 60; m <= lastSlotMin; m += 30) {
+  for (let m = Math.ceil(firstSlotMin / 30) * 30; m <= lastSlotMin; m += 30) {
     opts.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
   }
   return opts;
@@ -1965,7 +1969,8 @@ function koimariSubstituteClosed(h, k) {
 function isClosedDate(d) {
   const key = dateKeyLocal(d);
   const isWeeklyClosed = ((reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key)) || koimariSubstituteClosed(reserveHolidays, key);
-  return isWeeklyClosed || (reserveHolidays.extraClosed || []).includes(key);
+  // 特別営業時間が入っている日は、定休日でも営業日として扱う（koimari-hours.js と同じ判定）
+  return KoimariHours.dayInfo(reserveHolidays, key, d.getDay(), JP_HOLIDAYS.has(key), isWeeklyClosed).closed;
 }
 // ご予約は引き取り希望日の3営業日前までにお願いする運用（2026-09-04オーナー指示、3営業日前に変更）。
 // 定休日・臨時休業日はカウントに含めない（例: 引き取りが火曜の場合、月曜定休を挟むので土曜が締切になる）。

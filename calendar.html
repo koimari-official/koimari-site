@@ -58,6 +58,7 @@ main{padding:28px 24px 56px}
 .bcal__cell.has-event{background:linear-gradient(180deg,#fff 0%,#fdf5f3 100%)}
 .bcal__cell.has-event:not(.closed){border-color:var(--color-mom)}
 .bcal__cell-event{font-family:var(--font-mincho);font-size:14px;color:var(--color-mom-deep);font-weight:700;letter-spacing:.02em;line-height:1.35;text-align:center;margin-top:4px}
+.bcal__cell-hours{font-family:var(--font-sans);font-size:14px;font-weight:600;color:var(--color-text-soft);margin-top:auto;letter-spacing:0;white-space:nowrap;line-height:1.3}.bcal__cell-hours.is-special{color:#b03b48;font-weight:800}@media(max-width:600px){.bcal__cell-hours{font-size:11px}}
 .bcal__note{max-width:1100px;margin:18px auto 0;font-size:18px;color:var(--color-text-soft);text-align:center;line-height:1.9}
 .bcal__note strong{color:var(--color-text);font-weight:800}
 .cal-back{display:block;max-width:1100px;margin:26px auto 0;text-align:center;font-size:17px;color:var(--color-text-soft)}
@@ -118,11 +119,12 @@ body.embed,html:has(body.embed){min-height:0!important;height:auto!important}
   <p class="bcal__note">
     基本定休日：<strong>月曜日</strong>（月曜が祝日の場合は営業し、翌平日がお休みです）<br>
     営業時間：火曜～土曜 <strong>10:00～20:00</strong> ／ 日曜・祝日 <strong>10:00～19:00</strong><br>
-    臨時休業や営業時間の変更がある場合は、このカレンダーに反映しています。
+    日付の下の数字はその日の営業時間です（例：10–20 は10時〜20時）。<strong style="color:#b03b48">赤字</strong>はいつもと違う特別営業時間です。
   </p>
   <p class="cal-back">このページは別のタブで開いています。<a href="index.html">こいまりのトップページはこちら</a></p>
 </main>
 
+<script src="koimari-hours.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -202,7 +204,8 @@ function renderBcal(){
     const cd=new Date(year,month,d);
     const mm=String(month+1).padStart(2,"0"), dd=String(d).padStart(2,"0");
     const k=year+"-"+mm+"-"+dd, mmdd=mm+"-"+dd, dow=cd.getDay();
-    const closed=isWeeklyClosedDay(h,dow,k)||(h.extraClosed||[]).includes(k);
+    const info=KoimariHours.dayInfo(h,k,dow,JP_HOLIDAYS.has(k),isWeeklyClosedDay(h,dow,k));
+    const closed=info.closed;
     const eventName=EVENTS[k]||EVENTS[mmdd]||"";
     const cell=document.createElement("div"); cell.className="bcal__cell";
     if(dow===0||JP_HOLIDAYS.has(k)) cell.classList.add("holiday"); else if(dow===6) cell.classList.add("saturday");
@@ -211,6 +214,7 @@ function renderBcal(){
     if(eventName&&!closed) cell.classList.add("has-event");
     let inner="<div>"+d+"</div>";
     if(eventName&&!closed) inner+='<div class="bcal__cell-event">'+eventName+"</div>";
+    if(!closed){inner+='<div class="bcal__cell-hours'+(info.special?' is-special':'')+'">'+KoimariHours.shortTime(info.open)+'–'+KoimariHours.shortTime(info.close)+'</div>';}
     cell.innerHTML=inner;
     grid.appendChild(cell);
   }

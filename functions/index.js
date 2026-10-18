@@ -100,15 +100,19 @@ function computeTodayStatus(holidays, now) {
   const dow = now.getDay();
   const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const h = holidays || { weeklyClosed: [1], extraClosed: [] };
+  // サイトの koimari-hours.js と同じ順番：臨時休業 → 特別営業時間 → 定休日 → 通常（日曜・祝日19時／火〜土20時）
   const extraClosed = h.extraClosed || [];
-  const isClosed = isWeeklyClosedDay(h, dow, key) || extraClosed.includes(key);
-  const hour = now.getHours() + now.getMinutes() / 60;
-  // 日曜・祝日は19時まで、それ以外(火-土)は20時まで
-  const closeHour = dow === 0 || JP_HOLIDAYS.has(key) ? 19 : 20;
-  const inHours = hour >= 10 && hour < closeHour;
+  const sp = h.specialHours && h.specialHours[key];
+  const isClosed = extraClosed.includes(key) || (!(sp && sp.open && sp.close) && isWeeklyClosedDay(h, dow, key));
+  const toMin = (t) => { const m = String(t || "").match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
+  const openStr = sp && sp.open && sp.close ? sp.open : "10:00";
+  const closeStr = sp && sp.open && sp.close ? sp.close : (dow === 0 || JP_HOLIDAYS.has(key) ? "19:00" : "20:00");
+  const mins = now.getHours() * 60 + now.getMinutes();
+  const inHours = mins >= toMin(openStr) && mins < toMin(closeStr);
 
   if (isClosed) return "本日は定休日（または臨時休業日）です。";
-  if (hour < 10) return "本日はこれから10:00に開店します（現在は営業時間外です）。";
+  if (mins < toMin(openStr)) return "本日はこれから" + openStr + "に開店します（現在は営業時間外です）。" + (sp ? "本日は特別営業時間（" + openStr + "〜" + closeStr + "）です。" : "");
+  if (inHours && sp) return "本日はただいま営業中です（本日は特別営業時間 " + openStr + "〜" + closeStr + "）。";
   if (inHours) return "本日はただいま営業中です。";
   return "本日の営業は終了しました。";
 }
