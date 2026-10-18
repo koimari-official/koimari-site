@@ -36,10 +36,9 @@ const KOIMARI_I18N_EN = {
 
   // Greeting
   'greeting.heading': 'Four Seasons<br>on a Plate.',
-  'greeting.body1':   'Thank you very much for visiting our website.',
-  'greeting.body2':   'We want to be a shop that our community loves. Local junior high schools rate us as their most popular work-experience placement year after year, and many students come back to work part-time after graduating, or visit us with their families.',
-  'greeting.bodyFruit': 'What we treasure most in our cakes is the luxury of generous seasonal fruit: sweet-tart strawberries in spring, ripe, tender figs and bursting muscat grapes in summer, and fragrant grapes, chestnuts and pumpkin in autumn. We pile on whatever tastes best that season, until it almost spills over.',
-  'greeting.body3':   'We bake every day hoping to be loved by customers of all ages, from little ones to grandparents. We want this circle of connection to keep growing, and with that wish, we open our doors again today.',
+  'greeting.body1':   'What we value most is drawing out the full flavor of every ingredient. Our sponge and cream are our own lightly sweetened recipes that never mask the ingredients, finished moist and rich.',
+  'greeting.body2':   'And we want to remain a shop our community loves, always. Local junior high schools rate us as their most popular work-experience placement every year, and many students come back to work part-time or visit with their families.',
+  'greeting.body4':   'Thank you for reading this far. We look forward to welcoming you at the shop.',
 
   // Social
   'social.lead': 'We share our latest updates on social media too.<br>Following us means a lot to our team.<br>Our whole staff is looking forward to connecting with you.',
@@ -175,7 +174,7 @@ const KOIMARI_I18N_PHRASES = [
   ['大阪市城東区から、大阪の魅力を', 'Sharing the charm of Osaka from Joto Ward'],
   ['私たちは大阪市城東区から、大阪の良さを伝えていきたいと考えています。地域に根差しながら、一つひとつ丁寧に作るお菓子を通じて、この街の温かさ、お菓子の美味しさをお届けしてまいります。', 'From Joto Ward in Osaka, we want to share what makes Osaka wonderful. Rooted in our community, we deliver the warmth of this town and the joy of good sweets through each carefully made treat.'],
   ['果実をたっぷりと、心まで満たす一切れに', 'Packed with fruit — a slice that fills your heart'],
- ['フォークを入れると、しっとりと濃厚な生地に、ふわりと軽い特製の生クリーム。断面いっぱいの旬の果実が、ひと口ごとにみずみずしく広がります。数あるお菓子屋さんの中からこいまりを選んでくださった方に、心から満足していただけるよう、独自の配合の生地から一台ずつ丁寧に焼き上げています。', 'As your fork slides in: moist, rich sponge and light, airy house-made cream. Seasonal fruit fills every layer, juicy in every bite. To truly delight everyone who chooses KOIMARI among so many pastry shops, we bake each cake with care, starting from our own original sponge recipe.'],
+ ['季節のくだものを、惜しみなく。春は苺、夏はいちじくやマスカット、秋はぶどうや栗、かぼちゃ。その季節にいちばんおいしい素材を、こぼれんばかりに重ねています。フォークを入れれば、断面いっぱいの果実の彩りと、あふれるみずみずしさ。', 'Seasonal fruit, used generously: strawberries in spring, figs and muscat grapes in summer, grapes, chestnuts and pumpkin in autumn. We pile on whatever tastes best that season, until it almost spills over. Cut in, and you find a cross-section full of color and juicy freshness.'],
   // お知らせ・今月の主役
   ['春限定 苺のショートケーキ販売中', 'Spring special: strawberry shortcake now available'],
   ['おすすめ', 'Recommended'],
