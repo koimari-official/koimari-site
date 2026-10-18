@@ -5865,12 +5865,16 @@ function renderNewsAdmin() {
         item.appendChild(cb);
       }
       {
-        const pv = document.createElement("button");
-        pv.type = "button"; pv.className = "btn btn--small";
-        pv.style.cssText = "margin-top:10px;width:100%;";
-        pv.textContent = "お客様からの見え方を確認（保存前でも見られます）";
-        pv.addEventListener("click", () => openNewsPreview(newsData[i]));
-        item.appendChild(pv);
+        const makePv = (mt, mb) => {
+          const pv = document.createElement("button");
+          pv.type = "button"; pv.className = "btn btn--small nw-preview-btn";
+          pv.style.cssText = "width:100%;margin:" + mt + " 0 " + mb + ";";
+          pv.textContent = "お客様からの見え方を確認（保存前でも見られます）";
+          pv.addEventListener("click", () => openNewsPreview(newsData[i]));
+          return pv;
+        };
+        item.insertBefore(makePv("0", "12px"), item.firstChild);
+        item.appendChild(makePv("10px", "0"));
       }
       grid.appendChild(item);
     });
