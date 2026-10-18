@@ -152,6 +152,33 @@ main.nw{max-width:820px;margin:0 auto;padding:34px 16px 60px}
 .nw-link{display:inline-block;background:var(--color-accent);color:#fff;font-weight:700;border-radius:999px;padding:13px 26px;text-decoration:none}
 .nw-back{display:inline-block;margin-top:26px;color:var(--color-text);font-family:var(--font-mincho);font-weight:700;text-decoration:underline;text-underline-offset:5px;text-decoration-color:var(--color-gold)}
 .nw-empty{text-align:center;color:var(--color-text-soft);padding:60px 0}
+/* ===== 2026-10-18 お知らせ詳細ページの刷新：トップページと同じ「見出し＋金の細線」、紙のようなカードに記事を置く ===== */
+body{background:radial-gradient(circle at 12% 8%,rgba(201,169,110,.12),transparent 45%),radial-gradient(circle at 92% 70%,rgba(201,169,110,.08),transparent 40%),var(--color-bg)}
+.nw{max-width:860px;padding:46px 18px 80px}
+.nw-head{text-align:center;margin:0 0 30px}
+.nw-head__en{display:block;font-family:var(--font-en);font-style:italic;font-size:15px;letter-spacing:.3em;color:var(--color-accent-dark)}
+.nw-head__ja{display:block;font-family:var(--font-mincho);font-size:clamp(24px,3vw,30px);letter-spacing:.3em;color:var(--color-accent-dark);margin-top:6px}
+.nw-head__line{display:block;width:90px;height:2px;margin:16px auto 0;background:linear-gradient(90deg,transparent,var(--color-gold),transparent)}
+.nw-card{background:var(--color-paper);border:1px solid rgba(201,169,110,.45);border-radius:6px;box-shadow:0 18px 50px rgba(74,58,42,.10);overflow:hidden}
+.nw-card__photo{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;margin:0;border-radius:0}.nw-card__media.is-own{background:#f3ece2;text-align:center;line-height:0}.nw-card__media.is-own .nw-card__photo{aspect-ratio:auto;width:auto;max-width:100%;max-height:min(78vh,760px);margin:0 auto;object-fit:contain}
+.nw-card__body{padding:34px clamp(20px,5vw,56px) 40px;position:relative}
+.nw-card__body::before{content:"";position:absolute;inset:12px;border:1px solid rgba(201,169,110,.25);pointer-events:none;border-radius:3px}
+.nw-meta{gap:12px;font-size:14px;letter-spacing:.06em}
+.nw-tag{background:transparent;color:var(--color-accent-dark);border:1px solid var(--color-accent);border-radius:2px;padding:2px 10px;letter-spacing:.1em}
+.nw-title{font-size:clamp(23px,3.2vw,31px);letter-spacing:.08em;margin:14px 0 6px;font-weight:700}
+.nw-rule{display:block;width:56px;height:1px;background:var(--color-gold);margin:18px 0 24px}
+.nw-body{font-size:16.5px;line-height:2.1;color:var(--color-text)}
+.nw-actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:8px 0 0}
+.nw-link{background:var(--color-text);color:#fff;border-radius:2px;padding:14px 30px;letter-spacing:.12em;font-family:var(--font-mincho);font-size:16px;transition:background .25s}
+.nw-link:hover{background:var(--color-accent-dark)}
+.nw-ig{background:transparent;border:none;border-top:1px solid rgba(201,169,110,.35);border-radius:0;padding:20px 0 0;margin:26px 0 0}
+.nw-ig p{font-size:15px;color:var(--color-text-soft)}
+.nw-ig-btn{background:#fff;color:var(--color-text);border:1px solid var(--color-text);border-radius:2px;padding:11px 24px;letter-spacing:.08em;font-family:var(--font-mincho)}
+.nw-ig-btn:hover{background:var(--color-text);color:#fff}
+.nw-cal{border-radius:4px;border-color:rgba(201,169,110,.45)}
+.nw-back{display:block;width:max-content;margin:34px auto 0}
+.nw-preview{border-radius:2px}
+@media(max-width:600px){.nw{padding:30px 12px 60px}.nw-card__body{padding:26px 22px 30px}.nw-card__body::before{inset:8px}}
 </style>
 </head>
 <body>
@@ -191,14 +218,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     document.title = String(n.title || "お知らせ") + "｜ケーキ屋さん こいまり 城東";
     // 「#recommended」のようなトップページ内の場所は、トップページのその場所へ飛ばす（このページには無いため）
     const link = n.url && n.url !== "#" && !/news\.html/.test(n.url) ? (n.url.charAt(0) === "#" ? "index.html" + n.url : n.url) : "";
+    // 営業日カレンダーを載せたお知らせで写真が無いときは、その月の季節の写真（season/MM-番号.jpg、管理画面で3枚から選択）
+    const calM = n.showCalendar && /^\d{4}-(\d{2})$/.exec(n.calMonth || "");
+    const photo = n.img || (calM ? "season/" + calM[1] + "-" + ([1, 2, 3].includes(Number(n.seasonPick)) ? Number(n.seasonPick) : 1) + ".jpg" : "");
     box.innerHTML = (preview ? '<p class="nw-preview">確認用の表示です（まだ公開されていません）</p>' : "") +
+      '<div class="nw-head"><span class="nw-head__en">News</span><span class="nw-head__ja">お知らせ</span><span class="nw-head__line"></span></div>' +
+      '<article class="nw-card">' +
+      (photo ? '<div class="nw-card__media' + (n.img ? ' is-own' : '') + '"><img class="nw-card__photo" src="' + esc(photo) + '" alt=""></div>' : "") +
+      '<div class="nw-card__body">' +
       '<div class="nw-meta"><span>' + esc(n.date) + "</span>" + (n.tag ? '<span class="nw-tag">' + esc(n.tag) + "</span>" : "") + "</div>" +
-      '<h1 class="nw-title">' + esc(n.title) + "</h1>" +
-      (n.img ? '<img class="nw-img" src="' + esc(n.img) + '" alt="">' : "") +
+      '<h1 class="nw-title">' + esc(n.title) + "</h1><span class=\"nw-rule\"></span>" +
       (n.excerpt ? '<p class="nw-body">' + esc(n.excerpt) + "</p>" : "") +
       (n.showCalendar ? '<div class="nw-cal"><iframe id="nwCal" title="営業日カレンダー" src="calendar.html?embed=1' + (n.calMonth ? "&m=" + encodeURIComponent(n.calMonth) : "") + '"></iframe></div>' : "") +
-      (link ? '<a class="nw-link" href="' + esc(link) + '"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>詳しく見る →</a><br>' : "") +
+      (link ? '<div class="nw-actions"><a class="nw-link" href="' + esc(link) + '"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>詳しく見る</a></div>' : "") +
       (n.showInsta ? '<div class="nw-ig"><p>詳細はInstagramからもご確認いただけます。</p><a class="nw-ig-btn" href="' + esc(/^https:\/\/(www\.)?instagram\.com\//.test(n.instaUrl || "") ? n.instaUrl : "https://www.instagram.com/_koimari_") + '" target="_blank" rel="noopener">Instagramで見る →</a></div>' : "") +
+      "</div></article>" +
       '<a class="nw-back" href="index.html#news"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>← お知らせ一覧へ</a>';
   }
   // 管理画面の「お客様からの見え方を確認」：保存前の内容を管理画面から受け取って表示する（2026-10-18）
