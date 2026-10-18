@@ -5848,7 +5848,7 @@ function renderNewsAdmin() {
           { label: "タグ（NEW・おすすめ・お知らせ等）", key: "tag", value: n.tag||"", type: "input" },
           { label: "タイトル", key: "title", value: n.title||"", type: "input" },
           { label: "本文（お知らせの詳細ページに表示されます）", key: "excerpt", value: n.excerpt||"", type: "textarea" },
-          { label: "リンク先URL（例: reservation.html / #recommended / https://...）", key: "url", value: n.url||"", type: "input" },
+          { label: "リンク先URL（商品ページは下の一覧から選べます。例: reservation.html / https://...）", key: "url", value: n.url||"", type: "input" },
           { label: "アイキャッチ画像URL", key: "img", value: n.img||"", type: "input" }
         ],
         onChange: (k, v) => { newsData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
@@ -5862,6 +5862,32 @@ function renderNewsAdmin() {
       });
       appendVisibleToggle(item, () => newsData[i].visible, () => { newsData[i].visible = !newsData[i].visible; renderNewsAdmin(); });
       appendPhotoAdjust(item, newsData[i], "img", () => {});
+      // 「詳しく見る」の行き先を商品から選ぶ（選ぶと上のリンク先URLに商品ページのURLが入る）
+      {
+        const box = document.createElement("div");
+        box.style.cssText = "margin-top:10px;padding:10px 12px;background:#fbf6ee;border-left:3px solid var(--color-accent);font-size:13px;";
+        const groups = [["decorationCakes", "decorationCake", "デコレーションケーキ"], ["cutcakes", "cutcake", "カットケーキ"], ["rollcakes", "rollcake", "ロールケーキ"], ["baked", "baked", "焼き菓子"], ["gift", "gift", "ギフト"], ["cakeAddOns", "addOn", "砂糖菓子・ゼリー菓子"]];
+        const plain = (t) => String(t || "").replace(/<[^>]*>/g, "").trim();
+        let optHtml = '<option value="">（商品ページを選ぶ）</option>';
+        groups.forEach(([key, type, label]) => {
+          const list = (workingData && Array.isArray(workingData[key])) ? workingData[key] : [];
+          const opts = list.map((p, idx) => ({ p, idx })).filter(({ p }) => p && plain(p.name) && plain(p.name) !== "新しい商品");
+          if (!opts.length) return;
+          optHtml += '<optgroup label="' + escapeHtml(label) + '">' + opts.map(({ p, idx }) => {
+            const url = "product.html?type=" + type + "&idx=" + idx + "&n=" + encodeURIComponent(plain(p.name));
+            return '<option value="' + escapeHtml(url) + '"' + (n.url === url ? " selected" : "") + ">" + escapeHtml(plain(p.name)) + "</option>";
+          }).join("") + "</optgroup>";
+        });
+        box.innerHTML = '<label style="font-weight:700;display:block;margin-bottom:6px;">「詳しく見る」で開く商品ページ</label><select class="nw-prod" style="width:100%;padding:6px 8px;">' + optHtml + "</select>" +
+          '<div style="color:var(--color-text-soft);margin-top:4px;">選ぶと、上の「リンク先URL」に商品ページのURLが入ります。</div>';
+        box.querySelector(".nw-prod").addEventListener("change", (e) => {
+          if (!e.target.value) return;
+          newsData[i].url = e.target.value;
+          renderNewsAdmin();
+          showToast("リンク先を「" + e.target.selectedOptions[0].textContent + "」の商品ページにしました。「変更を保存」で反映されます");
+        });
+        item.appendChild(box);
+      }
       // 営業日のお知らせ用：お知らせの詳細ページに営業日カレンダーを載せる（2026-10-08オーナー指示）
       {
         const cb = document.createElement("div");

@@ -188,7 +188,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   const box = document.getElementById("nw");
   function render(n, preview) {
     document.title = String(n.title || "お知らせ") + "｜ケーキ屋さん こいまり 城東";
-    const link = n.url && n.url !== "#" && !/news\.html/.test(n.url) ? n.url : "";
+    // 「#recommended」のようなトップページ内の場所は、トップページのその場所へ飛ばす（このページには無いため）
+    const link = n.url && n.url !== "#" && !/news\.html/.test(n.url) ? (n.url.charAt(0) === "#" ? "index.html" + n.url : n.url) : "";
     box.innerHTML = (preview ? '<p class="nw-preview">確認用の表示です（まだ公開されていません）</p>' : "") +
       '<div class="nw-meta"><span>' + esc(n.date) + "</span>" + (n.tag ? '<span class="nw-tag">' + esc(n.tag) + "</span>" : "") + "</div>" +
       '<h1 class="nw-title">' + esc(n.title) + "</h1>" +
