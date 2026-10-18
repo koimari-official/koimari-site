@@ -397,13 +397,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="price-hint.js"></script>
 <script src="reserve-draft.js"></script>
 <script>
-const DEFAULT_CATEGORIES = [
-  {name:"デコレーションケーキ",en:"Decoration Cake",img:"",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
-  {name:"カットケーキ",en:"Cut Cake",img:"",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
-  {name:"ロールケーキ",en:"Roll Cake",img:"",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
-  {name:"焼き菓子",en:"Baked Sweets",img:"",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
-  {name:"ギフト",en:"Gift",img:"",desc:"贈り物のご用意は、こいまりにお任せください。ご予算に合わせて中身をお選びすることも、定番の詰め合わせからお選びいただくこともできます。お店で一つひとつ手作りしている焼き菓子なので、ほかの方の手土産と重なる心配もありません。\n熨斗は無料で、表書きやお名前の印刷まで承ります。手提げ袋も基本無料でお付けします。領収書の発行にも対応しておりますので、お取引先へのごあいさつや訪問先への手土産、異動・ご退職のお礼など、お仕事での贈り物にも安心してお使いください。\nまとまった数のご注文も、ご予約いただければ事前にご用意します（在庫により承れない場合もございます）。ラッピングはご予約不要です（クリスマス期間を除く）。お誕生日や内祝い、お供えなど、ご家族の贈り物にも。",gallery:[]}
-];
+const DEFAULT_CATEGORIES = [];
 const DEFAULT_RECOMMENDED = [];
 const DEFAULT_DECORATION_CAKES = [];
 const DEFAULT_CUTCAKES = [];
@@ -479,6 +473,7 @@ function renderProductPage(){
       document.getElementById('productDesc').innerHTML = '<p>読み込み中です。しばらくお待ちください。</p>';
       return;
     }
+    if (window.__loadFailed) { document.getElementById('pageTitle').textContent = '読み込めませんでした'; document.getElementById('productDesc').innerHTML = '<p>通信状況により商品情報を読み込めませんでした。お手数ですが、少し時間をおいてページを再読み込みしてください。</p>'; return; }
     document.getElementById('pageTitle').textContent = '見つかりませんでした';
     document.getElementById('productDesc').innerHTML = '<p>お探しの商品ページが見つかりませんでした。恐れ入りますが、トップページからご覧ください。</p>';
     return;
@@ -764,7 +759,7 @@ async function fetchList(key){
       if (typeof window.renderProductPage === "function") window.renderProductPage();
       if (Array.isArray(list) && list[productIdx]) break; // 見つかったので終了
     } catch (e) {
-      window.firebaseSynced = true;
+      window.firebaseSynced = true; window.__loadFailed = true; // 通信の失敗（商品が無いのではない）
       if (typeof window.renderProductPage === "function") window.renderProductPage();
     }
   }

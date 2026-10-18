@@ -624,10 +624,10 @@ const TIME_OPTIONS = ["10:00","10:30","11:00","11:30","12:00","12:30","13:00","1
 // キーはSIZE_OPTIONSの値そのもの（例: "4号(直径12cm/2-3名)"）ではなく、先頭の号数だけを使う。
 // Firebase Realtime Databaseのキーには"/"を含められないため（フルの値には"2-3名"の"/"が含まれる）。
 function sizeKeyOf(value) { return String(value || "").split("(")[0]; }
-const DEFAULT_SIZE_PRICES = { "4号": 4500, "5号": 6200, "6号": 9600, "7号": 12800 };
-const DEFAULT_CREAM_TOPPING_PRICE = 540;
+const DEFAULT_SIZE_PRICES = {}; // 仮の価格は持たない（実データが届くまで金額は出さない）
+const DEFAULT_CREAM_TOPPING_PRICE = 0;
 // 生チョコクリーム（CF）は生クリーム（F）より段数に関わらず一律+200円（2026-09-05オーナー指示）。
-const DEFAULT_CHOCO_CREAM_SURCHARGE = 500; // 2026-09-24オーナー提供の仕様で+500円（旧: 200）
+const DEFAULT_CHOCO_CREAM_SURCHARGE = 0; // 実際の金額は管理画面の設定（koimariContent/cakeChocoCreamSurcharge）
 const RECOMMENDED_SIZE_VALUE = "5号(約15cm/5-6名)";
 let currentSizePrices = DEFAULT_SIZE_PRICES;
 let currentCreamToppingPrice = DEFAULT_CREAM_TOPPING_PRICE;
@@ -643,8 +643,15 @@ onValue(ref(db, "koimariContent/cakeCreamToppingPrice"), (snap) => {
 onValue(ref(db, "koimariContent/cakeChocoCreamSurcharge"), (snap) => {
   currentChocoCreamSurcharge = snap.val() != null ? snap.val() : DEFAULT_CHOCO_CREAM_SURCHARGE;
   const label = document.getElementById("reserveChocoCreamPriceLabel");
-  if (label) label.textContent = `（+${currentChocoCreamSurcharge.toLocaleString()}円）`;
+  if (label) label.textContent = currentChocoCreamSurcharge ? `（+${currentChocoCreamSurcharge.toLocaleString()}円）` : "";
 });
+const PRICE_KEYS = ["cakeSizePrices", "cakeCreamToppingPrice", "cakeChocoCreamSurcharge", "cakeCandleBagPricePlain", "cakeCandleBagPriceNumber", "cakeMessagePlatePrice", "cakeCutContainerFee", "cakeTypePrices"];
+const pricesLoaded = new Set();
+PRICE_KEYS.forEach((k) => onValue(ref(db, "koimariContent/" + k), () => {
+  pricesLoaded.add(k);
+  if (pricesLoaded.size === PRICE_KEYS.length && typeof updateLivePriceDisplay === "function") updateLivePriceDisplay();
+}));
+function pricesReady() { return pricesLoaded.size === PRICE_KEYS.length; }
 function priceOf(sizeValue) { return currentSizePrices[sizeKeyOf(sizeValue)] || 0; }
 // ご利用シーン（バースデー／セレブレーション／その他）に応じた商品名。
 // functions/index.jsのproductLabel()と同じロジックを保つこと。
@@ -664,11 +671,11 @@ function candleQtyText(data, forStaff) {
 }
 // ろうそく：ナンバーろうそくは1文字180円、普通のろうそくは1袋目無料・2袋目以降が有料（2026-09-29更新）。
 // メッセージプレートは1枚目まで無料、2枚目以降は追加料金。金額はadmin.htmlで設定（普通ろうそくの初期値60円は確定分）。
-const DEFAULT_CANDLE_BAG_PRICE_PLAIN = 60;
-let currentCandleBagPriceNumber = 180; // ナンバーろうそく1文字180円（2026-09-29オーナー確定。旧: 1袋200円）
+const DEFAULT_CANDLE_BAG_PRICE_PLAIN = 0;
+let currentCandleBagPriceNumber = 0; // 実際の金額は管理画面の設定（ナンバーろうそく1文字あたり）
 let currentCandleBagPricePlain = DEFAULT_CANDLE_BAG_PRICE_PLAIN;
 let currentMessagePlatePrice = 0;
-onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() != null ? snap.val() : 180; if (typeof updateCandleBagsUI === "function") { updateCandleBagsUI(); updateLivePriceDisplay(); } });
+onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() != null ? snap.val() : 0; if (typeof updateCandleBagsUI === "function") { updateCandleBagsUI(); updateLivePriceDisplay(); } });
 onValue(ref(db, "koimariContent/cakeCandleBagPricePlain"), (snap) => { currentCandleBagPricePlain = snap.val() || DEFAULT_CANDLE_BAG_PRICE_PLAIN; });
 function candleCostFor(candleType, bags) {
   if (!bags) return 0;
@@ -1509,6 +1516,7 @@ function computeCakeSubtotal() {
   if (cakeType === BAKED_GOODS_CATEGORY || cakeType === "ロールケーキ") return { subtotal: 0, priceNeedsConsult: false, applicable: false, lines: [], notes: [] };
   const input = gatherEstimateInput();
   if (!input.tiers.length || input.tiers.some(v => !v)) return { subtotal: 0, priceNeedsConsult: false, applicable: true, incomplete: true, lines: [], notes: [] };
+  if (!pricesReady()) return { subtotal: 0, priceNeedsConsult: true, priceIsFixed: false, applicable: true, lines: [], notes: [] };
   const r = CakePricing.estimate(input, {
     sizePrices: currentSizePrices, typePrices: currentTypePrices, cutContainerFee: currentCutContainerFee, creamToppingPrice: currentCreamToppingPrice, chocoCream: currentChocoCreamSurcharge,
     candlePlain: currentCandleBagPricePlain, candleNumber: currentCandleBagPriceNumber, messagePlate: currentMessagePlatePrice

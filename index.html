@@ -666,6 +666,7 @@ img[src=""],img:not([src]){visibility:hidden}</style>
 .philosophy{background:var(--color-bg-soft);padding:60px 24px}
 .philosophy__grid{display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:1080px;margin:0 auto}
 .philosophy__card{background:#fff;border:1px solid var(--color-line-soft);border-radius:10px;overflow:hidden;box-shadow:0 12px 30px rgba(58,42,35,.08);display:flex;flex-direction:column}
+.ph-wait .philosophy__body{visibility:hidden}
 .philosophy__card img{width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;display:block}.philosophy__card img:not([src]),#img-greeting[src=""],#img-greeting:not([src]){visibility:hidden}
 .philosophy__body{padding:30px 32px 36px}
 .philosophy__body h3{word-break:auto-phrase;text-wrap:balance;font-family:var(--font-mincho);font-size:clamp(21px,2.2vw,25px);line-height:1.6;letter-spacing:.05em;font-weight:700;margin-bottom:14px;color:var(--color-text)}
@@ -752,9 +753,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- ===== 季節イベントバナー (管理画面から設定可能な汎用テンプレ) ===== -->
 <div class="event-banner" id="eventBanner">
   <div class="event-banner__inner">
-    <span class="event-banner__label" id="eventBannerLabel">季節のお知らせ</span>
-    <span class="event-banner__text" id="eventBannerText">母の日ケーキのご予約を受け付けております</span>
-    <a href="mothers-day.html" class="event-banner__link" id="eventBannerLink">詳しく見る →</a>
+    <span class="event-banner__label" id="eventBannerLabel"></span>
+    <span class="event-banner__text" id="eventBannerText"></span>
+    <a href="#" class="event-banner__link" id="eventBannerLink">詳しく見る →</a>
   </div>
   <button class="event-banner__close" id="eventBannerClose" aria-label="閉じる">×</button>
 </div>
@@ -926,7 +927,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="philosophy" id="philosophy">
   <div class="section__inner">
     <div class="section__head"><span class="section__en">Our Philosophy</span><h2 class="section__title">こいまりのこだわり</h2></div>
-    <div class="philosophy__grid">
+    <div class="philosophy__grid ph-wait">
       <article class="philosophy__card">
         <img id="img-philosophy-0" data-default="brand-story-community.jpg" alt="こいまり 店頭" loading="lazy">
         <div class="philosophy__body">
@@ -1134,9 +1135,7 @@ window.applyEventBannerConfig = function(cfg){
 const DEFAULT_IMAGES = {
   // 2026-09-08、複数スライドの自動切り替えでFirebase側と食い違うと数秒後に
   // 見覚えのない写真へ切り替わって見えるため、当面は1枚だけに固定する（オーナー指摘）。
-  hero:[
-    {src:"",titleEn:"Seasonal Sweets",titleJp:"季節のフルーツをたっぷり使った、<br>色とりどりの手作りケーキと焼き菓子"}
-  ],
+  hero:[],
   greeting:"brand-story-community.jpg",
   // 「こいまりのこだわり」4カードの写真（2026-09-29、管理画面から1枚ずつ差し替えられるようにした）。
   // 見出し・本文はコード側に固定（写真だけ差し替える運用）。順番はトップページの表示順と同じ。
@@ -1147,13 +1146,7 @@ const DEFAULT_IMAGES = {
     { title: "果実をたっぷりと、心まで満たす一切れに", img: "brand-story-fruit.jpg" }
   ],
 
-  categories:[
-    {name:"デコレーションケーキ",en:"Decoration Cake",img:"",desc:"特別な日にふさわしい、丸ごと一台のケーキです。誕生日や記念日のお祝いに、メッセージプレートを添えてお作りします。",gallery:[]},
-    {name:"カットケーキ",en:"Cut Cake",img:"",desc:"毎日の食後やちょっとしたご褒美に。季節のフルーツを使った定番から限定フレーバーまで、日替わりで店頭に並びます。",gallery:[]},
-    {name:"ロールケーキ",en:"Roll Cake",img:"",desc:"ふわふわのスポンジとクリームを丁寧に巻き上げました。手土産やご自宅用にも人気の一品です。",gallery:[]},
-    {name:"焼き菓子",en:"Baked Sweets",img:"",desc:"マドレーヌやフィナンシェなど、日持ちする焼き菓子の詰め合わせ。贈り物にも喜ばれています。",gallery:[]},
-    {name:"ギフト",en:"Gift",img:"",desc:"贈り物のご用意は、こいまりにお任せください。ご予算に合わせて中身をお選びすることも、定番の詰め合わせからお選びいただくこともできます。お店で一つひとつ手作りしている焼き菓子なので、ほかの方の手土産と重なる心配もありません。\n熨斗は無料で、表書きやお名前の印刷まで承ります。手提げ袋も基本無料でお付けします。領収書の発行にも対応しておりますので、お取引先へのごあいさつや訪問先への手土産、異動・ご退職のお礼など、お仕事での贈り物にも安心してお使いください。\nまとまった数のご注文も、ご予約いただければ事前にご用意します（在庫により承れない場合もございます）。ラッピングはご予約不要です（クリスマス期間を除く）。お誕生日や内祝い、お供えなど、ご家族の贈り物にも。",gallery:[]}
-  ],
+  categories:[],
   experiences:[
     {key:"ichinichi-tencho",title:"お子様 一日店長体験",titleEn:"One-Day Shop Manager Experience",en:"One Day Manager",target:"対象 / 小学1年生〜6年生",targetEn:"For / Elementary students (Grades 1–6)",img:"",desc:"ケーキの飾りつけや、お客様への接客、レジ体験まで。お菓子屋さんのお仕事をひと通り体験していただける、お子様向けのプログラムです。",descEn:"From cake decorating and customer service to operating the register — a program where children experience the full range of work at a pastry shop.",duration:"約2時間",durationEn:"Approx. 2 hours",fee:"3,000円(材料費込)",feeEn:"¥3,000 (materials included)",visible:true},
     {key:"shokugyo-taiken",title:"中高生 職業体験",titleEn:"Career Experience Program",en:"Career Experience",target:"対象 / 中学生・高校生",targetEn:"For / Middle &amp; high school students",img:"",desc:"製菓現場の見学から仕込み・焼成・販売までを体験。学校の職業体験学習・インターンシップにもご利用いただけます。",descEn:"Hands-on experience from kitchen prep and baking to sales. Suitable for school vocational training and internship programs.",duration:"要相談",durationEn:"Please inquire",fee:"無料（学校関係者様限定）",feeEn:"Free (school staff/teachers only)",visible:true},
@@ -1261,7 +1254,7 @@ function renderHeroSlides(){
 window.renderHeroSlides=renderHeroSlides;
 renderHeroSlides();
 function renderGreetingImage(){if(IMAGES.greeting)document.getElementById("img-greeting").src=IMAGES.greeting;}
-setTimeout(()=>{const g=document.getElementById("img-greeting");if(g&&!g.getAttribute("src"))g.src=DEFAULT_IMAGES.greeting;},4000);
+
 window.renderGreetingImage=renderGreetingImage;
 renderGreetingImage();
 const catGrid=document.getElementById("categoriesGrid");
@@ -1606,7 +1599,7 @@ const fbApp = initializeApp(firebaseConfig);
 const db = getDatabase(fbApp);
 
 onValue(ref(db, "siteConfig/eventBanner"), (snapshot) => {
-  const cfg = snapshot.val() || { show: true, label: "Special", text: "母の日ケーキのご予約を受け付けております", link: "mothers-day.html" };
+  const cfg = snapshot.val() || { show: false };
   if (typeof window.applyEventBannerConfig === "function") window.applyEventBannerConfig(cfg);
 });
 
@@ -1722,6 +1715,7 @@ function renderPhilosophyImages(){
   const list=(IMAGES&&Array.isArray(IMAGES.philosophy))?IMAGES.philosophy:[];
   if(window.PhotoAdjust)window.PhotoAdjust.register(list);
   const cards=document.querySelectorAll(".philosophy__card");
+  if(list.length){const g=document.querySelector(".philosophy__grid");if(g)g.classList.remove("ph-wait");}
   for(let i=0;i<4;i++){
     const el=document.getElementById("img-philosophy-"+i);
     const src=list[i]&&list[i].img;
@@ -1738,7 +1732,7 @@ function renderPhilosophyImages(){
   }
 }
 window.renderPhilosophyImages=renderPhilosophyImages;
-setTimeout(()=>{document.querySelectorAll(".philosophy__card img[data-default]").forEach(el=>{if(!el.getAttribute("src"))el.src=el.dataset.default;});},4000);
+
 renderPhilosophyImages();
 onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
   const val = snapshot.val();
