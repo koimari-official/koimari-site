@@ -5888,6 +5888,22 @@ function renderNewsAdmin() {
         });
         item.appendChild(box);
       }
+      // Instagramへの案内（チェックすると詳細ページに「詳細はInstagramからもご確認いただけます」とボタンが出る）
+      {
+        const ig = document.createElement("div");
+        ig.style.cssText = "margin-top:10px;padding:10px 12px;background:#fbf3f7;border-left:3px solid #c13584;font-size:13px;";
+        ig.innerHTML = '<label style="display:flex;align-items:center;gap:6px;font-weight:700;cursor:pointer;"><input type="checkbox" class="nw-ig-on"' + (n.showInsta ? " checked" : "") + '> 「詳細はInstagramからもご確認いただけます」を表示する</label>' +
+          '<input type="url" class="input nw-ig-url" placeholder="投稿のURL（空欄ならこいまりのInstagramのページ）" style="width:100%;margin-top:6px;"' + (n.showInsta ? "" : " disabled") + ' value="' + escapeHtml(n.instaUrl || "") + '">' +
+          '<div style="color:var(--color-text-soft);margin-top:4px;">Instagramアプリの投稿で「…」→「リンクをコピー」したURLを貼ると、その投稿が開きます。</div>';
+        ig.querySelector(".nw-ig-on").addEventListener("change", (e) => { newsData[i].showInsta = e.target.checked; ig.querySelector(".nw-ig-url").disabled = !e.target.checked; });
+        ig.querySelector(".nw-ig-url").addEventListener("input", (e) => {
+          const v = e.target.value.trim();
+          // Instagram以外のURLは入れない（URLの後ろの「?igsh=…」などはそのままでも開ける）
+          if (v && !/^https:\/\/(www\.)?instagram\.com\//.test(v)) { e.target.style.borderColor = "#b03b48"; return; }
+          e.target.style.borderColor = ""; newsData[i].instaUrl = v;
+        });
+        item.appendChild(ig);
+      }
       // 営業日のお知らせ用：お知らせの詳細ページに営業日カレンダーを載せる（2026-10-08オーナー指示）
       {
         const cb = document.createElement("div");
