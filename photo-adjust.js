@@ -82,5 +82,28 @@
       });
     }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
   }
-  root.PhotoAdjust = { hash: hash, filterOf: filterOf, applyTo: applyTo, isDefault: isDefault, register: register };
+  // 2026-10-19：ページごとに register を呼び忘れると、小さく表示した所（特設ページの商品一覧・関連商品など）に
+  // 調整が反映されない不具合があった。データベースから商品・お知らせ等を読み込んだら、その中の調整を自動で登録する。
+  function collect(node, depth) {
+    if (!node || typeof node !== "object" || depth > 4) return;
+    if (Array.isArray(node)) { node.forEach(function (x) { collect(x, depth + 1); }); return; }
+    if (node.photoAdjust && typeof node.photoAdjust === "object") Object.keys(node.photoAdjust).forEach(function (k) { map[k] = node.photoAdjust[k]; });
+    Object.keys(node).forEach(function (k) { if (k !== "photoAdjust" && node[k] && typeof node[k] === "object") collect(node[k], depth + 1); });
+  }
+  if (typeof root.fetch === "function" && !root.fetch.__paWrapped) {
+    var origFetch = root.fetch;
+    var wrapped = function (input) {
+      var url = typeof input === "string" ? input : (input && input.url) || "";
+      var p = origFetch.apply(this, arguments);
+      if (/firebasedatabase\.app\/(siteImages|koimariContent)\b[^?]*\.json/.test(url)) {
+        p.then(function (res) {
+          try { res.clone().json().then(function (data) { var before = Object.keys(map).length; collect(data, 0); if (Object.keys(map).length !== before && typeof document !== "undefined") scan(document); }).catch(function () {}); } catch (e) {}
+        }).catch(function () {});
+      }
+      return p;
+    };
+    wrapped.__paWrapped = true;
+    root.fetch = wrapped;
+  }
+  root.PhotoAdjust = { hash: hash, filterOf: filterOf, applyTo: applyTo, isDefault: isDefault, register: function (list) { collect(list, 0); register(list); } };
 })(window);

@@ -567,7 +567,8 @@ function trimWhiteEdgesMeasure(img, src) {
     const kw = (r - l + 1) / cw, kh = (b - t + 1) / ch;
     if (kw > 0.97 && kh > 0.97) return; // 余白なし
     const box = img.parentElement; box.style.setProperty('aspect-ratio', (w * kw) + ' / ' + (h * kh), 'important'); box.style.overflow = 'hidden'; box.style.position = 'relative';
-    img.style.cssText = 'position:absolute;max-width:none;max-height:none;object-fit:fill;width:' + (100 / kw) + '%!important;height:' + (100 / kh) + '%!important;left:' + (-100 * (l / cw) / kw) + '%;top:' + (-100 * (t / ch) / kh) + '%';
+    const keepFilter = img.style.filter; // 管理画面の色味調整を消さない
+    img.style.cssText = 'position:absolute;max-width:none;max-height:none;object-fit:fill;width:' + (100 / kw) + '%!important;height:' + (100 / kh) + '%!important;left:' + (-100 * (l / cw) / kw) + '%;top:' + (-100 * (t / ch) / kh) + '%' + (keepFilter ? ';filter:' + keepFilter : '');
   } catch (e) {}
 }
 function renderMedia(photos, plainName, gated) {
