@@ -5791,7 +5791,10 @@ async function saveByOpsKey(key, data) {
 /* ============ お知らせ管理 ============ */
 let newsData = null;
 // 保存前のお知らせを、お客様が見るお知らせページ（news.html の確認モード）で表示する
-function openNewsPreview(item) {
+function openNewsPreview(item) { openCustomerPreview("news.html?preview=1", "koimariNewsPreviewReady", "koimariNewsPreview", item, 390); }
+function openSpotlightPreview(item) { openCustomerPreview("index.html?spPreview=1", "koimariSpotlightPreviewReady", "koimariSpotlightPreview", item, 390); }
+// 保存前の内容を、お客様が見るページ（確認モード）で表示する共通の画面
+function openCustomerPreview(src, readyKey, payloadKey, item, width) {
   let modal = document.getElementById("nwPreviewModal");
   if (!modal) {
     modal = document.createElement("div");
@@ -5815,13 +5818,17 @@ function openNewsPreview(item) {
     modal.addEventListener("click", (e) => { if (e.target === modal) modal.querySelector("[data-close]").click(); });
     // 確認ページの準備ができたら、保存前の内容を渡す
     window.addEventListener("message", (e) => {
-      if (e.origin !== location.origin || !e.data || !e.data.koimariNewsPreviewReady || e.source !== frame.contentWindow) return;
-      frame.contentWindow.postMessage({ koimariNewsPreview: modal._item }, location.origin);
+      if (e.origin !== location.origin || !e.data || !modal._readyKey || !e.data[modal._readyKey] || e.source !== frame.contentWindow) return;
+      frame.contentWindow.postMessage({ [modal._payloadKey]: modal._item }, location.origin);
     });
   }
   modal._item = JSON.parse(JSON.stringify(item || {}));
+  modal._readyKey = readyKey; modal._payloadKey = payloadKey;
   modal.style.display = "flex";
-  modal.querySelector("iframe").src = "news.html?preview=1&t=" + Date.now();
+  const fr = modal.querySelector("iframe");
+  fr.style.width = (width || 390) + "px";
+  modal.querySelectorAll("[data-w]").forEach((x) => x.classList.toggle("btn--ghost", Number(x.dataset.w) !== (width || 390)));
+  fr.src = src + "&t=" + Date.now();
 }
 function renderNewsAdmin() {
   if (!newsData) newsData = loadByKey(NEWS_KEY, DEFAULT_NEWS_LIST);
@@ -6086,6 +6093,7 @@ function renderSpotlightAdmin() {
       <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
       <div id="spPicks" style="width:100%;background:#faf6ef;border:1px solid var(--color-line);border-radius:8px;padding:12px 14px;margin-bottom:6px;"></div>
       <button type="button" class="btn btn--small btn--ghost" id="spAdjust">写真の色・表示位置を調整${photoAdjusted(sp, sp.img) ? "（調整済み）" : ""}</button>
+      <button type="button" class="btn btn--small" id="spPreview" style="width:100%;">お客様からの見え方を確認（保存前でも見られます）</button>
       <button class="btn btn--ghost" id="spSave">${isActive ? "保存する" : "下書きとして保存"}</button>
       ${isActive ? '<button class="btn btn--ghost" id="spHide" style="border-color:#b03b48;color:#b03b48;">非表示にする（トップページに出さない）</button>' : '<button class="btn" id="spPublish">保存して公開する' + (activeIdx >= 0 ? "（今の公開中と入れ替え）" : "") + "</button>"}
       ${!isActive && activeIdx >= 0 ? '<button class="btn btn--small btn--ghost" id="spBackToActive">公開中の投稿の編集に戻る</button>' : ""}
@@ -6130,6 +6138,7 @@ function renderSpotlightAdmin() {
       if (!sp.img) { showToast("先に写真を入れてください", "error"); return; }
       openPhotoAdjust(sp, sp.img, () => { spotlightDirty = true; const pv = document.getElementById("spotlightPreview"); if (pv) window.PhotoAdjust.applyTo(pv, (sp.photoAdjust || {})[window.PhotoAdjust.hash(sp.img)] || null); document.getElementById("spAdjust").textContent = "写真の色・表示位置を調整（調整済み）"; }, { isMain: true });
     });
+    document.getElementById("spPreview").addEventListener("click", () => openSpotlightPreview(sp));
     document.getElementById("spSave").addEventListener("click", () => save(isActive ? "保存しました（トップページに反映されます）" : "保存しました（まだ公開されていません）"));
     const hide = document.getElementById("spHide");
     if (hide) hide.addEventListener("click", async () => {

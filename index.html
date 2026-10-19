@@ -1205,7 +1205,9 @@ function loadImages(){try{const s=localStorage.getItem("koimari_images");if(s){c
 function loadNews(){try{const r=localStorage.getItem("koimari_news");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_NEWS}
 function loadHolidays(){try{const r=localStorage.getItem("koimari_holidays");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_HOLIDAYS}
 // 公開中の特集が無いとき（管理画面で「非表示にする」）は、見本（母の日）を出さずに特集枠ごと隠す（2026-10-08）
-function loadSpotlight(){try{const r=localStorage.getItem("koimari_spotlight");if(r){const d=JSON.parse(r);if(Array.isArray(d)){return d.find(s=>s&&s.visible!==false)||null}return d}}catch(e){}return null}
+// 管理画面の「お客様からの見え方を確認」（2026-10-19）：確認モードでは管理画面から届いた保存前の主役を出す
+const SP_PREVIEW=/[?&]spPreview=1/.test(location.search)&&window.parent!==window;
+function loadSpotlight(){if(SP_PREVIEW)return window.__spPreview||null;try{const r=localStorage.getItem("koimari_spotlight");if(r){const d=JSON.parse(r);if(Array.isArray(d)){return d.find(s=>s&&s.visible!==false)||null}return d}}catch(e){}return null}
 function loadStats(){try{const r=localStorage.getItem("koimari_stats");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_STATS}
 function loadVoices(){try{const r=localStorage.getItem("koimari_voices");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_VOICES}
 function loadInsta(){try{const r=localStorage.getItem("koimari_insta");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_INSTA}
@@ -1435,6 +1437,22 @@ function renderDynamic(){
   renderExperiences();
   renderNews();
   renderSpotlight();
+  if(SP_PREVIEW&&!window.__spPreviewBound){
+    window.__spPreviewBound=true;
+    window.addEventListener("message",(e)=>{
+      if(e.source!==window.parent||e.origin!==location.origin||!e.data||!e.data.koimariSpotlightPreview)return;
+      window.__spPreview=e.data.koimariSpotlightPreview;
+      renderSpotlight();
+      const sec=document.getElementById("spotlight");
+      if(sec){
+        if(!document.getElementById("spPreviewNote")){const n=document.createElement("p");n.id="spPreviewNote";n.textContent="確認用の表示です（まだ公開されていません）";n.style.cssText="position:relative;z-index:2;max-width:640px;margin:0 auto 18px;padding:10px 14px;background:#fff4e0;border:1px solid #e0b866;font-size:14px;font-weight:700;color:#7a5410;text-align:center";sec.insertBefore(n,sec.firstChild);}
+        // 確認画面では主役だけを表示する（上の写真の読み込みで位置がずれないように）
+        if(!document.getElementById("spPreviewOnly")){const st=document.createElement("style");st.id="spPreviewOnly";st.textContent="body>section:not(#spotlight),body>.hero,body>.event-banner{display:none!important}";document.head.appendChild(st);}
+        window.scrollTo(0,0);
+      }
+    });
+    window.parent.postMessage({koimariSpotlightPreviewReady:true},location.origin);
+  }
   renderStats();
   renderVoices();
   I18nCtrl.apply();
