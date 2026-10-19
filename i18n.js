@@ -38,7 +38,7 @@ const KOIMARI_I18N_EN = {
   'greeting.heading': 'Four Seasons<br>on a Plate.',
   'greeting.body1':   'What we value most is drawing out the full flavor of every ingredient. Our sponge and cream are our own lightly sweetened recipes that never mask the ingredients, finished moist and rich.',
   'greeting.body2':   'And we want to be a shop our community loves: a place you can drop in anytime and feel at ease, one our local customers say feels "like home." From here in Joto, we hope to share this circle of warmth with more and more people.',
-  'greeting.body3':   'Our pastry chefs visit suppliers to choose the ingredients themselves, and we layer fresh fruit and ingredients generously. Every day we refine our recipes so you can fully enjoy the flavor, richness, aroma and juiciness of fruit, seasonal produce and chocolate.',
+  'greeting.body3':   'Every day our pastry chefs hand-pick fresh fruit and ingredients. Our pride is being fruit-rich, with big, generous pieces of fruit. We keep refining our lineup so you can fully enjoy the flavor, richness, aroma and juiciness of fruit, seasonal produce and chocolate.',
   'greeting.body4':   'Thank you for reading this far. We look forward to welcoming you at the shop.',
 
   // Social
