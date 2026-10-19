@@ -20,18 +20,18 @@
   "page": "https://stocksnap.io/photo/flower-table-UJPYMPQUR6",
   "original": "https://cdn.stocksnap.io/img-thumbs/960w/UJPYMPQUR6.jpg"
  },
- "meeting.jpg": {
-  "title": "Interior Design",
-  "license": "cc0",
-  "source": "stocksnap",
-  "page": "https://stocksnap.io/photo/interior-design-N3DP51WC97",
-  "original": "https://cdn.stocksnap.io/img-thumbs/960w/N3DP51WC97.jpg"
- },
  "sakura.jpg": {
   "title": "Cherry Blossom",
   "license": "cc0",
   "source": "stocksnap",
   "page": "https://stocksnap.io/photo/cherry-blossom-SWQXNOA7PF",
   "original": "https://cdn.stocksnap.io/img-thumbs/960w/SWQXNOA7PF.jpg"
+ },
+ "award.jpg": {
+  "title": "Golden trophy, sport world cup",
+  "license": "cc0",
+  "source": "rawpixel",
+  "page": "https://www.rawpixel.com/image/11189349/golden-trophy-sport-world-cup",
+  "original": "https://images.rawpixel.com/editor_1024/cHJpdmF0ZS9sci9pbWFnZXMvd2Vic2l0ZS8yMDIyLTEyL2ZsNTE4NTQxMzE2ODgtaW1hZ2UuanBn.jpg"
  }
 }
