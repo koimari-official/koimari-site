@@ -306,7 +306,7 @@ main.pd{max-width:1120px;padding:20px 24px 60px}
   .sub-nav li:last-child:nth-child(odd){grid-column:1/-1}
   .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
 }
-</style>
+.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}/* 写真は余白を作らず、写真そのものの縦横比で大きく見せる（2026-10-19オーナー指示：しずる感を最大に） */.pd-slider{align-items:flex-start}.pd-slide{aspect-ratio:auto!important;display:flex;justify-content:center;background:transparent}.pd-slide img{width:100%!important;height:auto!important;max-height:calc(100vh - 40px);object-fit:contain!important;display:block}@media(min-width:861px){.pd-media{max-width:none!important;justify-self:stretch!important}main.pd{max-width:1320px!important}.pd-grid{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)!important;gap:44px!important}}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -395,6 +395,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="cake-pricing.js"></script>
 <script src="photo-adjust.js"></script>
 <script src="price-hint.js"></script>
+<script src="price-format.js"></script>
 <script src="reserve-draft.js"></script>
 <script>
 const DEFAULT_CATEGORIES = [];
@@ -433,11 +434,12 @@ function loadImages(){
         cutcakes: p.cutcakes||DEFAULT_CUTCAKES,
         rollcakes: p.rollcakes||DEFAULT_ROLLCAKES,
         baked: p.baked||DEFAULT_BAKED,
-        gift: p.gift||DEFAULT_GIFT
+        gift: p.gift||DEFAULT_GIFT,
+        cakeAddOns: p.cakeAddOns||[] // 砂糖菓子・ゼリー菓子（2026-10-19：抜けていて商品ページが「見つかりませんでした」になっていた）
       };
     }
   }catch(e){}
-  return { categories: DEFAULT_CATEGORIES, recommended: DEFAULT_RECOMMENDED, decorationCakes: DEFAULT_DECORATION_CAKES, cutcakes: DEFAULT_CUTCAKES, rollcakes: DEFAULT_ROLLCAKES, baked: DEFAULT_BAKED, gift: DEFAULT_GIFT };
+  return { categories: DEFAULT_CATEGORIES, recommended: DEFAULT_RECOMMENDED, decorationCakes: DEFAULT_DECORATION_CAKES, cutcakes: DEFAULT_CUTCAKES, rollcakes: DEFAULT_ROLLCAKES, baked: DEFAULT_BAKED, gift: DEFAULT_GIFT, cakeAddOns: [] };
 }
 
 const params = new URLSearchParams(location.search);
@@ -544,6 +546,28 @@ function priceHintFor(it, type) {
     return fetch('https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/koimariContent/costPublicPrices.json').then(r => r.json()).then(v => { const p = ((v && v.list) || []).find(x => x && (x.name === it.costName || x.name === nm)); return p && Number(p.salePrice) > 0 ? '¥' + Number(p.salePrice).toLocaleString() : ''; });
   }).catch(() => '');
 }
+// 写真の端の白い（ほぼ白一色の）余白を測って、その分を枠の外に出す。読み取れない写真（別ドメインで許可が無い等）は何もしない
+function trimWhiteEdges(img) {
+  // 表示中の写真には手を付けず、測定用に同じ写真を別に読み込む（読み取りの許可が無い写真は何もしない）
+  const pr = new Image(); pr.crossOrigin = "anonymous"; pr.onload = () => trimWhiteEdgesMeasure(img, pr); pr.src = img.currentSrc || img.src;
+}
+function trimWhiteEdgesMeasure(img, src) {
+  try {
+    const w = src.naturalWidth, h = src.naturalHeight; if (!w || !h) return;
+    const sc = Math.min(1, 400 / Math.max(w, h)), cw = Math.round(w * sc), ch = Math.round(h * sc);
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const cx = cv.getContext('2d'); cx.drawImage(src, 0, 0, cw, ch);
+    const d = cx.getImageData(0, 0, cw, ch).data;
+    const white = (x, y) => { const i = (y * cw + x) * 4; return d[i] > 242 && d[i + 1] > 242 && d[i + 2] > 242; };
+    const colWhite = (x) => { let n = 0; for (let y = 0; y < ch; y++) if (white(x, y)) n++; return n / ch > 0.97; };
+    const rowWhite = (y) => { let n = 0; for (let x = 0; x < cw; x++) if (white(x, y)) n++; return n / cw > 0.97; };
+    let l = 0, r = cw - 1, t = 0, b = ch - 1;
+    while (l < r && colWhite(l)) l++; while (r > l && colWhite(r)) r--; while (t < b && rowWhite(t)) t++; while (b > t && rowWhite(b)) b--;
+    const kw = (r - l + 1) / cw, kh = (b - t + 1) / ch;
+    if (kw > 0.97 && kh > 0.97) return; // 余白なし
+    const box = img.parentElement; box.style.setProperty('aspect-ratio', (w * kw) + ' / ' + (h * kh), 'important'); box.style.overflow = 'hidden'; box.style.position = 'relative';
+    img.style.cssText = 'position:absolute;max-width:none;max-height:none;object-fit:fill;width:' + (100 / kw) + '%!important;height:' + (100 / kh) + '%!important;left:' + (-100 * (l / cw) / kw) + '%;top:' + (-100 * (t / ch) / kh) + '%';
+  } catch (e) {}
+}
 function renderMedia(photos, plainName, gated) {
   const wrap = document.getElementById('productPhotos');
   const slides = gated ? photos.slice(0, 1) : photos;
@@ -554,6 +578,8 @@ function renderMedia(photos, plainName, gated) {
     html += '<div class="pd-thumbs">' + slides.map((src, i) => '<button type="button" data-i="' + i + '"' + (i ? '' : ' class="is-active"') + '><img src="' + esc(src) + '" alt="" loading="lazy"></button>').join('') + '</div>';
   }
   wrap.innerHTML = html;
+  // 写真の上下左右に入っている白い余白を、表示のときだけ切り詰めて写真を大きく見せる（元の写真は加工しない・画質はそのまま）
+  wrap.querySelectorAll('.pd-slide img').forEach((img) => { const go = () => trimWhiteEdges(img); if (img.complete && img.naturalWidth) go(); else img.addEventListener('load', go, { once: true }); });
   const slider = document.getElementById('pdSlider');
   const mark = (i) => wrap.querySelectorAll('.pd-dots button, .pd-thumbs button').forEach(b => b.classList.toggle('is-active', Number(b.dataset.i) === i));
   slider.addEventListener('scroll', () => { mark(Math.round(slider.scrollLeft / Math.max(1, slider.clientWidth))); }, { passive: true });
@@ -584,10 +610,10 @@ function renderInfo(item, plainName, config) {
     if (PH) PH.load().then(pr => { const g = PH.guideText(item, pr); currentGuide = g; if (g) priceEl.innerHTML = '<span class="pd-price__custom">お見積もり制</span><span class="pd-price__guide">目安：' + esc(g) + '<small>（税込）</small></span><span class="pd-price__note">写真のケーキをもとに、スタッフがお見積もり・納期をご回答します</span>'; }).catch(() => {});
   }
   priceHintFor(item, productType).then(t => {
-    if (!t) return;
+    if (!t) { if (!isCustom) { priceEl.innerHTML = window.KoimariPrice.html(""); const sp0 = document.getElementById('pdStickyPrice'); if (sp0) sp0.textContent = window.KoimariPrice.NONE; } return; }
     const isHint = !(item.price && /[1-9]/.test(String(item.price)));
-    priceEl.innerHTML = esc(t) + '<small>（税込）</small>' + (isHint && productType === 'cutcake' ? '<span class="pd-price__note">1個のお値段です（3個からご予約いただけます）</span>' : isHint ? '<span class="pd-price__note">' + (size ? '写真のサイズ（' + esc(size) + '）のお値段です。' : '') + (onlySizeOf(item) ? 'このケーキは' + esc(onlySizeOf(item)) + 'のみのご用意です' : 'ほかのサイズは下の表をご覧ください') + '</span>' : '');
-    const sp = document.getElementById('pdStickyPrice'); if (sp) sp.textContent = t;
+    priceEl.innerHTML = window.KoimariPrice.html(t) + (isHint && productType === 'cutcake' ? '<span class="pd-price__note">1個のお値段です（3個からご予約いただけます）</span>' : isHint ? '<span class="pd-price__note">' + (size ? '写真のサイズ（' + esc(size) + '）のお値段です。' : '') + (onlySizeOf(item) ? 'このケーキは' + esc(onlySizeOf(item)) + 'のみのご用意です' : 'ほかのサイズは下の表をご覧ください') + '</span>' : '');
+    const sp = document.getElementById('pdStickyPrice'); if (sp) sp.textContent = window.KoimariPrice.text(t);
   });
   renderSizeTable(item, size);
   renderLeadAndTel(item, size);
@@ -667,7 +693,7 @@ function renderSizeTable(item, photoSize) {
     if (rows.length === 1) { const n = document.querySelector('#pdPrice .pd-price__note'); if (n) n.textContent = 'このケーキは' + rows[0].size + 'のみのご用意です'; }
     box.innerHTML = '<table class="pd-size-table"><thead><tr><th>サイズ</th><th>直径</th><th>人数の目安</th>' + (custom ? '' : '<th>お値段（税込）</th>') + '</tr></thead><tbody>' +
       rows.map(r => '<tr' + (r.size === photoSize ? ' class="is-photo"' : '') + '><td><b>' + r.size + '</b>' + (r.size === photoSize ? '<span class="pd-size-tag">写真のサイズ</span>' : '') + '</td><td>' + esc(r.cm) + '</td><td>' + esc(r.serves) + '</td>' +
-        (custom ? '' : '<td class="pd-size-price">' + (r.price ? '¥' + Number(r.price).toLocaleString() : '<span class="pd-size-special">特殊仕様<br>（お電話で確認）</span>') + '</td>') + '</tr>').join('') + '</tbody></table>' +
+        (custom ? '' : '<td class="pd-size-price">' + (r.price ? window.KoimariPrice.html(r.price) : '<span class="pd-size-special">特殊仕様<br>（お電話で確認）</span>') + '</td>') + '</tr>').join('') + '</tbody></table>' +
       (custom ? '<p class="pd-size-note">このケーキはフルオーダーのため、お値段はご予約後にスタッフがご回答します。</p>'
         : '<p class="pd-included">ろうそく5本（1袋）とメッセージプレート1枚は、お値段に含まれています。</p>' + omakaseHtml());
     if (rows.length === 1 && !custom) renderBiggerSuggest(box, rows[0]);

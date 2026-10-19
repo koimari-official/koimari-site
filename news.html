@@ -182,7 +182,8 @@ body{background:radial-gradient(circle at 12% 8%,rgba(201,169,110,.12),transpare
 .nw-calsec__lead{font-size:14.5px;color:var(--color-text-soft);margin:0 0 14px;line-height:1.8}
 .nw-preview{border-radius:2px}
 @media(max-width:600px){.nw{padding:30px 12px 60px}.nw-card__body{padding:26px 22px 30px}.nw-card__body::before{inset:8px}}
-</style>
+.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}</style>
+<script src="price-format.js"></script>
 <script src="event-theme.js"></script>
 </head>
 <body>
@@ -272,10 +273,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (!items.length) { const sec = document.getElementById("evProducts"); if (sec) sec.remove(); return; }
     grid.innerHTML = items.map(({ it, idx, type }) => {
       const name = plain(it.name);
-      const price = it.price && /[1-9]/.test(String(it.price)) ? String(it.price) : "";
+      const priceHtml = window.KoimariPrice.html(it.price);
       return '<a class="ev-item" href="product.html?type=' + esc(type) + "&idx=" + idx + "&n=" + encodeURIComponent(name) + '"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>' +
         '<img src="' + esc(it.img) + '" alt="' + esc(name) + '" loading="lazy">' +
-        '<div class="ev-item__name">' + esc(name) + "</div>" + (price ? '<div class="ev-item__price">' + esc(price) + "</div>" : "") + "</a>";
+        '<div class="ev-item__name">' + esc(name) + "</div>" + '<div class="ev-item__price">' + priceHtml + "</div>" + "</a>";
     }).join("");
   }
   // 管理画面の「お客様からの見え方を確認」：保存前の内容を管理画面から受け取って表示する（2026-10-18）

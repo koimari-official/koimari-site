@@ -252,7 +252,7 @@ main{padding-top:26px!important}
   .sub-nav li:last-child:nth-child(odd){grid-column:1/-1}
   .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
 }
-</style>
+.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -596,7 +596,7 @@ function fillCardPrices(){
       const [type, idx] = el.dataset.priceFor.split(":");
       const item = (SRC[type] || [])[Number(idx)];
       const t = item ? (window.KoimariPriceHint.priceText(item, type, pr) || (window.KoimariPriceHint.orderModeOf(item) === "custom" && window.KoimariPriceHint.guideText ? (window.KoimariPriceHint.guideText(item, pr) ? "目安 " + window.KoimariPriceHint.guideText(item, pr) : "") : "")) : "";
-      el.innerHTML = t ? escape(t) + "<small>（税込）</small>" : "";
+      el.innerHTML = window.KoimariPrice.html(t);
     });
   });
 }
@@ -749,6 +749,7 @@ document.addEventListener("keydown", e => {
 <script src="cake-pricing.js"></script>
 <script src="photo-adjust.js"></script>
 <script src="reserve-draft.js"></script>
+<script src="price-format.js"></script>
 <script src="price-hint.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
