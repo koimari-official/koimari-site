@@ -234,7 +234,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     box.innerHTML = (preview ? '<p class="nw-preview">確認用の表示です（まだ公開されていません）</p>' : "") +
       '<div class="nw-head"><span class="nw-head__en">News</span><span class="nw-head__ja">お知らせ</span><span class="nw-head__line"></span></div>' +
       '<article class="nw-card">' +
-      (photo ? '<div class="nw-card__media' + (n.img ? ' is-own' : '') + '"><img class="nw-card__photo" src="' + esc(photo) + '" alt=""></div>' : "") +
+      (photo ? '<div class="nw-card__media' + (n.img && !/^season\//.test(n.img) ? ' is-own' : '') + '"><img class="nw-card__photo" src="' + esc(photo) + '" alt=""></div>' : "") +
       '<div class="nw-card__body">' +
       '<div class="nw-meta"><span>' + esc(n.date) + "</span>" + (n.tag ? '<span class="nw-tag">' + esc(n.tag) + "</span>" : "") + "</div>" +
       '<h1 class="nw-title">' + esc(n.title) + "</h1><span class=\"nw-rule\"></span>" +

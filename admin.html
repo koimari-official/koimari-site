@@ -5975,12 +5975,20 @@ function renderNewsAdmin() {
         const drawSeason = () => {
           const on = !!newsData[i].showCalendar, m = String(newsData[i].calMonth || "").slice(5, 7);
           if (!on || !m) { season.innerHTML = ""; return; }
-          const pick = [1, 2, 3].includes(Number(newsData[i].seasonPick)) ? Number(newsData[i].seasonPick) : 1;
-          season.innerHTML = '<div style="font-weight:700;margin-bottom:6px;">イメージ写真（' + Number(m) + '月の季節の写真から選ぶ）' + (newsData[i].img ? '<span style="font-weight:400;color:#b03b48;"> ※このお知らせには写真が入っているため、そちらが表示されます</span>' : "") + "</div>" +
+          const cur = /^season\/(\d{2})-(\d)\.jpg$/.exec(newsData[i].img || "");
+          const pick = cur && cur[1] === m ? Number(cur[2]) : 0;
+          const own = newsData[i].img && !cur; // 自分で入れた写真（季節の写真以外）
+          season.innerHTML = '<div style="font-weight:700;margin-bottom:6px;">イメージ写真（' + Number(m) + '月の季節の写真から選ぶ）' + (own ? '<span style="font-weight:400;color:#b03b48;"> ※今は別の写真が入っています。下から選ぶと、その写真に入れ替わります</span>' : "") + "</div>" +
             '<div style="display:flex;gap:8px;flex-wrap:wrap;">' + [1, 2, 3].map((k) =>
               '<button type="button" data-pick="' + k + '" style="padding:0;border:3px solid ' + (k === pick ? "var(--color-accent-dark)" : "transparent") + ';border-radius:6px;background:none;cursor:pointer;line-height:0;">' +
               '<img src="season/' + m + "-" + k + '.jpg" alt="候補' + k + '" style="width:120px;height:80px;object-fit:cover;border-radius:3px;"></button>').join("") + "</div>";
-          season.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("click", () => { newsData[i].seasonPick = Number(b.dataset.pick); drawSeason(); }));
+          season.querySelectorAll("[data-pick]").forEach((b) => b.addEventListener("click", () => {
+            const src = "season/" + m + "-" + b.dataset.pick + ".jpg";
+            newsData[i].img = src; newsData[i].seasonPick = Number(b.dataset.pick); delete newsData[i].imgOriginal;
+            refreshPreview(item, src); // 記事の写真欄にもすぐ反映
+            drawSeason();
+            showToast("イメージ写真を入れ替えました。「変更を保存」でサイトに反映されます");
+          }));
         };
         cb.querySelector(".nw-cal-on").addEventListener("change", drawSeason);
         cb.appendChild(season);
