@@ -1396,7 +1396,7 @@ function renderSpotlight(){
   const titlePlain=String(title||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();
   const titleSafe=escape(String(title||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");
   document.getElementById("spotlightInner").innerHTML=`
-    <div class="spotlight__visual${sp.imgFit==="contain"?" is-whole":""}">
+    <div class="spotlight__visual${sp.imgFit==="cover"?"":" is-whole"}">
       ${badge?`<span class="spotlight__badge">${escape(badge)}</span>`:""}
       <img src="${escape(sp.img)}" alt="${escape(titlePlain)}" loading="lazy">
       ${sp.period?`<span class="spotlight__period">${escape(sp.period)}</span>`:""}

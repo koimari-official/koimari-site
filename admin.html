@@ -6093,7 +6093,7 @@ function renderSpotlightAdmin() {
     const opt = (v, cur, label) => '<option value="' + v + '"' + (String(cur || "") === v ? " selected" : "") + ">" + label + "</option>";
     html += '<div style="margin:6px 0 14px;padding:14px;background:#faf6ef;border:1px solid var(--color-line);border-radius:8px;display:grid;gap:12px;">' +
       '<label style="font-size:13px;">写真の見せ方<br><select data-sp-opt="imgFit" style="width:100%;padding:8px;margin-top:4px;">' +
-        opt("", sp.imgFit, "枠いっぱいに切り抜く（切り抜く位置は「写真の色・表示位置を調整」で変えられます）") + opt("contain", sp.imgFit, "写真全体を表示（縦横そのまま・切り抜かない）") + "</select></label>" +
+        opt(sp.imgFit === "contain" ? "contain" : "", sp.imgFit === "cover" ? "" : (sp.imgFit || ""), "元の写真を全部表示（切り抜かない・標準）") + opt("cover", sp.imgFit, "枠に合わせて切り抜く（切り抜く位置は「写真の色・表示位置を調整」で変えられます）") + "</select></label>" +
       '<label style="font-size:13px;">メインタイトルの書体<br><select data-sp-opt="titleFont" style="width:100%;padding:8px;margin-top:4px;">' +
         opt("", sp.titleFont, "明朝（上品・落ち着いた／標準）") + opt("maru", sp.titleFont, "丸ゴシック（やわらか・かわいい）") + opt("gothic", sp.titleFont, "ゴシック（力強い・はっきり）") + opt("pop", sp.titleFont, "ポップ（イベント・子ども向け）") + opt("hand", sp.titleFont, "手書き風（あたたかい）") + "</select></label>" +
       '<label style="font-size:13px;">メインタイトルの太さ<br><select data-sp-opt="titleWeight" style="width:100%;padding:8px;margin-top:4px;">' +
