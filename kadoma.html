@@ -141,7 +141,40 @@ section{padding:90px 24px}
   .sub-nav li:last-child:nth-child(odd){grid-column:1/-1}
   .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
 }
+
+/* ===== ルーツのページ 2026-10-19 ===== */
+.rt-hero{background:linear-gradient(160deg,#2b1f1a 0%,#4a3427 100%);color:#fff;padding:64px 24px;overflow:hidden}
+.rt-hero__inner{max-width:var(--max-w);margin:0 auto;display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center}
+.rt-kicker{font-family:var(--font-en);font-style:italic;font-size:18px;letter-spacing:.2em;color:var(--color-gold-light)}
+.rt-hero__title{font-family:var(--font-mincho);font-size:clamp(30px,4vw,48px);line-height:1.45;letter-spacing:.08em;margin:14px 0 20px;font-weight:700}
+.rt-hero__title em{font-style:normal;color:var(--color-gold-light)}
+.rt-hero__lead{font-size:16.5px;line-height:2.1;color:rgba(255,255,255,.9);font-weight:500}
+.rt-hero__photo{margin:0;border-radius:6px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.45);border:1px solid rgba(221,193,144,.5)}
+.rt-hero__photo img{display:block;width:100%;height:auto}
+.rt-nums{background:var(--color-paper);border-bottom:1px solid var(--color-line)}
+.rt-nums__inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);text-align:center}
+.rt-num{padding:30px 10px;border-right:1px solid var(--color-line)}.rt-num:last-child{border-right:none}
+.rt-num__v{display:block;font-family:var(--font-mincho);font-size:clamp(34px,5vw,52px);font-weight:700;color:var(--color-accent-dark);line-height:1.1}
+.rt-num__v small{font-size:.42em;margin-left:2px;color:var(--color-text-soft)}
+.rt-num__l{display:block;margin-top:6px;font-size:14px;font-weight:700;color:var(--color-text-soft)}
+.rt-sec{padding:72px 24px}.rt-sec--soft{background:var(--color-bg-soft)}
+.rt-cards{display:grid;grid-template-columns:1fr 1fr;gap:32px;max-width:1080px;margin:0 auto}
+.rt-card{background:#fff;border:1px solid var(--color-line);border-radius:8px;overflow:hidden;box-shadow:0 14px 36px rgba(58,42,35,.1)}
+.rt-card__photo{display:block;background:var(--color-bg-soft)}.rt-card__photo img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;transition:transform .6s}
+.rt-card__photo:hover img{transform:scale(1.03)}
+.rt-card__body{padding:24px 26px 28px}
+.rt-card__no{font-family:var(--font-en);font-size:22px;color:var(--color-accent);letter-spacing:.1em}
+.rt-card__title{font-family:var(--font-mincho);font-size:24px;font-weight:700;letter-spacing:.08em;margin:2px 0 12px}
+.rt-card__body p{font-size:16px;line-height:2;color:var(--color-text);margin:0}
+.rt-lead{max-width:780px;margin:0 auto 30px;text-align:center;font-size:16.5px;line-height:2.1}
+.rt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:1080px;margin:0 auto}
+.rt-tile{position:relative;display:block;border-radius:8px;overflow:hidden;box-shadow:0 10px 28px rgba(58,42,35,.14);text-decoration:none}
+.rt-tile img{display:block;width:100%;aspect-ratio:1;object-fit:cover;transition:transform .6s}.rt-tile:hover img{transform:scale(1.04)}
+.rt-tile__cap{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 12px;background:linear-gradient(transparent,rgba(30,20,14,.75));color:#fff;font-weight:700;font-size:15px}
+[hidden]{display:none!important}
+@media(max-width:800px){.rt-hero{padding:40px 18px}.rt-hero__inner{grid-template-columns:1fr;gap:26px}.rt-cards{grid-template-columns:1fr}.rt-grid{grid-template-columns:1fr 1fr}.rt-num{padding:22px 4px}.rt-num__l{font-size:12px}.rt-sec{padding:52px 16px}}
 </style>
+<script src="photo-adjust.js"></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -166,32 +199,63 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </ul>
 </nav>
 
-<section class="hero">
-  <div class="hero__inner">
-    <span class="hero__badge">Our Roots</span>
-    <span class="hero__en">Since the Kadoma Kitchen</span>
-    <h1 class="hero__title">受け継いだ手仕事を、<br><em>城東の地で。</em></h1>
-    <p class="hero__lead">
-      ケーキ屋さん こいまり 城東店の技術とレシピのルーツは、<br>
-      2026年10月で創業34年を迎える菓子工房「古伊万里 門真店」にあります。
-    </p>
-  </div>
-</section>
-
-<section class="story">
-  <div class="section__inner">
-    <div class="section__head">
-      <span class="section__en">Our Story</span>
-      <h2 class="section__title">こいまりのルーツ</h2>
+<!-- 2026-10-19 ルーツのページを強化：事実だけで構成し、写真は管理画面に登録された本物の商品写真を名前で読み込む（無ければその写真欄は出さない） -->
+<section class="rt-hero">
+  <div class="rt-hero__inner">
+    <div class="rt-hero__text">
+      <span class="rt-kicker">Our Roots — Since 1992</span>
+      <h1 class="rt-hero__title">受け継いだ手仕事を、<br><em>城東の地で。</em></h1>
+      <p class="rt-hero__lead">ケーキ屋さん こいまり 城東店の技術とレシピのルーツは、1992年に大阪府門真市で生まれた菓子工房「古伊万里」にあります。2026年10月で、創業から34年。地域の皆さまに親しまれてきた手仕事を、城東の街でお届けしています。</p>
     </div>
-    <p>大阪府門真市で地域の皆さまに親しまれ、2026年10月で創業34年を迎える菓子工房「古伊万里」。ケーキ屋さん こいまり 城東店は、その製法とレシピを受け継ぐ職人が営むお店です。</p>
-    <p>城東店では、その技術と想いをそのままに、より幅広いお客様に好んでいただける商品構成と、<strong>「ワクワクおいしいケーキ屋さん」</strong>をコンセプトに、さまざまな企画を日々進めています。</p>
+    <figure class="rt-hero__photo" data-photo="rollcakes|こいまりロール（もち入り）" hidden></figure>
   </div>
 </section>
 
-<div class="divider"></div>
+<section class="rt-nums" aria-label="数字で見るルーツ">
+  <div class="rt-nums__inner">
+    <div class="rt-num"><span class="rt-num__v">1992<small>年</small></span><span class="rt-num__l">門真で創業</span></div>
+    <div class="rt-num"><span class="rt-num__v">34<small>年</small></span><span class="rt-num__l">続く手仕事（2026年10月）</span></div>
+    <div class="rt-num"><span class="rt-num__v">2<small>つ</small></span><span class="rt-num__l">受け継いだ看板の味</span></div>
+  </div>
+</section>
 
-<section class="story" style="padding-top:60px">
+<section class="rt-sec">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">Heritage</span><h2 class="section__title">門真で生まれ、受け継いだ味</h2></div>
+    <div class="rt-cards">
+      <article class="rt-card">
+        <a class="rt-card__photo" data-photo="rollcakes|こいまりロール（もち入り）" data-link="1" hidden></a>
+        <div class="rt-card__body">
+          <span class="rt-card__no">01</span>
+          <h3 class="rt-card__title">こいまりケーキ</h3>
+          <p>お餅を巻き込んだ、こいまりの名物ケーキ。ふんわりしっとりのスポンジ、なめらかな生クリーム、もちっとしたお餅。ひと口で3つの食感が重なる"もちふわ"の味わいは、テレビ番組「ごぶごぶ」でも紹介されました。</p>
+        </div>
+      </article>
+      <article class="rt-card">
+        <a class="rt-card__photo" data-photo="decorationCakes|フルーツタルトBOX（生クリームなし）" data-link="1" hidden></a>
+        <div class="rt-card__body">
+          <span class="rt-card__no">02</span>
+          <h3 class="rt-card__title">昔ながらのタルト生地</h3>
+          <p>手間を惜しまない、昔ながらの製法で作る手作りのタルト生地。香ばしくサクッとした生地が、たっぷりのせた季節の果実を受けとめます。こいまりのタルトの土台となる味です。</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="rt-sec rt-sec--soft">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">Today in Joto</span><h2 class="section__title">城東店で広がる味</h2></div>
+    <p class="rt-lead">受け継いだ技術と想いはそのままに、より幅広いお客様に楽しんでいただける商品づくりと、<strong>「ワクワクおいしいケーキ屋さん」</strong>をコンセプトに、さまざまな企画を日々進めています。</p>
+    <div class="rt-grid">
+      <a class="rt-tile" data-photo="cutcakes|たっぷり苺のショートケーキ" data-link="1" hidden><span class="rt-tile__cap">フルーツリッチなショートケーキ</span></a>
+      <a class="rt-tile" data-photo="decorationCakes|フルーツタルトBOX（生クリームあり）" data-link="1" hidden><span class="rt-tile__cap">季節の果実のタルト</span></a>
+      <a class="rt-tile" data-photo="cutcakes|いちじくタルト" data-link="1" hidden><span class="rt-tile__cap">季節限定の味</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="story" style="padding-top:56px">
   <div class="section__inner">
     <div class="note-box">
       <strong>ご案内</strong>
@@ -200,7 +264,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="roots-info">
       <dl>
         <dt>屋号</dt><dd>菓子工房 古伊万里 門真店</dd>
-        <dt>創業</dt><dd>2026年10月で34年</dd>
+        <dt>創業</dt><dd>1992年（2026年10月で34年）</dd>
         <dt>所在地</dt><dd>大阪府門真市</dd>
       </dl>
     </div>
@@ -214,6 +278,31 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="cta__btn">LINEでご予約・お問合せ</a>
   </div>
 </section>
+
+<script>
+// 商品写真を管理画面の登録データから名前で探して入れる。非表示・見つからない商品は写真欄ごと出さない（2026-10-19）
+(function () {
+  const DB = "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/";
+  const TYPE = { decorationCakes: "decorationCake", cutcakes: "cutcake", rollcakes: "rollcake", baked: "baked", gift: "gift" };
+  const plain = (t) => String(t || "").replace(/<[^>]*>/g, "").trim();
+  const els = Array.from(document.querySelectorAll("[data-photo]"));
+  const keys = Array.from(new Set(els.map((e) => e.dataset.photo.split("|")[0])));
+  Promise.all(keys.map((k) => fetch(DB + k + ".json").then((r) => r.json()).then((v) => [k, Array.isArray(v) ? v : Object.values(v || {})]).catch(() => [k, []]))).then((pairs) => {
+    const lists = Object.fromEntries(pairs);
+    els.forEach((el) => {
+      const [k, name] = el.dataset.photo.split("|");
+      const list = lists[k] || [];
+      const idx = list.findIndex((x) => x && plain(x.name) === name);
+      const it = idx >= 0 ? list[idx] : null;
+      if (!it || it.visible === false || !it.img) return; // 無ければ出さない
+      const img = document.createElement("img"); img.src = it.img; img.alt = name; img.loading = "lazy";
+      el.insertBefore(img, el.firstChild);
+      if (el.dataset.link && el.tagName === "A") el.href = "product.html?type=" + TYPE[k] + "&idx=" + idx + "&n=" + encodeURIComponent(name);
+      el.hidden = false;
+    });
+  });
+})();
+</script>
 
 <footer class="footer">
   <div class="footer__mark">こ い ま り</div>
