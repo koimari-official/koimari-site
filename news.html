@@ -177,6 +177,9 @@ body{background:radial-gradient(circle at 12% 8%,rgba(201,169,110,.12),transpare
 .nw-ig-btn:hover{background:var(--color-text);color:#fff}
 .nw-cal{border-radius:4px;border-color:rgba(201,169,110,.45)}
 .nw-back{display:block;width:max-content;margin:34px auto 0}
+.nw-calsec{margin:34px 0 0;padding-top:26px;border-top:1px solid rgba(201,169,110,.35)}
+.nw-calsec__title{font-family:var(--font-mincho);font-size:clamp(19px,2.4vw,23px);letter-spacing:.08em;margin:0 0 8px;font-weight:700}
+.nw-calsec__lead{font-size:14.5px;color:var(--color-text-soft);margin:0 0 14px;line-height:1.8}
 .nw-preview{border-radius:2px}
 @media(max-width:600px){.nw{padding:30px 12px 60px}.nw-card__body{padding:26px 22px 30px}.nw-card__body::before{inset:8px}}
 </style>
@@ -217,7 +220,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function render(n, preview) {
     document.title = String(n.title || "お知らせ") + "｜ケーキ屋さん こいまり 城東";
     // 「#recommended」のようなトップページ内の場所は、トップページのその場所へ飛ばす（このページには無いため）
-    const link = n.url && n.url !== "#" && !/news\.html/.test(n.url) ? (n.url.charAt(0) === "#" ? "index.html" + n.url : n.url) : "";
+    const rawLink = n.url && n.url !== "#" && !/news\.html/.test(n.url) ? (n.url.charAt(0) === "#" ? "index.html" + n.url : n.url) : "";
+    const linkIsIg = /^https:\/\/(www\.)?instagram\.com\//.test(rawLink);
+    const link = linkIsIg ? "" : rawLink;
+    const igUrl = /^https:\/\/(www\.)?instagram\.com\//.test(n.instaUrl || "") ? n.instaUrl : (linkIsIg ? rawLink : "https://www.instagram.com/_koimari_");
+    const showIg = !!n.showInsta || linkIsIg;
+    // カレンダーの見出し（管理画面で変更可。空欄なら「2026年10月の営業日カレンダー」）
+    const calYm = /^(\d{4})-(\d{2})$/.exec(n.calMonth || "");
+    const calTitle = n.calTitle || (calYm ? Number(calYm[1]) + "年" + Number(calYm[2]) + "月の営業日カレンダー" : "営業日カレンダー");
     // 営業日カレンダーを載せたお知らせで写真が無いときは、その月の季節の写真（season/MM-番号.jpg、管理画面で3枚から選択）
     const calM = n.showCalendar && /^\d{4}-(\d{2})$/.exec(n.calMonth || "");
     const photo = n.img || (calM ? "season/" + calM[1] + "-" + ([1, 2, 3].includes(Number(n.seasonPick)) ? Number(n.seasonPick) : 1) + ".jpg" : "");
@@ -229,9 +239,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       '<div class="nw-meta"><span>' + esc(n.date) + "</span>" + (n.tag ? '<span class="nw-tag">' + esc(n.tag) + "</span>" : "") + "</div>" +
       '<h1 class="nw-title">' + esc(n.title) + "</h1><span class=\"nw-rule\"></span>" +
       (n.excerpt ? '<p class="nw-body">' + esc(n.excerpt) + "</p>" : "") +
-      (n.showCalendar ? '<div class="nw-cal"><iframe id="nwCal" title="営業日カレンダー" src="calendar.html?embed=1' + (n.calMonth ? "&m=" + encodeURIComponent(n.calMonth) : "") + '"></iframe></div>' : "") +
       (link ? '<div class="nw-actions"><a class="nw-link" href="' + esc(link) + '"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>詳しく見る</a></div>' : "") +
-      (n.showInsta ? '<div class="nw-ig"><p>詳細はInstagramからもご確認いただけます。</p><a class="nw-ig-btn" href="' + esc(/^https:\/\/(www\.)?instagram\.com\//.test(n.instaUrl || "") ? n.instaUrl : "https://www.instagram.com/_koimari_") + '" target="_blank" rel="noopener">Instagramで見る →</a></div>' : "") +
+      (showIg ? '<div class="nw-ig"><p>詳細はInstagramからもご確認いただけます。</p><a class="nw-ig-btn" href="' + esc(igUrl) + '" target="_blank" rel="noopener">Instagramで見る →</a></div>' : "") +
+      (n.showCalendar ? '<section class="nw-calsec"><h2 class="nw-calsec__title">' + esc(calTitle) + '</h2><p class="nw-calsec__lead">ご来店の前にご確認ください。お休みの日は「休」、日付の下の数字はその日の営業時間です。</p><div class="nw-cal"><iframe id="nwCal" title="' + esc(calTitle) + '" src="calendar.html?embed=1' + (n.calMonth ? "&m=" + encodeURIComponent(n.calMonth) : "") + '"></iframe></div></section>' : "") +
       "</div></article>" +
       '<a class="nw-back" href="index.html#news"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>← お知らせ一覧へ</a>';
   }
