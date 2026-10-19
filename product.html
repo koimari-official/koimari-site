@@ -632,7 +632,7 @@ function renderBiggerSuggest(box, onlyRow) {
 // ケーキ類は日持ち・保存・召し上がり方の標準を出す（オーナー確認：当日中がおすすめ・冷蔵で翌日まで、冷蔵庫から出して10分で食べごろ）。
 // 焼き菓子の日持ちは商品ごとに変わるため、標準は出さない（入力したものだけ）。
 const COPY_DEFAULTS = {
-  cake: { shelf: '当日中がおすすめです（冷蔵で翌日まで）', storage: '冷蔵', howTo: '冷蔵庫から出して10分ほどおくと、食べごろです。' }
+  cake: { shelf: '生菓子は当日中がおすすめです（冷蔵で、お早めにお召し上がりください）', storage: '冷蔵', howTo: '冷蔵庫から出して10分ほどおくと、食べごろです。' }
 };
 function renderProductCopy(item) {
   const isCake = productType === 'decorationCake' || productType === 'cutcake' || productType === 'rollcake';
