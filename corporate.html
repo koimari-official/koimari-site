@@ -368,27 +368,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="usecases__grid">
       <div class="uc-card">
-        <div class="cp-uc-photo"><img src="corporate-assets/wrapping.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">01</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/gift-kraft.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">01</div>
         <h3 class="uc-card__title">お取引先へのごあいさつ・手土産</h3>
         <p class="uc-card__desc">訪問先へお持ちする手土産や、季節のごあいさつの品に。</p>
       </div>
       <div class="uc-card">
-        <div class="cp-uc-photo"><img src="corporate-assets/teatime.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">02</div>
+        <div class="cp-uc-photo"><img data-real-baked="1" alt="こいまりの焼き菓子" loading="lazy"></div><div class="uc-card__icon">02</div>
         <h3 class="uc-card__title">異動・ご退職のお礼</h3>
         <p class="uc-card__desc">お世話になった方へ、職場の皆さまで分けやすい焼き菓子を。</p>
       </div>
       <div class="uc-card">
-        <div class="cp-uc-photo"><img src="corporate-assets/cookies.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">03</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/bouquet.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">03</div>
         <h3 class="uc-card__title">開業・移転・就任のお祝い</h3>
         <p class="uc-card__desc">お祝いの気持ちを、熨斗を付けてきちんとした形でお届けできます。</p>
       </div>
       <div class="uc-card">
-        <div class="cp-uc-photo"><img src="corporate-assets/office.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">04</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/meeting.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">04</div>
         <h3 class="uc-card__title">社内のイベント・表彰</h3>
         <p class="uc-card__desc">社内の集まりや記念の品にも。数量やご予算はご相談ください。</p>
       </div>
       <div class="uc-card">
-        <div class="cp-uc-photo"><img src="corporate-assets/event.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">05</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/sakura.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">05</div>
         <h3 class="uc-card__title">団体の卒業・歓送迎イベント</h3>
         <p class="uc-card__desc">サークルや部活動、PTA、地域の団体などの卒業・歓送迎イベントで、皆さまへ配るちょっとしたプレゼントに。人数やご予算に合わせてご用意します。</p>
       </div>
@@ -801,6 +801,10 @@ form.querySelectorAll(".input, .select, .textarea").forEach(el => {
     box.innerHTML = items.map(({ it, idx, type }) => '<a class="cp-prod" href="product.html?type=' + type + '&idx=' + idx + '&n=' + encodeURIComponent(plain(it.name)) + '"><img src="' + esc(it.img) + '" alt="' + esc(plain(it.name)) + '" loading="lazy"><span class="cp-prod__name">' + esc(plain(it.name)) + '</span><span class="cp-prod__price">' + (window.KoimariPrice ? window.KoimariPrice.html(it.price) : "") + "</span></a>").join("");
   });
 })();
+</script>
+<script>
+// 「異動・ご退職のお礼」の写真は、こいまりの実物の焼き菓子（公開中・写真あり）から
+(function(){const el=document.querySelector("[data-real-baked]");if(!el)return;fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/baked.json").then(r=>r.json()).then(v=>{const it=(Array.isArray(v)?v:Object.values(v||{})).find(x=>x&&x.visible!==false&&x.img&&!x.notForSale);if(it)el.src=it.img;else el.parentElement.remove();}).catch(()=>{el.parentElement.remove();});})();
 </script>
 </body>
 </html>
