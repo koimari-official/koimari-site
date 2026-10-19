@@ -59,6 +59,15 @@
       flyer: { img: "koi-blue", count: 1, every: 12000, trail: null, swim: true },
       fall: null,
     },
+    sakura: {
+      label: "卒業・入学", en: "Congratulations",
+      colors: { bg1: "#fbe3ea", bg2: "#f6c9d6", accent: "#b8466a", ink: "#55263a", card: "#fffbfc", dark: true },
+      font: { family: '"Klee One",serif', css: "Klee+One:wght@600" },
+      enFont: { family: '"Great Vibes",cursive', css: "Great+Vibes" },
+      deco: ["branch", "cap", "randoseru", "diploma", "branch2", "bouquet", "kids", "certificate", "tree"],
+      flyer: { img: "cap2", count: 1, every: 13000, trail: "common/sparkle", toss: true },
+      fall: { img: "hinamatsuri/blossom", count: 18 },
+    },
     mothersday: {
       label: "母の日", en: "Mother's Day",
       colors: { bg1: "#fde6ea", bg2: "#f7c6cf", accent: "#c0394f", ink: "#5b2330", card: "#fffbfb", dark: true },
@@ -148,7 +157,7 @@
       const w = window.innerWidth, h = window.innerHeight;
       const el = document.createElement("img");
       el.className = "ev-flyer" + (conf.tint === "gold" ? " ev-gold" : ""); el.src = img(theme, conf.img); el.alt = "";
-      const size = w < 600 ? 140 : 230;
+      const size = conf.toss ? (w < 600 ? 70 : 110) : (w < 600 ? 140 : 230);
       const y0 = h * (0.12 + Math.random() * 0.25), y1 = y0 - h * 0.08;
       const ltr = Math.random() < 0.5 || conf.swim;
       el.style.width = size + "px"; el.style.top = "0";
@@ -159,8 +168,8 @@
       const step = (now) => {
         const p = Math.min(1, (now - t0) / dur);
         const x = ltr ? -size + (w + size * 2) * p : w + size - (w + size * 2) * p;
-        const y = y0 + (y1 - y0) * p + Math.sin(p * Math.PI * 3) * 14;
-        el.style.transform = "translate(" + x + "px," + y + "px)" + (ltr ? "" : " scaleX(-1)") + (conf.swim ? " rotate(" + Math.sin(p * 20) * 4 + "deg)" : "");
+        const y = conf.toss ? y0 + h * 0.25 - Math.sin(p * Math.PI) * h * 0.3 : y0 + (y1 - y0) * p + Math.sin(p * Math.PI * 3) * 14;
+        el.style.transform = "translate(" + x + "px," + y + "px)" + (ltr ? "" : " scaleX(-1)") + (conf.swim ? " rotate(" + Math.sin(p * 20) * 4 + "deg)" : "") + (conf.toss ? " rotate(" + (p * 540) + "deg)" : "");
         if (conf.trail && now - lastSpark > 70) {
           lastSpark = now;
           const sp = document.createElement("img"); sp.className = "ev-spark ev-gold"; sp.src = img(theme, conf.trail); sp.alt = "";

@@ -1366,7 +1366,7 @@ function renderNews(){
       const a=document.createElement("a");
       a.className="news-row";
       // 本文やカレンダーがあるお知らせは詳細ページへ（2026-10-08）。リンク先だけのお知らせは今までどおり
-      const rawUrl=String(n.url||"#");
+      const rawUrl=/blog.html/.test(String(n.url||""))?"#":String(n.url||"#"); // ブログへのリンクは出さない
       a.href=(n.showCalendar||n.excerpt)?"news.html?"+(n.id?"id="+encodeURIComponent(n.id):"i="+newsItems.indexOf(n)):(/^\s*javascript:/i.test(rawUrl)?"#":rawUrl);
       const tag=en?(n.tagEn||n.tag):n.tag;
       const title=en?(n.titleEn||n.title):n.title;

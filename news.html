@@ -221,7 +221,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   function render(n, preview) {
     document.title = String(n.title || "お知らせ") + "｜ケーキ屋さん こいまり 城東";
     // 「#recommended」のようなトップページ内の場所は、トップページのその場所へ飛ばす（このページには無いため）
-    const rawLink = n.url && n.url !== "#" && !/news\.html/.test(n.url) ? (n.url.charAt(0) === "#" ? "index.html" + n.url : n.url) : "";
+    // ブログ（休止中）へのリンクは出さない（2026-10-19オーナー指示）
+    const rawLink = n.url && n.url !== "#" && !/news\.html|blog\.html/.test(n.url) ? (n.url.charAt(0) === "#" ? "index.html" + n.url : n.url) : "";
     const linkIsIg = /^https:\/\/(www\.)?instagram\.com\//.test(rawLink);
     const link = linkIsIg ? "" : rawLink;
     const igUrl = /^https:\/\/(www\.)?instagram\.com\//.test(n.instaUrl || "") ? n.instaUrl : (linkIsIg ? rawLink : "https://www.instagram.com/_koimari_");

@@ -19,7 +19,7 @@
   }
   function toSpotlight(n) {
     if (!n) return null;
-    const link = n.url && n.url !== "#" && !/news\.html/.test(n.url) ? n.url : "";
+    const link = n.url && n.url !== "#" && !/news\.html|blog\.html/.test(n.url) ? n.url : ""; // ブログへのリンクは使わない
     return {
       badge: n.spBadge || "今月の主役",
       period: n.spPeriod || "",
