@@ -2107,7 +2107,9 @@ let _padInfo = null;
 // 元ファイルを渡すと、切り抜き結果とは別にオリジナルもStorageへ保存し、両方のURLを返す。
 // 「位置を調整」（既存画像の再トリミング）はoriginalBlob省略＝新しいオリジナルは作らず、
 // 既存のオリジナル（無ければ現状の表示画像）から切り抜き直すだけにする。
-function openCropModal(dataUrl, aspectRatio, ratioOptions, originalBlob) {
+let _cropInitial = null;
+function openCropModal(dataUrl, aspectRatio, ratioOptions, originalBlob, initialData) {
+  _cropInitial = initialData || null;
   return new Promise((resolve) => {
     _cropResolve = resolve;
     _cropOriginalBlob = originalBlob || null;
@@ -2136,6 +2138,8 @@ function openCropModal(dataUrl, aspectRatio, ratioOptions, originalBlob) {
     const pad = _padInfo; _padInfo = null;
     img.onload = () => {
       _cropperInstance = new Cropper(img, { aspectRatio, viewMode: 1, autoCropArea: 1, background: false, ready() {
+        // 前回切り抜いた範囲があれば、そこから始める（微調整しやすいように）
+        if (_cropInitial) { try { this.cropper.setData(_cropInitial); return; } catch (e) {} }
         // 余白を足した画像のときは、最初の選択範囲を写真の中（余白なし）にしておく。写真全体を入れたい時は枠を広げる
         if (!pad || !aspectRatio) return;
         let w, h;
@@ -2206,6 +2210,7 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
   }
   const resolveFn = _cropResolve;
   const originalBlob = _cropOriginalBlob;
+  let cropBox = null; try { cropBox = _cropperInstance.getData(true); } catch (e) {}
   closeCropModal();
   _cropResolve = null;
   _cropOriginalBlob = null;
@@ -2227,7 +2232,7 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
       try { original = await window.fbUploadImage(originalBlob, originalBlob.type); }
       catch (err) { console.warn("元画像のStorageアップロードに失敗（切り抜き結果は保存されます）:", err); showToast("元の写真をサーバーに保存できませんでした。後から位置を選び直せるよう、もう一度ファイルから選び直してください", "error"); }
     }
-    if (resolveFn) resolveFn({ cropped, original });
+    if (resolveFn) resolveFn({ cropped, original, crop: cropBox });
   }, "image/jpeg", 0.92);
 });
 // aspectRatioを指定すると切り抜きモーダルを開く。キャンセル時はnullを返す。
@@ -2400,7 +2405,8 @@ function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelet
       _cropTargetWidth = maxWidth;
       try {
         const sourceForCrop = padToFit ? await padImageToAspectRatio(cropSourceSrc, aspectRatio) : cropSourceSrc;
-        const result = await openCropModal(sourceForCrop, aspectRatio, ratioOptions);
+        const shownSrc = previewEl.querySelector("img")?.getAttribute("src") || "";
+        const result = await openCropModal(sourceForCrop, aspectRatio, ratioOptions, null, originalSrc ? findCropData(shownSrc) : null);
         if (result !== null) onFile(result);
       } catch (err) { showToast(err.message || "画像の読み込みに失敗しました", "error"); }
     });
@@ -2650,9 +2656,23 @@ function pushImageHistory(item, key, oldUrl) {
 // 2026-09-23、cropAndResizeImage/openCropModalの戻り値は{cropped, original}のオブジェクトに
 // なった（従来コード・Cropper.js未読み込み時のフォールバックは文字列のまま）。呼び出し側で
 // いちいち分岐しなくて済むよう、両方の形を統一的に{url, original}へ正規化するヘルパー。
+// 表示中の写真URLから、その写真を切り抜いたときの範囲（<key>Crop）を探す
+function findCropData(url) {
+  if (!url) return null;
+  const pools = [typeof workingData !== "undefined" ? workingData : null, typeof newsData !== "undefined" ? newsData : null, typeof galleryData !== "undefined" ? galleryData : null, typeof blogData !== "undefined" ? blogData : null];
+  let found = null;
+  const walk = (o, d) => {
+    if (found || !o || typeof o !== "object" || d > 4) return;
+    if (Array.isArray(o)) { o.forEach((x) => walk(x, d + 1)); return; }
+    for (const k of Object.keys(o)) { if (o[k] === url && o[k + "Crop"]) { found = o[k + "Crop"]; return; } }
+    for (const k of Object.keys(o)) if (o[k] && typeof o[k] === "object") walk(o[k], d + 1);
+  };
+  pools.forEach((p) => walk(p, 0));
+  return found;
+}
 function applyCropResult(result) {
-  if (result && typeof result === "object") return { url: result.cropped, original: result.original || null };
-  return { url: result, original: null };
+  if (result && typeof result === "object") return { url: result.cropped, original: result.original || null, crop: result.crop || null };
+  return { url: result, original: null, crop: null };
 }
 // アップロードで画像を差し替える際、置き換え前の画像を履歴に積んでからitem[key]を更新するonFileラッパー。
 // 2026-09-23、元画像（<key>Original）が付いてきた場合はそれも一緒に保存する（「元画像はそのまま保存し、
@@ -2660,7 +2680,8 @@ function applyCropResult(result) {
 // 既存の<key>Originalを上書きしない＝保持され続ける）。
 function historyAwareOnFile(item, key, afterSet) {
   return result => {
-    const { url, original } = applyCropResult(result);
+    const { url, original, crop } = applyCropResult(result);
+    if (crop) item[key + "Crop"] = crop;
     pushImageHistory(item, key, item[key]);
     carryPhotoAdjust(item, item[key], url);
     item[key] = url;
@@ -2893,7 +2914,8 @@ function renderGreeting() {
     fields: [{ label: "画像URL", key: "src", value: workingData.greeting, type: "input" }],
     onChange: (k, v) => { workingData.greeting = v; refreshPreview(grid.children[0], v); updateSaveBar(); },
     onFile: result => {
-      const { url, original } = applyCropResult(result);
+      const { url, original, crop } = applyCropResult(result);
+      if (crop) workingData.greetingCrop = crop;
       if (workingData.greetingAdjust) carryPhotoAdjust({ photoAdjust: workingData.greetingAdjust }, workingData.greeting, url);
       workingData.greeting = url;
       if (original) workingData.greetingOriginal = original;
@@ -2995,7 +3017,8 @@ function renderPhilosophy() {
       ],
       onChange: (k, v) => { workingData.philosophy[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); if (k === "title") { const cp = grid.children[i] && grid.children[i].querySelector(".philo-cap"); if (cp) cp.textContent = (i + 1) + "枚目：" + v; } updateSaveBar(); },
       onFile: result => {
-        const { url, original } = applyCropResult(result);
+        const { url, original, crop } = applyCropResult(result);
+        if (crop) workingData.philosophy[i].imgCrop = crop;
         carryPhotoAdjust(workingData.philosophy[i], workingData.philosophy[i].img, url);
         workingData.philosophy[i].img = url;
         if (original) workingData.philosophy[i].imgOriginal = original;
@@ -3038,7 +3061,8 @@ function renderCategories() {
       // 手動でファイルを選ぶ/位置を調整する＝このカテゴリー専用の画像に切り替える意思表示のため、
       // 商品との連動（sourceCategory/sourceIndex）はここで解除する。
       onFile: result => {
-        const { url, original } = applyCropResult(result);
+        const { url, original, crop } = applyCropResult(result);
+        if (crop) c.imgCrop = crop;
         pushImageHistory(c, "img", c.img);
         carryPhotoAdjust(c, c.img, url);
         c.img = url;
@@ -5871,7 +5895,8 @@ function renderNewsAdmin() {
         ],
         onChange: (k, v) => { newsData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
         onFile: result => {
-          const { url, original } = applyCropResult(result);
+          const { url, original, crop } = applyCropResult(result);
+          if (crop) newsData[i].imgCrop = crop;
           carryPhotoAdjust(newsData[i], newsData[i].img, url);
           newsData[i].img = url;
           if (original) newsData[i].imgOriginal = original;
@@ -6643,7 +6668,8 @@ function renderGalleryAdmin() {
       ],
       onChange: (k, v) => { galleryData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
       onFile: result => {
-        const { url, original } = applyCropResult(result);
+        const { url, original, crop } = applyCropResult(result);
+        if (crop) galleryData[i].imgCrop = crop;
         carryPhotoAdjust(galleryData[i], galleryData[i].img, url);
         galleryData[i].img = url;
         if (original) galleryData[i].imgOriginal = original;
@@ -6741,7 +6767,8 @@ function renderBlogAdmin() {
       ],
       onChange: (k, v) => { blogData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
       onFile: result => {
-        const { url, original } = applyCropResult(result);
+        const { url, original, crop } = applyCropResult(result);
+        if (crop) blogData[i].imgCrop = crop;
         carryPhotoAdjust(blogData[i], blogData[i].img, url);
         blogData[i].img = url;
         if (original) blogData[i].imgOriginal = original;
