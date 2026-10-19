@@ -254,6 +254,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       window.KoimariEventTheme.apply(n.theme, box.querySelector(".nw-card"));
     }
     if (Array.isArray(n.picks) && n.picks.length) renderPicks(n.picks, preview);
+    checkProductLink();
+  }
+  // 「詳しく見る」が商品ページのとき、行き先の商品が今も公開中か確かめる。非表示・見つからなければボタンを消す
+  async function checkProductLink() {
+    const a = box.querySelector(".nw-link"); if (!a) return;
+    const m = /product\.html\?(.*)$/.exec(a.getAttribute("href") || ""); if (!m) return;
+    const q = new URLSearchParams(m[1]); const K = { decorationCake: "decorationCakes", cutcake: "cutcakes", rollcake: "rollcakes", baked: "baked", gift: "gift", addOn: "cakeAddOns" }[q.get("type")];
+    if (!K) return;
+    try {
+      const v = await (await fetch(DB + "/siteImages/" + K + ".json")).json(); const list = Array.isArray(v) ? v : Object.values(v || {});
+      const pl = (x) => String((x && x.name) || "").replace(/<[^>]*>/g, "");
+      const hint = q.get("n"); let i = Number(q.get("idx"));
+      if (hint && pl(list[i]) !== hint) i = list.findIndex((x) => pl(x) === hint);
+      const it = i >= 0 ? list[i] : null;
+      if (!it || it.visible === false) { const w = a.closest(".nw-actions") || a; w.remove(); return; }
+      if (i !== Number(q.get("idx"))) { q.set("idx", i); a.setAttribute("href", "product.html?" + q.toString()); } // 並び替えに追従
+    } catch (e) {}
   }
   // 選ばれた商品を、最新の商品データ（写真・名前・価格）で並べる。消えた・非公開の商品は出さない
   async function renderPicks(picks, preview) {

@@ -1386,6 +1386,10 @@ const SP_FONTS={
   hand:{family:'"Yusei Magic",sans-serif',css:"Yusei+Magic"}
 };
 function ensureSpFont(key){const f=SP_FONTS[key];if(!f||key==="mincho")return;const id="spfont-"+key;if(document.getElementById(id))return;const l=document.createElement("link");l.id=id;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+f.css+"&display=swap";document.head.appendChild(l);}
+// 主役のボタンが商品ページを指すとき、非表示・見つからない商品ならボタンを消す（2026-10-19）
+// 「この特集の商品」も、非表示・見つからない商品は外し、並び替えに追従する
+async function checkSpotlightPicks(){const as=document.querySelectorAll(".spotlight__pick");if(!as.length)return;const K={decorationCake:"decorationCakes",cutcake:"cutcakes",rollcake:"rollcakes",baked:"baked",gift:"gift",addOn:"cakeAddOns"};const cache={};const pl=x=>String((x&&x.name)||"").replace(/<[^>]*>/g,"");for(const a of as){const q=new URLSearchParams((a.getAttribute("href")||"").split("?")[1]||"");const k=K[q.get("type")];if(!k)continue;try{if(!cache[k]){const v=await (await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/"+k+".json")).json();cache[k]=Array.isArray(v)?v:Object.values(v||{});}const list=cache[k];let i=Number(q.get("idx"));const hint=q.get("n");if(hint&&pl(list[i])!==hint)i=list.findIndex(x=>pl(x)===hint);const it=i>=0?list[i]:null;if(!it||it.visible===false){a.remove();continue;}q.set("idx",i);a.setAttribute("href","product.html?"+q.toString());}catch(e){}}const row=document.querySelector(".spotlight__picks-row");if(row&&!row.children.length){const pk=document.getElementById("spotlightPicks");if(pk)pk.innerHTML="";}}
+async function checkSpotlightCta(){const a=document.querySelector(".spotlight__cta");if(!a)return;const m=/product\.html\?(.*)$/.exec(a.getAttribute("href")||"");if(!m)return;const q=new URLSearchParams(m[1]);const K={decorationCake:"decorationCakes",cutcake:"cutcakes",rollcake:"rollcakes",baked:"baked",gift:"gift",addOn:"cakeAddOns"}[q.get("type")];if(!K)return;try{const v=await (await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/"+K+".json")).json();const list=Array.isArray(v)?v:Object.values(v||{});const pl=x=>String((x&&x.name)||"").replace(/<[^>]*>/g,"");const hint=q.get("n");let i=Number(q.get("idx"));if(hint&&pl(list[i])!==hint)i=list.findIndex(x=>pl(x)===hint);const it=i>=0?list[i]:null;if(!it||it.visible===false){a.remove();return;}if(i!==Number(q.get("idx"))){q.set("idx",i);a.setAttribute("href","product.html?"+q.toString());}}catch(e){}}
 function fitSpotlightTitle(){const t=document.querySelector(".spotlight__title");if(!t)return;t.style.fontSize="";let fs=parseFloat(getComputedStyle(t).fontSize);let n=0;while(t.scrollWidth>t.clientWidth+1&&fs>14&&n<40){fs-=1;t.style.fontSize=fs+"px";n++;}}
 window.addEventListener("resize",()=>{clearTimeout(window.__spFitT);window.__spFitT=setTimeout(fitSpotlightTitle,150);});
 function renderSpotlight(){
@@ -1416,6 +1420,7 @@ function renderSpotlight(){
     </div>`;
   if(window.PhotoAdjust)window.PhotoAdjust.register([sp]); // 管理画面で調整した色味・表示位置（2026-10-08）
   ensureSpFont(sp.titleFont);
+  checkSpotlightCta(); checkSpotlightPicks();
   // タイトルは折り返さず1行（<br>を書いた所だけ改行）。入りきらないときは文字を小さくして収める（2026-10-19オーナー指示）
   fitSpotlightTitle(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitSpotlightTitle);
   // この特集の商品（2026-10-08）
