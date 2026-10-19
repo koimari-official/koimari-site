@@ -80,7 +80,7 @@ main{padding:28px 24px 56px}
 body.embed .cal-head,body.embed .cal-title,body.embed .cal-back{display:none!important}
 body.embed main{padding-top:12px!important}
 body.embed,html:has(body.embed){min-height:0!important;height:auto!important}
-</style>
+.bcal__dow-en{display:block;font-size:.62em;font-weight:600;letter-spacing:.06em;opacity:.75;margin-top:1px;font-family:var(--font-sans)}</style>
 </head>
 <body>
 <header class="cal-head">
@@ -194,7 +194,7 @@ function renderBcal(){
   ["日","月","火","水","木","金","土"].forEach((d,i)=>{
     const e=document.createElement("div");
     e.className="bcal__dow"+(i===0?" sun":i===6?" sat":"");
-    e.textContent=d; grid.appendChild(e);
+    e.innerHTML=d+"<small class=\"bcal__dow-en\">"+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][i]+"</small>"; grid.appendChild(e);
   });
   const fd=new Date(year,month,1), ld=new Date(year,month+1,0);
   const t=new Date();

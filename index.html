@@ -735,7 +735,7 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 .sugar__cta{text-align:center;margin-top:22px}
 .sugar__btn{display:inline-block;background:var(--color-accent);color:#fff;font-weight:700;border-radius:999px;padding:14px 30px;text-decoration:none;font-size:16px}
 @media(max-width:700px){.sugar__grid{grid-template-columns:repeat(2,1fr);gap:10px}.sugar__lead{font-size:15.5px;text-align:left}}
-.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}.spotlight__title{white-space:nowrap}.nw-title,.ev-products__title{text-wrap:balance;word-break:auto-phrase;line-break:strict}</style>
+.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}.spotlight__title{white-space:nowrap}.nw-title,.ev-products__title{text-wrap:balance;word-break:auto-phrase;line-break:strict}.bcal__dow-en{display:block;font-size:.62em;font-weight:600;letter-spacing:.06em;opacity:.75;margin-top:1px;font-family:var(--font-sans)}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1505,7 +1505,7 @@ function renderBcal(){
   const year=bcalMonth.getFullYear(),month=bcalMonth.getMonth();
   document.getElementById("bcalTitle").textContent=I18nCtrl.isEn()?`${['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][month]} ${year}`:`${year}年 ${month+1}月`;
   const grid=document.getElementById("bcalGrid");grid.innerHTML="";
-  (I18nCtrl.isEn()?["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]:["日","月","火","水","木","金","土"]).forEach((d,i)=>{const e=document.createElement("div");e.className="bcal__dow"+(i===0?" sun":i===6?" sat":"");e.textContent=d;grid.appendChild(e)});
+  (I18nCtrl.isEn()?["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]:["日","月","火","水","木","金","土"]).forEach((d,i)=>{const e=document.createElement("div");e.className="bcal__dow"+(i===0?" sun":i===6?" sat":"");e.innerHTML=I18nCtrl.isEn()?d:d+"<small class=\"bcal__dow-en\">"+["Sun","Mon","Tue","Wed","Thu","Fri","Sat"][i]+"</small>";grid.appendChild(e)});
   const fd=new Date(year,month,1),ld=new Date(year,month+1,0);
   const t=new Date(),tk=`${t.getFullYear()}-${(t.getMonth()+1).toString().padStart(2,"0")}-${t.getDate().toString().padStart(2,"0")}`;
   for(let i=0;i<fd.getDay();i++){const c=document.createElement("div");c.className="bcal__cell empty";grid.appendChild(c)}
