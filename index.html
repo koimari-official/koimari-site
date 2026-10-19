@@ -29,7 +29,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700;800&family=Noto+Sans+JP:wght@400;500;600;700;800&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&display=swap" rel="stylesheet">
 <style>
 :root{--color-bg:#f7f3ee;--color-bg-soft:#ede3d4;--color-text:#2e2118;--color-text-soft:#4a3a2a;--color-accent:#c9a96e;--color-accent-dark:#a88a52;--color-gold:#c9a96e;--color-line:#d8baa4;--color-info:#4a6f9c;--color-line-soft:#e8d4bc;--color-on-accent:#2e1a00;--font-mincho:"Shippori Mincho","游明朝","Yu Mincho",serif;--font-sans:"Noto Sans JP","ヒラギノ角ゴ ProN",sans-serif;--font-en:"Cormorant Garamond",serif;--font-display:"Playfair Display",serif;--max-w:1180px}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -234,7 +234,8 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
 .spotlight__badge{position:absolute;top:20px;left:20px;background:var(--color-accent);color:#fff;font-family:var(--font-mincho);font-size:13px;letter-spacing:.15em;padding:8px 18px;font-weight:500;z-index:1}
 .spotlight__period{position:absolute;bottom:20px;right:20px;background:rgba(0,0,0,.65);color:#fff;font-family:var(--font-sans);font-size:13px;letter-spacing:.02em;padding:6px 14px;font-weight:600;backdrop-filter:blur(4px)}
 .spotlight__en{font-family:var(--font-en);font-style:italic;color:var(--color-accent-dark);letter-spacing:.3em;font-size:17px;margin-bottom:14px;font-weight:500;display:block}
-.spotlight__title{font-family:var(--font-mincho);font-size:clamp(26px,3.2vw,34px);letter-spacing:.08em;margin-bottom:18px;font-weight:600;line-height:1.5}
+.spotlight__title{font-family:var(--font-mincho);font-size:clamp(26px,3.2vw,34px);letter-spacing:.08em;margin-bottom:18px;font-weight:700;line-height:1.5}
+.spotlight__visual.is-whole{aspect-ratio:auto}.spotlight__visual.is-whole img{height:auto;object-fit:contain;display:block}
 .spotlight__sub{font-family:var(--font-mincho);font-size:18px;color:var(--color-accent-dark);letter-spacing:.08em;margin-bottom:22px;font-weight:500;line-height:1.7}
 .spotlight__desc{font-size:16px;line-height:2;margin-bottom:30px;color:var(--color-text)}
 .spotlight__price{font-family:var(--font-sans);font-size:28px;color:var(--color-accent-dark);font-weight:700;margin-bottom:24px;display:none;align-items:baseline;gap:12px}
@@ -630,7 +631,7 @@ body.chrome-visible .site-header{opacity:1;pointer-events:auto}
    だけでは自然に現れないため、JSでbody.chrome-visibleを付け外しして合わせている。 */
 body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
-img[src=""],img:not([src]){visibility:hidden}</style>
+img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{display:none!important}}</style>
 <script src="koimari-hours.js"></script>
 <script src="i18n.js"></script>
 <script src="photo-adjust.js"></script>
@@ -1373,6 +1374,15 @@ function renderNews(){
   }
 }
 
+// メインタイトルの書体（管理画面で選択）。標準以外の書体は選ばれたときだけ読み込む
+const SP_FONTS={
+  mincho:{family:'"Shippori Mincho","游明朝","Yu Mincho",serif',css:"Shippori+Mincho:wght@500;600;700;800"},
+  maru:{family:'"Zen Maru Gothic",sans-serif',css:"Zen+Maru+Gothic:wght@500;700;900"},
+  gothic:{family:'"Noto Sans JP",sans-serif',css:"Noto+Sans+JP:wght@500;700;900"},
+  pop:{family:'"Mochiy Pop One",sans-serif',css:"Mochiy+Pop+One"},
+  hand:{family:'"Yusei Magic",sans-serif',css:"Yusei+Magic"}
+};
+function ensureSpFont(key){const f=SP_FONTS[key];if(!f||key==="mincho")return;const id="spfont-"+key;if(document.getElementById(id))return;const l=document.createElement("link");l.id=id;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+f.css+"&display=swap";document.head.appendChild(l);}
 function renderSpotlight(){
   const en=I18nCtrl.isEn();
   const sp=loadSpotlight();
@@ -1386,20 +1396,21 @@ function renderSpotlight(){
   const titlePlain=String(title||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();
   const titleSafe=escape(String(title||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");
   document.getElementById("spotlightInner").innerHTML=`
-    <div class="spotlight__visual">
+    <div class="spotlight__visual${sp.imgFit==="contain"?" is-whole":""}">
       ${badge?`<span class="spotlight__badge">${escape(badge)}</span>`:""}
       <img src="${escape(sp.img)}" alt="${escape(titlePlain)}" loading="lazy">
       ${sp.period?`<span class="spotlight__period">${escape(sp.period)}</span>`:""}
     </div>
     <div class="spotlight__text">
       ${sp.en?`<span class="spotlight__en">${escape(sp.en)}</span>`:""}
-      <h2 class="spotlight__title">${titleSafe}</h2>
+      <h2 class="spotlight__title" style="${SP_FONTS[sp.titleFont]?"font-family:"+SP_FONTS[sp.titleFont].family.replace(/"/g,"'")+";":""}${[600,700,800,900].includes(Number(sp.titleWeight))?"font-weight:"+Number(sp.titleWeight)+";":""}">${titleSafe}</h2>
       ${sub?`<div class="spotlight__sub">${escape(sub)}</div>`:""}
       ${desc?`<p class="spotlight__desc">${escape(String(desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>`:""}
       ${sp.price?`<div class="spotlight__price">${escape(sp.price)}<span>${escape(priceNote||"")}</span></div>`:""}
       <a href="${escape(sp.ctaUrl||"reservation.html")}" class="spotlight__cta">${escape(cta||"詳しく見る")}</a>
     </div>`;
   if(window.PhotoAdjust)window.PhotoAdjust.register([sp]); // 管理画面で調整した色味・表示位置（2026-10-08）
+  ensureSpFont(sp.titleFont);
   // この特集の商品（2026-10-08）
   { const pk=document.getElementById("spotlightPicks"), picks=(Array.isArray(sp.picks)?sp.picks:[]).filter(p=>p&&p.name);
     if(pk){ pk.innerHTML=picks.length?'<div class="spotlight__picks-title">'+(en?'Featured items':'この特集の商品')+'</div><div class="spotlight__picks-row">'+picks.map(p=>'<a class="spotlight__pick" href="product.html?type='+encodeURIComponent(p.type)+'&idx='+(Number(p.idx)||0)+'&n='+encodeURIComponent(p.name)+'">'+(p.img?'<img src="'+escape(p.img)+'" alt="" loading="lazy">':'<span class="spotlight__pick-noimg"></span>')+'<span class="spotlight__pick-name">'+escape(p.name)+'</span>'+(p.price?'<span class="spotlight__pick-price">'+escape(p.price)+'</span>':'')+'</a>').join('')+'</div>':''; } }
@@ -1447,7 +1458,7 @@ function renderDynamic(){
       if(sec){
         if(!document.getElementById("spPreviewNote")){const n=document.createElement("p");n.id="spPreviewNote";n.textContent="確認用の表示です（まだ公開されていません）";n.style.cssText="position:relative;z-index:2;max-width:640px;margin:0 auto 18px;padding:10px 14px;background:#fff4e0;border:1px solid #e0b866;font-size:14px;font-weight:700;color:#7a5410;text-align:center";sec.insertBefore(n,sec.firstChild);}
         // 確認画面では主役だけを表示する（上の写真の読み込みで位置がずれないように）
-        if(!document.getElementById("spPreviewOnly")){const st=document.createElement("style");st.id="spPreviewOnly";st.textContent="body>section:not(#spotlight),body>.hero,body>.event-banner{display:none!important}";document.head.appendChild(st);}
+        if(!document.getElementById("spPreviewOnly")){const st=document.createElement("style");st.id="spPreviewOnly";st.textContent="body>*:not(#spotlight):not(.site-header):not(nav):not(script):not(style){display:none!important}";document.head.appendChild(st);}
         window.scrollTo(0,0);
       }
     });

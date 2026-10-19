@@ -6089,6 +6089,16 @@ function renderSpotlightAdmin() {
       else html += `<input type="text" data-k="${f.k}" value="${escapeHtml(sp[f.k] || "")}" style="width:100%;padding:10px 12px;border:1px solid var(--color-line);font-size:14px;">`;
       html += "</div>";
     });
+    // 写真の見せ方・タイトルの書体と太さ（2026-10-19）
+    const opt = (v, cur, label) => '<option value="' + v + '"' + (String(cur || "") === v ? " selected" : "") + ">" + label + "</option>";
+    html += '<div style="margin:6px 0 14px;padding:14px;background:#faf6ef;border:1px solid var(--color-line);border-radius:8px;display:grid;gap:12px;">' +
+      '<label style="font-size:13px;">写真の見せ方<br><select data-sp-opt="imgFit" style="width:100%;padding:8px;margin-top:4px;">' +
+        opt("", sp.imgFit, "枠いっぱいに切り抜く（切り抜く位置は「写真の色・表示位置を調整」で変えられます）") + opt("contain", sp.imgFit, "写真全体を表示（縦横そのまま・切り抜かない）") + "</select></label>" +
+      '<label style="font-size:13px;">メインタイトルの書体<br><select data-sp-opt="titleFont" style="width:100%;padding:8px;margin-top:4px;">' +
+        opt("", sp.titleFont, "明朝（上品・落ち着いた／標準）") + opt("maru", sp.titleFont, "丸ゴシック（やわらか・かわいい）") + opt("gothic", sp.titleFont, "ゴシック（力強い・はっきり）") + opt("pop", sp.titleFont, "ポップ（イベント・子ども向け）") + opt("hand", sp.titleFont, "手書き風（あたたかい）") + "</select></label>" +
+      '<label style="font-size:13px;">メインタイトルの太さ<br><select data-sp-opt="titleWeight" style="width:100%;padding:8px;margin-top:4px;">' +
+        opt("", sp.titleWeight, "太め（標準）") + opt("800", sp.titleWeight, "もっと太く") + opt("900", sp.titleWeight, "いちばん太く（丸ゴシック・ゴシックのみ）") + opt("600", sp.titleWeight, "細め") + "</select></label>" +
+      '<div style="font-size:12px;color:var(--color-text-soft);">ポップ・手書き風は太さを変えられない書体です。見え方は「お客様からの見え方を確認」で確かめられます。</div></div>';
     html += `<div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap;">
       <label class="btn btn--small btn--ghost" style="position:relative;overflow:hidden;cursor:pointer;">画像をファイルから選択<input type="file" accept="image/*" id="spotlightFile" style="position:absolute;inset:0;opacity:0;cursor:pointer;"></label>
       <div id="spPicks" style="width:100%;background:#faf6ef;border:1px solid var(--color-line);border-radius:8px;padding:12px 14px;margin-bottom:6px;"></div>
@@ -6139,6 +6149,10 @@ function renderSpotlightAdmin() {
       openPhotoAdjust(sp, sp.img, () => { spotlightDirty = true; const pv = document.getElementById("spotlightPreview"); if (pv) window.PhotoAdjust.applyTo(pv, (sp.photoAdjust || {})[window.PhotoAdjust.hash(sp.img)] || null); document.getElementById("spAdjust").textContent = "写真の色・表示位置を調整（調整済み）"; }, { isMain: true });
     });
     document.getElementById("spPreview").addEventListener("click", () => openSpotlightPreview(sp));
+    wrap.querySelectorAll("select[data-sp-opt]").forEach((el) => el.addEventListener("change", () => {
+      const k = el.dataset.spOpt; if (el.value) sp[k] = el.value; else delete sp[k];
+      spotlightDirty = true;
+    }));
     document.getElementById("spSave").addEventListener("click", () => save(isActive ? "保存しました（トップページに反映されます）" : "保存しました（まだ公開されていません）"));
     const hide = document.getElementById("spHide");
     if (hide) hide.addEventListener("click", async () => {
