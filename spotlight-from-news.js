@@ -34,7 +34,7 @@
       imgFit: n.spFit || "",
       titleFont: n.spFont || "",
       titleWeight: n.spWeight || "",
-      picks: Array.isArray(n.picks) ? n.picks : [],
+      picks: Array.isArray(n.picks) ? n.picks.slice(0, 6) : [],
       fromNewsId: n.id || "",
     };
   }

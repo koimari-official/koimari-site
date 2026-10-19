@@ -179,6 +179,8 @@ main.xm{max-width:1080px;margin:0 auto;padding:24px 16px 80px}
   .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
 }
 </style>
+<script src="event-theme.js"></script>
+<style>.ev-on .xm-hero h1{color:var(--ev-ink)!important;font-family:var(--ev-font)!important}.ev-on .xm-hero__lead{color:var(--ev-ink)!important;opacity:.92}.ev-on .xm-hero__lead b{color:var(--ev-accent)!important}.ev-on .xm-hero__en{color:var(--ev-accent)!important}.ev-on .xm-info{background:var(--ev-card);border-radius:14px;padding:18px}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -277,6 +279,10 @@ document.addEventListener("click", (e) => {
 document.getElementById("lightboxClose").addEventListener("click", () => document.getElementById("lightbox").classList.remove("show"));
 document.getElementById("lightbox").addEventListener("click", (e) => { if (e.target.id === "lightbox") e.currentTarget.classList.remove("show"); });
 fetch(XM_DB + "/koimariContent/christmas.json").then(r => r.json()).then(v => { conf = v; render(); }).catch(() => { document.getElementById("xmGrid").innerHTML = '<p class="xm-empty">読み込みに失敗しました。少し待ってから再読み込みしてください。</p>'; });
+</script>
+<script>
+// クリスマス特設のテーマ（背景・飾り・雪・ときどきサンタのそり）（2026-10-19）
+if (window.KoimariEventTheme) window.KoimariEventTheme.apply("christmas", document.querySelector(".xm-hero"));
 </script>
 </body>
 </html>

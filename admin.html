@@ -248,6 +248,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <script src="cake-pricing.js"></script>
 <script src="photo-adjust.js"></script>
 <script src="spotlight-from-news.js"></script>
+<script src="event-theme.js"></script>
 <script src="reservation-editor.js"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -5892,6 +5893,21 @@ function renderNewsAdmin() {
         });
         item.appendChild(box);
       }
+      // 特設ページ（テーマと紹介する商品）
+      {
+        const ev = document.createElement("div");
+        ev.style.cssText = "margin-top:10px;padding:12px;background:#f6f1fb;border-left:3px solid #7a4fa3;font-size:13px;";
+        const themes = (window.KoimariEventTheme ? window.KoimariEventTheme.list : []);
+        ev.innerHTML = '<div style="font-weight:700;margin-bottom:6px;">特設ページの設定</div>' +
+          '<label style="display:block;">ページのテーマ（背景・飾り・動き）<select class="nw-theme" style="width:100%;margin-top:3px;padding:6px;">' +
+            '<option value="">通常（こいまりの落ち着いたデザイン）</option>' + themes.map((t) => '<option value="' + t.key + '"' + (n.theme === t.key ? " selected" : "") + ">" + t.label + "</option>").join("") + "</select></label>" +
+          '<label style="display:block;margin-top:8px;">商品一覧の見出し<input type="text" class="input nw-picks-title" placeholder="このページで紹介している商品" value="' + escapeHtml(n.picksTitle || "") + '" style="width:100%;margin-top:3px;"></label>' +
+          '<div class="nw-picks" style="margin-top:10px;"></div>';
+        ev.querySelector(".nw-theme").addEventListener("change", (e) => { if (e.target.value) newsData[i].theme = e.target.value; else delete newsData[i].theme; });
+        ev.querySelector(".nw-picks-title").addEventListener("input", (e) => { const v = e.target.value.trim(); if (v) newsData[i].picksTitle = v; else delete newsData[i].picksTitle; });
+        renderNewsPicks(ev.querySelector(".nw-picks"), newsData[i]);
+        item.appendChild(ev);
+      }
       // 今月の主役（トップで大きく紹介）：お知らせと共通の内容で、主役用の見せ方だけをここで決める
       {
         const box = document.createElement("div");
@@ -5916,7 +5932,7 @@ function renderNewsAdmin() {
             '<label style="display:block;margin-top:8px;">写真の見せ方<select data-spk="spFit" style="width:100%;margin-top:3px;padding:6px;">' + opt("", n.spFit, "元の写真を全部表示（切り抜かない・標準）") + opt("cover", n.spFit, "枠に合わせて切り抜く（位置は「写真の色・表示位置を調整」で）") + "</select></label>" +
             '<label style="display:block;margin-top:8px;">タイトルの書体<select data-spk="spFont" style="width:100%;margin-top:3px;padding:6px;">' + opt("", n.spFont, "明朝（上品・落ち着いた／標準）") + opt("maru", n.spFont, "丸ゴシック（やわらか・かわいい）") + opt("gothic", n.spFont, "ゴシック（力強い・はっきり）") + opt("pop", n.spFont, "ポップ（イベント・子ども向け）") + opt("hand", n.spFont, "手書き風（あたたかい）") + "</select></label>" +
             '<label style="display:block;margin-top:8px;">タイトルの太さ<select data-spk="spWeight" style="width:100%;margin-top:3px;padding:6px;">' + opt("", n.spWeight, "太め（標準）") + opt("800", n.spWeight, "もっと太く") + opt("900", n.spWeight, "いちばん太く（丸ゴシック・ゴシックのみ）") + opt("600", n.spWeight, "細め") + "</select></label>" +
-            '<div id="spPicks" style="background:#faf6ef;border:1px solid var(--color-line);border-radius:8px;padding:12px 14px;margin-top:10px;"></div>' +
+            '<div style="margin-top:10px;color:var(--color-text-soft);">トップの主役欄には、下の「特設ページ」で選んだ商品のうち最初の6点が並びます。</div>' +
             '<button type="button" class="btn btn--small nw-sp-preview" style="width:100%;margin-top:10px;">トップの「今月の主役」としての見え方を確認</button>'
           ) : "");
         box.querySelector(".nw-sp-on").addEventListener("change", (e) => {
@@ -5930,7 +5946,6 @@ function renderNewsAdmin() {
           if (v) newsData[i][k] = v; else delete newsData[i][k];
         }));
         if (on) {
-          renderSpotlightPicks(newsData[i]); // 「この特集の商品」（記事の picks に入る）
           box.querySelector(".nw-sp-preview").addEventListener("click", () => openSpotlightPreview(window.KoimariSpotlight.toSpotlight(newsData[i])));
         }
         item.appendChild(box);
@@ -6096,6 +6111,43 @@ async function spPickCatalog() {
     });
   }
   return out;
+}
+// お知らせの特設ページで紹介する商品：全商品からカテゴリーごとにチェックで選ぶ（何点でも・カテゴリーまとめて選択可）
+async function renderNewsPicks(box, item) {
+  item.picks = Array.isArray(item.picks) ? item.picks : [];
+  box.innerHTML = '<div style="color:var(--color-text-soft);">商品を読み込み中…</div>';
+  const cat = await spPickCatalog();
+  const has = (c) => item.picks.some((p) => p.k === c.k && p.name === c.name);
+  const draw = () => {
+    const groups = {};
+    cat.forEach((c) => { (groups[c.label] = groups[c.label] || []).push(c); });
+    box.innerHTML = '<div style="font-weight:700;margin-bottom:4px;">このページで紹介する商品（' + item.picks.length + '点選択中）</div>' +
+      '<div style="color:var(--color-text-soft);margin-bottom:8px;">チェックした商品が、写真・名前・価格付きでページに並びます。選んだ順に並びます。</div>' +
+      Object.keys(groups).map((label) => {
+        const list = groups[label]; const all = list.every(has);
+        return '<details style="margin-bottom:6px;background:#fff;border:1px solid var(--color-line);border-radius:6px;padding:6px 10px;"' + (list.some(has) ? " open" : "") + '>' +
+          '<summary style="cursor:pointer;font-weight:700;">' + escapeHtml(label) + "（" + list.filter(has).length + "/" + list.length + '）</summary>' +
+          '<button type="button" class="btn btn--small btn--ghost" data-allcat="' + escapeHtml(label) + '" style="margin:6px 0;">' + (all ? "このカテゴリーの選択をすべて外す" : "このカテゴリーをまとめて選ぶ") + "</button>" +
+          '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;">' + list.map((c) =>
+            '<label style="display:block;border:2px solid ' + (has(c) ? "#7a4fa3" : "transparent") + ';border-radius:6px;padding:4px;cursor:pointer;background:#faf8f5;">' +
+            '<input type="checkbox" data-pick="' + cat.indexOf(c) + '"' + (has(c) ? " checked" : "") + ' style="margin-right:4px;">' +
+            (c.img ? '<img src="' + escapeHtml(c.img) + '" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:4px;display:block;margin:4px 0;" loading="lazy">' : "") +
+            '<span style="font-size:12px;line-height:1.4;">' + (c.seasonal ? "【季節限定】" : "") + escapeHtml(c.name) + "</span></label>").join("") + "</div></details>";
+      }).join("");
+    box.querySelectorAll("input[data-pick]").forEach((cb) => cb.addEventListener("change", () => {
+      const c = cat[Number(cb.dataset.pick)];
+      if (cb.checked) { if (!has(c)) item.picks.push({ k: c.k, type: c.type, idx: c.idx, name: c.name, img: c.img, price: c.price }); }
+      else item.picks = item.picks.filter((p) => !(p.k === c.k && p.name === c.name));
+      draw();
+    }));
+    box.querySelectorAll("[data-allcat]").forEach((b) => b.addEventListener("click", () => {
+      const list = groups[b.dataset.allcat];
+      if (list.every(has)) item.picks = item.picks.filter((p) => !list.some((c) => p.k === c.k && p.name === c.name));
+      else list.forEach((c) => { if (!has(c)) item.picks.push({ k: c.k, type: c.type, idx: c.idx, name: c.name, img: c.img, price: c.price }); });
+      draw();
+    }));
+  };
+  draw();
 }
 async function renderSpotlightPicks(sp) {
   const box = document.getElementById("spPicks");

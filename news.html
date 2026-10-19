@@ -183,6 +183,7 @@ body{background:radial-gradient(circle at 12% 8%,rgba(201,169,110,.12),transpare
 .nw-preview{border-radius:2px}
 @media(max-width:600px){.nw{padding:30px 12px 60px}.nw-card__body{padding:26px 22px 30px}.nw-card__body::before{inset:8px}}
 </style>
+<script src="event-theme.js"></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -240,10 +241,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       '<h1 class="nw-title">' + esc(n.title) + "</h1><span class=\"nw-rule\"></span>" +
       (n.excerpt ? '<p class="nw-body">' + esc(n.excerpt) + "</p>" : "") +
       (link ? '<div class="nw-actions"><a class="nw-link" href="' + esc(link) + '"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>詳しく見る</a></div>' : "") +
+      (Array.isArray(n.picks) && n.picks.length ? '<section class="ev-products" id="evProducts"><h2 class="ev-products__title">' + (n.picksTitle ? esc(n.picksTitle) : "このページで紹介している商品") + '</h2><p class="ev-products__lead">気になる商品を押すと、くわしいページが開きます。</p><div class="ev-grid" id="evGrid"></div></section>' : "") +
       (showIg ? '<div class="nw-ig"><p>詳細はInstagramからもご確認いただけます。</p><a class="nw-ig-btn" href="' + esc(igUrl) + '" target="_blank" rel="noopener">Instagramで見る →</a></div>' : "") +
       (n.showCalendar ? '<section class="nw-calsec"><h2 class="nw-calsec__title">' + esc(calTitle) + '</h2><p class="nw-calsec__lead">ご来店の前にご確認ください。お休みの日は「休」、日付の下の数字はその日の営業時間です。</p><div class="nw-cal"><iframe id="nwCal" title="' + esc(calTitle) + '" src="calendar.html?embed=1' + (n.calMonth ? "&m=" + encodeURIComponent(n.calMonth) : "") + '"></iframe></div></section>' : "") +
       "</div></article>" +
       '<a class="nw-back" href="index.html#news"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>← お知らせ一覧へ</a>';
+    // 特設ページのテーマ（ハロウィン・クリスマスなど）。見出しの「お知らせ」の代わりにテーマの見出しと飾りを出す
+    if (n.theme && window.KoimariEventTheme && window.KoimariEventTheme.THEMES[n.theme] && !document.body.classList.contains("ev-on")) {
+      const head = box.querySelector(".nw-head"); if (head) head.style.display = "none";
+      window.KoimariEventTheme.apply(n.theme, box.querySelector(".nw-card"));
+    }
+    if (Array.isArray(n.picks) && n.picks.length) renderPicks(n.picks, preview);
+  }
+  // 選ばれた商品を、最新の商品データ（写真・名前・価格）で並べる。消えた・非公開の商品は出さない
+  async function renderPicks(picks, preview) {
+    const grid = document.getElementById("evGrid"); if (!grid) return;
+    const keys = Array.from(new Set(picks.map((p) => p.k).filter(Boolean)));
+    const lists = {};
+    await Promise.all(keys.map(async (k) => { try { const v = await (await fetch(DB + "/siteImages/" + k + ".json")).json(); lists[k] = Array.isArray(v) ? v : Object.values(v || {}); } catch (e) { lists[k] = []; } }));
+    const plain = (t) => String(t || "").replace(/<[^>]*>/g, "").trim();
+    const items = picks.map((p) => {
+      const list = lists[p.k] || [];
+      let idx = list.findIndex((it) => it && plain(it.name) === plain(p.name));
+      if (idx < 0) return null;
+      const it = list[idx];
+      if (!it || it.visible === false || !it.img) return null;
+      return { it, idx, type: p.type };
+    }).filter(Boolean);
+    if (!items.length) { const sec = document.getElementById("evProducts"); if (sec) sec.remove(); return; }
+    grid.innerHTML = items.map(({ it, idx, type }) => {
+      const name = plain(it.name);
+      const price = it.price && /[1-9]/.test(String(it.price)) ? String(it.price) : "";
+      return '<a class="ev-item" href="product.html?type=' + esc(type) + "&idx=" + idx + "&n=" + encodeURIComponent(name) + '"' + (preview ? ' target="_blank" rel="noopener"' : "") + '>' +
+        '<img src="' + esc(it.img) + '" alt="' + esc(name) + '" loading="lazy">' +
+        '<div class="ev-item__name">' + esc(name) + "</div>" + (price ? '<div class="ev-item__price">' + esc(price) + "</div>" : "") + "</a>";
+    }).join("");
   }
   // 管理画面の「お客様からの見え方を確認」：保存前の内容を管理画面から受け取って表示する（2026-10-18）
   if (q.get("preview") === "1" && window.parent !== window) {
