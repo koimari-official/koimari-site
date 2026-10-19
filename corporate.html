@@ -282,7 +282,34 @@ section{padding:100px 24px}
   .sub-nav li:last-child:nth-child(odd){grid-column:1/-1}
   .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
 }
-</style>
+
+/* ===== 法人ページ ビジュアル 2026-10-19（写真はCC0の無料素材＝corporate-assets/credits.json、商品は実物） ===== */
+.cp-hero{background:linear-gradient(rgba(31,22,18,.62),rgba(31,22,18,.72)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:90px 24px 96px!important}
+.cp-trust{background:var(--color-paper);border-bottom:1px solid var(--color-line)}
+.cp-trust__inner{max-width:1080px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);text-align:center}
+.cp-trust__item{padding:26px 8px;border-right:1px solid var(--color-line)}.cp-trust__item:last-child{border-right:none}
+.cp-trust__v{display:block;font-family:var(--font-mincho);font-size:clamp(24px,3vw,34px);font-weight:700;color:var(--color-accent-dark);line-height:1.2}
+.cp-trust__v small{font-size:.5em;color:var(--color-text-soft)}
+.cp-trust__l{display:block;margin-top:6px;font-size:13.5px;font-weight:700;color:var(--color-text-soft)}
+.uc-card{padding:0 0 30px!important;overflow:hidden}
+.uc-card>*:not(.cp-uc-photo){margin-left:28px;margin-right:28px}
+.cp-uc-photo{width:100%;margin:0 0 -26px;aspect-ratio:16/10;overflow:hidden}
+.cp-uc-photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s}
+.uc-card:hover .cp-uc-photo img{transform:scale(1.04)}
+.cp-uc-photo+.uc-card__icon{position:relative;z-index:1;background:var(--color-paper)!important;border:1px solid var(--color-line);box-shadow:0 6px 14px rgba(0,0,0,.08)}
+.cp-products{padding:72px 24px;background:var(--color-bg-soft)}
+.cp-prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;max-width:1080px;margin:0 auto}
+.cp-prod{display:block;background:#fff;border-radius:10px;overflow:hidden;text-decoration:none;color:var(--color-text);box-shadow:0 8px 22px rgba(58,42,35,.1);transition:transform .25s}
+.cp-prod:hover{transform:translateY(-3px)}
+.cp-prod img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.cp-prod__name{display:block;font-size:14px;font-weight:700;line-height:1.5;padding:9px 10px 2px}
+.cp-prod__price{display:block;font-size:13.5px;font-weight:700;color:var(--color-accent-dark);padding:0 10px 11px}
+.price-none{font-size:.9em;color:#8a7766}
+.cp-note{text-align:center;font-size:12.5px;color:var(--color-text-mute);margin:18px 0 0}
+@media(max-width:800px){.cp-hero{padding:64px 18px 70px!important}.cp-trust__inner{grid-template-columns:1fr 1fr}.cp-trust__item:nth-child(2){border-right:none}.cp-trust__item:nth-child(-n+2){border-bottom:1px solid var(--color-line)}.cp-prod-grid{grid-template-columns:1fr 1fr;gap:10px}.cp-products{padding:52px 14px}}
+.services__grid>.svc:last-child:nth-child(3n+1){grid-column:1/-1}</style>
+<script src="photo-adjust.js"></script>
+<script src="price-format.js"></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -309,7 +336,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </nav>
 
 <!-- ===== Hero ===== -->
-<section class="hero">
+<section class="hero cp-hero">
   <div class="hero__inner">
     <span class="hero__badge">For Businesses &amp; Organizations</span>
     <span class="hero__en">Corporate Gifts</span>
@@ -319,6 +346,15 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       ご予算とご用途に合わせて、ラッピングまで整えた贈り物をご用意いたします。
     </p>
     <a href="#contact" class="hero__cta">ご相談はこちら</a>
+  </div>
+</section>
+
+<section class="cp-trust" aria-label="こいまりの法人窓口の特長">
+  <div class="cp-trust__inner">
+    <div class="cp-trust__item"><span class="cp-trust__v">1992<small>年</small></span><span class="cp-trust__l">創業の菓子工房がルーツ</span></div>
+    <div class="cp-trust__item"><span class="cp-trust__v">無料</span><span class="cp-trust__l">熨斗の名入れ印刷</span></div>
+    <div class="cp-trust__item"><span class="cp-trust__v">宛名入り</span><span class="cp-trust__l">領収書を発行</span></div>
+    <div class="cp-trust__item"><span class="cp-trust__v">当日も</span><span class="cp-trust__l">店頭の焼き菓子でご用意</span></div>
   </div>
 </section>
 
@@ -332,27 +368,27 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
     <div class="usecases__grid">
       <div class="uc-card">
-        <div class="uc-card__icon">01</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/wrapping.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">01</div>
         <h3 class="uc-card__title">お取引先へのごあいさつ・手土産</h3>
         <p class="uc-card__desc">訪問先へお持ちする手土産や、季節のごあいさつの品に。</p>
       </div>
       <div class="uc-card">
-        <div class="uc-card__icon">02</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/teatime.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">02</div>
         <h3 class="uc-card__title">異動・ご退職のお礼</h3>
         <p class="uc-card__desc">お世話になった方へ、職場の皆さまで分けやすい焼き菓子を。</p>
       </div>
       <div class="uc-card">
-        <div class="uc-card__icon">03</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/cookies.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">03</div>
         <h3 class="uc-card__title">開業・移転・就任のお祝い</h3>
         <p class="uc-card__desc">お祝いの気持ちを、熨斗を付けてきちんとした形でお届けできます。</p>
       </div>
       <div class="uc-card">
-        <div class="uc-card__icon">04</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/office.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">04</div>
         <h3 class="uc-card__title">社内のイベント・表彰</h3>
         <p class="uc-card__desc">社内の集まりや記念の品にも。数量やご予算はご相談ください。</p>
       </div>
       <div class="uc-card">
-        <div class="uc-card__icon">05</div>
+        <div class="cp-uc-photo"><img src="corporate-assets/event.jpg" alt="" loading="lazy"></div><div class="uc-card__icon">05</div>
         <h3 class="uc-card__title">団体の卒業・歓送迎イベント</h3>
         <p class="uc-card__desc">サークルや部活動、PTA、地域の団体などの卒業・歓送迎イベントで、皆さまへ配るちょっとしたプレゼントに。人数やご予算に合わせてご用意します。</p>
       </div>
@@ -361,6 +397,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </section>
 
 <!-- ===== こいまりでご用意できること ===== -->
+<section class="cp-products">
+  <div class="section__inner">
+    <div class="section__head"><span class="section__en">Our Gifts</span><h2 class="section__title">こいまりの焼き菓子・ギフト</h2><p class="section__lead">お店で一つひとつ手作りしている焼き菓子です。ご予算や人数に合わせて、詰め合わせをご用意します。</p></div>
+    <div class="cp-prod-grid" id="cpProducts"></div>
+    <p class="cp-note">※「こんな場面に」の写真はイメージです。商品の写真は、実際の商品です。</p>
+  </div>
+</section>
+
 <section class="services">
   <div class="section__inner">
     <div class="section__head">
@@ -744,6 +788,19 @@ form.querySelectorAll(".input, .select, .textarea").forEach(el => {
     }
   });
 });
+</script>
+<script>
+(function () {
+  const DB = "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/";
+  const box = document.getElementById("cpProducts"); if (!box) return;
+  const esc = (t) => String(t == null ? "" : t).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  const plain = (t) => String(t || "").replace(/<[^>]*>/g, "").trim();
+  Promise.all([["gift", "gift"], ["baked", "baked"]].map(([k, type]) => fetch(DB + k + ".json").then((r) => r.json()).then((v) => (Array.isArray(v) ? v : Object.values(v || {})).map((it, idx) => ({ it, idx, type }))).catch(() => []))).then((parts) => {
+    const items = [].concat(...parts).filter(({ it }) => it && it.visible !== false && !it.notForSale && it.img && plain(it.name) && plain(it.name) !== "新しい商品").slice(0, 12);
+    if (!items.length) { const sec = box.closest("section"); if (sec) sec.remove(); return; }
+    box.innerHTML = items.map(({ it, idx, type }) => '<a class="cp-prod" href="product.html?type=' + type + '&idx=' + idx + '&n=' + encodeURIComponent(plain(it.name)) + '"><img src="' + esc(it.img) + '" alt="' + esc(plain(it.name)) + '" loading="lazy"><span class="cp-prod__name">' + esc(plain(it.name)) + '</span><span class="cp-prod__price">' + (window.KoimariPrice ? window.KoimariPrice.html(it.price) : "") + "</span></a>").join("");
+  });
+})();
 </script>
 </body>
 </html>
