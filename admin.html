@@ -2623,6 +2623,17 @@ const IMAGE_HISTORY_LIMIT = 5;
 // 削除されない（自動物理削除は既に廃止済み）ため実害はない。
 function pushImageHistory(item, key, oldUrl) {
   if (!oldUrl) return;
+  // 2026-10-19：写真を切り抜き直す・差し替えると、色味・表示位置の調整が前の写真に残ったまま新しい写真に反映されなかった。
+  // 差し替え直後（同じ処理の中で新しい写真が入った後）に、前の写真の調整を新しい写真へ引き継ぐ。
+  if (window.PhotoAdjust && item.photoAdjust) {
+    const oldKey = window.PhotoAdjust.hash(oldUrl);
+    if (item.photoAdjust[oldKey]) Promise.resolve().then(() => {
+      const nu = item[key];
+      if (!nu || nu === oldUrl) return;
+      const nk = window.PhotoAdjust.hash(nu);
+      if (!item.photoAdjust[nk]) { item.photoAdjust[nk] = JSON.parse(JSON.stringify(item.photoAdjust[oldKey])); if (typeof showToast === "function") showToast("前の写真の色味・表示位置の調整を、新しい写真に引き継ぎました（不要なら「写真の色・表示位置を調整」で戻せます）"); }
+    });
+  }
   const histKey = key + "History";
   if (!Array.isArray(item[histKey])) item[histKey] = [];
   item[histKey] = item[histKey].filter(u => u !== oldUrl);
