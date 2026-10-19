@@ -633,6 +633,7 @@ body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
 img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{display:none!important}}</style>
 <script src="koimari-hours.js"></script>
+<script src="spotlight-from-news.js"></script>
 <script src="i18n.js"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -1208,7 +1209,8 @@ function loadHolidays(){try{const r=localStorage.getItem("koimari_holidays");if(
 // 公開中の特集が無いとき（管理画面で「非表示にする」）は、見本（母の日）を出さずに特集枠ごと隠す（2026-10-08）
 // 管理画面の「お客様からの見え方を確認」（2026-10-19）：確認モードでは管理画面から届いた保存前の主役を出す
 const SP_PREVIEW=/[?&]spPreview=1/.test(location.search)&&window.parent!==window;
-function loadSpotlight(){if(SP_PREVIEW)return window.__spPreview||null;try{const r=localStorage.getItem("koimari_spotlight");if(r){const d=JSON.parse(r);if(Array.isArray(d)){return d.find(s=>s&&s.visible!==false)||null}return d}}catch(e){}return null}
+// 今月の主役は、お知らせの中で「今月の主役」に選ばれた記事から作る（spotlight-from-news.js・2026-10-19）。以前の「今月の主役」タブのデータは使わない
+function loadSpotlight(){if(SP_PREVIEW)return window.__spPreview||null;return window.KoimariSpotlight?window.KoimariSpotlight.fromNews(loadNews()):null}
 function loadStats(){try{const r=localStorage.getItem("koimari_stats");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_STATS}
 function loadVoices(){try{const r=localStorage.getItem("koimari_voices");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_VOICES}
 function loadInsta(){try{const r=localStorage.getItem("koimari_insta");if(r)return JSON.parse(r)}catch(e){}return DEFAULT_INSTA}

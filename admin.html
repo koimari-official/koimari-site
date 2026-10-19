@@ -247,6 +247,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 </style>
 <script src="cake-pricing.js"></script>
 <script src="photo-adjust.js"></script>
+<script src="spotlight-from-news.js"></script>
 <script src="reservation-editor.js"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -5891,6 +5892,49 @@ function renderNewsAdmin() {
         });
         item.appendChild(box);
       }
+      // 今月の主役（トップで大きく紹介）：お知らせと共通の内容で、主役用の見せ方だけをここで決める
+      {
+        const box = document.createElement("div");
+        box.style.cssText = "margin-top:10px;padding:12px;background:#fff7e8;border-left:3px solid #c9a96e;font-size:13px;";
+        const on = !!n.spotlight;
+        const fld = (k, label, ph, type) => '<label style="display:block;margin-top:8px;">' + label + (type === "textarea"
+          ? '<textarea data-spk="' + k + '" rows="3" placeholder="' + escapeHtml(ph || "") + '" style="width:100%;margin-top:3px;padding:6px 8px;">' + escapeHtml(n[k] || "") + "</textarea>"
+          : '<input data-spk="' + k + '" type="' + (type || "text") + '" placeholder="' + escapeHtml(ph || "") + '" value="' + escapeHtml(n[k] || "") + '" class="input" style="width:100%;margin-top:3px;">') + "</label>";
+        const opt = (v, cur, label) => '<option value="' + v + '"' + (String(cur || "") === v ? " selected" : "") + ">" + label + "</option>";
+        box.innerHTML = '<label style="display:flex;align-items:center;gap:6px;font-weight:700;cursor:pointer;"><input type="checkbox" class="nw-sp-on"' + (on ? " checked" : "") + '> トップで大きく紹介する（今月の主役）</label>' +
+          '<div style="color:var(--color-text-soft);margin-top:4px;">オンにできるのは1件だけです。タイトル・写真・リンク先・本文はこのお知らせと共通です。</div>' +
+          (on ? (
+            fld("spUntil", "主役として表示する最終日（この日を過ぎると自動で主役から外れます）", "", "date") +
+            fld("spBadge", "バッジ（左上のラベル）", "今月の主役") +
+            fld("spPeriod", "期間表示（右下のラベル）", "例: 2026.10.01 - 10.31") +
+            fld("spEn", "英語サブタイトル", "例: Halloween Fair") +
+            fld("spTitle", "主役欄のタイトル（空欄ならお知らせのタイトル。<br>で改行）", n.title || "") +
+            fld("spSub", "ひとこと（タイトル下）", "例: 使ってよし、飾ってよし、贈ってよし。") +
+            fld("spDesc", "主役欄の説明文（空欄なら本文の最初の段落）", "", "textarea") +
+            fld("spCta", "ボタンの文字", "詳しく見る") +
+            fld("spCtaUrl", "ボタンのリンク先（空欄ならお知らせのリンク先）", "例: gallery.html?cat=gift") +
+            '<label style="display:block;margin-top:8px;">写真の見せ方<select data-spk="spFit" style="width:100%;margin-top:3px;padding:6px;">' + opt("", n.spFit, "元の写真を全部表示（切り抜かない・標準）") + opt("cover", n.spFit, "枠に合わせて切り抜く（位置は「写真の色・表示位置を調整」で）") + "</select></label>" +
+            '<label style="display:block;margin-top:8px;">タイトルの書体<select data-spk="spFont" style="width:100%;margin-top:3px;padding:6px;">' + opt("", n.spFont, "明朝（上品・落ち着いた／標準）") + opt("maru", n.spFont, "丸ゴシック（やわらか・かわいい）") + opt("gothic", n.spFont, "ゴシック（力強い・はっきり）") + opt("pop", n.spFont, "ポップ（イベント・子ども向け）") + opt("hand", n.spFont, "手書き風（あたたかい）") + "</select></label>" +
+            '<label style="display:block;margin-top:8px;">タイトルの太さ<select data-spk="spWeight" style="width:100%;margin-top:3px;padding:6px;">' + opt("", n.spWeight, "太め（標準）") + opt("800", n.spWeight, "もっと太く") + opt("900", n.spWeight, "いちばん太く（丸ゴシック・ゴシックのみ）") + opt("600", n.spWeight, "細め") + "</select></label>" +
+            '<div id="spPicks" style="background:#faf6ef;border:1px solid var(--color-line);border-radius:8px;padding:12px 14px;margin-top:10px;"></div>' +
+            '<button type="button" class="btn btn--small nw-sp-preview" style="width:100%;margin-top:10px;">トップの「今月の主役」としての見え方を確認</button>'
+          ) : "");
+        box.querySelector(".nw-sp-on").addEventListener("change", (e) => {
+          newsData.forEach((x, k) => { if (k !== i && x) x.spotlight = false; }); // 主役は1件だけ
+          newsData[i].spotlight = e.target.checked;
+          renderNewsAdmin();
+          if (e.target.checked) showToast("このお知らせを今月の主役にしました。「変更を保存」でトップに反映されます");
+        });
+        box.querySelectorAll("[data-spk]").forEach((el) => el.addEventListener(el.tagName === "SELECT" ? "change" : "input", () => {
+          const k = el.dataset.spk, v = el.value.trim();
+          if (v) newsData[i][k] = v; else delete newsData[i][k];
+        }));
+        if (on) {
+          renderSpotlightPicks(newsData[i]); // 「この特集の商品」（記事の picks に入る）
+          box.querySelector(".nw-sp-preview").addEventListener("click", () => openSpotlightPreview(window.KoimariSpotlight.toSpotlight(newsData[i])));
+        }
+        item.appendChild(box);
+      }
       // Instagramへの案内（チェックすると詳細ページに「詳細はInstagramからもご確認いただけます」とボタンが出る）
       {
         const ig = document.createElement("div");
@@ -6058,8 +6102,17 @@ async function renderSpotlightPicks(sp) {
 
 function newSpotlightItem() { return { badge: "今月の主役", period: "", en: "Pick of the Month", title: "", sub: "", desc: "", price: "", priceNote: "", cta: "ご予約はこちら", ctaUrl: "reservation.html", img: "", visible: false, draft: true }; }
 function renderSpotlightAdmin() {
-  if (!spotlightList || !spotlightDirty) spotlightList = loadSpotlightList();
   const wrap = document.getElementById("spotlightForm");
+  // 2026-10-19：今月の主役はお知らせの記事から選ぶ形に変更（二重管理をやめる）
+  wrap.innerHTML = '<div style="max-width:760px;padding:22px 24px;background:#fff7e8;border:1px solid #e0c48c;border-radius:8px;line-height:1.9;">' +
+    '<div style="font-weight:700;font-size:16px;margin-bottom:6px;">今月の主役は「お知らせ」から選ぶ形になりました</div>' +
+    '「お知らせ」タブで、主役にしたい記事の「トップで大きく紹介する（今月の主役）」をオンにしてください。タイトル・写真・本文はお知らせと共通で、バッジ・期間・ボタン・書体・この特集の商品もその記事の中で設定できます。最終日を入れておくと、その日を過ぎたら自動で主役から外れます。' +
+    '<div style="margin-top:14px;"><button type="button" class="btn" id="spGoNews">お知らせタブを開く</button></div></div>';
+  const go = document.getElementById("spGoNews");
+  if (go) go.addEventListener("click", () => { const t = document.querySelector('.tab[data-panel="news"]'); if (t) t.click(); });
+  return;
+  /* eslint-disable no-unreachable */
+  if (!spotlightList || !spotlightDirty) spotlightList = loadSpotlightList();
   const fields = [
     { k: "badge", l: "バッジ（左上のラベル / 例: 今月の主役、限定）", t: "input" },
     { k: "period", l: "期間表示（右下ラベル / 例: 2026.10.01 - 10.31）", t: "input" },
