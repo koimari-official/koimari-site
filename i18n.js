@@ -215,7 +215,7 @@ const KOIMARI_I18N_PHRASES = [
   ['お電話頂ければお伝えも可能です。', 'Call us and we can tell you where.'],
   ['ご予約・お問合せ', 'Reservations & Inquiries'],
   ['こいまりのルーツについて →', 'Our roots →'],
-  ['法人・企業のお客様', 'For businesses'],
+  ['法人・企業・団体のお客様', 'For businesses & organizations'],
   ['詳しく見る →', 'Learn more →'],
   // SNS
   ['ケーキの新作や店内の様子を、毎日の投稿でお届けしています。', 'New cakes and scenes from the shop, posted every day.'],
