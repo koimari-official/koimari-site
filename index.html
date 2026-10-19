@@ -635,6 +635,7 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 <script src="price-format.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
+<script src="event-theme.js"></script>
 <script src="i18n.js"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -735,7 +736,20 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 .sugar__cta{text-align:center;margin-top:22px}
 .sugar__btn{display:inline-block;background:var(--color-accent);color:#fff;font-weight:700;border-radius:999px;padding:14px 30px;text-decoration:none;font-size:16px}
 @media(max-width:700px){.sugar__grid{grid-template-columns:repeat(2,1fr);gap:10px}.sugar__lead{font-size:15.5px;text-align:left}}
-.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}.spotlight__title{white-space:nowrap}.nw-title,.ev-products__title{text-wrap:balance;word-break:auto-phrase;line-break:strict}.bcal__dow-en{display:block;font-size:.62em;font-weight:600;letter-spacing:.06em;opacity:.75;margin-top:1px;font-family:var(--font-sans)}/* この特集の商品：選んだ商品をすべて横スクロールで並べる（2026-10-19） */.spotlight__picks-row{display:flex!important;gap:14px!important;overflow-x:auto;scroll-snap-type:x proximity;padding:4px 2px 14px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.spotlight__picks-row>.spotlight__pick{flex:0 0 200px;scroll-snap-align:start}@media(max-width:700px){.spotlight__picks-row>.spotlight__pick{flex:0 0 42%}}.spotlight__picks-wrap{position:relative}.sp-scroll-btn{position:absolute;top:36%;z-index:2;width:44px;height:44px;border-radius:50%;border:1px solid var(--color-line);background:rgba(255,255,255,.96);box-shadow:0 4px 14px rgba(0,0,0,.15);font-size:24px;line-height:1;cursor:pointer;color:var(--color-text)}.sp-scroll-btn--prev{left:-16px}.sp-scroll-btn--next{right:-16px}.sp-scroll-btn[hidden]{display:none}@media(max-width:700px){.sp-scroll-btn{display:none!important}}.spotlight__picks-hint{text-align:center;font-size:13px;color:var(--color-text-soft);margin:-6px 0 10px}</style>
+.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}.spotlight__title{white-space:nowrap}.nw-title,.ev-products__title{text-wrap:balance;word-break:auto-phrase;line-break:strict}.bcal__dow-en{display:block;font-size:.62em;font-weight:600;letter-spacing:.06em;opacity:.75;margin-top:1px;font-family:var(--font-sans)}/* この特集の商品：選んだ商品をすべて横スクロールで並べる（2026-10-19） */.spotlight__picks-row{display:flex!important;gap:14px!important;overflow-x:auto;scroll-snap-type:x proximity;padding:4px 2px 14px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}.spotlight__picks-row>.spotlight__pick{flex:0 0 200px;scroll-snap-align:start}@media(max-width:700px){.spotlight__picks-row>.spotlight__pick{flex:0 0 42%}}.spotlight__picks-wrap{position:relative}.sp-scroll-btn{position:absolute;top:36%;z-index:2;width:44px;height:44px;border-radius:50%;border:1px solid var(--color-line);background:rgba(255,255,255,.96);box-shadow:0 4px 14px rgba(0,0,0,.15);font-size:24px;line-height:1;cursor:pointer;color:var(--color-text)}.sp-scroll-btn--prev{left:-16px}.sp-scroll-btn--next{right:-16px}.sp-scroll-btn[hidden]{display:none}@media(max-width:700px){.sp-scroll-btn{display:none!important}}.spotlight__picks-hint{text-align:center;font-size:13px;color:var(--color-text-soft);margin:-6px 0 10px}/* イベントフェアの帯（クーポン帯の下）。イベントの色を基調に */
+.event-fair{display:flex;align-items:center;justify-content:center;gap:18px;padding:14px 20px;background:linear-gradient(120deg,var(--ef-bg1),var(--ef-bg2));color:var(--ef-ink);text-decoration:none;position:relative;overflow:hidden;box-shadow:inset 0 -2px 0 var(--ef-accent)}
+.event-fair[hidden]{display:none}
+.event-fair__body{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
+.event-fair__en{font-family:var(--ef-en);font-size:15px;color:var(--ef-accent);letter-spacing:.06em;line-height:1.1}
+.event-fair__title{font-family:var(--ef-font);font-size:clamp(20px,2.6vw,28px);font-weight:900;color:var(--ef-accent);line-height:1.3;letter-spacing:.04em;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.event-fair__lead{font-size:14px;font-weight:600;margin-top:3px;color:var(--ef-ink)}
+.event-fair__btn{flex-shrink:0;padding:10px 20px;border-radius:999px;background:var(--ef-accent);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+.event-fair__deco{width:64px;height:64px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));animation:ef-bob 3.6s ease-in-out infinite}
+.event-fair__deco:last-child{animation-delay:1.2s}
+@keyframes ef-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
+@media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:12.5px}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
+@media (prefers-reduced-motion: reduce){.event-fair__deco{animation:none}}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -762,6 +776,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
   <button class="event-banner__close" id="eventBannerClose" aria-label="閉じる">×</button>
 </div>
+<!-- イベントフェアの帯：テーマ付きで公開中のお知らせがあるときだけ出る（2026-10-19） -->
+<a class="event-fair" id="eventFair" href="#" hidden></a>
 
 <header class="site-header" id="siteHeader">
   <div class="relative z-[1] px-6 py-[10px] flex items-center justify-between gap-6 max-[900px]:px-[14px] max-[900px]:py-2 max-[900px]:gap-2 max-[900px]:flex-wrap">
@@ -1353,6 +1369,22 @@ function instaNewsRow(){
   a.innerHTML=`<span class="news-row__date">${escape(ig.date||"")}</span><span class="news-row__tag news-row__tag--insta">Instagram</span><span class="news-row__title news-row__title--insta">${ig.img?`<img class="news-row__thumb" src="${escape(ig.img)}" alt="" loading="lazy" onerror="this.remove()">`:""}<span>${escape(short||"最新の投稿を見る")}</span></span><span class="news-row__arrow">→</span>`;
   return a;
 }
+// イベントフェアの帯：テーマ（ハロウィン等）を設定した公開中のお知らせのうち一番上のもの。主役の最終日を過ぎたら出さない
+function renderEventFair(){
+  const el=document.getElementById("eventFair"); if(!el||!window.KoimariEventTheme) return;
+  const d=new Date(), today=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  const n=(loadNews()||[]).find(x=>x&&x.visible!==false&&x.theme&&window.KoimariEventTheme.THEMES[x.theme]&&(!x.spUntil||today<=x.spUntil));
+  if(!n){el.hidden=true;return;}
+  const t=window.KoimariEventTheme.THEMES[n.theme], c=t.colors;
+  [t.font,t.enFont].forEach(fo=>{if(fo&&!document.getElementById("evfont-"+fo.css)){const l=document.createElement("link");l.id="evfont-"+fo.css;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+fo.css+"&display=swap";document.head.appendChild(l);}});
+  const title=String(n.spTitle||n.title||"").replace(/<\s*br\s*\/?\s*>/gi," ");
+  const lead=n.spSub||String(n.excerpt||"").split(/\n/).map(x=>x.trim()).filter(Boolean)[0]||"";
+  const deco=(t.deco||[]).slice(0,2).map(k=>'<img class="event-fair__deco" src="event-assets/'+(k.indexOf("/")>=0?k:n.theme+"/"+k)+'.png" alt="">');
+  el.href="news.html?id="+encodeURIComponent(n.id||"");
+  el.style.setProperty("--ef-bg1",c.bg1);el.style.setProperty("--ef-bg2",c.bg2);el.style.setProperty("--ef-accent",c.accent);el.style.setProperty("--ef-ink",c.dark?c.ink:"#ffffff");el.style.setProperty("--ef-font",t.font.family);el.style.setProperty("--ef-en",t.enFont.family);
+  el.innerHTML=(deco[0]||"")+'<span class="event-fair__body"><span class="event-fair__en">'+escape(t.en)+'</span><span class="event-fair__title">'+escape(title)+'</span>'+(lead?'<span class="event-fair__lead">'+escape(lead.length>60?lead.slice(0,60)+"…":lead)+'</span>':'')+'</span><span class="event-fair__btn">特集を見る →</span>'+(deco[1]||"");
+  el.hidden=false;
+}
 function renderNews(){
   newsList.innerHTML='';
   const en=I18nCtrl.isEn();
@@ -1461,6 +1493,7 @@ function renderDynamic(){
   renderRecommended();
   renderExperiences();
   renderNews();
+  renderEventFair();
   renderSpotlight();
   if(SP_PREVIEW&&!window.__spPreviewBound){
     window.__spPreviewBound=true;
