@@ -558,7 +558,7 @@ function birthdayReminderText(data, pickupDate) {
   return [
     (data.name || "お客様") + "様",
     "いつもありがとうございます。",
-    "ケーキ屋さん こいまり 城東です。",
+    "ケーキ屋さん こいまり 城東店です。",
     "",
     "昨年の" + md + "は、",
     "お誕生日のケーキを",

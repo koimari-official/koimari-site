@@ -37,7 +37,8 @@ const KOIMARI_I18N_EN = {
   // Greeting
   'greeting.heading': 'Four Seasons<br>on a Plate.',
   'greeting.body1':   'What we value most is drawing out the full flavor of every ingredient. Our sponge and cream are our own lightly sweetened recipes that never mask the ingredients, finished moist and rich.',
-  'greeting.body2':   'And we want to remain a shop our community loves, always. Local junior high schools rate us as their most popular work-experience placement every year, and many students come back to work part-time or visit with their families.',
+  'greeting.body2':   'And we want to be a shop our community loves: a place you can drop in anytime and feel at ease, one our local customers say feels "like home." From here in Joto, we hope to share this circle of warmth with more and more people.',
+  'greeting.body3':   'Our pastry chefs visit suppliers to choose the ingredients themselves, and we layer fresh fruit and ingredients generously. Every day we refine our recipes so you can fully enjoy the flavor, richness, aroma and juiciness of fruit, seasonal produce and chocolate.',
   'greeting.body4':   'Thank you for reading this far. We look forward to welcoming you at the shop.',
 
   // Social
@@ -125,9 +126,10 @@ try {
 // 管理画面で文章を書き換えた場合は一致しなくなるので、ここへ追記すること。
 const KOIMARI_I18N_PHRASES = [
   // ヘッダー・メニュー
-  ['ケーキ屋さん こいまり 城東', 'Cake shop KOIMARI Osaka Joto'],
+  ['ケーキ屋さん こいまり 城東店', 'Cake shop KOIMARI Osaka Joto'],
   ['営業日カレンダー', 'Business Calendar'],
   ['こいまりについて', 'About Koimari'],
+  ['ケーキ屋さん こいまり 城東店について', 'About Cake Shop KOIMARI Osaka Joto'],
   ['今日はどれにする？こいまりのお品書き', 'What will it be today?<br>The Koimari Menu'],
   ['こいまりのお品書き', 'The Koimari Menu'],
   ['飾る楽しみを、ひとつから。砂糖菓子・ゼリー菓子は、ひとつからお買い求めいただけます。おうちのケーキに、贈り物に添えて。', '<b>The joy of decorating, from just one piece.</b><br>Our sugar and jelly decorations can be bought individually — for a homemade cake, or to add to a gift.'],
