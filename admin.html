@@ -2621,19 +2621,17 @@ const IMAGE_HISTORY_LIMIT = 5;
 // key="src"（ヒーロー・店舗紹介画像）は新たに"srcHistory"となり、この変更より前に
 // imgHistoryとして保存されていた古い履歴は表示上見えなくなるが、Storageの実ファイルは
 // 削除されない（自動物理削除は既に廃止済み）ため実害はない。
+// 写真を切り抜き直す・差し替えたとき、前の写真の色味・表示位置の調整を新しい写真へ引き継ぐ（前の写真の調整も残す）
+function carryPhotoAdjust(item, oldUrl, newUrl) {
+  if (!item || !oldUrl || !newUrl || oldUrl === newUrl || !window.PhotoAdjust || !item.photoAdjust) return;
+  const ok = window.PhotoAdjust.hash(oldUrl), nk = window.PhotoAdjust.hash(newUrl);
+  if (item.photoAdjust[ok] && !item.photoAdjust[nk]) {
+    item.photoAdjust[nk] = JSON.parse(JSON.stringify(item.photoAdjust[ok]));
+    if (typeof showToast === "function") setTimeout(() => showToast("前の写真の色味・表示位置の調整を、新しい写真に引き継ぎました"), 0);
+  }
+}
 function pushImageHistory(item, key, oldUrl) {
   if (!oldUrl) return;
-  // 2026-10-19：写真を切り抜き直す・差し替えると、色味・表示位置の調整が前の写真に残ったまま新しい写真に反映されなかった。
-  // 差し替え直後（同じ処理の中で新しい写真が入った後）に、前の写真の調整を新しい写真へ引き継ぐ。
-  if (window.PhotoAdjust && item.photoAdjust) {
-    const oldKey = window.PhotoAdjust.hash(oldUrl);
-    if (item.photoAdjust[oldKey]) Promise.resolve().then(() => {
-      const nu = item[key];
-      if (!nu || nu === oldUrl) return;
-      const nk = window.PhotoAdjust.hash(nu);
-      if (!item.photoAdjust[nk]) { item.photoAdjust[nk] = JSON.parse(JSON.stringify(item.photoAdjust[oldKey])); if (typeof showToast === "function") showToast("前の写真の色味・表示位置の調整を、新しい写真に引き継ぎました（不要なら「写真の色・表示位置を調整」で戻せます）"); }
-    });
-  }
   const histKey = key + "History";
   if (!Array.isArray(item[histKey])) item[histKey] = [];
   item[histKey] = item[histKey].filter(u => u !== oldUrl);
@@ -2664,6 +2662,7 @@ function historyAwareOnFile(item, key, afterSet) {
   return result => {
     const { url, original } = applyCropResult(result);
     pushImageHistory(item, key, item[key]);
+    carryPhotoAdjust(item, item[key], url);
     item[key] = url;
     if (original) item[key + "Original"] = original;
     afterSet();
@@ -2895,6 +2894,7 @@ function renderGreeting() {
     onChange: (k, v) => { workingData.greeting = v; refreshPreview(grid.children[0], v); updateSaveBar(); },
     onFile: result => {
       const { url, original } = applyCropResult(result);
+      if (workingData.greetingAdjust) carryPhotoAdjust({ photoAdjust: workingData.greetingAdjust }, workingData.greeting, url);
       workingData.greeting = url;
       if (original) workingData.greetingOriginal = original;
       renderGreeting(); updateSaveBar();
@@ -2996,6 +2996,7 @@ function renderPhilosophy() {
       onChange: (k, v) => { workingData.philosophy[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); if (k === "title") { const cp = grid.children[i] && grid.children[i].querySelector(".philo-cap"); if (cp) cp.textContent = (i + 1) + "枚目：" + v; } updateSaveBar(); },
       onFile: result => {
         const { url, original } = applyCropResult(result);
+        carryPhotoAdjust(workingData.philosophy[i], workingData.philosophy[i].img, url);
         workingData.philosophy[i].img = url;
         if (original) workingData.philosophy[i].imgOriginal = original;
         renderPhilosophy(); updateSaveBar();
@@ -3039,6 +3040,7 @@ function renderCategories() {
       onFile: result => {
         const { url, original } = applyCropResult(result);
         pushImageHistory(c, "img", c.img);
+        carryPhotoAdjust(c, c.img, url);
         c.img = url;
         if (original) c.imgOriginal = original;
         c.sourceCategory = null; c.sourceIndex = null;
@@ -5870,6 +5872,7 @@ function renderNewsAdmin() {
         onChange: (k, v) => { newsData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
         onFile: result => {
           const { url, original } = applyCropResult(result);
+          carryPhotoAdjust(newsData[i], newsData[i].img, url);
           newsData[i].img = url;
           if (original) newsData[i].imgOriginal = original;
           renderNewsAdmin();
@@ -6641,6 +6644,7 @@ function renderGalleryAdmin() {
       onChange: (k, v) => { galleryData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
       onFile: result => {
         const { url, original } = applyCropResult(result);
+        carryPhotoAdjust(galleryData[i], galleryData[i].img, url);
         galleryData[i].img = url;
         if (original) galleryData[i].imgOriginal = original;
         renderGalleryAdmin();
@@ -6738,6 +6742,7 @@ function renderBlogAdmin() {
       onChange: (k, v) => { blogData[i][k] = v; if (k === "img") refreshPreview(grid.children[i], v); },
       onFile: result => {
         const { url, original } = applyCropResult(result);
+        carryPhotoAdjust(blogData[i], blogData[i].img, url);
         blogData[i].img = url;
         if (original) blogData[i].imgOriginal = original;
         renderBlogAdmin();
