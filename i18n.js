@@ -216,6 +216,7 @@ const KOIMARI_I18N_PHRASES = [
   ['ご予約・お問合せ', 'Reservations & Inquiries'],
   ['こいまりのルーツについて →', 'Our roots →'],
   ['法人・企業・団体のお客様', 'For businesses & organizations'],
+  ['手土産・お礼・歓送迎の贈り物を、熨斗やラッピングまで整えてご用意します', 'Gifts for visits, thank-yous and farewells, prepared with noshi and wrapping'],
   ['詳しく見る →', 'Learn more →'],
   // SNS
   ['ケーキの新作や店内の様子を、毎日の投稿でお届けしています。', 'New cakes and scenes from the shop, posted every day.'],

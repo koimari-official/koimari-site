@@ -749,7 +749,7 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 @keyframes ef-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
 @media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:12.5px}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
 @media (prefers-reduced-motion: reduce){.event-fair__deco{animation:none}}
-</style>
+/* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1028,7 +1028,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <section class="mini-banner">
   <div class="mini-banner__inner">
     <span class="mini-banner__en">Corporate</span>
-    <h2 class="mini-banner__title">法人・企業・団体のお客様</h2>
+    <h2 class="mini-banner__title">法人・企業・団体のお客様</h2><span class="mini-banner__sub">手土産・お礼・歓送迎の贈り物を、熨斗やラッピングまで整えてご用意します</span>
     <a href="corporate.html" class="mini-banner__cta">詳しく見る →</a>
   </div>
 </section>
@@ -1820,7 +1820,7 @@ onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
 </script>
 <script>
 (function(){
-  const SKIP = ["hero"]; // 写真そのものが背景のものは対象外
+  const SKIP = ["hero", "mini-banner"]; // 写真そのものが背景のものは対象外
   function paint(){
     let n = 0;
     document.querySelectorAll("body > section, body > main > section").forEach(function(sec){
