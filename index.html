@@ -735,7 +735,7 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 .sugar__cta{text-align:center;margin-top:22px}
 .sugar__btn{display:inline-block;background:var(--color-accent);color:#fff;font-weight:700;border-radius:999px;padding:14px 30px;text-decoration:none;font-size:16px}
 @media(max-width:700px){.sugar__grid{grid-template-columns:repeat(2,1fr);gap:10px}.sugar__lead{font-size:15.5px;text-align:left}}
-.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}</style>
+.price-none{font-size:.82em;font-weight:700;color:#8a7766;letter-spacing:.04em}.spotlight__title{white-space:nowrap}.nw-title,.ev-products__title{text-wrap:balance;word-break:auto-phrase;line-break:strict}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1386,6 +1386,8 @@ const SP_FONTS={
   hand:{family:'"Yusei Magic",sans-serif',css:"Yusei+Magic"}
 };
 function ensureSpFont(key){const f=SP_FONTS[key];if(!f||key==="mincho")return;const id="spfont-"+key;if(document.getElementById(id))return;const l=document.createElement("link");l.id=id;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+f.css+"&display=swap";document.head.appendChild(l);}
+function fitSpotlightTitle(){const t=document.querySelector(".spotlight__title");if(!t)return;t.style.fontSize="";let fs=parseFloat(getComputedStyle(t).fontSize);let n=0;while(t.scrollWidth>t.clientWidth+1&&fs>14&&n<40){fs-=1;t.style.fontSize=fs+"px";n++;}}
+window.addEventListener("resize",()=>{clearTimeout(window.__spFitT);window.__spFitT=setTimeout(fitSpotlightTitle,150);});
 function renderSpotlight(){
   const en=I18nCtrl.isEn();
   const sp=loadSpotlight();
@@ -1414,6 +1416,8 @@ function renderSpotlight(){
     </div>`;
   if(window.PhotoAdjust)window.PhotoAdjust.register([sp]); // 管理画面で調整した色味・表示位置（2026-10-08）
   ensureSpFont(sp.titleFont);
+  // タイトルは折り返さず1行（<br>を書いた所だけ改行）。入りきらないときは文字を小さくして収める（2026-10-19オーナー指示）
+  fitSpotlightTitle(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitSpotlightTitle);
   // この特集の商品（2026-10-08）
   { const pk=document.getElementById("spotlightPicks"), picks=(Array.isArray(sp.picks)?sp.picks:[]).filter(p=>p&&p.name);
     if(pk){ pk.innerHTML=picks.length?'<div class="spotlight__picks-title">'+(en?'Featured items':'この特集の商品')+'</div><div class="spotlight__picks-row">'+picks.map(p=>'<a class="spotlight__pick" href="product.html?type='+encodeURIComponent(p.type)+'&idx='+(Number(p.idx)||0)+'&n='+encodeURIComponent(p.name)+'">'+(p.img?'<img src="'+escape(p.img)+'" alt="" loading="lazy">':'<span class="spotlight__pick-noimg"></span>')+'<span class="spotlight__pick-name">'+escape(p.name)+'</span>'+'<span class="spotlight__pick-price">'+window.KoimariPrice.html(p.price)+'</span>'+'</a>').join('')+'</div>':''; } }
