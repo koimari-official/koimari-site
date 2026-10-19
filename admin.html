@@ -3119,7 +3119,7 @@ function appendTopperControls(item, obj, onUpdate) {
 }
 
 // 商品ページの文章（2026-10-17）：ひとことのキャッチ・3つのこだわり・召し上がり方・商品情報。空欄の項目は商品ページに出さない。
-// ケーキ類は日持ち・保存方法・召し上がり方が空欄なら標準（当日中がおすすめ・冷蔵で翌日まで／冷蔵／冷蔵庫から出して10分で食べごろ）を表示する。
+// ケーキ類は日持ち・保存方法・召し上がり方が空欄なら標準（生菓子は当日中がおすすめ・冷蔵でお早めに／冷蔵／冷蔵庫から出して10分で食べごろ）を表示する。
 function appendCopyEditor(item, obj, onUpdate) {
   const box = document.createElement("details");
   box.className = "copy-ed";
@@ -3129,7 +3129,7 @@ function appendCopyEditor(item, obj, onUpdate) {
     '<label>ひとことのキャッチ<input data-ck="catch" placeholder="例：ひと切れに、いちご4粒半。"></label>' +
     [0, 1, 2].map((i) => '<div class="copy-ed__pt"><label>こだわり' + (i + 1) + '（見出し）<input data-pt="' + i + '" data-f="title" placeholder="例：断面いっぱいのいちご"></label><label>こだわり' + (i + 1) + '（本文）<textarea data-pt="' + i + '" data-f="text" rows="2" placeholder="例：ひと切れ4.5粒以上。どこを食べても、いちごに当たります。"></textarea></label></div>').join("") +
     '<label>おいしい召し上がり方<input data-ck="howTo" placeholder="空欄ならケーキは「冷蔵庫から出して10分ほどおくと、食べごろです。」"></label>' +
-    '<div class="copy-ed__row"><label>内容量<input data-ck="amount" placeholder="例：1個／直径12cm"></label><label>日持ち<input data-ck="shelf" placeholder="ケーキは空欄で「当日中がおすすめ（冷蔵で翌日まで）」"></label><label>保存方法<input data-ck="storage" placeholder="ケーキは空欄で「冷蔵」"></label></div>' +
+    '<div class="copy-ed__row"><label>内容量<input data-ck="amount" placeholder="例：1個／直径12cm"></label><label>日持ち<input data-ck="shelf" placeholder="ケーキは空欄で「生菓子は当日中がおすすめです（冷蔵で、お早めにお召し上がりください）」"></label><label>保存方法<input data-ck="storage" placeholder="ケーキは空欄で「冷蔵」"></label></div>' +
     '<div class="copy-ed__row"><label>アレルギー<input data-ck="allergens" placeholder="例：卵・乳・小麦"></label><label>主な原材料<input data-ck="ingredients" placeholder="例：いちご、生クリーム、小麦粉、卵、砂糖"></label></div>';
   box.querySelectorAll("[data-ck]").forEach((el) => { el.value = obj[el.dataset.ck] || ""; el.addEventListener("input", () => { if (el.value.trim()) obj[el.dataset.ck] = el.value; else delete obj[el.dataset.ck]; onUpdate(); }); });
   box.querySelectorAll("[data-pt]").forEach((el) => {
