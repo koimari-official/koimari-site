@@ -806,5 +806,6 @@ form.querySelectorAll(".input, .select, .textarea").forEach(el => {
 // 「異動・ご退職のお礼」の写真は、こいまりの実物の焼き菓子（公開中・写真あり）から
 (function(){const el=document.querySelector("[data-real-baked]");if(!el)return;fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/baked.json").then(r=>r.json()).then(v=>{const it=(Array.isArray(v)?v:Object.values(v||{})).find(x=>x&&x.visible!==false&&x.img&&!x.notForSale);if(it)el.src=it.img;else el.parentElement.remove();}).catch(()=>{el.parentElement.remove();});})();
 </script>
+<script src="credit.js"></script>
 </body>
 </html>
