@@ -875,7 +875,7 @@ main { padding: 90px 24px 110px; }
   .sub-nav li:last-child:nth-child(odd){grid-column:1/-1}
   .sub-nav .nav-link{display:block!important;width:100%;text-align:center;padding:13px 6px!important;font-size:16px!important;letter-spacing:.06em!important}
 }
-</style>
+.pay-xmas{display:block;margin-top:4px;font-weight:700;color:#a8362f}.pay-xmas[hidden]{display:none}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -944,7 +944,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <p style="margin-bottom:20px;">
         こいまりのご予約は、LINE公式アカウントの専用フォームから承っております。<br>
         友だち追加後、トーク画面下部のメニューの「ご予約」ボタンから、予約フォームにご入力ください。チャットでのご予約受付は行っておりません。<br>
-        <span style="font-size:14px;color:var(--color-text-mute);">※お引き取りは閉店時間までとさせていただいております。</span>
+        <span style="font-size:14px;color:var(--color-text-mute);">※お引き取りは閉店時間までとさせていただいております。</span><br>
+        <strong>お支払いは、お引き取り日当日、お受け取りの際に店頭でお願いいたします。</strong><span class="pay-xmas" hidden>※クリスマスのご予約は、12月20日までに店舗での事前精算が必要です。</span>
       </p>
       <div style="background:var(--color-bg-soft,#f3ece1);border:1px solid var(--color-line,#e3d6c2);padding:20px 24px;margin-bottom:8px;">
         <p style="font-weight:700;margin-bottom:10px;font-size:15px;">友だち追加でそのまま会員登録が完了します</p>
@@ -1039,5 +1040,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     if (xmasNote) xmasNote.style.display = "inline";
   }
 </script>
+<script>(function(){var n=new Date(),m=n.getMonth()+1,d=n.getDate();if(m===10||m===11||(m===12&&d<=20))document.querySelectorAll(".pay-xmas").forEach(function(e){e.hidden=false;});})();</script>
 </body>
 </html>

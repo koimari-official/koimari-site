@@ -749,7 +749,7 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 @keyframes ef-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
 @media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:12.5px}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
 @media (prefers-reduced-motion: reduce){.event-fair__deco{animation:none}}
-/* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}</style>
+/* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}.pay-xmas{display:block;margin-top:4px;font-weight:700;color:#a8362f}.pay-xmas[hidden]{display:none}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -912,6 +912,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <li>3営業日を切る<strong>お急ぎ</strong>の場合（当日を含む）は、直接<strong>お電話</strong>いただければ対応可否を確認いたします。<br><a class="quick-reserve__tel" href="tel:07091580641">070-9158-0641</a></li>
         <li><strong>過去のケーキ集</strong>からご希望の仕様をお伝えいただくと、スムーズにご注文いただけます。</li>
         <li><strong>オーダーケーキの場合</strong>、お引き渡し日は<strong>資材の在庫状況</strong>によります。お早めのご相談をおすすめいたします。（オーダーメイド・特殊な仕様は2週間程度かかる場合があります）</li>
+        <li><strong>お支払い</strong>は、お引き取り日当日、<strong>お受け取りの際に店頭で</strong>お願いいたします。<span class="pay-xmas" hidden>※クリスマスのご予約は、12月20日までに店舗での事前精算が必要です。</span></li>
       </ul>
     </div>
 
@@ -1839,5 +1840,6 @@ onValue(ref(db, "koimariContent/gallery"), (snapshot) => {
   window.addEventListener("load", paint);
 })();
 </script>
+<script>(function(){var n=new Date(),m=n.getMonth()+1,d=n.getDate();if(m===10||m===11||(m===12&&d<=20))document.querySelectorAll(".pay-xmas").forEach(function(e){e.hidden=false;});})();</script>
 </body>
 </html>

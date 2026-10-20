@@ -766,6 +766,12 @@ function sizeWithDiameter(size) {
 // 12月20日までに店頭でお支払いいただく（2026-09-29オーナー指示）。それ以外は当日店頭でご精算。
 // member.html の paymentNoticeText()・XMAS_PAYMENT_DEADLINE と内容をそろえること。
 const XMAS_PAYMENT_DEADLINE = "12月20日";
+// 10月1日〜12月20日（日本時間）は、クリスマス以外のご予約の案内にもクリスマスの事前精算の注意を添える（2026-10-20オーナー指示）
+function xmasPrepayNoticeActive(now) {
+  const d = new Date((now ? now.getTime() : Date.now()) + 9 * 3600 * 1000);
+  const m = d.getUTCMonth() + 1, day = d.getUTCDate();
+  return m === 10 || m === 11 || (m === 12 && day <= 20);
+}
 // stage: "received"（予約直後）/ "confirmed"（確定連絡）/ "reminder"（リマインド）
 function paymentLines(data, stage) {
   const lines = ["", "◆お支払い"];
@@ -778,8 +784,9 @@ function paymentLines(data, stage) {
     lines.push("◇お引き渡し当日はお会計を", "　承っておりません");
     return lines;
   }
-  if (stage === "reminder") lines.push("◇当日、店頭でご精算を", "　お願いいたします");
-  else lines.push("◇お引き取り日当日、", "　店頭でご精算をお願いいたします");
+  if (stage === "reminder") lines.push("◇お支払いは当日、", "　お受け取りの際に", "　店頭でお願いいたします");
+  else lines.push("◇お支払いは、お引き取り日", "　当日のお受け取りの際に", "　店頭でお願いいたします");
+  if (xmasPrepayNoticeActive()) lines.push("※クリスマスのご予約は、", "　" + XMAS_PAYMENT_DEADLINE + "までに店舗での", "　事前精算が必要です");
   return lines;
 }
 
@@ -877,7 +884,12 @@ function buildFollowMessage(pick, coupons) {
     "◇お引き取りの3営業日前まで",
     "　※オーダーケーキの場合、14日程度お日にちを頂く場合がございます。",
     "◇お急ぎの方はお電話へ",
-    "　（070-9158-0641）"
+    "　（070-9158-0641）",
+    "",
+    "◆お支払い",
+    "◇お引き取り日当日、",
+    "　お受け取りの際に店頭で",
+    ...(xmasPrepayNoticeActive() ? ["※クリスマスのご予約は、", "　" + XMAS_PAYMENT_DEADLINE + "までに店舗での", "　事前精算が必要です"] : [])
   );
   return lines.join("\n");
 }
@@ -890,6 +902,7 @@ function buildReserveCard(pick, imageUrl) {
       contents: [
         { type: "text", text: "ケーキのご予約", weight: "bold", size: "xl", color: "#2e2118" },
         { type: "text", text: pick && pick.code ? "さきほど選んだケーキが入った予約フォームが開きます" : "写真から選んで、そのままLINEでご予約いただけます", wrap: true, size: "sm", color: "#4a3a2a" },
+        { type: "text", text: "お支払いはお引き取り日当日、お受け取りの際に店頭で" + (xmasPrepayNoticeActive() ? "（クリスマスのご予約は" + XMAS_PAYMENT_DEADLINE + "までに店舗で事前精算）" : ""), wrap: true, size: "xs", color: "#856e58", margin: "md" },
       ],
     },
     footer: {
@@ -1311,6 +1324,11 @@ function buildCustomerConfirmationEmailText(data) {
     "",
     `商品: ${product}`,
     pickupLine,
+    "",
+    data.christmasOrder
+      ? "お支払い: クリスマスケーキのお支払いは、" + XMAS_PAYMENT_DEADLINE + "までに店頭でお願いいたします（お支払いの時点でご予約確定となります。お引き渡し当日のお会計は承っておりません）。"
+      : "お支払い: お引き取り日当日、お受け取りの際に店頭でお願いいたします。",
+    ...(!data.christmasOrder && xmasPrepayNoticeActive() ? ["※クリスマスのご予約は、" + XMAS_PAYMENT_DEADLINE + "までに店舗での事前精算が必要です。"] : []),
     "",
     "後ほど、詳細確認のためスタッフよりお電話またはチャットでご連絡いたします。ご予約内容の変更・キャンセルも、お電話にて承っております。",
     "",

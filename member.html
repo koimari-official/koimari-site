@@ -1588,7 +1588,9 @@ function paymentNoticeText(data) {
   if (data && data.christmasOrder) {
     return "クリスマスケーキのお支払いは、" + XMAS_PAYMENT_DEADLINE + "までに店頭でお願いいたします。お支払いの時点でご予約確定となります。お引き渡し日当日は大変混雑するため、当日のお会計は承っておりません。";
   }
-  return "お支払いは、お引き取り日当日に店頭でご精算をお願いいたします。";
+  const n = new Date(), m = n.getMonth() + 1, day = n.getDate();
+  const xmasNote = (m === 10 || m === 11 || (m === 12 && day <= 20)) ? "※クリスマスのご予約は、" + XMAS_PAYMENT_DEADLINE + "までに店舗での事前精算が必要です。" : "";
+  return "お支払いは、お引き取り日当日、お受け取りの際に店頭でお願いいたします。" + xmasNote;
 }
 function estimateDisclaimer(data) {
   const pay = paymentNoticeText(data);
