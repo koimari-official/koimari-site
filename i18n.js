@@ -143,7 +143,8 @@ const KOIMARI_I18N_PHRASES = [
   ['季節のフルーツをたっぷり使った、', 'Generous with seasonal fruit —'],
   ['色とりどりの手作りケーキと焼き菓子', 'colorful handmade cakes and baked sweets'],
   ['LINE友だち限定', 'LINE friends only'],
-  ['10月31日まで｜税込2,000円お買い上げごとに100円引き（店頭のお会計すべて・何度でも）', 'Until Oct 31 | ¥100 off for every ¥2,000 spent (tax incl.) — all in-store purchases, any number of times'],
+  ['LINEクーポン提示で、税込2,000円ご購入ごとに100円引き（11月30日まで）', 'Show our LINE coupon: ¥100 off for every ¥2,000 spent (tax incl.), until Nov 30'],
+  ['Wオープン記念', 'Grand Opening'],
   ['LINEで友だち追加する →', 'Add us on LINE →'],
   // 過去のケーキ集
   ['「こんなケーキ、できる？」過去につくったケーキ集から、お好みを見つけてください', '"Can you make a cake like this?"<br>Find your favorite in our collection of cakes we have made.'],
