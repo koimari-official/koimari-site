@@ -55,7 +55,7 @@ main{max-width:640px;margin:0 auto;padding:50px 24px 100px}
 .btn{display:inline-block;padding:14px 32px;font-family:var(--font-mincho);font-size:15px;letter-spacing:.14em;color:#fff;background:var(--color-accent);font-weight:500;transition:background .2s;border:none;cursor:pointer;}
 .btn:hover{background:#a88a52}
 .ref-image{margin:0 0 22px;background:#fdfaf6;border:1px solid #ecd9c4;border-radius:14px;overflow:hidden;}
-.ref-image__main{display:block;width:100%;aspect-ratio:4/3;object-fit:cover;background:#f3ece1;}
+.ref-image__main{display:block;width:100%;aspect-ratio:1/1;object-fit:cover;background:#f3ece1;}
 .ref-image__body{padding:12px 14px 14px;}
 .ref-image__label{font-size:12px;color:#a88a52;font-weight:700;letter-spacing:.06em;}
 .ref-image__name{font-size:15px;font-weight:700;margin-top:2px;line-height:1.5;}
@@ -848,6 +848,7 @@ function loadActiveSpec() {
   selectedCreamColors = s.colors.slice();
   renderColorChips();
   syncColorSelectQuiet();
+  try { applyCreamTierRules(); } catch (e) {}
 }
 function activeSpecs() {
   ensureTierSpecs();
@@ -1785,7 +1786,55 @@ function renderTierSizeSelects(tierCount) {
 
 // 2026-09-24：オーダー仕様に応じた選択項目の出し分け（クリスマス規約・いちご追加・カラークリーム・
 // フルーツトッピングの金額表示）。価格に影響する変更のたびに呼ばれる。
+// 2段・3段のとき、いま選んでいる段に入れられないクリームの種類を選べなくする（2026-10-21オーナー指示）。
+//  ・ムース（グランマニエBOX）：一番上の段だけ（大きさは3号）
+//  ・ミッシェルBOX・ガトーショコラBOX：5号になる段だけ（3段の一番上には入れられない）
+// 段の大きさが後から変わって条件に合わなくなった段は、生クリームに戻してお知らせする。
+function creamAllowedOnTier(cream, i, n) {
+  if (n <= 1) return true;
+  const sizeOf = (k) => sizeKeyOf((document.querySelector('.tier-size-select[data-tier="' + k + '"]') || {}).value || "");
+  const size = sizeOf(i);
+  const base = (CakePricing.SPEC.baseSizes || {})[cream];
+  if ((CakePricing.SPEC.tierOnlyTop || []).includes(cream)) return i === n - 1 && (!size || !base || base.includes(size));
+  if (base) return !!size && base.includes(size) && !(n === 3 && i === n - 1);
+  return true;
+}
+let _creamRuleBusy = false;
+function applyCreamTierRules() {
+  if (_creamRuleBusy) return;
+  _creamRuleBusy = true;
+  try {
+    const n = currentTierCount();
+    const radios = Array.from(document.querySelectorAll('input[name="reserveCreamType"]'));
+    radios.forEach((r) => {
+      const ok = creamAllowedOnTier(r.value, activeTier, n);
+      r.disabled = !ok;
+      const lab = r.closest("label");
+      if (lab) {
+        lab.style.opacity = ok ? "" : ".45";
+        let note = lab.querySelector(".cream-tier-note");
+        if (!ok && !note) { note = document.createElement("span"); note.className = "cream-tier-note"; note.style.cssText = "display:block;font-size:12px;color:#8a6a4a;"; lab.appendChild(note); }
+        if (note) note.textContent = ok ? "" : ((CakePricing.SPEC.tierOnlyTop || []).includes(r.value) ? "（2段・3段では一番上の段だけ選べます）" : "（5号の段だけ選べます）");
+      }
+    });
+    // 条件に合わなくなった段は生クリームに戻す
+    if (n > 1) {
+      ensureTierSpecs();
+      const fixed = [];
+      for (let i = 0; i < n; i++) {
+        const cream = i === activeTier ? checkedCream() : (tierSpecs[i] || {}).cream;
+        if (cream && !creamAllowedOnTier(cream, i, n)) {
+          fixed.push(tierName(i, n) + "の" + cream);
+          if (i === activeTier) { const g = radios.find((r) => r.value === "生クリーム"); if (g) { g.checked = true; g.dispatchEvent(new Event("change", { bubbles: true })); } }
+          else tierSpecs[i] = { cream: "生クリーム", colors: [] };
+        }
+      }
+      if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ミッシェル・ガトーショコラは5号の段だけ、ムースは一番上の段だけ選べます）");
+    }
+  } finally { _creamRuleBusy = false; }
+}
 function updateCakeOptionUI() {
+  try { applyCreamTierRules(); } catch (e) { console.error(e); }
   const g = id => document.getElementById(id);
   const category = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
   if (category !== "デコレーションケーキ") return;
@@ -2478,7 +2527,7 @@ let refLastKey = "";
     const res = await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/decorationCakes.json");
     const data = res.ok ? await res.json() : null;
     const arr = Array.isArray(data) ? data : Object.values(data || {});
-    refCakes = arr.filter(it => it && it.img && it.visible !== false && it.orderMode !== "custom" && !it.notForSale).map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }));
+    refCakes = arr.filter(it => it && it.img && it.visible !== false && !it.notForSale).map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }));
   } catch (e) { refCakes = []; }
   updateRefImage();
 })();
@@ -2486,6 +2535,9 @@ function refCandidates(cream, deco) {
   const all = refCandidatesByCream(cream);
   // 飾り付けを選んでいて、ケーキ側にも飾り付けが設定されている場合は、一致するものだけにする
   const sub = ["フルーツタルトBOX", "ストロベリータルトBOX"].includes(cream) ? ((document.querySelector('input[name="reserveCreamTypeSub"]:checked') || {}).value || "") : "";
+  const decoField = document.getElementById("reserveDecorationField");
+  const decoShown = !!decoField && decoField.style.display !== "none" && decoField.offsetParent !== null;
+  if (!decoShown) deco = ""; // 飾り付けを選ばない種類（タルト等）は、隠れている「いちご」の初期値で絞り込まない（2026-10-21）
   return all.filter(c => (!deco || !c.decoration || c.decoration === deco) && (!sub || !c.creamSub || c.creamSub === sub));
 }
 function refCandidatesByCream(cream) {

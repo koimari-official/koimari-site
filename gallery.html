@@ -410,7 +410,16 @@ function isPlaceholderTitle(t){ return !String(t||"").trim() || String(t).trim()
 function reservePortfolio(btn) {
   const no = Number(btn.dataset.reserveNo);
   const g = gallery.find(x => !x.isMenuItem && x.__no === no);
-  if (!g || !window.KoimariDraft) { alert("読み込み中です。少し待ってからもう一度お試しください。"); return; }
+  if (!g || !window.KoimariDraft) {
+    // 2026-10-21：データの読み込み前に押すと止まっていた。最大15秒待って、そろった時点で自動で進む
+    const tries = Number(btn.dataset.waitTries || 0);
+    if (tries === 0) { btn.dataset.label = btn.textContent; btn.textContent = "準備しています…"; btn.disabled = true; }
+    if (tries < 30) { btn.dataset.waitTries = tries + 1; setTimeout(() => reservePortfolio(btn), 500); return; }
+    btn.dataset.waitTries = 0; btn.disabled = false; btn.textContent = btn.dataset.label || "この内容で予約する";
+    alert("通信に時間がかかっています。電波の良い場所で、ページを開き直してからお試しください。");
+    return;
+  }
+  if (btn.dataset.waitTries) { btn.dataset.waitTries = 0; btn.disabled = false; btn.textContent = btn.dataset.label || "この内容で予約する"; }
   const label = "オーダーメイド作品 No." + String(no).padStart(2, "0") + (g.title ? "（" + g.title + "）" : "");
   window.KoimariDraft.start({ name: label, productType: "decorationCake", img: g.img, size: g.size || "", orderMode: "custom" }, btn);
 }
