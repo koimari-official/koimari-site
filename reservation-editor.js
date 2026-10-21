@@ -292,6 +292,30 @@
     var revs = r.revisions ? (Array.isArray(r.revisions) ? r.revisions.map(function (v, i) { return v && Object.assign({ n: i }, v); }) : Object.keys(r.revisions).map(function (k) { return Object.assign({ n: Number(k) }, r.revisions[k]); })) : [];
     return revs.filter(Boolean).sort(function (a, b) { return a.n - b.n; });
   }
+  // 次の「修正◯」の番号（電話で確定した記録は数えない）
+  function nextRevLabel(revs) { return "修正" + (revs.filter(function (v) { return /^修正/.test(v.label || (v.n ? "修正" : "")); }).length + 1); }
+  // 変更履歴：初回予約 → 電話で確定 → 修正1 … を古い順に、各時点の仕様・金額・お引き取り日時をすべて表示する。
+  // 前の記録から変わった行は「変更」の印と、前の内容（取り消し線）を並べる（2026-10-21オーナー指示：変更後だけでは管理が難しい）
+  function historyHtml(revs) {
+    if (!revs.length) return '<p class="re-hint">まだ変更はありません。電話で確定したり「内容を変更する」で確定したりすると、ご予約時の内容が「初回予約」として記録され、その後の変更が時系列で下に積み上がります。</p>';
+    var prev = null;
+    return '<ol class="re-timeline">' + revs.map(function (v, i) {
+      var rows = v.snapshot ? rowsOf(v.snapshot) : [];
+      var before = {}; if (prev) rowsOf(prev).forEach(function (r) { before[r[0]] = r[1]; });
+      var body = rows.map(function (row) {
+        var changed = prev && before[row[0]] !== row[1];
+        return '<tr' + (changed ? ' class="is-changed"' : "") + "><th>" + esc(row[0]) + (changed ? '<span class="re-chg">変更</span>' : "") + "</th><td>" +
+          (changed && before[row[0]] != null ? '<s class="re-was">' + esc(before[row[0]]) + "</s><br>" : "") + esc(row[1]) + "</td></tr>";
+      }).join("");
+      if (v.snapshot) prev = v.snapshot;
+      var label = v.label || (v.n ? "修正" + v.n : "初回予約");
+      return '<li class="re-tl"><div class="re-tl__step">' + (i + 1) + '</div><div class="re-tl__body"><div class="re-history__head"><b>' + esc(label) + "</b>　" +
+        esc(String(v.savedAt || "").slice(0, 16).replace("T", " ")) + "　担当：" + esc(v.by || "—") +
+        (v.notified ? '　<span class="re-tag">LINE送信済み</span>' : "") + "</div>" +
+        (v.memo ? '<div class="re-memo">' + esc(v.memo) + "</div>" : "") +
+        (rows.length ? '<table class="re-table re-table--small re-table--hist">' + body + "</table>" : "") + "</div></li>";
+    }).join("") + "</ol>";
+  }
   function renderView() {
     var r = state.r, s = state.snap;
     var revs = revisionsOf(r);
@@ -301,12 +325,7 @@
     html += '<div class="re-info"><h3 class="re-sec">現在のご予約内容</h3><table class="re-table">' + rowsOf(s).map(function (row) { return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>"; }).join("") + "</table>";
     if (r.note) html += '<div class="re-note"><b>お客様の備考</b><br>' + esc(r.note) + "</div>";
     html += '<button type="button" class="re-btn" id="reStartEdit">内容を変更する（電話しながら）</button></div></div>';
-    html += '<h3 class="re-sec">変更履歴</h3>' + (revs.length ? '<ol class="re-history">' + revs.slice().reverse().map(function (v) {
-      return '<li><div class="re-history__head"><b>' + esc(v.label || (v.n ? "修正" + v.n : "初回予約")) + "</b>　" + esc(String(v.savedAt || "").slice(0, 16).replace("T", " ")) + "　担当：" + esc(v.by || "—") + (v.notified ? '　<span class="re-tag">LINE送信済み</span>' : "") + "</div>" +
-        (v.changes && v.changes.length ? '<ul class="re-changes">' + v.changes.map(function (c) { return "<li>" + esc(c.label) + "：<s>" + esc(c.from) + "</s> → <b>" + esc(c.to) + "</b></li>"; }).join("") + "</ul>" : "") +
-        (v.memo ? '<div class="re-memo">' + esc(v.memo) + "</div>" : "") +
-        '<details><summary>この時点の内容</summary><table class="re-table re-table--small">' + (v.snapshot ? rowsOf(v.snapshot) : []).map(function (row) { return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>"; }).join("") + "</table></details></li>";
-    }).join("") + "</ol>" : '<p class="re-hint">まだ変更はありません。最初に「内容を変更する」で確定すると、ご予約時の内容が「初回予約」として記録され、その下に「修正1」が追加されます。</p>');
+    html += '<h3 class="re-sec">変更履歴（古い順）</h3>' + historyHtml(revs);
     document.getElementById("reBody").innerHTML = html;
     document.getElementById("reStartEdit").addEventListener("click", startEdit);
     var up = document.getElementById("reSendImage");
@@ -392,9 +411,9 @@
     html += field("担当者", sel("reStaff", [""].concat(state.staff), "", function (o) { return o || "選んでください"; }) + ' <button type="button" class="re-link" id="reEditStaff">担当者リストを編集</button>');
     var diffs = diffRows(state.snap, e);
     html += '<div class="re-diff"><b>変更点（' + diffs.length + "件）</b>" + (diffs.length ? "<ul>" + diffs.map(function (c) { return "<li>" + esc(c.label) + "：<s>" + esc(c.from) + "</s> → <b>" + esc(c.to) + "</b></li>"; }).join("") + "</ul>" : "<p>まだ変更はありません</p>") + "</div>";
-    var nextN = Math.max(1, revisionsOf(r).length);
-    html += '<div class="re-actions"><button type="button" class="re-btn re-btn--ghost" id="reCancel">やめる</button><button type="button" class="re-btn" id="reSave">この内容で確定（修正' + nextN + "）</button></div>";
-    if (r.lineUserId) html += '<p class="re-hint">確定すると、お客様のLINEに「ご予約内容を変更しました（修正' + nextN + "）」と変更後の内容が自動で届きます。</p>";
+    var nextLabel = nextRevLabel(revisionsOf(r));
+    html += '<div class="re-actions"><button type="button" class="re-btn re-btn--ghost" id="reCancel">やめる</button><button type="button" class="re-btn" id="reSave">この内容で確定（' + nextLabel + "）</button></div>";
+    if (r.lineUserId) html += '<p class="re-hint">確定すると、お客様のLINEに「ご予約内容を変更しました（' + nextLabel + "）」と変更後の内容が自動で届きます。</p>";
     html += "</div>";
     document.getElementById("reBody").innerHTML = html;
     bindEdit();
@@ -460,8 +479,8 @@
     e = JSON.parse(JSON.stringify(e)); delete e._priceManual;
     var changes = diffRows(state.snap, e);
     if (!changes.length && !memo) { alert("変更点がありません"); return; }
-    var revs = revisionsOf(r), n = Math.max(1, revs.length);
-    if (!confirm("修正" + n + "として確定します。\n\n" + changes.map(function (c) { return "・" + c.label + "：" + c.from + " → " + c.to; }).join("\n") + (r.lineUserId ? "\n\nお客様のLINEにも変更後の内容が届きます。" : ""))) return;
+    var revs = revisionsOf(r), n = Math.max(1, revs.length), label = nextRevLabel(revs);
+    if (!confirm(label + "として確定します。\n\n" + changes.map(function (c) { return "・" + c.label + "：" + c.from + " → " + c.to; }).join("\n") + (r.lineUserId ? "\n\nお客様のLINEにも変更後の内容が届きます。" : ""))) return;
     var now = new Date().toISOString(), base = "reservations/" + state.key + "/", up = {};
     if (!revs.length) up[base + "revisions/0"] = { label: "初回予約", savedAt: r.submittedAt || now, by: r.channel === "LINE" ? "お客様（LINE予約フォーム）" : "お客様（予約フォーム）", snapshot: state.snap };
     if (e.cuts && !e.cuts.length) { alert("カットケーキが0個です。ご予約自体の取り消しは、一覧のステータスを「キャンセル」にしてください"); return; }
@@ -469,12 +488,12 @@
     var est = isCakeRes(r) || e.cuts ? estimateOf(e, r) : null;
     var patch = patchOf(e, r, est);
     if (!isCakeRes(r) && !e.cuts) { patch = { pickupDate: e.pickupDate, pickupTime: e.pickupTime, finalPickupDate: e.pickupDate, finalPickupTime: e.pickupTime, finalPrice: e.price, priceIsFixed: true }; }
-    up[base + "revisions/" + n] = { label: "修正" + n, savedAt: now, by: staff, byAccount: api.currentUserEmail() || "", memo: memo, changes: changes, snapshot: e };
+    up[base + "revisions/" + n] = { label: label, savedAt: now, by: staff, byAccount: api.currentUserEmail() || "", memo: memo, changes: changes, snapshot: e };
     Object.keys(patch).forEach(function (k) { up[base + k] = patch[k]; });
-    up[base + "revisionCount"] = n; up[base + "lastRevisionAt"] = now;
+    up[base + "revisionCount"] = Number(label.replace(/[^0-9]/g, "")) || n; up[base + "lastRevisionAt"] = now;
     document.getElementById("reSave").disabled = true;
     api.multiUpdate(up).then(function () {
-      if (typeof window.showToast === "function") window.showToast("修正" + n + "として保存しました");
+      if (typeof window.showToast === "function") window.showToast(label + "として保存しました");
       open(state.key);
     }).catch(function (err) { alert("保存に失敗しました：" + (err && err.message || err)); document.getElementById("reSave").disabled = false; });
   }
@@ -498,5 +517,17 @@
       .catch(function (err) { alert("画像の送信に失敗しました：" + (err && err.message || err)); });
   }
 
-  window.ReservationEditor = { open: open, snapshotOf: snapshotOf, rowsOf: rowsOf, diffRows: diffRows, patchOf: patchOf };
+  function logPhoneConfirm(key, r, info) {
+    var api = window.fbResEditorApi; if (!api || !key || !r) return Promise.resolve();
+    var revs = revisionsOf(r), n = Math.max(1, revs.length), now = new Date().toISOString(), base = "reservations/" + key + "/", up = {};
+    var before = snapshotOf(r);
+    var after = JSON.parse(JSON.stringify(before));
+    after.price = Number(info.price) || after.price; after.priceIsRange = false;
+    if (info.date) after.pickupDate = info.date;
+    if (info.time) after.pickupTime = info.time;
+    if (!revs.length) up[base + "revisions/0"] = { label: "初回予約", savedAt: r.submittedAt || now, by: r.channel === "LINE" ? "お客様（LINE予約フォーム）" : "お客様（予約フォーム）", snapshot: before };
+    up[base + "revisions/" + n] = { label: "電話で確定", savedAt: now, by: info.actor || "", byAccount: api.currentUserEmail() || "", changes: diffRows(before, after), snapshot: after, noNotify: true };
+    return api.multiUpdate(up);
+  }
+  window.ReservationEditor = { open: open, logPhoneConfirm: logPhoneConfirm, snapshotOf: snapshotOf, rowsOf: rowsOf, diffRows: diffRows, patchOf: patchOf };
 })();

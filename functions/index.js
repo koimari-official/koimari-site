@@ -1134,6 +1134,7 @@ exports.sendReservationRevisionMessage = onValueCreated(
     const n = Number(event.params.n);
     const rev = event.data.val();
     if (!rev || !(n >= 1)) return;
+    if (rev.noNotify) return; // 「電話で確定」の記録：お客様には確定連絡が別に届くので送らない（2026-10-21）
     const snap = await admin.database().ref(`reservations/${event.params.pushId}`).once("value");
     const data = snap.val();
     if (!data || data.channel !== "LINE" || !data.lineUserId || data.status === "キャンセル") return;
