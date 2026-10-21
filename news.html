@@ -178,6 +178,8 @@ body{background:radial-gradient(circle at 12% 8%,rgba(201,169,110,.12),transpare
 .nw-cal{border-radius:4px;border-color:rgba(201,169,110,.45)}
 .nw-back{display:block;width:max-content;margin:34px auto 0}
 .nw-calsec{margin:34px 0 0;padding-top:26px;border-top:1px solid rgba(201,169,110,.35)}
+/* 本文なしのお知らせ（営業日カレンダーだけ等）は、タイトル下の線とカレンダーの線が二重にならないように（2026-10-21） */
+.nw-rule+.nw-calsec{margin-top:18px;padding-top:0;border-top:0}
 .nw-calsec__title{font-family:var(--font-mincho);font-size:clamp(19px,2.4vw,23px);letter-spacing:.08em;margin:0 0 8px;font-weight:700}
 .nw-calsec__lead{font-size:14.5px;color:var(--color-text-soft);margin:0 0 14px;line-height:1.8}
 .nw-preview{border-radius:2px}
