@@ -1828,6 +1828,11 @@ function populateReserveSelects() {
 }
 
 const TIER_LABELS = ["1段目のサイズ", "2段目のサイズ", "3段目のサイズ"];
+// 確認画面・送信内容の各段のサイズ（一番上の段から。内部の items[0] は一番下の段）
+function tierSizeLines(data) {
+  const n = (data.items || []).length;
+  return data.items.map((it, i) => tierName(i, n) + "：" + String(it.size || "")).reverse();
+}
 function tierFieldHtml(i, tierCount, labelSuffix, selectHtml) {
   const tierLabel = tierName(i, tierCount) + "のサイズ";
   return `<div style="margin-bottom:${i < tierCount - 1 ? "10px" : "0"};">
@@ -2292,7 +2297,7 @@ async function sendReserveToFormspree(data) {
       const isRoll = item.category === "ロールケーキ";
       const isCakeBody = item.category === "デコレーションケーキ";
       const productLines = data.items.map((it, i) => {
-        const label = data.items.length > 1 ? `${TIER_LABELS[i] || (i + 1) + "段目"}: ` : "";
+        const label = data.items.length > 1 ? tierName(i, data.items.length) + "のサイズ: " : "";
         return `${label}${it.category}${it.size ? " / " + it.size : ""}`;
       }).join("\n");
       const candleLine = candleQtyText(data, true);
@@ -2539,9 +2544,8 @@ function renderReserveConfirm(data, targetId) {
   const isRoll = item.category === "ロールケーキ";
   const isCake = item.category === "デコレーションケーキ";
   const productName = occasionCategoryName(item.category, data.occasion, data.occasionOther);
-  const sizesLine = data.items.length > 1
-    ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
-    : (item.size || "");
+  // 2段・3段は段ごとに改行し、フォームの段の図と同じ呼び方（上から1段目…一番下）で一番上から並べる（2026-10-22オーナー指示）
+  const sizesLine = data.items.length > 1 ? tierSizeLines(data).join("\n") : (item.size || "");
   const candleLine = escape(candleQtyText(data));
   const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降は追加料金）" : ""}` : "なし";
   el.innerHTML = `
@@ -2549,7 +2553,7 @@ function renderReserveConfirm(data, targetId) {
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
     ${isCake ? `<dt>クリームの種類</dt><dd>${escape(data.creamType)}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${escape(data.creamTypeSub)}）` : ""}</dd>` : ""}
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration))}</dd>` : ""}
-    ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine)}</dd>` : ""}
+    ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine).replace(/\n/g, "<br>")}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
     ${(data.decideLater || []).length ? `<dt>あとで相談</dt><dd>${data.decideLater.map(t => escape(t)).join("・")}</dd>` : ""}
     ${data.fruitExtra ? `<dt>フルーツ増量</dt><dd>あり</dd>` : ""}
@@ -2610,9 +2614,8 @@ function buildReserveSummaryText(data) {
   const isRoll = item.category === "ロールケーキ";
   const isCake = item.category === "デコレーションケーキ";
   const productName = occasionCategoryName(item.category, data.occasion, data.occasionOther);
-  const sizesLine = data.items.length > 1
-    ? data.items.map((it, i) => `${TIER_LABELS[i] || (i + 1) + "段目"}: ${it.size}`).join("、")
-    : (item.size || "");
+  // 2段・3段は段ごとに改行し、フォームの段の図と同じ呼び方（上から1段目…一番下）で一番上から並べる（2026-10-22オーナー指示）
+  const sizesLine = data.items.length > 1 ? tierSizeLines(data).join("\n") : (item.size || "");
   const candleLine = candleQtyText(data);
   const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降は追加料金）" : ""}` : "なし";
   const lines = ["【ご予約を送信しました】", `商品: ${productName}${data.items.length > 1 ? `（${data.items.length}段）` : ""}`];
@@ -2620,7 +2623,7 @@ function buildReserveSummaryText(data) {
   if (item.flavor) lines.push(`ケーキの種類: ${item.flavor}`);
   if (isCake) lines.push(`クリームの種類: ${data.creamType}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`);
   if (isCake) lines.push(`飾り付け: ${({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration)}`);
-  if (sizesLine) lines.push(`サイズ: ${sizesLine}`);
+  if (sizesLine) { if (data.items.length > 1) lines.push("サイズ:", ...sizesLine.split("\n").map(x => "　" + x)); else lines.push(`サイズ: ${sizesLine}`); }
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
   if ((data.decideLater || []).length) lines.push(`あとで相談: ${data.decideLater.join("・")}`);
   if (data.fruitExtra) lines.push("フルーツ増量: あり");
