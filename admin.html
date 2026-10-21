@@ -8216,11 +8216,11 @@ function applyStoreMode() {
   document.body.classList.add("store-mode");
   if (!document.getElementById("storeModeCss")) {
     const st = document.createElement("style"); st.id = "storeModeCss";
-    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
+    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=quoteBuilder]):not([data-panel=notify]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
     document.head.appendChild(st);
   }
   const active = document.querySelector(".tab.active");
-  if (!active || !["reservations", "kitchen"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
+  if (!active || !["reservations", "kitchen", "calendar", "quoteBuilder", "notify"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
 }
 // ログイン後の準備で失敗した処理を、管理画面の上部に表示する（スクリーンショットを送ってもらえば原因が分かるように）
 function showStartupWarning(list) {
@@ -8259,7 +8259,7 @@ onAuthStateChanged(fbAuth, (user) => {
       document.getElementById("adminScreen").style.display = "block";
     }
     if (failed.length) showStartupWarning(failed);
-    // 予約管理のみの権限（店舗用アカウント・アルバイト）は、予約一覧・製造シートだけを表示する。データベースのルールでも同じ制限をしている。
+    // 予約管理のみの権限（店舗用アカウント・アルバイト）は、予約一覧・予約カレンダー・個別見積もり・製造シート・店舗通知だけを表示する（2026-10-21：電話での見積もり回答まで任せる）。データベースのルールでも同じ制限をしている。
     if (STORE_ACCOUNTS.includes(String(user.email || "").toLowerCase())) applyStoreMode();
     user.getIdTokenResult().then((t) => {
       const c = t.claims || {};
