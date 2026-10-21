@@ -257,6 +257,24 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-chip i{font-style:normal;font-size:11.5px;font-weight:700;color:#8a7766;white-space:nowrap}
 .rc-chip--warn{background:#fdeeee;border-color:#e39a9a;color:#8a2020;font-weight:700}
 .rc-chip--note{background:#fffbea;border-color:#e6d48a}
+
+/* 使い方マニュアル（2026-10-21） */
+.man{background:#fff;border:1px solid var(--color-line);padding:22px 26px;max-width:860px;font-size:15px;line-height:1.85;color:var(--color-text)}
+.man h3{font-size:18px;font-weight:700;margin:26px 0 8px}
+.man h3:first-of-type{margin-top:16px}
+.man h4{font-size:16px;font-weight:700;margin:16px 0 6px}
+.man p{margin:0 0 10px}
+.man ul,.man ol{margin:0 0 12px;padding-left:1.4em}
+.man li{margin:3px 0}
+.man-table{width:100%;table-layout:fixed;border-collapse:collapse;margin:8px 0 14px;font-size:14px;line-height:1.6}
+.man-table th,.man-table td{border:1px solid #cdbfae;padding:7px 10px;vertical-align:top;text-align:left;word-break:break-word}
+.man-table th{background:#f6f1ea;font-weight:700}
+.man-badge{display:inline-block;margin:0;padding:3px 6px;border-width:1px}
+.man-badge b{font-size:12.5px}
+.man-flow{counter-reset:none}
+.man-flow li{margin:0 0 10px}
+.man-flow li span{display:block;font-size:14px;color:var(--color-text-soft)}
+@media(max-width:700px){.man{padding:16px 14px;font-size:15px}.man-table{font-size:13px}.man-table th,.man-table td{padding:6px 7px}}
 </style>
 <script src="cake-pricing.js"></script>
 <script src="photo-adjust.js"></script>
@@ -567,6 +585,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="kitchen">🧁 製造シート（タブレット）</button>
       <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount" style="display:none;">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
       <button class="tab" data-panel="quoteBuilder">個別見積もり作成</button>
+      <button class="tab" data-panel="manual">使い方マニュアル</button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
       <button class="tab" data-panel="corporate">法人ご相談 <span class="tab__count" id="corpCount">0</span></button>
       <button class="tab" data-panel="aiReview">🤖 AI要確認 <span class="tab__count tab__count--warn" id="aiReviewCount" style="display:none;"></span></button>
@@ -787,6 +806,79 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     </section>
 
     <!-- ===== 個別見積もり作成（スタッフ専用） ===== -->
+    <!-- 使い方マニュアル（2026-10-21）。内容を変えるときは businesses/cake-shop/koimari-hp-line-reservation-manual_*.docx もそろえる -->
+    <section class="panel" id="panel-manual">
+      <div class="panel__head"><h2 class="panel__title">使い方マニュアル（トライ版）</h2></div>
+      <div class="man">
+        <p>ホームページとLINE公式アカウント（予約・クーポン配信）のトライ版です。実際に操作して確認し、気づいたことや分かりにくいところはオーナーに伝えてください。</p>
+
+        <h3>1．ログインのしかた</h3>
+        <ul>
+          <li><b>自分のスマホ・パソコン</b>：「Googleアカウントでログイン」を押し、こいまりポータルと同じGoogleアカウントを選びます。</li>
+          <li><b>お店のタブレット</b>：店舗アカウント（sankyu00002@gmail.com）とパスワードでログインします。パスワードは店長・オーナーから直接お伝えします。</li>
+          <li>LINEで送られてきたリンクを押すと、自動でSafari・Chromeに切り替わって開きます。</li>
+          <li>自分のスマホからでも、予約の入り状況をいつでも確認できます。</li>
+        </ul>
+        <table class="man-table"><colgroup><col style="width:36%"><col style="width:64%"></colgroup>
+          <tr><th>使う人</th><th>見られる画面</th></tr>
+          <tr><td>パート・アルバイト／お店のタブレット</td><td>予約一覧・予約カレンダー・個別見積もり作成・使い方マニュアル・製造シート・店舗通知モード</td></tr>
+          <tr><td>オーナー・店長・永山さん</td><td>すべての画面（商品・写真・料金表の編集、原価計算アプリなど）</td></tr>
+        </table>
+
+        <h3>2．ご予約の流れ（お客様の操作）</h3>
+        <ol class="man-flow">
+          <li><b>ホームページで商品を選ぶ</b><span>仕様の項目を選ぶ、または「フルオーダー」で過去の作品例を選びます。</span></li>
+          <li><b>「予約する」を押す</b><span>LINE公式アカウントに移動します。</span></li>
+          <li><b>LINEで友だち追加する</b></li>
+          <li><b>LINEに「こいまり城東店」のトークが開く</b><span>トークの下に、ご予約の案内が出ます。</span></li>
+          <li><b>ホームページの予約入力画面で、受け取り日などを入力する</b><span>選んだケーキの仕様は記録されています。途中でやめても続きから入力できます。</span></li>
+          <li><b>お客様の予約依頼が完了</b><span>選んだ項目から金額を自動で計算し、予約内容・金額・希望の受け取り日がお客様のLINEに自動で届きます。</span></li>
+          <li><b>この管理画面の「予約一覧」に予約が届く</b><span>お店のタブレットと、通知をオンにした端末に通知が届きます。</span></li>
+        </ol>
+
+        <h3>3．予約が届いたら（スタッフの対応）</h3>
+        <h4>（1）金額の表示を見る</h4>
+        <table class="man-table"><colgroup><col style="width:28%"><col style="width:34%"><col style="width:38%"></colgroup>
+          <tr><th>表示</th><th>意味</th><th>スタッフがすること</th></tr>
+          <tr><td><span class="rc-pb rc-pb--ok man-badge"><b>確定金額で案内済み</b></span></td><td>選んだ項目で金額が決まっている</td><td>電話で予約内容に間違いがないか確認する</td></tr>
+          <tr><td><span class="rc-pb rc-pb--warn man-badge"><b>目安で案内中</b></span></td><td>お客様には「〇〇円〜」と伝えている</td><td>電話で内容を確認し、金額を確定して伝える</td></tr>
+          <tr><td><span class="rc-pb rc-pb--ng man-badge"><b>要見積もり</b></span></td><td>過去の作品例からのご注文など。目安の金額だけ伝えている</td><td>「個別見積もり作成」で金額を出し、電話で金額・納期を伝える</td></tr>
+        </table>
+        <h4>（2）お客様に電話する</h4>
+        <ul>
+          <li>予約内容（ケーキ・サイズ・メッセージ・受け取り日時など）を読み上げて確認します。</li>
+          <li>金額が「〜」の予約は、ここで金額と納期を確定してお伝えします。</li>
+          <li>お支払いは受け取り当日に店頭でお願いします（クリスマスケーキは「4．決まりごと」を参照）。</li>
+        </ul>
+        <h4>（3）この画面に記録する</h4>
+        <ol>
+          <li>予約カードの「電話済み」にチェックを入れる</li>
+          <li>名前・電話で確定した金額（税込）・受け取り日時を入力する</li>
+          <li>LINEからのご予約は、お客様のLINEに確定の連絡が自動で届き、「内容確定」になります</li>
+          <li>受け取りの日、お会計が済んだら「支払い」にチェックを入れる</li>
+        </ol>
+        <p>内容を直すときは、予約カードの「詳細・変更」から修正します。直した内容は履歴に残ります。</p>
+
+        <h3>4．決まりごと</h3>
+        <table class="man-table"><colgroup><col style="width:30%"><col style="width:70%"></colgroup>
+          <tr><th>項目</th><th>決まり</th></tr>
+          <tr><td>受付の締め切り</td><td>受け取り日の3営業日前まで</td></tr>
+          <tr><td>納期・仕様の変更、キャンセル</td><td>原則、受け取り日の3営業日前まで。それより後は、電話で相談して確認する</td></tr>
+          <tr><td>お支払い</td><td>受け取り当日に店頭で精算</td></tr>
+          <tr><td>クリスマスケーキ</td><td>12月20日までに店頭で事前精算。受け取り当日のお会計はしない</td></tr>
+          <tr><td>アレルギー</td><td>卵・乳製品のアレルギーには対応していない。フルーツのアレルギー・苦手な果物は備考に書いてもらう</td></tr>
+          <tr><td>金額の伝え方</td><td>「概算」という言葉は使わない。決まっていない金額は「〇〇円〜」と伝える</td></tr>
+        </table>
+
+        <h3>5．困ったとき</h3>
+        <ul>
+          <li>ログインできない・画面がおかしい：その画面のスクリーンショットを撮って、オーナーに送ってください。</li>
+          <li>金額や納期の判断に迷う：店長・オーナーに相談してから、お客様に折り返してください。</li>
+          <li>予約の削除はできません。取り消したい予約は、店長・オーナーに伝えてください。</li>
+        </ul>
+      </div>
+    </section>
+
     <section class="panel" id="panel-quoteBuilder">
       <div class="panel__head"><h2 class="panel__title">個別見積もり作成</h2></div>
       <p class="panel__desc">お電話等でお客様から伺った内容を入力すると、その場で見積り合計を計算できます。標準内容にない追加工賃も入力可能です。このツールはスタッフのみが使用し、公開ページ（予約フォーム）には一切表示されません（2026-09-05、同業者に価格を把握されないための方針）。</p>
@@ -8216,11 +8308,11 @@ function applyStoreMode() {
   document.body.classList.add("store-mode");
   if (!document.getElementById("storeModeCss")) {
     const st = document.createElement("style"); st.id = "storeModeCss";
-    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=quoteBuilder]):not([data-panel=notify]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
+    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=quoteBuilder]):not([data-panel=notify]):not([data-panel=manual]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
     document.head.appendChild(st);
   }
   const active = document.querySelector(".tab.active");
-  if (!active || !["reservations", "kitchen", "calendar", "quoteBuilder", "notify"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
+  if (!active || !["reservations", "kitchen", "calendar", "quoteBuilder", "notify", "manual"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
 }
 // ログイン後の準備で失敗した処理を、管理画面の上部に表示する（スクリーンショットを送ってもらえば原因が分かるように）
 function showStartupWarning(list) {
