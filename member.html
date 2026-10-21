@@ -159,6 +159,9 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .dcal__day.is-out{background:transparent;border-color:transparent;color:#cfc6ba;cursor:default;font-weight:400}
 .dcal__legend{margin-top:8px;font-size:12px;color:#7a6a58}
 .dcal__lg-closed{display:inline-block;padding:0 6px;border-radius:4px;background:#ece7e0;color:#9a8f82;font-weight:700}
+
+/* 閉店間際の引き取り時間のお知らせ（2026-10-22） */
+.time-notice{margin-top:8px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.8;color:#6b4a12}
 </style>
 </head>
 <body>
@@ -459,6 +462,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__label" for="reserveTime">引き取り希望時間<span class="req-mark">必須</span></label>
           <select id="reserveTime" class="input select"></select>
           <div class="error" id="reserveTimeError"></div>
+          <div id="reserveTimeNotice" class="time-notice" style="display:none;"></div>
         </div>
         </div>
         <div id="kidsManagerFieldsWrap" style="display:none;">
@@ -1753,8 +1757,32 @@ function updateLivePriceDisplay() {
 }
 
 // 引き取り希望時間は、日祝は19:00・火-土は20:00の閉店時刻までを選択肢にする（2026-10-07オーナー指示：お引き取りは閉店時間まで）。
+// その日の閉店時刻（"19:00" など）。日付が無ければ空
+function closeTimeForDate(dateStr) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr || "")) return "";
+  const d = new Date(dateStr + "T00:00:00"), key = dateKeyLocal(d);
+  const info = KoimariHours.dayInfo(reserveHolidays, key, d.getDay(), JP_HOLIDAYS.has(key), false);
+  return info.close || "";
+}
+function nearCloseNote(date, time) {
+  const cm = KoimariHours.toMinutes(closeTimeForDate(date)), tm = KoimariHours.toMinutes(time);
+  return cm != null && tm != null && tm >= cm - 60 ? '<br><small style="color:#8a5a12;">閉店は' + closeTimeForDate(date) + 'です。遅れそうな場合は、お早めにお電話でご連絡ください。</small>' : "";
+}
+// 閉店1時間前以降の時間を選んだら、閉店時刻と遅れる場合のお願いを丁寧にお知らせする（2026-10-22オーナー指示）
+function updateReserveTimeNotice() {
+  const box = document.getElementById("reserveTimeNotice");
+  if (!box) return;
+  const date = (document.getElementById("reserveDate") || {}).value || "", time = (document.getElementById("reserveTime") || {}).value || "";
+  const close = closeTimeForDate(date), cm = KoimariHours.toMinutes(close), tm = KoimariHours.toMinutes(time);
+  if (!close || cm == null || tm == null || tm < cm - 60) { box.style.display = "none"; box.innerHTML = ""; return; }
+  box.innerHTML = "この日の閉店時刻は<b>" + close + "</b>です。お時間にお気をつけてお越しください。<br>" +
+    "遅れそうな場合は、お手数ですがお早めにお電話でご連絡をお願いいたします。<br>" +
+    "お越しが閉店時刻を過ぎた場合など、状況によっては当日のお渡しができかねることがございます。あらかじめご了承くださいませ。";
+  box.style.display = "";
+}
+document.addEventListener("change", (e) => { if (e.target && (e.target.id === "reserveTime" || e.target.id === "reserveDate")) updateReserveTimeNotice(); });
 function timeOptionsForDate(dateStr) {
-  if (!dateStr) return TIME_OPTIONS;
+  if (!dateStr) return []; // 日付を選ぶまでは時間を出さない（日曜・祝日は閉店が早いため、日付ごとに決める）
   const d = new Date(dateStr);
   const key = dateKeyLocal(d);
   // その日の営業時間（特別営業時間を含む）の開店〜閉店まで。判定は koimari-hours.js に一本化
@@ -1762,7 +1790,7 @@ function timeOptionsForDate(dateStr) {
   const firstSlotMin = KoimariHours.toMinutes(info.open) || 10 * 60;
   const lastSlotMin = KoimariHours.toMinutes(info.close) || 20 * 60;
   const opts = [];
-  for (let m = Math.ceil(firstSlotMin / 30) * 30; m <= lastSlotMin; m += 30) {
+  for (let m = Math.ceil(firstSlotMin / 30) * 30; m <= lastSlotMin - 30; m += 30) { // 閉店30分前まで
     opts.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
   }
   return opts;
@@ -1771,8 +1799,10 @@ function populateReserveTimeOptions(dateStr) {
   const timeEl = document.getElementById("reserveTime");
   const prev = timeEl.value;
   const opts = timeOptionsForDate(dateStr);
-  timeEl.innerHTML = '<option value="">選択してください</option>' + opts.map(t => `<option value="${t}">${t}</option>`).join("");
+  timeEl.innerHTML = (dateStr ? '<option value="">選択してください</option>' : '<option value="">先に引き取り希望日を選んでください</option>') + opts.map(t => `<option value="${t}">${t}</option>`).join("");
+  timeEl.disabled = !dateStr;
   if (opts.includes(prev)) timeEl.value = prev;
+  updateReserveTimeNotice();
 }
 function populateReserveSelects() {
   populateReserveTimeOptions(document.getElementById("reserveDate").value);
@@ -2476,7 +2506,7 @@ function renderReserveConfirm(data, targetId) {
     el.innerHTML = `
       <dt>商品</dt><dd>${escape(s.title)}<div style="font-size:13px;margin-top:4px;line-height:1.8;">${s.rows.map(r => escape(r)).join("<br>")}</div></dd>
       <dt>お支払い金額</dt><dd><strong>${escape(s.price)}</strong><div style="font-size:11.5px;color:#856e58;margin-top:6px;">${paymentNoticeText(data)}</div></dd>
-      <dt>引き取り希望日時</dt><dd>${escape(data.pickupDate)} ${escape(data.pickupTime)}</dd>
+      <dt>引き取り希望日時</dt><dd>${escape(data.pickupDate)} ${escape(data.pickupTime)}${nearCloseNote(data.pickupDate, data.pickupTime)}</dd>
       <dt>お名前（ふりがな）</dt><dd>${escape(data.furigana)}</dd>
       <dt>お名前</dt><dd>${escape(data.name)}</dd>
       <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
@@ -2519,7 +2549,7 @@ function renderReserveConfirm(data, targetId) {
 
 
     ${item.message ? `<dt>メッセージプレートの文字（1枚目）</dt><dd>${escape(item.message)}</dd>` : ""}
-    <dt>引き取り希望日時</dt><dd>${escape(data.pickupDate)} ${escape(data.pickupTime)}</dd>
+    <dt>引き取り希望日時</dt><dd>${escape(data.pickupDate)} ${escape(data.pickupTime)}${nearCloseNote(data.pickupDate, data.pickupTime)}</dd>
     <dt>お名前（ふりがな）</dt><dd>${escape(data.furigana)}</dd>
     <dt>お名前</dt><dd>${escape(data.name)}</dd>
     <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
