@@ -110,6 +110,30 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 #cakeFieldsWrap[data-shop="addon"] #reserveToppingsField,#cakeFieldsWrap[data-shop="xmas"] #reserveToppingsField{display:none!important}
 #reserveCutToppingNote{display:none}
 #cakeFieldsWrap[data-shop="cut"] #reserveCutToppingNote{display:block}
+
+/* ケーキの上のトッピング（2026-10-21） */
+.topping-teaser{background:#fffaf2;border:1px solid #ecd9c4;border-radius:14px;padding:12px}
+.topping-teaser__head{display:block;width:100%;text-align:left;background:none;border:none;padding:0 22px 0 0;font-size:16px;font-weight:700;color:#5a3a20;cursor:pointer;position:relative}
+.topping-teaser__head::after{content:"›";position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:24px;color:#c9a96e}
+.topping-teaser__sub{display:block;font-size:12.5px;font-weight:400;color:#8a7766;margin-top:2px}
+.topping-teaser__row{display:flex;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+.topping-teaser__img{flex:0 0 auto;width:68px;height:68px;padding:0;border:1px solid #ecd9c4;border-radius:10px;background:#fff;overflow:hidden;cursor:pointer}
+.topping-teaser__img img{width:100%;height:100%;object-fit:contain;display:block}
+.topping-teaser__sel{margin-top:8px;font-size:13px;font-weight:700;color:#8a5a12;line-height:1.6}
+.topping-sheet{position:fixed;inset:0;z-index:9000;background:rgba(40,26,16,.55);align-items:flex-end;justify-content:center}
+.topping-sheet__panel{background:#fff;width:100%;max-width:640px;max-height:92vh;border-radius:18px 18px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+.topping-sheet__head{display:flex;align-items:center;justify-content:space-between;font-size:17px}
+.topping-sheet__close{border:1px solid #d8baa4;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
+.topping-sheet__hint{font-size:12.5px;color:#7a6a58;line-height:1.6;margin:6px 0 8px}
+.topping-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:calc((100% - 16px) / 3);gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;padding-bottom:6px;min-height:0}
+.topping-grid .addon-card{scroll-snap-align:start;padding:6px!important}
+.topping-grid .addon-card > div:nth-of-type(1){font-size:12px!important;margin-top:4px!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.8em}
+.topping-grid .addon-card button{width:28px!important;height:28px!important;font-size:16px!important}
+.topping-grid .addon-card > div:last-child{margin-top:4px!important;gap:8px!important}
+.topping-grid__img{width:100%;max-width:72px;aspect-ratio:1/1;object-fit:contain;border-radius:10px;display:block;margin:0 auto;background:#fff}
+.topping-sheet__foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #ecd9c4;padding-top:10px;margin-top:6px;font-size:14px;font-weight:700;color:#5a3a20}
+.topping-sheet__done{border:none;border-radius:999px;background:#f0a63a;color:#fff;font-weight:700;font-size:15px;padding:10px 20px;cursor:pointer;flex-shrink:0}
+@media(min-width:700px){.topping-sheet{align-items:center}.topping-sheet__panel{border-radius:18px}}
 </style>
 </head>
 <body>
@@ -372,10 +396,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <!-- 2026-09-22新設：ここまでの選択内容に応じたリアルタイム合計金額表示(CRO改修指示書) -->
         <div class="field" id="reserveAddOnsField" style="display:none;">
-          <button type="button" id="reserveAddOnsToggle" class="addon-toggle">＋ 砂糖菓子・ゼリー菓子・クッキーを写真から選ぶ（任意）</button>
-          <div id="reserveAddOnsBody" style="display:none;">
-            <div class="field__hint" style="margin-top:8px;">お子様の好きなキャラクター風の砂糖菓子で、特別なケーキに。写真を見ながら、＋−で個数をえらんでください</div>
-            <div id="reserveAddOnsGrid"></div>
+          <div class="topping-teaser">
+            <button type="button" class="topping-teaser__head" id="toppingOpen">ケーキの上のトッピングを見る<span class="topping-teaser__sub">砂糖菓子・ゼリー菓子・クッキー（任意）</span></button>
+            <div class="topping-teaser__row" id="toppingTeaser"></div>
+            <div class="topping-teaser__sel" id="toppingSelected"></div>
+          </div>
+          <div id="reserveAddOnsBody" class="topping-sheet" style="display:none;" role="dialog" aria-modal="true" aria-label="ケーキの上のトッピング">
+            <div class="topping-sheet__panel">
+              <div class="topping-sheet__head"><b>ケーキの上のトッピング</b><button type="button" class="topping-sheet__close" id="toppingClose">閉じる</button></div>
+              <div class="topping-sheet__hint">お子様の好きなキャラクター風の砂糖菓子で、特別なケーキに。横にスクロールして、＋−で個数をおえらびください。</div>
+              <div id="reserveAddOnsGrid"></div>
+              <div class="topping-sheet__foot"><span id="toppingTotal">まだ選ばれていません</span><button type="button" class="topping-sheet__done" id="toppingDone">この内容で決定</button></div>
+            </div>
           </div>
         </div>
         <div id="reserveSpecialNotice" style="display:none;margin:0 0 14px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"></div>
@@ -739,7 +771,7 @@ function renderAddOns() {
   grid.innerHTML = addOnCatalog.map((it, i) => {
     const q = addOnQty[addOnKey(it)] || 0;
     return `<div class="addon-card" data-i="${i}" style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;${q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : ""}">
-      ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" style="width:76px;height:76px;object-fit:cover;border-radius:10px;display:block;margin:0 auto;">` : `<div style="width:76px;height:76px;margin:0 auto;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;"></div>`}
+      ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" class="topping-grid__img">` : `<div style="width:76px;height:76px;margin:0 auto;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;"></div>`}
       <div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">${esc(it.name)}</div>
       <div style="font-size:12px;color:#a88a52;">${it.priceNum ? "¥" + it.priceNum.toLocaleString() : "料金は別途"}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">
@@ -748,9 +780,10 @@ function renderAddOns() {
         <button type="button" class="addon-plus" data-i="${i}" style="width:30px;height:30px;border-radius:50%;border:none;background:#f0a63a;color:#fff;font-size:18px;line-height:1;cursor:pointer;">＋</button>
       </div></div>`;
   }).join("");
+  renderToppingTeaser();
   { const total = selectedAddOns().reduce((s, a) => s + a.qty, 0); const tg = document.getElementById("reserveAddOnsToggle"), body = document.getElementById("reserveAddOnsBody");
     if (tg) tg.textContent = total ? "砂糖菓子・ゼリー菓子・クッキー：" + total + "個 選択中（タップで" + (body && body.style.display !== "none" ? "閉じる" : "開く") + "）" : (body && body.style.display !== "none" ? "− 閉じる（砂糖菓子・ゼリー菓子・クッキー）" : "＋ 砂糖菓子・ゼリー菓子・クッキーを写真から選ぶ（任意）"); }
-  grid.style.cssText = "display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px;"; // 砂糖菓子は写真を小さめに（画素数が低いため）
+  grid.style.cssText = ""; grid.className = "topping-grid"; // 縦3段×横3列ずつ、横スクロール（2026-10-21）
   grid.querySelectorAll(".addon-plus, .addon-minus").forEach(btn => btn.addEventListener("click", () => {
     const it = addOnCatalog[Number(btn.dataset.i)];
     const k = addOnKey(it);
@@ -760,6 +793,41 @@ function renderAddOns() {
     updateLivePriceDisplay();
   }));
 }
+
+// フォーム内の「ケーキの上のトッピングを見る」：値段は出さず写真だけを並べる。押すと選択画面が開く（2026-10-21）
+function renderToppingTeaser() {
+  const row = document.getElementById("toppingTeaser"), sel = document.getElementById("toppingSelected"), tot = document.getElementById("toppingTotal");
+  const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  if (row) row.innerHTML = addOnCatalog.slice(0, 8).map((it, i) => '<button type="button" class="topping-teaser__img" data-topping-open="' + i + '"><img src="' + esc(it.img) + '" alt="' + esc(it.name) + '"></button>').join("");
+  const picked = selectedAddOns();
+  const sum = picked.reduce((n, a) => n + (a.price || 0) * a.qty, 0), count = picked.reduce((n, a) => n + a.qty, 0);
+  const text = count ? "選択中：" + picked.map(a => a.name + "×" + a.qty).join("、") + "（" + count + "個" + (sum ? "　¥" + sum.toLocaleString() : "") + "）" : "";
+  if (sel) { sel.textContent = text; sel.style.display = count ? "" : "none"; }
+  if (tot) tot.textContent = count ? count + "個　¥" + sum.toLocaleString() + "（税込）" : "まだ選ばれていません";
+}
+function openToppingSheet(index) {
+  const b = document.getElementById("reserveAddOnsBody");
+  if (!b) return;
+  renderAddOns();
+  b.style.display = "flex";
+  document.body.style.overflow = "hidden";
+  if (index != null) { const card = document.querySelector('#reserveAddOnsGrid .addon-card[data-i="' + index + '"]'); if (card) card.scrollIntoView({ block: "nearest", inline: "center" }); }
+}
+function closeToppingSheet() {
+  const b = document.getElementById("reserveAddOnsBody");
+  if (b) b.style.display = "none";
+  document.body.style.overflow = "";
+  renderToppingTeaser();
+}
+document.addEventListener("click", (e) => {
+  const t = e.target && e.target.closest ? e.target : null;
+  if (!t) return;
+  const op = t.closest("[data-topping-open]");
+  if (op) { openToppingSheet(Number(op.dataset.toppingOpen)); return; }
+  if (t.closest("#toppingOpen")) { openToppingSheet(); return; }
+  if (t.closest("#toppingClose") || t.closest("#toppingDone")) { closeToppingSheet(); return; }
+  if (t.id === "reserveAddOnsBody") closeToppingSheet(); // 画面の外側を押したら閉じる
+});
 
 // ===== カラークリームの色選択（2026-09-24オーナー指示：黒・赤・青・紺・黄色・ピンク・緑・黄緑・茶色・水色ほか）=====
 // 色数（1〜3色）が金額に直結するため、色のチップを最大3色まで選ぶ形にする。選んだ数が隠しselect(#reserveColorCream)の値になり、
@@ -1610,9 +1678,7 @@ function syncOmakaseTotal() {
 }
 document.addEventListener("click", (e) => {
   if (!e.target || e.target.id !== "reserveAddOnsToggle") return;
-  const body = document.getElementById("reserveAddOnsBody");
-  if (body) body.style.display = body.style.display === "none" ? "" : "none";
-  renderAddOns();
+  openToppingSheet();
 });
 function updateLivePriceDisplay() {
   setTimeout(syncOmakaseTotal, 0);
@@ -2281,7 +2347,7 @@ function renderConfirmUpsell(data) {
     if (k === "ume") { const r = document.querySelector('input[name="reserveOmakase"][value="梅"]'); if (r) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); } document.getElementById("reserveSubmitBtn").click(); }
     else if (k === "fruit") { const c = g("reserveFruitExtra"); if (c) { c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); } document.getElementById("reserveSubmitBtn").click(); }
     else if (k === "msg") { const s = g("reserveMessageCount"); if (s) { s.value = "1"; s.dispatchEvent(new Event("change", { bubbles: true })); } backTo("reserveChocoText"); setTimeout(() => { const t = g("reserveChocoText"); if (t) t.focus(); }, 400); }
-    else if (k === "addon") { const b = document.getElementById("reserveAddOnsBody"); if (b) b.style.display = ""; renderAddOns(); backTo("reserveAddOnsField"); }
+    else if (k === "addon") { backTo("reserveAddOnsField"); setTimeout(() => openToppingSheet(), 400); }
   }));
 }
 function renderReserveConfirm(data, targetId) {
