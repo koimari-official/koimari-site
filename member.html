@@ -162,6 +162,14 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 
 /* 閉店間際の引き取り時間のお知らせ（2026-10-22） */
 .time-notice{margin-top:8px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.8;color:#6b4a12}
+
+/* ご予約前のご確認（2026-10-22） */
+.pre-notes{background:#fbf7f1;border:1px solid #e6d8c4;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.pre-notes__title{font-size:14.5px;font-weight:700;color:#4a3a2a;margin-bottom:8px}
+.pre-notes__item{padding:8px 0;border-top:1px dashed #e3d3bd}
+.pre-notes__head{font-size:13.5px;font-weight:700;color:#5a3a20;margin-bottom:2px}
+.pre-notes__item p{margin:0;font-size:13px;line-height:1.75;color:#4a3a2a}
+.pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
 </style>
 </head>
 <body>
@@ -549,8 +557,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div id="reserveOmakaseTotal" class="field__hint" style="margin-top:8px;font-weight:700;color:#4a3a2a;"></div>
           <label class="omakase-none"><input type="radio" name="reserveOmakase" value="" checked> おまかせデコレーションはつけない</label>
         </div>
-        <p style="font-size:12.5px;color:var(--color-text-soft);line-height:1.8;margin:0 0 6px;">イベント商品（クリスマスケーキなど）以外の商品は、原材料や資材の高騰により、価格を予告なく変更させていただく場合がございます。あらかじめご了承ください。</p>
-        <p style="font-size:12.5px;color:var(--color-text-soft);line-height:1.8;margin:0 0 10px;">直前のキャンセルはキャンセルポリシーに則りご請求させていただきます。近年、心ないご対応をされるお客様も増えており、当店存続のため何卒ご理解・ご協力をお願い申し上げます。</p>
+        <div class="pre-notes">
+          <div class="pre-notes__title">ご予約前に、ご確認ください</div>
+          <div class="pre-notes__item">
+            <div class="pre-notes__head">◆ 価格の変更について</div>
+            <p>戦争や紛争、自然災害などにより、原材料や資材の価格が急激に高騰した場合など、<b>やむを得ない事情があるときに限り</b>、価格を予告なく変更させていただく場合がございます。</p>
+            <p class="pre-notes__sub">※クリスマスケーキなどのイベント商品は対象外です。</p>
+          </div>
+          <div class="pre-notes__item">
+            <div class="pre-notes__head">◆ キャンセルについて</div>
+            <p>直前のキャンセルは、<a href="terms.html" target="_blank" rel="noopener">利用規約</a>のキャンセルポリシーに基づき、ご請求させていただきます。</p>
+            <p class="pre-notes__sub">小さなお店を続けていくため、何卒ご理解・ご協力をお願い申し上げます。</p>
+          </div>
+        </div>
         <div class="field">
           <label class="field__check">
             <input type="checkbox" id="reserveConsent">
