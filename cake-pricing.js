@@ -158,7 +158,7 @@
     if ((input.toppings || []).length) notes.push(input.toppings.join("・") + "の料金・納期は、ご予約後にスタッフより別途ご連絡します");
     if (input.onsiteAssembly && tiers.length === 3) {
       lines.push({ label: "出張組み立て料（〜）", amount: SPEC.onsiteAssemblyFee });
-      notes.push("出張組み立て料は、お伺いする場所により異なります（" + SPEC.onsiteAssemblyFee.toLocaleString() + "円〜）。スタッフよりご案内します");
+      notes.push("出張組み立て料は、お伺いする場所により異なります（" + SPEC.onsiteAssemblyFee.toLocaleString() + "円〜）。出張の納期・日程はパティシエの予定を確認のうえ、スタッフよりご連絡します（要確認）");
     }
 
     // タルトにカットケーキを載せる（オーナー確認 2026-09-26）：入れ物代がかかる。納期は通常どおり（2段のような資材の長い調達は不要）。

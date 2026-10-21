@@ -982,7 +982,7 @@ function orderDetailLines(data) {
   if (data.strawberryAdd) extras.push("いちごトッピング");
   if (data.topCut && !(data.cutCakes || []).length) extras.push("カットケーキ載せ" + (data.topCut.note ? "（" + data.topCut.note + "）" : ""));
   if (Array.isArray(data.cutCakes) && data.cutCakes.length) lines.push(diamondLine("カットケーキ", data.cutCakes.map((c) => c.name + "×" + c.qty).join("、")));
-  if (data.onsiteAssembly) extras.push("出張組み立て");
+  if (data.onsiteAssembly) extras.push("出張組み立て（納期・日程は要確認）");
   (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
   if (data.fruitExtra) extras.push("フルーツ増量");
   if (data.omakaseDeco) extras.push("おまかせデコレーション（" + data.omakaseDeco + "）");

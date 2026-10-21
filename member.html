@@ -242,7 +242,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <ul>
               <li>1段ずつ箱に入れてお渡しします。</li>
               <li>ご予約は、お受取日の<b>3営業日前まで</b>承ります。</li>
-              <li>組み立ては、次のどちらかをお選びください。<br>① お持ち帰りのうえ、お客様ご自身で重ねて載せていただく<br>② 出張料<b>5,000円〜</b>（お伺いする場所により異なります）で、パティシエがお伺いして組み立てる（日程によりお受けできない場合があります）</li>
+              <li>組み立ては、次のどちらかをお選びください。<br>① お持ち帰りのうえ、お客様ご自身で重ねて載せていただく<br>② 出張料<b>5,000円〜</b>（お伺いする場所により異なります）で、パティシエがお伺いして組み立てる<br>※出張の場合は<b>納期・日程は要確認</b>です。パティシエの予定を確認のうえ、スタッフよりご連絡します。</li>
             </ul>
           </div>
         </div>
@@ -367,7 +367,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="field__hint" style="margin-bottom:8px;">3段ケーキは1段ずつ箱に入れてお渡しします。お持ち帰りのうえ、お客様ご自身で重ねて載せていただくか、出張料5,000円〜（お伺いする場所により異なります）を加算のうえ、パティシエがお伺いして組み立てるかをお選びください（出張は日程によりお受けできない場合があります）。</div>
           <label class="field__check">
             <input type="checkbox" id="reserveOnsite">
-            <span>出張での組み立てを希望する（出張料 ¥5,000〜・お伺いする場所により異なります。日程によりお受けできない場合があります）</span>
+            <span>出張での組み立てを希望する（出張料 ¥5,000〜・お伺いする場所により異なります。納期・日程は要確認：パティシエの予定を確認のうえご連絡します）</span>
           </label>
         </div>
         <div class="field" id="reserveTierNoticeField" style="display:none;">
@@ -2423,7 +2423,7 @@ function renderReserveConfirm(data, targetId) {
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
     ${(data.cutCakes || []).length ? `<dt>上に載せるカットケーキ</dt><dd>${data.cutCakes.map(c => `${escape(c.name)} × ${c.qty}`).join("<br>")}</dd>` : ""}
     ${data.topCut ? `<dt>カットケーキ載せ</dt><dd>載せる（入れ物代あり）${data.topCut.note ? `：${escape(data.topCut.note)}` : ""}</dd>` : ""}
-    ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料5,000円〜・場所により異なります）</dd>` : ""}
+    ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料5,000円〜・場所により異なります／納期・日程は要確認）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${data.christmasOrder ? "無料でお付けします" : candleLine}</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>メッセージプレート</dt><dd>${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}</dd>` : ""}
     ${(isCake && (data.subtotal || data.priceNeedsConsult)) ? `<dt>お見積もり</dt><dd><strong>${estimateHeadline(data)}</strong>${(data.estimateLines || []).length ? `<div style="font-size:12px;margin-top:6px;line-height:1.7;">${data.estimateLines.map(l => `${escape(l.label)}　${CakePricing.yen(l.amount)}`).join("<br>")}</div>` : ""}${(data.estimateNotes || []).length ? `<div style="font-size:12px;margin-top:4px;">※${data.estimateNotes.map(n => escape(n)).join("／")}</div>` : ""}<div style="font-size:11.5px;color:#856e58;margin-top:6px;">${estimateDisclaimer(data)}</div></dd>` : ""}
@@ -2494,7 +2494,7 @@ function buildReserveSummaryText(data) {
   (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
   if ((data.cutCakes || []).length) lines.push(`上に載せるカットケーキ: ${data.cutCakes.map(c => c.name + "×" + c.qty).join("、")}`);
   if (data.topCut) lines.push(`カットケーキ載せ: 載せる（入れ物代あり）${data.topCut.note ? "：" + data.topCut.note : ""}`);
-  if (data.onsiteAssembly) lines.push("3段ケーキの組み立て: 出張組み立てを希望（出張料5,000円〜・場所により異なります）");
+  if (data.onsiteAssembly) lines.push("3段ケーキの組み立て: 出張組み立てを希望（出張料5,000円〜・場所により異なります／納期・日程は要確認）");
   if (isCake || isRoll) lines.push(`ろうそく: ${data.christmasOrder ? "無料でお付けします" : candleLine}`);
   if (isCake || isRoll) lines.push(`メッセージプレート: ${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}`);
   if (isCake && (data.subtotal || data.priceNeedsConsult)) {
