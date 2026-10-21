@@ -121,24 +121,44 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .topping-teaser__img img{width:100%;height:100%;object-fit:contain;display:block}
 .topping-teaser__sel{margin-top:8px;font-size:13px;font-weight:700;color:#8a5a12;line-height:1.6}
 .topping-sheet{position:fixed;inset:0;z-index:9000;background:rgba(40,26,16,.55);align-items:flex-end;justify-content:center}
-.topping-sheet__panel{background:#fff;width:100%;max-width:640px;max-height:92vh;border-radius:18px 18px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+.topping-sheet__panel{background:#fff;width:100%;max-width:640px;max-height:88vh;max-height:calc(100dvh - 10px);border-radius:18px 18px 0 0;padding:12px 12px 0;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .topping-sheet__head{display:flex;align-items:center;justify-content:space-between;font-size:17px}
 .topping-sheet__close{border:1px solid #d8baa4;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
-.topping-sheet__hint{font-size:12.5px;color:#7a6a58;line-height:1.6;margin:6px 0 8px}
+.topping-sheet__hint{font-size:12px;color:#7a6a58;line-height:1.5;margin:4px 0 6px}
 .topping-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:calc((100% - 16px) / 3);gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;padding-bottom:6px;min-height:0}
 .topping-grid .addon-card{scroll-snap-align:start;padding:6px!important}
-.topping-grid .addon-card > div:nth-of-type(1){font-size:12px!important;margin-top:4px!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.8em}
+.topping-grid .addon-card > div:nth-of-type(1){font-size:11.5px!important;margin-top:3px!important;line-height:1.3!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
 .topping-grid .addon-card button{width:28px!important;height:28px!important;font-size:16px!important}
 .topping-grid .addon-card > div:last-child{margin-top:4px!important;gap:8px!important}
-.topping-grid__img{width:100%;max-width:72px;aspect-ratio:1/1;object-fit:contain;border-radius:10px;display:block;margin:0 auto;background:#fff}
-.topping-sheet__foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #ecd9c4;padding-top:10px;margin-top:6px;font-size:14px;font-weight:700;color:#5a3a20}
+.topping-grid__img{width:100%;max-width:64px;aspect-ratio:1/1;object-fit:contain;border-radius:10px;display:block;margin:0 auto;background:#fff}
+.topping-sheet__foot{position:sticky;bottom:0;background:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid #ecd9c4;padding:10px 0 calc(10px + env(safe-area-inset-bottom));margin-top:6px;font-size:14px;font-weight:700;color:#5a3a20}
 .topping-sheet__done{border:none;border-radius:999px;background:#f0a63a;color:#fff;font-weight:700;font-size:15px;padding:10px 20px;cursor:pointer;flex-shrink:0}
 @media(min-width:700px){.topping-sheet{align-items:center}.topping-sheet__panel{border-radius:18px}}
+@media(max-height:760px){.topping-sheet__hint{display:none}.topping-grid__img{max-width:52px}.topping-grid{gap:6px}.topping-sheet__head{font-size:16px}}
 
 /* 3段ケーキのお渡しについて（2026-10-22） */
 .tier3-notice{margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:10px 14px;font-size:13.5px;line-height:1.8;color:#5a3a12}
 .tier3-notice__title{font-weight:700;margin-bottom:4px}
 .tier3-notice ul{margin:0;padding-left:1.2em}
+
+/* 引き取り希望日のカレンダー（2026-10-22） */
+.dcal-btn{text-align:left;cursor:pointer;background:#fff;font-weight:700;color:#3a2a1a;width:100%}
+.dcal-btn.is-empty{color:#9a8a78;font-weight:400}
+.dcal-btn.is-error{border-color:#b03b48;background:#fdeeee}
+.dcal{margin-top:8px;background:#fff;border:1px solid #ecd9c4;border-radius:12px;padding:10px;max-width:420px}
+.dcal__head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-size:16px}
+.dcal__nav{width:40px;height:40px;border-radius:50%;border:1px solid #e3d6c3;background:#fff;font-size:22px;line-height:1;cursor:pointer}
+.dcal__grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.dcal__dow{font-size:12px;font-weight:700;color:#7a6a58;padding:2px 0}
+.dcal__dow.is-sun{color:#b03b48}.dcal__dow.is-sat{color:#2f6fd6}
+.dcal__day{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:44px;border-radius:8px;border:1px solid #efe3d3;background:#fff;font-size:15px;font-weight:700;color:#3a2a1a;cursor:pointer;padding:0;font-family:inherit}
+.dcal__day.is-sun{color:#b03b48}.dcal__day.is-sat{color:#2f6fd6}
+.dcal__day.is-sel{background:#f0a63a;border-color:#f0a63a;color:#fff}
+.dcal__day.is-closed{background:#ece7e0;border-color:#ece7e0;color:#b5aca0;cursor:not-allowed;text-decoration:line-through}
+.dcal__day.is-closed small{font-size:10px;text-decoration:none;color:#9a8f82;line-height:1}
+.dcal__day.is-out{background:transparent;border-color:transparent;color:#cfc6ba;cursor:default;font-weight:400}
+.dcal__legend{margin-top:8px;font-size:12px;color:#7a6a58}
+.dcal__lg-closed{display:inline-block;padding:0 6px;border-radius:4px;background:#ece7e0;color:#9a8f82;font-weight:700}
 </style>
 </head>
 <body>
@@ -428,7 +448,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div id="liveTotalBar" class="live-total-bar" style="display:none;"></div>
         <div class="field">
           <label class="field__label" for="reserveDate">引き取り希望日<span class="req-mark">必須</span></label>
-          <input type="date" id="reserveDate" class="input">
+          <input type="hidden" id="reserveDate">
+          <button type="button" id="reserveDateBtn" class="input dcal-btn" aria-haspopup="dialog">日付を選んでください</button>
+          <div id="reserveDateCal" class="dcal" style="display:none;"></div>
           <div class="error" id="reserveDateError"></div>
           <div id="reservePhoneNotice" style="display:none;"></div>
           <div id="reserveLeadNotice" style="display:none;"></div>
@@ -2038,7 +2060,7 @@ function populateFlavorSelect(list) {
 }
 
 let reserveHolidays = { weeklyClosed: [1], extraClosed: [] };
-onValue(ref(db, "koimariContent/holidays"), (snap) => { const v = snap.val(); if (v) reserveHolidays = v; });
+onValue(ref(db, "koimariContent/holidays"), (snap) => { const v = snap.val(); if (v) reserveHolidays = v; try { const b = document.getElementById("reserveDateCal"); if (b && b.style.display !== "none") renderDateCal(); syncDateCalButton(); } catch (e) {} });
 
 // 「お子様の一日店長体験」の予約フォーム表示ON/OFF・候補日（admin.htmlの体験プログラム候補日パネルで管理）。
 // 10月開始が未確定なため、既定ではsiteConfig/kidsManagerReserveOpenがfalse（未設定時も含む）の間は選択肢自体を出さない。
@@ -2106,6 +2128,73 @@ function koimariSubstituteClosed(h, k) {
   }
   return false;
 }
+// ===== 引き取り希望日のカレンダー（2026-10-22オーナー指示）=====
+// スマホ標準の日付選択では休みの日を暗くできないため、営業日カレンダーと同じ判定（isClosedDate）で
+// 休みの日を暗く「休」と表示して押せなくする。過去の日・受付期間（min/max）外の日も押せない。
+// 値は隠し入力 #reserveDate に入れ、従来どおり change イベントで時間の選択肢・締切案内などを更新する。
+let dcalMonth = null;
+const DCAL_DOW = ["日", "月", "火", "水", "木", "金", "土"];
+function dcalLabel(v) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v || ""); if (!m) return "日付を選んでください";
+  const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return m[1] + "年" + Number(m[2]) + "月" + Number(m[3]) + "日（" + DCAL_DOW[d.getDay()] + "）";
+}
+function renderDateCal() {
+  const box = document.getElementById("reserveDateCal"), input = document.getElementById("reserveDate");
+  if (!box || !input) return;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const minKey = input.min || "", maxKey = input.max || "";
+  if (!dcalMonth) { const base = input.value ? new Date(input.value + "T00:00:00") : (minKey ? new Date(minKey + "T00:00:00") : today); dcalMonth = new Date(base.getFullYear(), base.getMonth(), 1); }
+  const y = dcalMonth.getFullYear(), mo = dcalMonth.getMonth();
+  const first = new Date(y, mo, 1), days = new Date(y, mo + 1, 0).getDate();
+  let html = '<div class="dcal__head"><button type="button" class="dcal__nav" data-dcal-nav="-1" aria-label="前の月">‹</button><b>' + y + "年" + (mo + 1) + '月</b><button type="button" class="dcal__nav" data-dcal-nav="1" aria-label="次の月">›</button></div>';
+  html += '<div class="dcal__grid">' + DCAL_DOW.map((w, i) => '<span class="dcal__dow' + (i === 0 ? " is-sun" : i === 6 ? " is-sat" : "") + '">' + w + "</span>").join("");
+  for (let i = 0; i < first.getDay(); i++) html += "<span></span>";
+  for (let dd = 1; dd <= days; dd++) {
+    const d = new Date(y, mo, dd), key = dateKeyLocal(d);
+    const closed = isClosedDate(d);
+    const out = d < today || (minKey && key < minKey) || (maxKey && key > maxKey);
+    const sel = input.value === key;
+    const cls = "dcal__day" + (closed ? " is-closed" : "") + (out ? " is-out" : "") + (sel ? " is-sel" : "") + (d.getDay() === 0 || JP_HOLIDAYS.has(key) ? " is-sun" : d.getDay() === 6 ? " is-sat" : "");
+    html += closed || out
+      ? '<span class="' + cls + '" aria-disabled="true">' + dd + (closed && !out ? "<small>休</small>" : "") + "</span>"
+      : '<button type="button" class="' + cls + '" data-dcal-day="' + key + '">' + dd + "</button>";
+  }
+  html += '</div><div class="dcal__legend"><span class="dcal__lg-closed">休</span> お休み（選べません）</div>';
+  box.innerHTML = html;
+}
+function syncDateCalButton() {
+  const input = document.getElementById("reserveDate"), btn = document.getElementById("reserveDateBtn");
+  if (!input || !btn) return;
+  btn.textContent = dcalLabel(input.value);
+  btn.classList.toggle("is-empty", !input.value);
+  // 休みの日が入っている（途中保存の復元など）ときは、その場でお知らせして確定に進めない（送信時にも同じ判定で止める）
+  const err = document.getElementById("reserveDateError");
+  if (input.value && /^\d{4}-\d{2}-\d{2}$/.test(input.value) && isClosedDate(new Date(input.value + "T00:00:00"))) {
+    if (err) err.textContent = "この日は定休日（お休み）のため選択できません。別の日をお選びください。";
+    btn.classList.add("is-error");
+  } else {
+    if (err && /定休日（お休み）のため選択できません/.test(err.textContent)) err.textContent = "";
+    btn.classList.remove("is-error");
+  }
+}
+document.addEventListener("click", (e) => {
+  const t = e.target && e.target.closest ? e.target : null; if (!t) return;
+  const box = document.getElementById("reserveDateCal");
+  if (t.closest("#reserveDateBtn")) { if (!box) return; const open = box.style.display === "none"; if (open) { dcalMonth = null; renderDateCal(); } box.style.display = open ? "" : "none"; return; }
+  const nav = t.closest("[data-dcal-nav]");
+  if (nav) { dcalMonth = new Date(dcalMonth.getFullYear(), dcalMonth.getMonth() + Number(nav.dataset.dcalNav), 1); renderDateCal(); return; }
+  const day = t.closest("[data-dcal-day]");
+  if (day) {
+    const input = document.getElementById("reserveDate");
+    input.value = day.dataset.dcalDay;
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+    if (box) box.style.display = "none";
+    return;
+  }
+});
+document.addEventListener("change", (e) => { if (e.target && e.target.id === "reserveDate") syncDateCalButton(); });
 function isClosedDate(d) {
   const key = dateKeyLocal(d);
   const isWeeklyClosed = ((reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key)) || koimariSubstituteClosed(reserveHolidays, key);
