@@ -404,7 +404,7 @@
         (est && !est.needsConsult && est.subtotal !== newPrice ? '<div class="re-lines">（参考）今の料金表どおりに計算した場合：' + yen(est.subtotal) + "</div>" : "")
       : "";
     html += '<div class="re-price">' + priceSummary + '<div class="re-price__auto">' + (est ? (est.needsConsult ? "料金表：この組み合わせは料金表にありません（金額を入力してください）" : (told.price ? "変更後の仕様の内訳（今の料金表）：<b>" : "自動計算：<b>") + yen(est.subtotal) + "</b>（税込）") : "") +
-      (est && est.lines && est.lines.length ? '<div class="re-lines">' + est.lines.map(function (l) { return esc(l.label) + "　" + yen(l.amount); }).join("<br>") + "</div>" : "") +
+      (est && est.lines && est.lines.length ? '<div class="re-lines">' + est.lines.map(function (l) { return esc(l.label) + "　" + yen(l.amount) + (l.range ? "〜" : ""); }).join("<br>") + "</div>" : "") +
       (est && est.notes && est.notes.length ? '<div class="re-lines">※' + est.notes.map(esc).join("<br>※") + "</div>" : "") + "</div>" +
       field("確定金額（税込）", '<div class="re-yen"><input type="number" min="0" class="input re-in" id="rePrice" value="' + esc(e.price || "") + '"> 円' + (est && !est.needsConsult ? ' <button type="button" class="re-btn re-btn--small" id="reUseAuto">変更後の金額を入れる</button>' : "") + "</div>") + "</div>";
     html += field("変更メモ（お客様のご要望など）", '<textarea class="input re-in" id="reMemo" rows="2" placeholder="例：お電話で5号に変更のご希望"></textarea>');

@@ -704,7 +704,7 @@ function buildStaffNotifyText(data) {
     lines.push("⚠ 特殊仕様（原価表にない組み合わせ）：お電話で仕様・料金を確認してください");
   } else if (data.subtotal) {
     const detail = Array.isArray(data.estimateLines) && data.estimateLines.length
-      ? ["", ...data.estimateLines.map((l) => "　" + l.label + " ¥" + Number(l.amount).toLocaleString())].join("\n")
+      ? ["", "　内訳", ...data.estimateLines.map((l) => "　" + l.label + " ¥" + Number(l.amount).toLocaleString() + (l.range ? "〜" : ""))].join("\n")
       : "";
     // priceIsFixed（member.htmlが保存）がtrueなら、お客様には確定金額として案内済み。
     const shown = data.priceIsFixed

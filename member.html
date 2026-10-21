@@ -2568,7 +2568,7 @@ function renderReserveConfirm(data, targetId) {
     ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料5,000円〜・場所により異なります／納期・日程は要確認）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${data.christmasOrder ? "無料でお付けします" : candleLine}</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>メッセージプレート</dt><dd>${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}</dd>` : ""}
-    ${(isCake && (data.subtotal || data.priceNeedsConsult)) ? `<dt>お見積もり</dt><dd><strong>${estimateHeadline(data)}</strong>${(data.estimateLines || []).length ? `<div style="font-size:12px;margin-top:6px;line-height:1.7;">${data.estimateLines.map(l => `${escape(l.label)}　${CakePricing.yen(l.amount)}`).join("<br>")}</div>` : ""}${(data.estimateNotes || []).length ? `<div style="font-size:12px;margin-top:4px;">※${data.estimateNotes.map(n => escape(n)).join("／")}</div>` : ""}<div style="font-size:11.5px;color:#856e58;margin-top:6px;">${estimateDisclaimer(data)}</div></dd>` : ""}
+    ${(isCake && (data.subtotal || data.priceNeedsConsult)) ? `<dt>お見積もり</dt><dd><strong>${estimateHeadline(data)}</strong>${(data.estimateLines || []).length ? `<div style="font-size:12.5px;margin-top:8px;line-height:1.8;"><div style="font-weight:700;">内訳</div>${data.estimateLines.map(l => `${escape(l.label)}　${CakePricing.lineYen(l)}`).join("<br>")}</div>` : ""}${(data.estimateNotes || []).length ? `<div style="font-size:12px;margin-top:4px;">※${data.estimateNotes.map(n => escape(n)).join("／")}</div>` : ""}<div style="font-size:11.5px;color:#856e58;margin-top:6px;">${estimateDisclaimer(data)}</div></dd>` : ""}
 
 
     ${item.message ? `<dt>メッセージプレートの文字（1枚目）</dt><dd>${escape(item.message)}</dd>` : ""}
@@ -2640,7 +2640,8 @@ function buildReserveSummaryText(data) {
   if (isCake || isRoll) lines.push(`メッセージプレート: ${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}`);
   if (isCake && (data.subtotal || data.priceNeedsConsult)) {
     lines.push(`お見積もり: ${estimateHeadline(data)}`);
-    (data.estimateLines || []).forEach(l => lines.push(`　・${l.label} ${CakePricing.yen(l.amount)}`));
+    if ((data.estimateLines || []).length) lines.push("　内訳");
+    (data.estimateLines || []).forEach(l => lines.push(`　・${l.label} ${CakePricing.lineYen(l)}`));
     (data.estimateNotes || []).forEach(n => lines.push(`　※${n}`));
     lines.push(`※${estimateDisclaimer(data)}`);
   }

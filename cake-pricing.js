@@ -127,7 +127,7 @@
       lines.push({ label: "カラークリーム（" + colors + "色）", amount: (SPEC.colorCream[cc] || 0) + (colors > 3 ? (colors - 3) * SPEC.colorCream[1] : 0) });
     }
     if (input.strawberryAdd && SPEC.strawberryAdd.creamTypes.indexOf(cream) >= 0) {
-      lines.push({ label: "いちごトッピング（目安）", amount: SPEC.strawberryAdd.price });
+      lines.push({ label: "いちごトッピング", amount: SPEC.strawberryAdd.price, range: true }); // 目安（「〜」で表示）
     }
     // 飾り付けの「いちご」「ミックスフルーツ」はどちらも基本料金に含む（2026-10-07オーナー確認：同じ価格）。
     // フルーツトッピング＝いちご・ミックスフルーツの「増量」（オプション）。input.fruitExtra のときだけ号数に応じて加算する。
@@ -157,7 +157,7 @@
     if (input.omakase && SPEC.omakaseDeco[input.omakase]) lines.push({ label: "おまかせデコレーション（" + input.omakase + "）", amount: SPEC.omakaseDeco[input.omakase] });
     if ((input.toppings || []).length) notes.push(input.toppings.join("・") + "の料金・納期は、ご予約後にスタッフより別途ご連絡します");
     if (input.onsiteAssembly && tiers.length === 3) {
-      lines.push({ label: "出張組み立て料（〜）", amount: SPEC.onsiteAssemblyFee });
+      lines.push({ label: "出張組み立て料", amount: SPEC.onsiteAssemblyFee, range: true }); // 場所により変わる（「〜」で表示）
       notes.push("出張組み立て料は、お伺いする場所により異なります（" + SPEC.onsiteAssemblyFee.toLocaleString() + "円〜）。出張の納期・日程はパティシエの予定を確認のうえ、スタッフよりご連絡します（要確認）");
     }
 
@@ -238,7 +238,8 @@
     });
   }
 
-  var api = { applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  function lineYen(l) { return yen(l && l.amount) + (l && l.range ? "〜" : ""); }
+  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);

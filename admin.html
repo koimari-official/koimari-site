@@ -1773,7 +1773,7 @@ function reservationPriceHtmlBody2(r) {
   }
   if (r.subtotal) {
     const lines = Array.isArray(r.estimateLines) && r.estimateLines.length
-      ? `<div style="font-size:10.5px;font-weight:500;color:#6b5a48;line-height:1.6;margin-top:2px;">${r.estimateLines.map(l => escapeHtml(l.label) + " ¥" + Number(l.amount).toLocaleString()).join("<br>")}</div>` : "";
+      ? `<div style="font-size:10.5px;font-weight:500;color:#6b5a48;line-height:1.6;margin-top:2px;">${r.estimateLines.map(l => escapeHtml(l.label) + " ¥" + Number(l.amount).toLocaleString() + (l.range ? "〜" : "")).join("<br>")}</div>` : "";
     const notes = Array.isArray(r.estimateNotes) && r.estimateNotes.length ? `<div style="font-size:10.5px;color:#a98554;">※${r.estimateNotes.map(escapeHtml).join("／")}</div>` : "";
     const amount = r.priceIsFixed
       ? "確定 ¥" + Number(r.subtotal).toLocaleString() + "（税込）"
