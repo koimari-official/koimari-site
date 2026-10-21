@@ -223,7 +223,7 @@ const KOIMARI_I18N_PHRASES = [
   ['ケーキの新作や店内の様子を、毎日の投稿でお届けしています。', 'New cakes and scenes from the shop, posted every day.'],
   ['Instagramを見る ↗', 'View Instagram ↗'],
   ['LINE公式アカウント', 'LINE Official Account'],
-  ['友だち追加で会員登録完了。ご予約のご相談はもちろん、新商品情報やお得なクーポンもお届けします。', 'Add us as a friend to become a member. Reserve, ask questions, and get news on new items and special coupons.'],
+  ['公式LINEアカウント開始！ご予約はもちろん、新商品情報やお得なクーポンを配信しております！', 'Our official LINE account is now open!<br>Reserve with us, and get news on new items and special coupons.'],
   ['友だち追加 ↗', 'Add friend ↗'],
   // フッター
   ['こ い ま り', 'K O I M A R I'],
