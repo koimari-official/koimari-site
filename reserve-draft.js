@@ -55,6 +55,18 @@
     return JSON.stringify(s);
   }
 
+  // オーダーメイド作品の「予約フォームの内容」（reserveSpec）→ 予約フォームの仕様（2026-10-22）
+  //  { tiers, size, cream, creamSub, decoration, topCutName, topCutQty }。上に載せるカットケーキは名前（カットケーキの商品名）と個数
+  function buildWorkSpec(w) {
+    if (!w || typeof w !== "object" || !w.size || !w.cream) return "";
+    var tiers = Number(w.tiers) || 1, specs = [];
+    for (var i = 0; i < tiers; i++) specs.push({ cream: w.cream, colors: [] });
+    var s = { v: 1, type: "デコレーションケーキ", tiers: tiers, activeTier: 0, sizes: [w.size], specs: specs };
+    if (w.creamSub) s.creamSub = w.creamSub;
+    if (w.decoration) s.decoration = w.decoration;
+    if (w.topCutName && Number(w.topCutQty) > 0) { s.topCut = true; s.cutQty = {}; s.cutQty[w.topCutName] = Number(w.topCutQty); }
+    return JSON.stringify(s);
+  }
   function liffUrl(code) { return LIFF_URL + "?draft=" + encodeURIComponent(code) + "#reserve"; }
   // ※ line.me/R/oaMessage/ 形式はPC等でLINE社のトップページに飛ぶため使わない（2026-10-02）。案内は LINE_ADD_URL に統一。
   function isLineBrowser() { return /Line\//i.test(navigator.userAgent); }
@@ -131,5 +143,5 @@
     }
   }
 
-  window.KoimariDraft = { start: start, liffUrl: liffUrl, buildSpec: buildSpec, LS_KEY: LS_KEY };
+  window.KoimariDraft = { start: start, liffUrl: liffUrl, buildSpec: buildSpec, buildWorkSpec: buildWorkSpec, LS_KEY: LS_KEY };
 })();

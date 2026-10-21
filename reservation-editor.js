@@ -56,7 +56,7 @@
     return Promise.all([getJson("siteImages/cutcakes"), getJson("koimariContent/costPublicPrices")]).then(function (v) {
       var arr = Array.isArray(v[0]) ? v[0] : Object.values(v[0] || {}), pm = {};
       ((v[1] && v[1].list) || []).forEach(function (p) { if (p && p.name) pm[p.name] = Number(p.salePrice) || 0; });
-      cutCatalog = arr.filter(function (it) { return it && it.name && it.visible !== false; }).map(function (it) {
+      cutCatalog = arr.filter(function (it) { return it && it.name && (it.visible !== false || (it.topperOk && it.topperWhenHidden)); }).map(function (it) {
         var nm = String(it.name).replace(/<[^>]*>/g, "");
         return { name: nm, img: it.img || "", price: pm[it.costName || ""] || pm[it.name] || pm[nm] || (Number(String(it.price || "").replace(/[^0-9]/g, "")) || 0) };
       });

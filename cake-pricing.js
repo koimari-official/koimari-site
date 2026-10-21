@@ -29,7 +29,7 @@
     // 特殊仕様の種類：通常と納期が異なる（材料の仕入れに2週間程度かかる場合がある。オーナー指示 2026-09-26）。
     specialTypes: { "ブルーベリーケーキ": { leadSoft: 14 } },
     tartTypes: ["フルーツタルトBOX", "ストロベリータルトBOX"], // カットケーキを載せられる種類
-    onsiteAssemblyFee: 20000, // 3段の出張組み立て料（交通費は別途）
+    onsiteAssemblyFee: 5000, // 3段の出張組み立て料の最低額。お伺いする場所により変わる（2026-10-22オーナー指示：5,000円〜）
     plainCreams: ["生クリーム", "生チョコクリーム"], // 単段の基本料金(sizePrices)がそのまま当てはまる種類
     // 2段・3段は「段ごとの合計」ではなく組み合わせごとの固定価格。lead＝箱・資材調達のため、
     // お受取日の何日前までに要予約か（min＝これを切ったらネット予約不可、soft＝これを切ったら調達状況次第）。
@@ -46,8 +46,9 @@
       "5号+3号": { price: 8200, lead: { min: 7, soft: 10 } },
       "6号+4号": { price: 11600, lead: { min: 7, soft: 10 } },
       "7号+5号": { price: 16800, lead: { min: 14, soft: 14 } },
-      "6号+4号+セルクル": { price: 17000, lead: { min: 7, soft: 10, assumed: true } },
-      "7号+5号+3号": { price: 22000, lead: { min: 14, soft: 14, assumed: true } }
+      // 3段は1段ずつ箱に入れてお渡しする（専用の箱は不要）ため、箱の調達による納期は設けない。通常どおりお受取日の3営業日前まで（2026-10-22オーナー指示）
+      "6号+4号+セルクル": { price: 17000 },
+      "7号+5号+3号": { price: 22000 }
     }
   };
 
@@ -156,8 +157,8 @@
     if (input.omakase && SPEC.omakaseDeco[input.omakase]) lines.push({ label: "おまかせデコレーション（" + input.omakase + "）", amount: SPEC.omakaseDeco[input.omakase] });
     if ((input.toppings || []).length) notes.push(input.toppings.join("・") + "の料金・納期は、ご予約後にスタッフより別途ご連絡します");
     if (input.onsiteAssembly && tiers.length === 3) {
-      lines.push({ label: "出張組み立て料", amount: SPEC.onsiteAssemblyFee });
-      notes.push("出張の交通費（燃料費・高速代往復・駐車料金・その他）は別途かかります");
+      lines.push({ label: "出張組み立て料（〜）", amount: SPEC.onsiteAssemblyFee });
+      notes.push("出張組み立て料は、お伺いする場所により異なります（" + SPEC.onsiteAssemblyFee.toLocaleString() + "円〜）。スタッフよりご案内します");
     }
 
     // タルトにカットケーキを載せる（オーナー確認 2026-09-26）：入れ物代がかかる。納期は通常どおり（2段のような資材の長い調達は不要）。

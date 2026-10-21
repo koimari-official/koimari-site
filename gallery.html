@@ -421,7 +421,10 @@ function reservePortfolio(btn) {
   }
   if (btn.dataset.waitTries) { btn.dataset.waitTries = 0; btn.disabled = false; btn.textContent = btn.dataset.label || "この内容で予約する"; }
   const label = "オーダーメイド作品 No." + String(no).padStart(2, "0") + (g.title ? "（" + g.title + "）" : "");
-  window.KoimariDraft.start({ name: label, productType: "decorationCake", img: g.img, size: g.size || "", orderMode: "custom" }, btn);
+  // 作品に「予約フォームの内容」が設定され、確定金額で受ける設定なら、その仕様を予約フォームに自動で入れる（2026-10-22）
+  const w = g.reserveSpec || null;
+  const spec = w && w.orderMode === "standard" && window.KoimariDraft.buildWorkSpec ? window.KoimariDraft.buildWorkSpec(w) : "";
+  window.KoimariDraft.start({ name: label, productType: "decorationCake", img: g.img, size: g.size || "", orderMode: spec ? "standard" : "custom", spec: spec || undefined }, btn);
 }
 document.addEventListener("click", (e) => {
   const btn = e.target.closest && e.target.closest("[data-reserve-no]");

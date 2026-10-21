@@ -3257,6 +3257,13 @@ function appendTopperControls(item, obj, onUpdate) {
   cb.addEventListener("change", () => { obj.topperOk = cb.checked; onUpdate(); });
   lab.appendChild(cb); lab.appendChild(document.createTextNode("🎂 ホールケーキの上に載せられる（予約フォームの写真選択に出す）"));
   box.appendChild(lab);
+  // ギャラリーでは非表示（イベント期間中など）でも、上に載せるカットケーキとしては選べるようにする（2026-10-22オーナー指示：たぬきち）
+  const lab2 = document.createElement("label");
+  lab2.style.cssText = "display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;";
+  const cb2 = document.createElement("input"); cb2.type = "checkbox"; cb2.checked = !!obj.topperWhenHidden;
+  cb2.addEventListener("change", () => { obj.topperWhenHidden = cb2.checked; onUpdate(); });
+  lab2.appendChild(cb2); lab2.appendChild(document.createTextNode("ギャラリーで非表示にしているときも、上に載せるカットケーキとしては選べる"));
+  box.appendChild(lab2);
   const row = document.createElement("div");
   row.style.cssText = "display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap;";
   row.appendChild(document.createTextNode("価格の元（原価計算アプリの商品）："));
@@ -6797,6 +6804,43 @@ document.getElementById("addFaqCat").addEventListener("click", () => {
 
 /* ============ ギャラリー管理 ============ */
 let galleryData = null;
+// オーダーメイド作品の「この作品で予約したときに、予約フォームで自動で選ぶ内容」（2026-10-22オーナー指示）。
+// 確定金額で受ける（standard）にすると、お客様が予約に進んだとき、土台・号数・上に載せるカットケーキと個数が最初から選ばれ、金額も確定で出る。
+// お見積もり（custom・既定）のままなら、これまでどおりスタッフがお電話で金額・納期を回答する。
+function appendWorkReserveSpec(item, g) {
+  const w = g.reserveSpec || {};
+  const box = document.createElement("div");
+  box.style.cssText = "padding:10px 14px;margin-top:8px;background:rgba(47,138,67,0.08);border-left:3px solid #2f8a43;display:flex;flex-direction:column;gap:6px;font-size:13px;";
+  const set = (k, v) => { g.reserveSpec = Object.assign({}, g.reserveSpec || {}, { [k]: v }); };
+  const sel = (label, key, opts) => {
+    const row = document.createElement("label"); row.style.cssText = "display:flex;align-items:center;gap:6px;flex-wrap:wrap;";
+    row.appendChild(document.createTextNode(label));
+    const el = document.createElement("select"); el.style.cssText = "padding:5px 8px;border:1px solid var(--color-line);font-size:13px;max-width:100%;";
+    el.innerHTML = opts.map(([v, t]) => '<option value="' + escapeHtml(v) + '"' + (String(w[key] || "") === v ? " selected" : "") + ">" + escapeHtml(t) + "</option>").join("");
+    el.addEventListener("change", () => set(key, el.value));
+    row.appendChild(el); return row;
+  };
+  const head = document.createElement("div"); head.style.cssText = "font-weight:700;";
+  head.textContent = "この作品で予約したときの予約フォーム";
+  box.appendChild(head);
+  box.appendChild(sel("ご注文の受け方：", "orderMode", [["", "お見積もり（スタッフが電話で金額・納期を回答）"], ["standard", "下の内容を自動で選び、確定金額で受ける"]]));
+  box.appendChild(sel("土台の種類：", "cream", [["", "（選ばない）"]].concat(SPEC_OPTIONS.cream)));
+  box.appendChild(sel("タルトの生クリーム：", "creamSub", [["", "（選ばない）"]].concat(SPEC_OPTIONS.creamSub)));
+  box.appendChild(sel("飾り付け：", "decoration", [["", "（選ばない）"]].concat(SPEC_OPTIONS.decoration)));
+  box.appendChild(sel("号数（1段）：", "size", [["", "（選ばない）"]].concat(SPEC_OPTIONS.size)));
+  const row = document.createElement("div"); row.style.cssText = "display:flex;align-items:center;gap:6px;flex-wrap:wrap;";
+  row.appendChild(document.createTextNode("上に載せるカットケーキ："));
+  const nm = document.createElement("input"); nm.placeholder = "商品名（例：たぬきち）"; nm.value = w.topCutName || ""; nm.style.cssText = "padding:5px 8px;border:1px solid var(--color-line);font-size:13px;width:12em;";
+  nm.addEventListener("input", () => set("topCutName", nm.value.trim()));
+  const qt = document.createElement("input"); qt.type = "number"; qt.min = "0"; qt.max = "5"; qt.value = w.topCutQty || ""; qt.style.cssText = "padding:5px 8px;border:1px solid var(--color-line);font-size:13px;width:4.5em;";
+  qt.addEventListener("input", () => set("topCutQty", Number(qt.value) || 0));
+  row.appendChild(nm); row.appendChild(qt); row.appendChild(document.createTextNode("個"));
+  box.appendChild(row);
+  const hint = document.createElement("div"); hint.style.cssText = "font-size:12px;color:var(--color-text-soft);line-height:1.6;";
+  hint.textContent = "カットケーキの商品名は、カットケーキ一覧の名前と同じにしてください（ギャラリーで非表示の商品は「非表示でも上に載せられる」にチェックが必要です）。確定金額で受けるには、土台の種類と号数が必要です。";
+  box.appendChild(hint);
+  item.appendChild(box);
+}
 function renderGalleryAdmin() {
   if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
   ensureCakeNumbers(galleryData); // オーダーメイド作品の固定番号（作品 No.01）。並び替え・削除で番号がずれないように
@@ -6852,6 +6896,7 @@ function renderGalleryAdmin() {
     item.insertBefore(catBox, firstField);
     item.appendChild(makeGalleryEditor(g, "img", { maxWidth: 2400, max: 6, onChange: () => renderGalleryAdmin() }));
     appendExtraFlags(item, galleryData[i], () => {});
+    appendWorkReserveSpec(item, galleryData[i]);
     // 並べ替え（2026-09-28）。このパネルの作品は公開ギャラリーの最初に並ぶ（他カテゴリーより前）。
     appendReorderControls(item, galleryData, i, () => renderGalleryAdmin(), "custom");
     { const tag = document.createElement("div"); tag.className = "cake-no-tag"; tag.textContent = "ギャラリー番号 作品 No." + String(g.no || "").padStart(2, "0") + "（お客様にはこの番号で表示されます）"; item.insertBefore(tag, item.firstChild); }
@@ -8002,7 +8047,7 @@ function buildPriceTable() {
     ["4号", "5号", "6号", "7号"].forEach(k => { cut += row("一番下が " + k, yenIn("cso_cutded_" + k, SO.cutTopDeduction[k])); });
     html += group("一番上をカットケーキにした時の値引き", "同じ組み合わせのホールケーキのセット価格からこの金額を引き、選んだカットケーキの代金を足します。", table(cut));
     html += group("おまかせデコレーション", "パティシエがケーキに合わせて飾り付けるオプション", table(["松", "竹", "梅"].map(k => row(k, yenIn("cso_omakase_" + k, SO.omakaseDeco[k]))).join("")));
-    html += group("その他", "", table(row("3段の出張組み立て料", yenIn("cso_onsite", SO.onsiteAssemblyFee), "交通費は別途")));
+    html += group("その他", "", table(row("3段の出張組み立て料（最低額）", yenIn("cso_onsite", SO.onsiteAssemblyFee), "お客様には「この金額〜」と案内。場所により加算")));
   }
   html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・ゼリー菓子などの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
   html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。<b>原価表にない組み合わせは「特殊仕様」</b>となり、予約フォームでは金額を出さず、スタッフがお電話で仕様・料金を確認します。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div><details style="margin-top:8px;"><summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6f9c;">原価計算アプリとの対応表を見る（自動判定が正しいか確認できます）</summary><div id="ptSourceMap" style="margin-top:8px;overflow-x:auto;"></div></details></div>' + html;
