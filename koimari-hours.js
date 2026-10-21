@@ -23,5 +23,35 @@
     const m = String(t || "").match(/^(\d{1,2}):(\d{2})$/);
     return m ? Number(m[1]) * 60 + Number(m[2]) : null;
   }
-  window.KoimariHours = { dayInfo, shortTime, toMinutes };
+
+  // 祝日（index.html・calendar.html・member.html と同じ一覧）。管理画面などはこちらを使う
+  const JP_HOLIDAYS = new Set([
+    "2026-01-01","2026-01-12","2026-02-11","2026-02-23","2026-03-20","2026-04-29",
+    "2026-05-03","2026-05-04","2026-05-05","2026-05-06","2026-07-20","2026-08-11",
+    "2026-09-21","2026-09-22","2026-09-23","2026-10-12","2026-11-03","2026-11-23",
+    "2027-01-01","2027-01-11","2027-02-11","2027-02-23","2027-03-21","2027-03-22",
+    "2027-04-29","2027-05-03","2027-05-04","2027-05-05","2027-07-19","2027-08-11",
+    "2027-09-20","2027-09-23","2027-10-11","2027-11-03","2027-11-23"
+  ]);
+  // 振替の定休日（月曜が祝日で営業した場合、その後の最初の祝日でない日が休み）
+  function substituteClosed(h, k) {
+    if (JP_HOLIDAYS.has(k)) return false;
+    const w = (h && h.weeklyClosed) || [1];
+    const p = new Date(k + "T00:00:00");
+    if (w.includes(p.getDay())) return false;
+    for (let i = 0; i < 7; i++) {
+      p.setDate(p.getDate() - 1);
+      const pk = p.getFullYear() + "-" + String(p.getMonth() + 1).padStart(2, "0") + "-" + String(p.getDate()).padStart(2, "0");
+      if (!JP_HOLIDAYS.has(pk)) return false;
+      if (w.includes(p.getDay())) return true;
+    }
+    return false;
+  }
+  // その日の営業情報（営業日カレンダーと同じ判定：臨時休業・特別営業時間・定休日・振替休業・祝日）
+  function dayInfoFor(h, key) {
+    const dow = new Date(key + "T00:00:00").getDay();
+    const regularClosed = (((h && h.weeklyClosed) || [1]).includes(dow) && !JP_HOLIDAYS.has(key)) || substituteClosed(h, key);
+    return dayInfo(h, key, dow, JP_HOLIDAYS.has(key), regularClosed);
+  }
+  window.KoimariHours = { dayInfo, dayInfoFor, shortTime, toMinutes, JP_HOLIDAYS, substituteClosed };
 })();

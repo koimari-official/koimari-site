@@ -244,9 +244,23 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .card { background: #fff; border: 1px solid var(--color-line); margin-bottom: 24px; }
 .card__head { font-family: var(--font-mincho); font-size: 15px; font-weight: 600; padding: 14px 20px; border-bottom: 1px solid var(--color-line); letter-spacing: 0.06em; background: var(--color-bg-soft); }
 .card__body { padding: 20px; }
+
+/* 予約カード：金額の状態と項目チップ（2026-10-21） */
+.rc-pb{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;margin:6px 0 8px;padding:8px 12px;border-radius:8px;font-size:18px;font-weight:800;border:2px solid}
+.rc-pb b{font-size:13px;padding:2px 8px;border-radius:999px;color:#fff}
+.rc-pb small{flex-basis:100%;font-size:12px;font-weight:600}
+.rc-pb--ok{background:#eef8ef;border-color:#7fbf8a;color:#1f5d2b}.rc-pb--ok b{background:#2f8a43}
+.rc-pb--warn{background:#fff7e6;border-color:#e6b65c;color:#7a4b00}.rc-pb--warn b{background:#c98a10}
+.rc-pb--ng{background:#fdeeee;border-color:#e39a9a;color:#8a2020}.rc-pb--ng b{background:#b03b48}
+.rc-chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.rc-chip{display:inline-flex;align-items:baseline;gap:6px;padding:4px 10px;border-radius:6px;background:#f6f1ea;border:1px solid #e3d6c3;font-size:14px;line-height:1.5;max-width:100%}
+.rc-chip i{font-style:normal;font-size:11.5px;font-weight:700;color:#8a7766;white-space:nowrap}
+.rc-chip--warn{background:#fdeeee;border-color:#e39a9a;color:#8a2020;font-weight:700}
+.rc-chip--note{background:#fffbea;border-color:#e6d48a}
 </style>
 <script src="cake-pricing.js"></script>
 <script src="photo-adjust.js"></script>
+<script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
 <script src="reservation-editor.js"></script>
@@ -4883,8 +4897,9 @@ async function openPhoneReservation() {
   for (let i = 0; i < 120; i++) {
     const d = new Date(t.getTime() + i * 86400000);
     const key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    const closed = extra.includes(key) || weekly.includes(d.getDay());
-    days.push({ key, label: (d.getMonth() + 1) + "月" + d.getDate() + "日（" + W[d.getDay()] + "）" + (i === 0 ? " 今日" : i === 1 ? " 明日" : "") + (closed ? " ※定休日" + (weekly.includes(d.getDay()) && d.getDay() === 1 ? "（祝日なら営業）" : "") : "") });
+    // 営業日カレンダーと同じ判定。お休みの日は選べない（振替休業・臨時休業を含む）。特別営業時間の日は時間も表示
+    const info = window.KoimariHours ? window.KoimariHours.dayInfoFor(hol, key) : { closed: extra.includes(key) || weekly.includes(d.getDay()) };
+    days.push({ key, closed: info.closed, label: (d.getMonth() + 1) + "月" + d.getDate() + "日（" + W[d.getDay()] + "）" + (i === 0 ? " 今日" : i === 1 ? " 明日" : "") + (info.closed ? " お休み" : info.special ? " 特別営業 " + info.open + "〜" + info.close : "") });
   }
   let staff = [];
   try { staff = (await window.fbResEditorApi.getStaff()) || []; } catch (e) {}
@@ -4909,7 +4924,7 @@ async function openPhoneReservation() {
     '</div>' +
     '<label class="pr-wide">ご注文内容（個数・ろうそく・その他のご希望など）<textarea id="prDetail" rows="2" placeholder="例：ろうそく大1本・小5本／カットケーキ いちごショート×3、モンブラン×2"></textarea></label>' +
     '<div class="pr-grid">' +
-      '<label>お引き取り日＊<select id="prDate"><option value="">選んでください</option>' + days.map((d) => '<option value="' + d.key + '">' + prEsc(d.label) + "</option>").join("") + '</select></label>' +
+      '<label>お引き取り日＊<select id="prDate"><option value="">選んでください</option>' + days.map((d) => '<option value="' + d.key + '"' + (d.closed ? ' disabled style="color:#b8a99a"' : '') + '>' + prEsc(d.label) + "</option>").join("") + '</select></label>' +
       '<label>お引き取り時間＊<select id="prTime"><option value="">選んでください</option>' + prOptions(PR_TIMES, "", (v) => v) + '</select></label>' +
       '<label>金額（税込・分かれば）<input id="prPrice" type="number" min="0" placeholder="3800"></label>' +
       '<label>アレルギー<input id="prAllergy" placeholder="なし／卵 など"></label>' +
@@ -5288,6 +5303,38 @@ function resFiltered(list) {
   });
   return out;
 }
+// 金額の状態（電話の前に、確定で案内済みか・見積もりが必要かがひと目でわかるように）
+function resPriceBadgeHtml(r) {
+  const yen = (n) => "¥" + Number(n).toLocaleString();
+  if (r.finalPrice) return '<div class="rc-pb rc-pb--ok"><b>金額確定</b>' + yen(r.finalPrice) + '<small>スタッフが確定済み</small></div>';
+  if (r.quoteSeparately || r.priceNeedsConsult || !r.subtotal) return '<div class="rc-pb rc-pb--ng"><b>要見積もり</b>' + (r.subtotal ? "目安 " + yen(r.subtotal) + "〜" : (r.galleryPick && /^目安/.test(r.galleryPick.price || "") ? escapeHtml(r.galleryPick.price) : "金額未提示")) + '<small>お電話で金額をお伝えしてください</small></div>';
+  if (r.priceIsFixed) return '<div class="rc-pb rc-pb--ok"><b>確定金額で案内済み</b>' + yen(r.subtotal) + '<small>お客様にこの金額をお伝え済み</small></div>';
+  return '<div class="rc-pb rc-pb--warn"><b>目安で案内中</b>' + yen(r.subtotal) + '〜<small>お電話で金額を確定してください</small></div>';
+}
+// 選ばれた内容を「項目：内容」で並べる
+function resSpecChipsHtml(r) {
+  const chips = [];
+  const add = (k, v, cls) => { if (v !== undefined && v !== null && String(v).trim() !== "") chips.push('<span class="rc-chip' + (cls ? " " + cls : "") + '"><i>' + escapeHtml(k) + "</i>" + escapeHtml(String(v)) + "</span>"); };
+  const it = (Array.isArray(r.items) && r.items[0]) || {};
+  add("用途", r.occasion ? r.occasion + (r.occasion === "その他" && r.occasionOther ? "（" + r.occasionOther + "）" : "") : "");
+  add("種類", it.category || r.category || r.cakeType || r.type);
+  add("内容", resCakeSpecLine(r));
+  if (Number(r.messageCount) > 0 || r.message || r.chocoText) add("メッセージ", (r.chocoText || r.message || "あり") + (Number(r.messageCount) > 1 ? "（" + r.messageCount + "枚）" : ""));
+  const extras = resExtrasLine(r);
+  // オプション（ろうそく・プレートは見出しを付けて表示。メッセージ文字が別にある場合はプレートの「文字未入力」は出さない）
+  if (extras) extras.split(/、|　|s*／s*/).map((x) => x.trim()).filter((x) => x && x !== "／" && !/^備考：/.test(x)).forEach((x) => {
+    if (/^ろうそく：/.test(x)) add("ろうそく", x.replace(/^ろうそく：/, ""));
+    else if (/^プレート/.test(x)) { if (!(r.chocoText || r.message) || !/文字未入力/.test(x)) add("プレート", x.replace(/^プレートs*/, "")); }
+    else add("オプション", x);
+  });
+  const allergy = (r.allergy || []).filter((a) => a && a !== "なし");
+  if (allergy.length) add("アレルギー", allergy.join("・"), "rc-chip--warn");
+  if (r.receiptNeeded) add("領収書", r.receiptName ? "宛名：" + r.receiptName : "必要");
+  if (r.noshi && r.noshi !== "不要" && r.noshi !== "なし") add("熨斗", [r.noshiTitle, r.noshiName].filter(Boolean).join(" / ") || r.noshi);
+  if (r.wrapping && r.wrapping !== "不要" && r.wrapping !== "なし") add("ラッピング", r.wrapping);
+  if (r.note && hasMeaningfulNoteAdmin(r.note)) add("備考", r.note, "rc-chip--note");
+  return chips.length ? '<div class="rc-chips">' + chips.join("") + "</div>" : "";
+}
 function resCardHtml(r, idx, byTel) {
   const status = r.status || "受付済";
   const overdue = isConfirmCallOverdue(r), payOverdue = isChristmasPaymentOverdue(r);
@@ -5308,11 +5355,10 @@ function resCardHtml(r, idx, byTel) {
         (r.channel === "電話" ? '<span class="rc-tag rc-tag--tel">電話' + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
         '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
-      '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + "</div>" +
-      '<div class="rc-spec">' + escapeHtml(resCakeSpecLine(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
-      (extras ? '<div class="rc-extra">' + escapeHtml(extras) + "</div>" : "") + alertHtml +
-      '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "　" + resAmountHtml(r) + "</div>" +
-      (allergy.length || (r.note && hasMeaningfulNoteAdmin(r.note)) || r.receiptNeeded ? '<div class="rc-warn">' + (allergy.length ? "アレルギー：" + escapeHtml(allergy.join("・")) + "　" : "") + (r.note && hasMeaningfulNoteAdmin(r.note) ? "備考：" + escapeHtml(r.note) + "　" : "") + (r.receiptNeeded ? "領収書（" + escapeHtml(r.receiptName || "") + "）" : "") + "</div>" : "") +
+      '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
+      resPriceBadgeHtml(r) + resSpecChipsHtml(r) + alertHtml +
+      '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "</div>" +
+      // アレルギー・備考・領収書は上の項目チップに表示（2026-10-21）
       '<div class="rc-checks">' +
         '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（未・3時間経過）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>" +
         '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">内容確定" + (r.reservationConfirmedBy ? byText(r.reservationConfirmedBy, r.reservationConfirmedAt) : (r.channel === "LINE" ? "（電話済みでLINE自動連絡）" : "")) + "</label>" +
