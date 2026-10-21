@@ -750,7 +750,27 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 @keyframes ef-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
 @media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:12.5px}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
 @media (prefers-reduced-motion: reduce){.event-fair__deco{animation:none}}
-/* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}.pay-xmas{display:block;margin-top:4px;font-weight:700;color:#a8362f}.pay-xmas[hidden]{display:none}</style>
+/* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}.pay-xmas{display:block;margin-top:4px;font-weight:700;color:#a8362f}.pay-xmas[hidden]{display:none}
+/* 今月の主役：特設ページへの大きなボタン（2026-10-21） */
+.spotlight__evbtn{display:flex;align-items:center;gap:14px;width:100%;max-width:520px;margin:6px 0 26px;padding:16px 22px;border-radius:14px;background:linear-gradient(120deg,var(--eb-bg1),var(--eb-bg2));color:var(--eb-ink);text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.18);transition:transform .25s,box-shadow .25s}
+.spotlight__evbtn:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(0,0,0,.24)}
+.spotlight__evbtn-deco{width:58px;height:58px;object-fit:contain;flex-shrink:0;animation:evbtnBob 2.6s ease-in-out infinite}
+.spotlight__evbtn-text{display:flex;flex-direction:column;min-width:0;flex:1}
+.spotlight__evbtn-en{font-size:13px;letter-spacing:.08em;color:var(--eb-accent);line-height:1.2}
+.spotlight__evbtn-ja{font-family:var(--eb-font);font-size:clamp(19px,2.2vw,25px);font-weight:900;color:var(--eb-accent);line-height:1.35;letter-spacing:.04em;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.spotlight__evbtn-arrow{font-size:26px;font-weight:700;color:var(--eb-ink);flex-shrink:0}
+@keyframes evbtnBob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
+@media(prefers-reduced-motion:reduce){.spotlight__evbtn-deco{animation:none}}
+@media(max-width:700px){.spotlight__evbtn{margin:4px auto 22px;padding:14px 16px;gap:10px}.spotlight__evbtn-deco{width:46px;height:46px}.spotlight__evbtn-ja{font-size:17px;white-space:nowrap}}
+
+/* Instagram投稿風カード（2026-10-21） */
+.ig-card--post{max-width:470px;margin:0 auto;width:100%}
+.ig-card__avatar-inner img{width:86%;height:86%;object-fit:contain;border-radius:50%}
+.ig-card--post .ig-card__handle,.ig-card--post .ig-card__location{display:block}
+.ig-card--post .ig-card__caption{padding-top:12px;max-height:118px}
+.ig-card--post .ig-card__cta{display:block}
+@media(max-width:700px){.social__grid{grid-template-columns:1fr!important}.ig-card--post{max-width:420px}}
+</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -1440,6 +1460,11 @@ function renderSpotlight(){
   const cta=en?(sp.ctaEn||sp.cta):sp.cta;
   const titlePlain=String(title||"").replace(/<\s*br\s*\/?\s*>/gi," ").trim();
   const titleSafe=escape(String(title||"")).replace(/&lt;\s*br\s*\/?\s*&gt;/gi,"<br>");
+  // 特設ページ（ハロウィン等）があれば、説明文のすぐ下に大きなボタン。色・書体・飾りはイベント帯と同じテーマのもの（2026-10-21）
+  const evT=sp.theme&&sp.pageUrl&&window.KoimariEventTheme&&window.KoimariEventTheme.THEMES[sp.theme];
+  const evBtn=evT?'<a class="spotlight__evbtn" href="'+escape(sp.pageUrl)+'" style="--eb-bg1:'+evT.colors.bg1+';--eb-bg2:'+evT.colors.bg2+';--eb-accent:'+evT.colors.accent+';--eb-ink:'+(evT.colors.dark?evT.colors.ink:"#ffffff")+';--eb-font:'+evT.font.family.replace(/"/g,"'")+'">'+
+    (evT.deco&&evT.deco[0]?'<img class="spotlight__evbtn-deco" src="event-assets/'+(evT.deco[0].indexOf("/")>=0?evT.deco[0]:sp.theme+"/"+evT.deco[0])+'.png" alt="">':"")+
+    '<span class="spotlight__evbtn-text"><span class="spotlight__evbtn-en">'+escape(evT.en)+'</span><span class="spotlight__evbtn-ja">'+(en?"See the special page":escape(evT.label)+"特設ページを見る")+'</span></span><span class="spotlight__evbtn-arrow" aria-hidden="true">→</span></a>':"";
   document.getElementById("spotlightInner").innerHTML=`
     <div class="spotlight__visual${sp.imgFit==="cover"?"":" is-whole"}">
       ${badge?`<span class="spotlight__badge">${escape(badge)}</span>`:""}
@@ -1451,8 +1476,9 @@ function renderSpotlight(){
       <h2 class="spotlight__title" style="${SP_FONTS[sp.titleFont]?"font-family:"+SP_FONTS[sp.titleFont].family.replace(/"/g,"'")+";":""}${[600,700,800,900].includes(Number(sp.titleWeight))?"font-weight:"+Number(sp.titleWeight)+";":""}">${titleSafe}</h2>
       ${sub?`<div class="spotlight__sub">${escape(sub)}</div>`:""}
       ${desc?`<p class="spotlight__desc">${escape(String(desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>`:""}
+      ${evBtn}
       ${window.KoimariPrice.has(sp.price)?`<div class="spotlight__price">${window.KoimariPrice.html(sp.price)}<span>${escape(priceNote||"")}</span></div>`:""}
-      <a href="${escape(sp.ctaUrl||"reservation.html")}" class="spotlight__cta">${escape(cta||"詳しく見る")}</a>
+      ${evBtn&&sp.ctaUrl===sp.pageUrl?"":`<a href="${escape(sp.ctaUrl||"reservation.html")}" class="spotlight__cta">${escape(cta||"詳しく見る")}</a>`}
     </div>`;
   if(window.PhotoAdjust)window.PhotoAdjust.register([sp]); // 管理画面で調整した色味・表示位置（2026-10-08）
   ensureSpFont(sp.titleFont);
@@ -1461,7 +1487,7 @@ function renderSpotlight(){
   fitSpotlightTitle(); if(document.fonts&&document.fonts.ready)document.fonts.ready.then(fitSpotlightTitle);
   // この特集の商品（2026-10-08）
   { const pk=document.getElementById("spotlightPicks"), picks=(Array.isArray(sp.picks)?sp.picks:[]).filter(p=>p&&p.name);
-    if(pk){ pk.innerHTML=picks.length?'<div class="spotlight__picks-title">'+(en?'Featured items':'この特集の商品')+'</div>'+(picks.length>3?'<div class="spotlight__picks-hint">'+(en?'Scroll for more →':'全'+picks.length+'点　横にスクロールしてご覧ください →')+'</div>':'')+'<div class="spotlight__picks-wrap"><button type="button" class="sp-scroll-btn sp-scroll-btn--prev" aria-label="前へ" hidden>‹</button><button type="button" class="sp-scroll-btn sp-scroll-btn--next" aria-label="次へ" hidden>›</button><div class="spotlight__picks-row">'+picks.map(p=>'<a class="spotlight__pick" href="product.html?type='+encodeURIComponent(p.type)+'&idx='+(Number(p.idx)||0)+'&n='+encodeURIComponent(p.name)+'">'+(p.img?'<img src="'+escape(p.img)+'" alt="" loading="lazy">':'<span class="spotlight__pick-noimg"></span>')+'<span class="spotlight__pick-name">'+escape(p.name)+'</span>'+'<span class="spotlight__pick-price">'+window.KoimariPrice.html(p.price)+'</span>'+'</a>').join('')+'</div></div>':''; setupPicksScroll(); } }
+    if(pk){ pk.innerHTML=picks.length?'<div class="spotlight__picks-title">'+(en?'A selection of featured items':'この特集の商品一例')+'</div>'+(picks.length>3?'<div class="spotlight__picks-hint">'+(en?'Scroll for more →':'全'+picks.length+'点　横にスクロールしてご覧ください →')+'</div>':'')+'<div class="spotlight__picks-wrap"><button type="button" class="sp-scroll-btn sp-scroll-btn--prev" aria-label="前へ" hidden>‹</button><button type="button" class="sp-scroll-btn sp-scroll-btn--next" aria-label="次へ" hidden>›</button><div class="spotlight__picks-row">'+picks.map(p=>'<a class="spotlight__pick" href="product.html?type='+encodeURIComponent(p.type)+'&idx='+(Number(p.idx)||0)+'&n='+encodeURIComponent(p.name)+'">'+(p.img?'<img src="'+escape(p.img)+'" alt="" loading="lazy">':'<span class="spotlight__pick-noimg"></span>')+'<span class="spotlight__pick-name">'+escape(p.name)+'</span>'+'<span class="spotlight__pick-price">'+window.KoimariPrice.html(p.price)+'</span>'+'</a>').join('')+'</div></div>':''; setupPicksScroll(); } }
 }
 
 function renderStats(){
@@ -1600,11 +1626,29 @@ setInterval(updateStatus,60000);
 /* ========= Instagram投稿風カード ========= */
 const igCard=document.getElementById("igCard");
 function renderInstaCard(){
-  // 以前は投稿風のカード（画像・いいね数など）を出していたが、いいね数などが手入力の偽の数字になるため廃止し、
-  // 最新投稿は「お知らせ」欄の先頭行に出す。ここはフォロー案内のみ（2026-09-29）。
+  // 2026-10-21：管理画面「Instagram投稿」に登録した投稿（写真・本文・投稿URL）を投稿風のカードで出す。
+  // いいね数・コメント数は手入力の作り物の数字になるため出さない（2026-09-29の判断を維持）。投稿が未登録ならフォロー案内だけ。
   if(!igCard) return;
-  igCard.href="https://www.instagram.com/_koimari_";
-  igCard.innerHTML=`<div class="ig-follow"><div class="ig-follow__handle">Instagram</div><div class="ig-follow__id">@_koimari_</div><p class="ig-follow__desc">ケーキの新作や店内の様子を、毎日の投稿でお届けしています。</p><span class="ig-follow__btn">Instagramを見る ↗</span></div>`;
+  const ig=loadInsta()||{};
+  const has=ig.visible!==false&&ig.img&&/^(https:\/\/|data:image\/)/.test(ig.img);
+  if(!has){
+    igCard.href="https://www.instagram.com/_koimari_"; igCard.classList.remove("ig-card--post");
+    igCard.innerHTML=`<div class="ig-follow"><div class="ig-follow__handle">Instagram</div><div class="ig-follow__id">@_koimari_</div><p class="ig-follow__desc">ケーキの新作や店内の様子を、毎日の投稿でお届けしています。</p><span class="ig-follow__btn">Instagramを見る ↗</span></div>`;
+    return;
+  }
+  const url=/^https:\/\/(www\.)?instagram\.com\//.test(ig.url||"")?ig.url:"https://www.instagram.com/_koimari_";
+  const raw=String(ig.caption||"");
+  const tags=(raw.match(/#[^\s#]+/g)||[]).slice(0,6);
+  const text=raw.replace(/#[^\s#]+/g,"").replace(/\n{3,}/g,"\n\n").trim();
+  igCard.href=url; igCard.classList.add("ig-card--post");
+  igCard.innerHTML=
+    '<div class="ig-card__header"><span class="ig-card__avatar"><span class="ig-card__avatar-inner"><img src="koimari-temari-mark.png" alt=""></span></span>'+
+    '<span class="ig-card__user"><span class="ig-card__handle">_koimari_</span><span class="ig-card__location">ケーキ屋さん こいまり 城東店</span></span><span class="ig-card__menu">···</span></div>'+
+    '<div class="ig-card__media"><img src="'+escape(ig.img)+'" alt="Instagramの投稿写真" loading="lazy"></div>'+
+    (text?'<div class="ig-card__caption"><strong>_koimari_</strong>'+escape(text).replace(/\n/g,"<br>")+'<span class="ig-card__caption-fade"></span></div>':"")+
+    (tags.length?'<div class="ig-card__hashtags">'+tags.map(escape).join(" ")+'</div>':"")+
+    (ig.date?'<div class="ig-card__date">'+escape(ig.date)+'</div>':"")+
+    '<span class="ig-card__cta">Instagramで続きを見る ↗</span>';
 }
 window.renderInstaCard=renderInstaCard;
 renderInstaCard();

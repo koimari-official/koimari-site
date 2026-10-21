@@ -36,6 +36,8 @@
       titleWeight: n.spWeight || "",
       picks: Array.isArray(n.picks) ? n.picks : [], // 選んだ商品はすべて（トップでは横スクロールで並べる）
       fromNewsId: n.id || "",
+      theme: n.theme || "", // 特設ページのテーマ（あればトップに特設ページへの大きなボタンを出す）
+      pageUrl: n.id ? "news.html?id=" + encodeURIComponent(n.id) : "",
     };
   }
   window.KoimariSpotlight = { pick, toSpotlight, fromNews: (list) => toSpotlight(pick(list)) };
