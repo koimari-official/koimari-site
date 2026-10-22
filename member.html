@@ -170,6 +170,13 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .pre-notes__head{font-size:13.5px;font-weight:700;color:#5a3a20;margin-bottom:2px}
 .pre-notes__item p{margin:0;font-size:13px;line-height:1.75;color:#4a3a2a}
 .pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
+
+/* クリスマスの案内（2026-10-22） */
+.xmas-guide{margin-top:10px;background:#fbf3ef;border:1px solid #d9a99a;border-radius:12px;padding:12px 14px;color:#5a2a20}
+.xmas-guide__title{font-weight:700;font-size:15px;margin-bottom:4px;color:#8a2a20}
+.xmas-guide p{margin:0 0 8px;font-size:13.5px;line-height:1.75}
+.xmas-guide__btn{display:block;text-align:center;background:#a8322a;color:#fff;font-weight:700;border-radius:999px;padding:11px 14px;text-decoration:none;font-size:15px;margin:4px 0 8px}
+.xmas-guide p.xmas-guide__sub{font-size:12.5px;color:#7a5a50;margin:0}
 </style>
 </head>
 <body>
@@ -352,10 +359,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__label">ご利用シーン<span class="req-mark">必須</span></label>
           <div class="radio-list">
             <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="バースデー"> バースデー（お誕生日）</label>
-            <!-- 「クリスマス」はご利用シーンから外した（2026-10-22オーナー指示）。クリスマスケーキは特設ページ（christmas.html）の特別仕様ケーキからのみ予約する -->
+            <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="クリスマス"> クリスマス</label>
             <label class="radio-list__opt"><input type="radio" name="reserveOccasion" value="その他"> その他</label>
           </div>
           <input type="text" id="reserveOccasionOther" class="input" style="display:none;margin-top:10px;" maxlength="20" placeholder="例: 退職祝い">
+          <div id="xmasGuide" class="xmas-guide" style="display:none;">
+            <div class="xmas-guide__title">クリスマスケーキのご予約は、特設ページで承っております</div>
+            <p>クリスマスは、この時期だけの特別仕様のケーキをご用意しています。特設ページからケーキをお選びのうえ、ご予約ください。</p>
+            <a class="xmas-guide__btn" href="christmas.html">クリスマスケーキ特設ページを見る</a>
+            <p class="xmas-guide__sub">クリスマス以外のご利用の場合は、上の「ご利用シーン」を選び直してください。</p>
+          </div>
           <div class="error" id="reserveOccasionError"></div>
           <div id="reserveChristmasNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>クリスマスケーキについて</strong><br>ご予約は12月20日までです（ご予約が満員になり次第、受付を終了します）。メッセージプレートは全商品「メリークリスマス」のチョコプレートが付きます（変更はできません）。ろうそくは無料でお付けします。「クリームたっぷり乗せ」などの増量はお受けできません。</div>
         </div>
@@ -1276,6 +1289,7 @@ function remainingItems() {
   const category = cv("reserveType") || "デコレーションケーキ";
   if (category === "デコレーションケーキ" && (!document.querySelectorAll(".tier-size-select").length || Array.from(document.querySelectorAll(".tier-size-select")).some(s => !s.value))) miss.push("サイズ");
   if (category !== "焼き菓子・ギフト" && !cv("reserveOccasion")) miss.push("ご利用シーン");
+  if (xmasOccasionChosen()) miss.push("ご利用シーン（クリスマスケーキは特設ページからご予約ください）");
   if (!v("reserveDate")) miss.push("お受取日");
   if (!v("reserveTime")) miss.push("お受取時間");
   if (!v("reserveName")) miss.push("お名前");
@@ -2006,7 +2020,7 @@ function updateCakeOptionUI() {
   const tiers = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
 
   // クリスマス：クリームたっぷり乗せ不可／メッセージプレートは「メリークリスマス」固定／ろうそくは無料（選択肢を出さない）
-  g("reserveChristmasNotice").style.display = isXmas ? "" : "none";
+  g("reserveChristmasNotice").style.display = isXmas && !xmasOccasionChosen() ? "" : "none"; // フォームでクリスマスを選んだ場合は特設ページへの案内だけを出す（2026-10-22）
   g("reserveCreamToppingField").style.display = isXmas ? "none" : "";
   g("reserveCandleField").style.display = isXmas ? "none" : "";
   g("reserveChocoField").style.display = isXmas ? "none" : "";
@@ -2255,6 +2269,17 @@ document.addEventListener("click", (e) => {
   }
 });
 document.addEventListener("change", (e) => { if (e.target && e.target.id === "reserveDate") syncDateCalButton(); });
+// ご利用シーン「クリスマス」の案内（2026-10-22）。クリスマスケーキの特設ページから来た予約（xmasモード）は対象外
+function xmasOccasionChosen() {
+  const v = (document.querySelector('input[name="reserveOccasion"]:checked') || {}).value || "";
+  const field = document.getElementById("reserveOccasionField");
+  return v === "クリスマス" && !!field && field.style.display !== "none";
+}
+function updateXmasGuide() {
+  const g = document.getElementById("xmasGuide");
+  if (g) g.style.display = xmasOccasionChosen() ? "" : "none";
+}
+document.addEventListener("change", (e) => { if (e.target && e.target.name === "reserveOccasion") updateXmasGuide(); });
 function isClosedDate(d) {
   const key = dateKeyLocal(d);
   const isWeeklyClosed = ((reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key)) || koimariSubstituteClosed(reserveHolidays, key);
@@ -2455,6 +2480,7 @@ function validateReserve(data) {
     if (isRoll && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
     if (!isBaked && !data.occasion) { setReserveError("reserveOccasionError", "ご利用シーンをお選びください"); ok = false; }
     else if (data.occasion === "その他" && !data.occasionOther.trim()) { setReserveError("reserveOccasionError", "ご利用シーンをご記入ください"); ok = false; }
+    else if (xmasOccasionChosen()) { setReserveError("reserveOccasionError", "クリスマスケーキは、特設ページからご予約ください（上のボタンから移動できます）"); ok = false; }
     if (!isBaked && !isRoll && !data.creamType) { setReserveError("reserveCreamTypeError", "クリームの種類をお選びください"); ok = false; }
     if (!isBaked && !isRoll && !data.decoration) { setReserveError("reserveDecorationError", "飾り付けをお選びください"); ok = false; }
     if (!isBaked && data.candleNeeded && !data.candleType) { setReserveError("reserveCandleError", "ろうそくの種類をお選びください"); ok = false; }
