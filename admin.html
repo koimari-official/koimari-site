@@ -257,6 +257,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-chip i{font-style:normal;font-size:11.5px;font-weight:700;color:#8a7766;white-space:nowrap}
 .rc-chip--warn{background:#fdeeee;border-color:#e39a9a;color:#8a2020;font-weight:700}
 .rc-chip--note{background:#fffbea;border-color:#e6d48a}
+.rc-chip--tier{flex-basis:100%;background:#fff;border-color:#d8c3a5}
 
 /* 使い方マニュアル（2026-10-21） */
 .man{background:#fff;border:1px solid var(--color-line);padding:22px 26px;max-width:860px;font-size:15px;line-height:1.85;color:var(--color-text)}
@@ -5353,14 +5354,14 @@ function resCakeTitle(r) {
   if (pick) return pick + (scale ? "　" + scale : "") + (occ ? "（" + occ + "）" : "");
   return (occ && occ !== "その他" ? occ : "") + "デコレーション" + (scale ? "　" + scale : "");
 }
-function resCakeSpecLine(r) {
+function resCakeSpecLine(r, opts) {
   const items = Array.isArray(r.items) ? r.items : [];
   const it = items[0] || {};
   if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return items.map((x) => (x.flavor || "") + " × " + (x.qty || 1) + "個").join("、");
   if (it.category === "焼き菓子") return r.note ? String(r.note).slice(0, 80) : "";
   const parts = [];
   if (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1) {
-    parts.push(r.tierSpecs.length + "段：" + r.tierSpecs.map((t) => t.tier.replace(/（.*$/, "") + " " + resSizeKey(t.size) + " " + (t.cream || "") + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "")).join("／"));
+    if (!(opts && opts.noTiers)) parts.push(r.tierSpecs.length + "段：" + r.tierSpecs.map((t) => t.tier.replace(/（.*$/, "") + " " + resSizeKey(t.size) + " " + (t.cream || "") + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "")).join("／"));
   } else {
     const sizes = items.map((x) => resSizeKey(x.size)).filter(Boolean);
     if (sizes.length) parts.push(sizes.length > 1 ? sizes.length + "段（" + sizes.join("＋") + "）" : sizes[0]);
@@ -5448,7 +5449,13 @@ function resSpecChipsHtml(r) {
   const it = (Array.isArray(r.items) && r.items[0]) || {};
   add("用途", r.occasion ? r.occasion + (r.occasion === "その他" && r.occasionOther ? "（" + r.occasionOther + "）" : "") : "");
   add("種類", it.category || r.category || r.cakeType || r.type);
-  add("内容", resCakeSpecLine(r));
+  // 2段・3段：段ごとに「サイズ・クリーム・色」（2026-10-22オーナー指示：段ごとに何クリームか・何色かが分かるように）
+  const tiersArr = Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? r.tierSpecs.slice() : null;
+  if (tiersArr) {
+    tiersArr.sort((a, b) => (parseInt(String(a.tier)) || 9) - (parseInt(String(b.tier)) || 9)); // 1段目（一番上）から
+    tiersArr.forEach((t) => add(String(t.tier || ""), resSizeKey(t.size) + "　" + (t.cream || "（種類なし）") + "　色：" + ((t.colors || []).length ? t.colors.join("・") : "なし"), "rc-chip--tier"));
+  }
+  add("内容", resCakeSpecLine(r, { noTiers: !!tiersArr }));
   if (Number(r.messageCount) > 0 || r.message || r.chocoText) add("メッセージ", (r.chocoText || r.message || "あり") + (Number(r.messageCount) > 1 ? "（" + r.messageCount + "枚）" : ""));
   const extras = resExtrasLine(r);
   // オプション（ろうそく・プレートは見出しを付けて表示。メッセージ文字が別にある場合はプレートの「文字未入力」は出さない）

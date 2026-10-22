@@ -362,7 +362,7 @@
         var n = e.tiers.length;
         html += '<div class="re-tier"><div class="re-tier__title">' + esc(n > 1 ? tierName(i, n) : "ケーキ") + "</div>" +
           field("サイズ", sel("reSize" + i, i === 0 ? (t.cream === "ムース" ? MOUSSE_SIZES : BOTTOM_SIZES) : UPPER_SIZES, t.size, function (o) { return o; })) +
-          (t.size === "セルクル" || t.size === "カットケーキ" ? "" : field("ベースの種類", sel("reCream" + i, CREAMS, t.cream || "生クリーム", function (o) { return o; })) +
+          (t.size === "カットケーキ" ? "" : field("ベースの種類", sel("reCream" + i, t.size === "セルクル" ? ["生クリーム", "生チョコクリーム"] : CREAMS, t.cream || "生クリーム", function (o) { return o; })) +
           (t.cream === "生クリーム" || !t.cream ? field("カラー（1段1色）", sel("reColor" + i, [""].concat(COLORS), t.color)) : "") +
           (i === 0 && TARTS.indexOf(t.cream) >= 0 ? field("タルトの生クリーム", sel("reCreamSub", ["生クリームあり", "生クリームなし"], e.creamSub || "生クリームあり", function (o) { return o; })) : "")) + "</div>";
       });
@@ -443,7 +443,7 @@
     if (g("reTiers")) {
       var n = Number(g("reTiers").value) || 1;
       e.tiers = e.tiers.map(function (t, i) {
-        return { size: g("reSize" + i) ? g("reSize" + i).value : t.size, cream: g("reCream" + i) ? g("reCream" + i).value : (g("reSize" + i) && /セルクル|カットケーキ/.test(g("reSize" + i).value) ? "" : t.cream), color: g("reColor" + i) ? g("reColor" + i).value : "" };
+        return { size: g("reSize" + i) ? g("reSize" + i).value : t.size, cream: g("reCream" + i) ? g("reCream" + i).value : (g("reSize" + i) && /カットケーキ/.test(g("reSize" + i).value) ? "" : t.cream), color: g("reColor" + i) ? g("reColor" + i).value : "" };
       });
       while (e.tiers.length < n) e.tiers.push({ size: UPPER_SIZES[0], cream: "生クリーム", color: "" });
       e.tiers = e.tiers.slice(0, n);
