@@ -187,6 +187,20 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .phone-mode-bar__hint{font-size:12.5px;opacity:.9;margin-top:6px;line-height:1.6}
 .phone-mode #reserveSubmitBtn{width:100%;font-size:18px;padding:16px}
 .phone-mode .radio-list__opt{min-height:48px}
+
+/* たためるオプション（2026-10-22） */
+.opt-collapse{border:1px solid #ecd9c4;border-radius:12px;background:#fff;padding:0;overflow:hidden}
+.opt-collapse__head{display:flex;align-items:center;gap:8px;width:100%;background:#fffaf2;border:none;padding:14px 14px;text-align:left;cursor:pointer;font-family:inherit;min-height:52px}
+.opt-collapse__title{font-weight:700;font-size:15px;color:#4a3a2a;flex:1}
+.opt-collapse__sum{font-size:13px;color:#8a7766;max-width:45%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.opt-collapse__sum.is-set{color:#a5531a;font-weight:700}
+.opt-collapse__arrow{font-size:18px;color:#c9a96e;width:20px;text-align:center}
+.opt-collapse.is-open .opt-collapse__arrow{transform:rotate(45deg)}
+.opt-collapse__body{display:none;padding:12px 14px 14px;border-top:1px solid #f0e4d4}
+.opt-collapse.is-open .opt-collapse__body{display:block}
+.opt-photo{width:64px;height:64px;object-fit:cover;border-radius:8px;margin-right:8px;flex-shrink:0;vertical-align:middle}
+.opt-photo--wide{display:block;width:100%;max-width:280px;height:auto;aspect-ratio:4/3;margin:0 0 10px}
+.opt-photo--card{display:block;width:100%;height:auto;aspect-ratio:1/1;margin:0 0 6px}
 </style>
 </head>
 <body>
@@ -2320,6 +2334,56 @@ function updateXmasGuide() {
   if (g) g.style.display = xmasOccasionChosen() ? "" : "none";
 }
 document.addEventListener("change", (e) => { if (e.target && e.target.name === "reserveOccasion") updateXmasGuide(); });
+// ===== オプションをたためる形に（2026-10-22オーナー指示）=====
+// 見出しを押すと開く。閉じていても選んだ内容を見出しの横に出す。写真は管理画面で登録したもの（koimariContent/reserveOptionPhotos）だけ
+let OPT_PHOTOS = {};
+const OPT_SECTIONS = [
+  { id: "reserveCandleField", title: "ろうそく", sum: () => { const c = document.getElementById("reserveCandleNeeded"); if (!c || !c.checked) return "なし"; const t = (document.querySelector('input[name="reserveCandleType"]:checked') || {}).value || ""; return t; } },
+  { id: "reserveChocoField", title: "メッセージプレート（名入れチョコ）", sum: () => { const n = Number((document.getElementById("reserveMessageCount") || {}).value || 0); const t = (document.getElementById("reserveChocoText") || {}).value || ""; return n > 0 ? n + "枚" + (t ? "「" + t + "」" : "") : "なし"; } },
+  { id: "reserveToppingsField", title: "トッピング（金粉・金箔・アラザン）", sum: () => { const v = Array.from(document.querySelectorAll(".reserve-topping:checked")).map((e) => e.value); return v.length ? v.join("・") : "なし"; } },
+  { id: "reserveOmakaseField", title: "おまかせデコレーション（松・竹・梅）", sum: () => { const v = (document.querySelector('input[name="reserveOmakase"]:checked') || {}).value || ""; return v ? v : "なし"; } },
+];
+function setupOptionCollapse() {
+  OPT_SECTIONS.forEach((sec) => {
+    const f = document.getElementById(sec.id);
+    if (!f || f.dataset.collapsible) return;
+    f.dataset.collapsible = "1";
+    f.classList.add("opt-collapse");
+    const body = document.createElement("div"); body.className = "opt-collapse__body";
+    while (f.firstChild) body.appendChild(f.firstChild);
+    const head = document.createElement("button"); head.type = "button"; head.className = "opt-collapse__head";
+    head.innerHTML = '<span class="opt-collapse__title">' + sec.title + '</span><span class="opt-collapse__sum"></span><span class="opt-collapse__arrow" aria-hidden="true">＋</span>';
+    head.addEventListener("click", () => { f.classList.toggle("is-open"); });
+    f.appendChild(head); f.appendChild(body);
+  });
+  updateOptionSummaries();
+}
+function updateOptionSummaries() {
+  OPT_SECTIONS.forEach((sec) => { const f = document.getElementById(sec.id); const el = f && f.querySelector(".opt-collapse__sum"); if (el) { const v = sec.sum(); el.textContent = v; el.classList.toggle("is-set", v !== "なし"); } });
+}
+// 写真（登録されているものだけ）
+function applyOptionPhotos() {
+  const put = (host, key, cls) => {
+    if (!host) return;
+    let img = host.querySelector("img.opt-photo[data-k='" + key + "']");
+    if (!OPT_PHOTOS[key]) { if (img) img.remove(); return; }
+    if (!img) { img = document.createElement("img"); img.className = "opt-photo " + (cls || ""); img.dataset.k = key; img.alt = ""; img.loading = "lazy"; host.insertBefore(img, host.firstChild); }
+    img.src = OPT_PHOTOS[key];
+  };
+  const lab = (sel) => { const i = document.querySelector(sel); return i ? i.closest("label") : null; };
+  put(lab('input[name="reserveCandleType"][value="普通のろうそく"]'), "candlePlain");
+  put(lab('input[name="reserveCandleType"][value="ナンバーろうそく"]'), "candleNumber");
+  { const f = document.getElementById("reserveChocoField"); put(f && f.querySelector(".opt-collapse__body"), "messagePlate", "opt-photo--wide"); }
+  put(lab('.reserve-topping[value="金粉"]'), "kinpun");
+  put(lab('.reserve-topping[value="金箔"]'), "kinpaku");
+  put(lab('.reserve-topping[value="アラザン"]'), "arazan");
+  put(lab('input[name="reserveOmakase"][value="松"]'), "omakaseMatsu", "opt-photo--card");
+  put(lab('input[name="reserveOmakase"][value="竹"]'), "omakaseTake", "opt-photo--card");
+  put(lab('input[name="reserveOmakase"][value="梅"]'), "omakaseUme", "opt-photo--card");
+}
+onValue(ref(db, "koimariContent/reserveOptionPhotos"), (snap) => { OPT_PHOTOS = snap.val() || {}; try { applyOptionPhotos(); } catch (e) {} });
+document.addEventListener("change", () => { try { updateOptionSummaries(); } catch (e) {} });
+document.addEventListener("input", (e) => { if (e.target && e.target.id === "reserveChocoText") try { updateOptionSummaries(); } catch (er) {} });
 function isClosedDate(d) {
   const key = dateKeyLocal(d);
   const isWeeklyClosed = ((reserveHolidays.weeklyClosed || []).includes(d.getDay()) && !JP_HOLIDAYS.has(key)) || koimariSubstituteClosed(reserveHolidays, key);
@@ -3044,6 +3108,7 @@ async function checkFriendship() {
 const NAME_INPUT_RE = /^[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}ー・\s]+$/u;
 function setupReserveForm(uid, displayName) {
   memberUid = uid;
+  try { setupOptionCollapse(); applyOptionPhotos(); } catch (e) { console.error(e); }
   initDraftFeature();
   renderColorChips();
   initLastOrderBanner(); initPastOrders(uid); createReserveFloat(); updateChocoPreview();

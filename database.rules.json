@@ -89,8 +89,17 @@
       ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "noritate": {
-      ".read": true,
-      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
+      "content": {
+        ".read": true,
+        ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
+      },
+      "contacts": {
+        ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
+        "$id": {
+          ".write": "(auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')) || !data.exists()",
+          ".validate": "newData.hasChildren(['name', 'email', 'message', 'submittedAt']) && newData.child('name').isString() && newData.child('name').val().length <= 100 && newData.child('email').isString() && newData.child('email').val().length <= 200 && newData.child('message').isString() && newData.child('message').val().length <= 5000"
+        }
+      }
     },
     "siteImages": {
       ".read": true,

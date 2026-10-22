@@ -1543,6 +1543,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="panel__head"><h2 class="panel__title">料金表（単価）</h2></div>
       <p class="panel__desc">LINE予約フォームの自動見積もりに使っている<strong>現在の単価の一覧</strong>です（すべて税込）。数字を書き換えて「保存して反映」を押すと、予約フォームの見積もりに即時反映されます。書き換えた欄は黄色になり、保存前に変更内容を確認できます。</p>
       <div id="ptTable"></div>
+      <div id="optPhotoAdmin" style="margin:24px 0;"></div>
       <div style="position:sticky;bottom:0;background:var(--color-bg,#fff);padding:14px 0;border-top:1px solid var(--color-line);margin-top:10px;">
         <button class="btn" id="cfSavePrices">保存して反映</button>
         <span id="cfPricesSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
@@ -2138,6 +2139,7 @@ function activateTab(t, updateHash) {
     if (t.dataset.panel === "checker") renderChecker();
     if (t.dataset.panel === "news") renderNewsAdmin();
     if (t.dataset.panel === "spotlight") renderSpotlightAdmin();
+    if (t.dataset.panel === "priceTable") renderOptPhotoAdmin();
     if (t.dataset.panel === "instagram") renderInstaAdmin();
     if (t.dataset.panel === "statsTop") renderStatsAdmin();
     if (t.dataset.panel === "holidays") renderHolidaysAdmin();
@@ -6859,6 +6861,29 @@ function appendWorkReserveSpec(item, g) {
   box.appendChild(hint);
   item.appendChild(box);
 }
+// 予約フォームのオプション写真（2026-10-22）：ろうそく・プレート・金粉など・松竹梅。写真は元の画質のまま保存（縮小しない）
+const OPT_PHOTO_SLOTS = [["candlePlain","普通のろうそく"],["candleNumber","ナンバーろうそく"],["messagePlate","メッセージプレート（名入れチョコ）"],["kinpun","金粉"],["kinpaku","金箔"],["arazan","アラザン（銀の粒）"],["omakaseMatsu","おまかせデコレーション 松"],["omakaseTake","おまかせデコレーション 竹"],["omakaseUme","おまかせデコレーション 梅"]];
+async function renderOptPhotoAdmin() {
+  const box = document.getElementById("optPhotoAdmin");
+  if (!box || typeof window.fbGetOptPhotos !== "function") return;
+  let cur = {};
+  try { cur = await window.fbGetOptPhotos(); } catch (e) {}
+  box.innerHTML = '<h3 style="font-size:16px;margin:0 0 4px;">予約フォームのオプション写真</h3><p class="panel__desc" style="margin:0 0 10px;">ろうそく・メッセージプレート・金粉などの写真です。登録すると、予約フォームのその選択肢に写真が出ます（未登録の項目は文字だけで表示）。</p>' +
+    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;">' +
+    OPT_PHOTO_SLOTS.map(([k, label]) => '<div style="border:1px solid var(--color-line);border-radius:10px;padding:8px;background:#fff;"><div style="font-size:13px;font-weight:700;margin-bottom:6px;">' + escapeHtml(label) + '</div>' +
+      (cur[k] ? '<img src="' + escapeHtml(cur[k]) + '" alt="" style="width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:8px;">' : '<div style="width:100%;aspect-ratio:1/1;border-radius:8px;background:#f6f1ea;display:flex;align-items:center;justify-content:center;font-size:12px;color:#8a7766;">未登録</div>') +
+      '<label class="btn btn--small" style="display:block;text-align:center;margin-top:6px;cursor:pointer;">写真を選ぶ<input type="file" accept="image/*" data-optphoto="' + k + '" hidden></label>' +
+      (cur[k] ? '<button type="button" class="btn btn--small btn--ghost" data-optphoto-del="' + k + '" style="width:100%;margin-top:4px;">写真を外す</button>' : '') + '</div>').join("") + "</div>";
+  box.querySelectorAll("[data-optphoto]").forEach((inp) => inp.addEventListener("change", async () => {
+    const f = inp.files && inp.files[0]; if (!f) return;
+    try { const url = await window.fbUploadImage(f, f.type); await window.fbSetOptPhoto(inp.dataset.optphoto, url); showToast("写真を登録しました（予約フォームに反映されます）"); renderOptPhotoAdmin(); }
+    catch (e) { showToast("写真の登録に失敗しました：" + (e && e.message || e), "error"); }
+  }));
+  box.querySelectorAll("[data-optphoto-del]").forEach((b) => b.addEventListener("click", async () => {
+    if (!confirm("この写真を予約フォームから外しますか？")) return;
+    await window.fbSetOptPhoto(b.dataset.optphotoDel, null); renderOptPhotoAdmin();
+  }));
+}
 function renderGalleryAdmin() {
   if (!galleryData) galleryData = loadByKey(GALLERY_KEY, DEFAULT_GALLERY);
   ensureCakeNumbers(galleryData); // オーダーメイド作品の固定番号（作品 No.01）。並び替え・削除で番号がずれないように
@@ -7098,6 +7123,9 @@ const fbStorage = getStorage(fbApp);
 // 画像バイナリはFirebase Storageに保存し、Realtime Databaseには軽量なURL文字列だけを
 // 持たせる、本来あるべき構成に変更する。これにより、写真の解像度・複雑さに関わらず
 // レコードサイズは常に小さいまま保たれる。
+// 予約フォームのオプション写真（koimariContent/reserveOptionPhotos。2026-10-22）
+window.fbGetOptPhotos = () => get(ref(fbDb, "koimariContent/reserveOptionPhotos")).then((s) => s.val() || {});
+window.fbSetOptPhoto = (key, url) => update(ref(fbDb, "koimariContent/reserveOptionPhotos"), { [key]: url || null });
 window.fbUploadImage = async function (blob, contentType) {
   // 2026-09-23、元画像（トリミング前のオリジナル）もそのままアップロードするようになったため、
   // 常にJPEG固定ではなく、渡されたBlobの実際の型（file.type）を尊重する。キャンバス由来の
