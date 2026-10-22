@@ -1391,6 +1391,41 @@ function buildCustomerConfirmationEmailText(data) {
   ].join("\n");
 }
 
+// ===== NORI&TATE お問い合わせの通知（2026-10-22）=====
+// 公式サイトのお問い合わせ（noritate/contacts に保存）を noritate.official@gmail.com に知らせる。
+// 人には見えない入力欄（hp）に何か入っていれば機械による送信とみなし、通知せずに削除する。
+const NORITATE_NOTIFY_TO = "noritate.official@gmail.com";
+const NORITATE_TYPES = {"succession":"事業承継について","support":"経営の伴走支援（継続・スポット）","web":"ホームページ・SNSについて","ai":"AIの導入・活用について","other":"その他・まずは相談したい"};
+exports.notifyNoritateContact = onValueCreated(
+  { ref: "/noritate/contacts/{id}", instance: "koimari-tasting-default-rtdb", region: "asia-southeast1", secrets: [GMAIL_USER, GMAIL_APP_PASSWORD] },
+  async (event) => {
+    const c = event.data.val();
+    if (!c) return;
+    if (c.hp) { await admin.database().ref("noritate/contacts/" + event.params.id).remove(); console.warn("NORI&TATE: 自動送信とみなして削除", event.params.id); return; }
+    const type = NORITATE_TYPES[c.type] || c.type || "（未選択）";
+    const text = [
+      "NORI&TATE 公式サイトからお問い合わせが届きました。",
+      "",
+      "■ お名前：" + (c.name || ""),
+      "■ 会社名：" + (c.company || ""),
+      "■ メール：" + (c.email || ""),
+      "■ 電話番号：" + (c.phone || ""),
+      "■ ご相談の種類：" + type,
+      "■ 受信日時：" + String(c.submittedAt || "").replace("T", " ").slice(0, 16) + "（UTC）",
+      "",
+      "■ お問い合わせ内容",
+      String(c.message || ""),
+      "",
+      "管理画面（対応状況・メモ・返信）：https://koimari-official.github.io/NORI-TATE.official-site/admin.html",
+    ].join("\n");
+    try {
+      const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } });
+      await transporter.sendMail({ from: `"NORI&TATE お問い合わせ通知" <${GMAIL_USER.value()}>`, to: NORITATE_NOTIFY_TO, replyTo: c.email || undefined, subject: "【NORI&TATE】お問い合わせ：" + (c.name || "") + " 様（" + type + "）", text });
+      await admin.database().ref("noritate/contacts/" + event.params.id + "/notifiedAt").set(new Date().toISOString());
+    } catch (err) { console.error("NORI&TATE お問い合わせ通知の送信失敗:", err); }
+  }
+);
+
 async function sendCustomerConfirmationEmail(data) {
   if (!data.email) return false;
   try {
