@@ -202,6 +202,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .opt-photo--wide{display:block;width:100%;max-width:280px;height:auto;aspect-ratio:4/3;margin:0 0 10px}
 .opt-photo--card{display:block;width:100%;height:auto;aspect-ratio:1/1;margin:0 0 6px}
 </style>
+<style>.grecaptcha-badge{visibility:hidden!important}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -648,6 +649,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <button class="btn btn--ghost" id="reserveBackBtn" type="button">修正する</button>
         </div>
         <div class="error" id="reserveSubmitError"></div>
+        <p style="font-size:11px;line-height:1.7;color:#8a7a6a;margin-top:10px;">このサイトはreCAPTCHAによって保護されており、Googleの<a href="https://policies.google.com/privacy?hl=ja" target="_blank" rel="noopener">プライバシーポリシー</a>と<a href="https://policies.google.com/terms?hl=ja" target="_blank" rel="noopener">利用規約</a>が適用されます。</p>
       </div>
 
       <div id="reserveThanksWrap" class="notice-box" style="display:none;padding:0;border:none;text-align:left;">
@@ -691,6 +693,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 import { getDatabase, ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { initializeAuth, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
@@ -710,6 +713,8 @@ const firebaseConfig = {
   appId: "1:852851855633:web:1bb5765680a137f20abcb0"
 };
 const fbApp = initializeApp(firebaseConfig);
+// App Check（2026-10-23）：正規のページからの通信に印を付ける（ロボットによる大量の書き込み対策）。Firebaseで「適用」するまでは確認だけ。
+try { initializeAppCheck(fbApp, { provider: new ReCaptchaEnterpriseProvider("6LeTWvstAAAAADtCiZryhHIWWLne5_6PIa-lUNbD"), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn("AppCheck:", e && e.message); }
 const db = getDatabase(fbApp);
 
 function escape(str) {

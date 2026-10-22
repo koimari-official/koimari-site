@@ -568,6 +568,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .om-status--warn{color:#b03b48}
 @media(max-width:600px){.om-modes,.om-grid{grid-template-columns:1fr}}
 </style>
+<style>.grecaptcha-badge{visibility:hidden!important}</style>
 </head>
 <body>
 
@@ -7260,6 +7261,7 @@ function applyFetchedOpsContent(all) {
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 import { getDatabase, ref, onValue, update, remove, get, push, set, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, initializeAuth, browserLocalPersistence, inMemoryPersistence, signInWithEmailAndPassword, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
@@ -7275,6 +7277,8 @@ const firebaseConfig = {
 };
 await (window.__idbReady || Promise.resolve());
 const fbApp = initializeApp(firebaseConfig);
+// App Check（2026-10-23）：正規のページからの通信に印を付ける（ロボットによる大量の書き込み対策）。Firebaseで「適用」するまでは確認だけ。
+try { initializeAppCheck(fbApp, { provider: new ReCaptchaEnterpriseProvider("6LeTWvstAAAAADtCiZryhHIWWLne5_6PIa-lUNbD"), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn("AppCheck:", e && e.message); }
 const fbDb = getDatabase(fbApp);
 // 2026-10-03：スマホ（iPhoneのSafari等）で、ブラウザ内のデータベース（IndexedDB）が応答しなくなっていると、Firebaseのログインが
 // いつまでも終わらず、ログイン画面から動かなくなる不具合があった（オーナーのスマホで発生・PCで再現確認）。標準設定（getAuth）は

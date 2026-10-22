@@ -81,6 +81,7 @@ body.embed .cal-head,body.embed .cal-title,body.embed .cal-back{display:none!imp
 body.embed main{padding-top:12px!important}
 body.embed,html:has(body.embed){min-height:0!important;height:auto!important}
 .bcal__dow-en{display:block;font-size:.62em;font-weight:600;letter-spacing:.06em;opacity:.75;margin-top:1px;font-family:var(--font-sans)}</style>
+<style>.grecaptcha-badge{visibility:hidden!important}</style>
 </head>
 <body>
 <header class="cal-head">
@@ -127,6 +128,7 @@ body.embed,html:has(body.embed){min-height:0!important;height:auto!important}
 <script src="koimari-hours.js"></script>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -138,7 +140,10 @@ const firebaseConfig = {
   messagingSenderId: "852851855633",
   appId: "1:852851855633:web:1bb5765680a137f20abcb0"
 };
-const db = getDatabase(initializeApp(firebaseConfig));
+const calApp = initializeApp(firebaseConfig);
+// App Check（2026-10-23）：正規のページからの通信に印を付ける（ロボットによる大量の書き込み対策）。Firebaseで「適用」するまでは確認だけ。
+try { initializeAppCheck(calApp, { provider: new ReCaptchaEnterpriseProvider("6LeTWvstAAAAADtCiZryhHIWWLne5_6PIa-lUNbD"), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn("AppCheck:", e && e.message); }
+const db = getDatabase(calApp);
 
 // 定休日データはトップページと同じ koimariContent/holidays（管理画面「営業日設定」）を見る。
 const DEFAULT_HOLIDAYS = { weeklyClosed:[1], extraClosed:[] };

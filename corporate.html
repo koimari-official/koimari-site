@@ -310,6 +310,7 @@ section{padding:100px 24px}
 .services__grid>.svc:last-child:nth-child(3n+1){grid-column:1/-1}.cp-uc-photo img.cp-zoom{transform:scale(var(--z,1));transform-origin:var(--ox,50%) var(--oy,50%)}.uc-card:hover .cp-uc-photo img.cp-zoom{transform:scale(calc(var(--z,1) * 1.04))}</style>
 <script src="photo-adjust.js"></script>
 <script src="price-format.js"></script>
+<style>.grecaptcha-badge{visibility:hidden!important}</style>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -619,6 +620,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
 import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
@@ -631,6 +633,8 @@ const firebaseConfig = {
   appId: "1:852851855633:web:1bb5765680a137f20abcb0"
 };
 const fbApp = initializeApp(firebaseConfig);
+// App Check（2026-10-23）：正規のページからの通信に印を付ける（ロボットによる大量の書き込み対策）。Firebaseで「適用」するまでは確認だけ。
+try { initializeAppCheck(fbApp, { provider: new ReCaptchaEnterpriseProvider("6LeTWvstAAAAADtCiZryhHIWWLne5_6PIa-lUNbD"), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn("AppCheck:", e && e.message); }
 const db = getDatabase(fbApp);
 const corporateRef = ref(db, "corporate");
 
