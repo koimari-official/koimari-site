@@ -214,6 +214,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       スマートフォンのLINEアプリでこいまり公式アカウントを開き、トーク画面下部メニューの「ご予約」ボタンからお進みください。<br>
       LINEをお持ちでない場合は、お電話（070-9158-0641）にてご予約を承ります。
     </div>
+    <div id="externalDraftBox" style="display:none;margin:0 0 18px;background:#fff7ea;border:1px solid #e0b872;border-radius:12px;padding:14px 16px;">
+      <div style="font-weight:700;margin-bottom:6px;">お選びいただいたケーキを、LINEで引き継げます</div>
+      <a id="externalDraftOpen" href="#" class="btn btn--line" style="display:block;text-align:center;padding:14px 16px;margin-bottom:10px;">LINEアプリで続きを開く</a>
+      <div style="font-size:13px;line-height:1.8;">うまく開かない場合は、LINEの予約フォームの「仕様コード」欄に、次のコードを入力してください。</div>
+      <div id="externalDraftCode" style="font-size:24px;font-weight:700;letter-spacing:.2em;text-align:center;margin-top:6px;font-family:var(--font-sans,sans-serif);"></div>
+    </div>
     <a href="https://lin.ee/tgXqHoK" target="_blank" rel="noopener" class="btn btn--line" style="display:inline-block;padding:16px 40px;">LINE公式アカウントを友だち追加する</a>
   </div>
 
@@ -333,8 +339,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field" id="reserveStrawberryAddField" style="display:none;">
           <label class="field__check">
             <input type="checkbox" id="reserveStrawberryAdd">
-            <span>いちごトッピング（+¥1,000程度）</span>
+            <span>フルーツをのせる（+¥1,000）</span>
           </label>
+          <div id="reserveStrawberryKindWrap" class="radio-list" style="display:none;flex-direction:row;margin-top:6px;">
+            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveStrawberryKind" value="いちご" checked> いちご</label>
+            <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveStrawberryKind" value="ミックスフルーツ"> ミックスフルーツ</label>
+          </div>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
           <label class="field__label">カラークリーム（1段につき1色）</label>
@@ -1139,7 +1149,7 @@ function collectFormSpec() {
     specs: activeSpecs(),
     creamSub: cv("reserveCreamTypeSub"), decoration: cv("reserveDecoration"), occasion: cv("reserveOccasion"),
     occasionOther: (g("reserveOccasionOther") || {}).value || "",
-    creamTopping: !!(g("reserveCreamTopping") || {}).checked, strawberry: !!(g("reserveStrawberryAdd") || {}).checked,
+    creamTopping: !!(g("reserveCreamTopping") || {}).checked, strawberry: !!(g("reserveStrawberryAdd") || {}).checked, strawberryKind: cv("reserveStrawberryKind"),
     topCut: !!(g("reserveTopCut") || {}).checked, topCutNote: (g("reserveTopCutNote") || {}).value || "",
     cutQty: Object.assign({}, cutQty),
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
@@ -1216,7 +1226,7 @@ function applyFormSpec(s) {
     loadActiveSpec();
     setRadio("reserveCreamTypeSub", s.creamSub); setRadio("reserveDecoration", s.decoration); setRadio("reserveOccasion", s.occasion);
     setVal("reserveOccasionOther", s.occasionOther || "");
-    setChk("reserveCreamTopping", s.creamTopping); setChk("reserveStrawberryAdd", s.strawberry); setChk("reserveTopCut", s.topCut); setVal("reserveTopCutNote", s.topCutNote || "");
+    setChk("reserveCreamTopping", s.creamTopping); setChk("reserveStrawberryAdd", s.strawberry); setRadio("reserveStrawberryKind", s.strawberryKind); setChk("reserveTopCut", s.topCut); setVal("reserveTopCutNote", s.topCutNote || "");
     Object.keys(cutQty).forEach(k => delete cutQty[k]); Object.assign(cutQty, s.cutQty || {}); renderCutPicker();
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
     setChk("reserveCandleNeeded", s.candle); setRadio("reserveCandleType", s.candleType); setVal("reserveCandleBags", s.candleBags || "1");
@@ -1646,6 +1656,7 @@ function gatherEstimateInput() {
     creamTopping: g("reserveCreamTopping") ? g("reserveCreamTopping").checked : false,
     colorCreamCount: totalColors(),
     strawberryAdd: g("reserveStrawberryAdd") ? g("reserveStrawberryAdd").checked : false,
+    strawberryKind: (document.querySelector('input[name="reserveStrawberryKind"]:checked') || {}).value || "いちご",
     candleNeeded: candleNeeded,
     candleType: candleNeeded ? checkedVal("reserveCandleType") : "",
     candleBags: candleNeeded ? (Number(g("reserveCandleBags").value) || 1) : 0,
@@ -2034,6 +2045,7 @@ function updateCakeOptionUI() {
   const strawOk = CakePricing.SPEC.strawberryAdd.creamTypes.includes(creamType);
   g("reserveStrawberryAddField").style.display = strawOk ? "" : "none";
   if (!strawOk) g("reserveStrawberryAdd").checked = false;
+  { const kw = g("reserveStrawberryKindWrap"); if (kw) kw.style.display = strawOk && g("reserveStrawberryAdd").checked ? "flex" : "none"; }
   // ミッシェルBOX・ガトーショコラBOXの飾りは「いちごトッピング」（上のチェック）だけ。バラエティフルーツの選択は出さない。
   g("reserveDecorationField").style.display = strawOk ? "none" : "";
   if (strawOk) { const d = document.querySelector('input[name="reserveDecoration"][value="いちごのみ"]'); if (d) d.checked = true; }
@@ -2593,7 +2605,7 @@ function renderReserveConfirm(data, targetId) {
     ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金・納期は別途ご連絡）</dd>` : ""}
     ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
-    ${data.strawberryAdd ? `<dt>オプション</dt><dd>いちごトッピング（+¥1,000程度）</dd>` : ""}
+    ${data.strawberryAdd ? `<dt>オプション</dt><dd>フルーツトッピング（${escape(data.strawberryKind || "いちご")}）+¥1,000</dd>` : ""}
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
     ${(data.cutCakes || []).length ? `<dt>上に載せるカットケーキ</dt><dd>${data.cutCakes.map(c => `${escape(c.name)} × ${c.qty}`).join("<br>")}</dd>` : ""}
     ${data.topCut ? `<dt>カットケーキ載せ</dt><dd>載せる（入れ物代あり）${data.topCut.note ? `：${escape(data.topCut.note)}` : ""}</dd>` : ""}
@@ -2663,7 +2675,7 @@ function buildReserveSummaryText(data) {
   if ((data.toppings || []).length) lines.push(`トッピング: ${data.toppings.join("・")}（料金・納期は別途ご連絡）`);
   (data.tierSpecs || []).forEach(t => lines.push(`${t.tier}: ${String(t.size).replace(/\(.*$/, "")} ${t.cream}${(t.colors || []).length ? "（" + t.colors.join("・") + "）" : ""}`));
   if (data.colorCream) lines.push(`カラークリーム: ${data.colorCream.count}色${(data.colorCream.colors || []).length ? "：" + data.colorCream.colors.join("・") : ""}${data.colorCream.note ? `（${data.colorCream.note}）` : ""}`);
-  if (data.strawberryAdd) lines.push("オプション: いちごトッピング（+¥1,000程度）");
+  if (data.strawberryAdd) lines.push("オプション: フルーツトッピング（" + (data.strawberryKind || "いちご") + "）+¥1,000");
   (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
   if ((data.cutCakes || []).length) lines.push(`上に載せるカットケーキ: ${data.cutCakes.map(c => c.name + "×" + c.qty).join("、")}`);
   if (data.topCut) lines.push(`カットケーキ載せ: 載せる（入れ物代あり）${data.topCut.note ? "：" + data.topCut.note : ""}`);
@@ -3103,7 +3115,7 @@ function setupReserveForm(uid, displayName) {
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [], priceIsFixed: !!priceResult.priceIsFixed,
         ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: specsNow.reduce((a, s) => a.concat(s.colors), []), note: colorCreamNote } } : {}),
         ...(isCake && specsNow.length > 1 ? { tierSpecs: specsNow.map((s, i) => ({ tier: tierName(i, specsNow.length), size: (items[i] || {}).size || "", cream: s.cream, colors: s.colors })).reverse() } : {}),
-        ...(strawberryAdd ? { strawberryAdd: true } : {}),
+        ...(strawberryAdd ? { strawberryAdd: true, strawberryKind: (document.querySelector('input[name="reserveStrawberryKind"]:checked') || {}).value || "いちご" } : {}),
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
         ...(isCake && selectedCutCakes().length ? { cutCakes: selectedCutCakes() } : {}),
@@ -3247,6 +3259,15 @@ async function main() {
     if (!liff.isInClient()) {
       document.getElementById("loadingBox").style.display = "none";
       document.getElementById("externalBrowserNotice").style.display = "block";
+      // ギャラリーで選んで来た場合（QRをカメラで読んでSafariで開いた等）は、コードを持ったままLINEアプリへ移れるようにする（2026-10-22）
+      try {
+        const code = draftCodeFromUrl();
+        if (code && code.length === 8) {
+          document.getElementById("externalDraftBox").style.display = "block";
+          document.getElementById("externalDraftOpen").href = "https://line.me/R/app/" + LIFF_ID + "?draft=" + code;
+          document.getElementById("externalDraftCode").textContent = code;
+        }
+      } catch (e) {}
       return;
     }
 

@@ -979,7 +979,7 @@ function orderDetailLines(data) {
   }
   const extras = [];
   if (data.creamTopping) extras.push("生クリームたっぷり");
-  if (data.strawberryAdd) extras.push("いちごトッピング");
+  if (data.strawberryAdd) extras.push("フルーツトッピング（" + (data.strawberryKind || "いちご") + "）");
   if (data.topCut && !(data.cutCakes || []).length) extras.push("カットケーキ載せ" + (data.topCut.note ? "（" + data.topCut.note + "）" : ""));
   if (Array.isArray(data.cutCakes) && data.cutCakes.length) lines.push(diamondLine("カットケーキ", data.cutCakes.map((c) => c.name + "×" + c.qty).join("、")));
   if (data.onsiteAssembly) extras.push("出張組み立て（納期・日程は要確認）");

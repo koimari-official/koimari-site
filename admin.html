@@ -5377,7 +5377,7 @@ function resExtrasLine(r) {
   if (Array.isArray(r.cutCakes) && r.cutCakes.length) out.push("上に載せるカットケーキ：" + r.cutCakes.map((c) => c.name + "×" + c.qty).join("、"));
   if (r.colorCream && !(Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1)) out.push("カラークリーム " + r.colorCream.count + "色" + ((r.colorCream.colors || []).length ? "（" + r.colorCream.colors.join("・") + "）" : "") + (r.colorCream.note ? "：" + r.colorCream.note : ""));
   if (r.fruitExtra) out.push("フルーツ増量");
-  if (r.strawberryAdd) out.push("いちごトッピング");
+  if (r.strawberryAdd) out.push("フルーツトッピング（" + (r.strawberryKind || "いちご") + "）");
   if (r.creamTopping) out.push("生クリームたっぷり");
   if (r.omakaseDeco) out.push("おまかせデコ「" + r.omakaseDeco + "」" + (r.omakaseWish ? "（ご希望：" + r.omakaseWish + "）" : ""));
   if (Array.isArray(r.toppings) && r.toppings.length) out.push("トッピング：" + r.toppings.join("・"));
@@ -7289,7 +7289,7 @@ function renderKitchen() {
     const extra = [];
     if (r.occasion) extra.push("シーン：" + kEsc(r.occasion === "その他" ? (r.occasionOther || "その他") : r.occasion));
     if (r.decoration) extra.push("飾り：" + kEsc(({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[r.decoration] || r.decoration)));
-    if (r.strawberryAdd) extra.push("いちごトッピング");
+    if (r.strawberryAdd) extra.push("フルーツトッピング（" + (r.strawberryKind || "いちご") + "）");
     if (r.topCut) extra.push("カットケーキ載せ" + (r.topCut.note ? "：" + kEsc(r.topCut.note) : ""));
     if (Array.isArray(r.cutCakes) && r.cutCakes.length) extra.push("<b>上に載せるカットケーキ：" + r.cutCakes.map(c => kEsc(c.name) + "×" + c.qty).join("、") + "</b>");
     if (r.onsiteAssembly) extra.push("⚠ 出張組み立て希望");
@@ -8054,7 +8054,7 @@ function buildPriceTable() {
   html += group("クリーム・色", "", table(cream));
   let top = row("生クリームたっぷり乗せ", yenIn("cfCreamToppingPrice"), "クリスマスケーキは対象外");
   if (SO) ["4号", "5号", "6号", "7号"].forEach(k => { top += row("いちご・ミックスフルーツの増量 " + k, yenIn("cso_fruit_" + k, SO.fruitTopping[k]), k === "4号" ? "飾り付けのフルーツを増やすオプション" : ""); });
-  if (SO) top += row("いちごトッピング", yenIn("cso_straw", SO.strawberryAdd.price), "ミッシェルBOX・ガトーショコラBOX");
+  if (SO) top += row("フルーツトッピング（いちご／ミックスフルーツ）", yenIn("cso_straw", SO.strawberryAdd.price), "ミッシェルBOX・ガトーショコラBOX");
   top += row("タルトにカットケーキを載せる入れ物代", yenIn("cfCutContainerFee", null, "未設定"), "空欄＝別途ご案内");
   html += group("トッピング・追加", "", table(top));
   const cp = row("ナンバーろうそく（1文字）", yenIn("cfCandleBagPriceNumber")) + row("普通のろうそく（2袋目以降・1袋）", yenIn("cfCandleBagPricePlain"), "1袋目は無料") + row("メッセージプレート（2枚目以降・1枚）", yenIn("cfMessagePlatePrice", null, "無料"), "空欄・0＝追加料金なし");

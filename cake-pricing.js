@@ -127,7 +127,7 @@
       lines.push({ label: "カラークリーム（" + colors + "色）", amount: (SPEC.colorCream[cc] || 0) + (colors > 3 ? (colors - 3) * SPEC.colorCream[1] : 0) });
     }
     if (input.strawberryAdd && SPEC.strawberryAdd.creamTypes.indexOf(cream) >= 0) {
-      lines.push({ label: "いちごトッピング", amount: SPEC.strawberryAdd.price, range: true }); // 目安（「〜」で表示）
+      lines.push({ label: "フルーツトッピング（" + (input.strawberryKind || "いちご") + "）", amount: SPEC.strawberryAdd.price }); // 2026-10-22：いちご・ミックスフルーツとも+1,000円（確定）
     }
     // 飾り付けの「いちご」「ミックスフルーツ」はどちらも基本料金に含む（2026-10-07オーナー確認：同じ価格）。
     // フルーツトッピング＝いちご・ミックスフルーツの「増量」（オプション）。input.fruitExtra のときだけ号数に応じて加算する。

@@ -67,6 +67,8 @@
     if (w.topCutName && Number(w.topCutQty) > 0) { s.topCut = true; s.cutQty = {}; s.cutQty[w.topCutName] = Number(w.topCutQty); }
     return JSON.stringify(s);
   }
+  // LINEアプリで予約フォームを開くURL（iPhoneのカメラでQRを読んだときにSafariではなくLINEアプリが開くよう line.me 形式。2026-10-22）
+  function appUrl(code) { return "https://line.me/R/app/" + LIFF_URL.split("/").pop() + "?draft=" + encodeURIComponent(code); }
   function liffUrl(code) { return LIFF_URL + "?draft=" + encodeURIComponent(code) + "#reserve"; }
   // ※ line.me/R/oaMessage/ 形式はPC等でLINE社のトップページに飛ぶため使わない（2026-10-02）。案内は LINE_ADD_URL に統一。
   function isLineBrowser() { return /Line\//i.test(navigator.userAgent); }
@@ -111,7 +113,7 @@
     document.body.appendChild(wrap);
     wrap.addEventListener("click", function (e) { if (e.target === wrap) wrap.remove(); });
     document.getElementById("draftClose").addEventListener("click", function () { wrap.remove(); });
-    if (!isMobile()) drawQr(document.getElementById("draftQr"), liffUrl(code));
+    if (!isMobile()) drawQr(document.getElementById("draftQr"), appUrl(code));
     document.getElementById("draftCopy").addEventListener("click", function () {
       var b = this;
       (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(function () { b.textContent = "コピーしました"; }, function () { b.textContent = "長押しでコピーしてください"; });
@@ -131,7 +133,7 @@
       // 未登録の方はLINE側の案内に従って友だち追加へ進める。アプリが開かなかった場合(LINE未導入・
       // PC等)は数秒後もこのページが見えたままなので、その時だけ案内モーダルを出す。
       if (/iPhone|iPad|Android/i.test(navigator.userAgent)) {
-        location.href = liffUrl(code);
+        location.href = appUrl(code);
         setTimeout(function () { if (document.visibilityState === "visible") showModal(code, pick); }, 2800);
         return;
       }
@@ -143,5 +145,5 @@
     }
   }
 
-  window.KoimariDraft = { start: start, liffUrl: liffUrl, buildSpec: buildSpec, buildWorkSpec: buildWorkSpec, LS_KEY: LS_KEY };
+  window.KoimariDraft = { start: start, liffUrl: liffUrl, buildSpec: buildSpec, buildWorkSpec: buildWorkSpec, appUrl: appUrl, LS_KEY: LS_KEY };
 })();
