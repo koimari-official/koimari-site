@@ -1837,7 +1837,7 @@ function updateLivePriceDisplay() {
   bar.style.display = "flex";
   if (quoteSeparatelyNow()) {
     const guide = draftGuideNow();
-    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">${customBaseNow() ? customBaseNow() + "はフルオーダーのため" : "ギャラリーの写真の仕様のため"}、お見積もり・納期は別途ご回答いたします${guide ? "<br><b>" + guide.replace(/^目安\s*/, "目安：") + "（税込）</b>" : ""}</span>`;
+    bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">${customBaseNow() ? customBaseNow() + "はフルオーダーのため" : "ギャラリーの写真の仕様のため"}、お見積もり・納期は別途ご回答いたします${guide ? "<br><b>" + escape(guide.replace(/^目安\s*/, "目安：")) + "（税込）</b>" : ""}</span>`;
   } else if (result.incomplete) {
     bar.innerHTML = `<span class="live-total-bar__label">お見積もり</span><span class="live-total-bar__consult">サイズを選ぶと、ここに表示されます</span>`;
   } else if (result.priceNeedsConsult) {
@@ -2956,7 +2956,7 @@ function refSizeNote(photoSize, chosenSize) {
   const S = (window.CakePricing && CakePricing.SPEC && CakePricing.SPEC.sizes) || {};
   const cm = S[photoSize] && S[photoSize].cm ? "（直径" + S[photoSize].cm + "）" : "";
   const diff = chosenSize && /号$/.test(chosenSize) && chosenSize !== photoSize ? "ご選択の" + chosenSize + "とは大きさが異なります。" : "";
-  return '<div class="ref-image__size">写真は' + photoSize + cm + "のケーキです。" + diff + "</div>";
+  return '<div class="ref-image__size">写真は' + escape(photoSize) + cm + "のケーキです。" + escape(diff) + "</div>";
 }
 function renderDraftBanner() {
   const el = document.getElementById("draftBanner");
