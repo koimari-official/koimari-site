@@ -7,7 +7,7 @@ const { execSync } = require("child_process");
 
 process.env.GOOGLE_APPLICATION_CREDENTIALS =
   process.env.GOOGLE_APPLICATION_CREDENTIALS ||
-  path.resolve(__dirname, "../../../company/dashboard/koimari-tasting-firebase-adminsdk-fbsvc-670f81cf1e.json");
+  path.resolve(__dirname, "../../../secrets/koimari-tasting-firebase-adminsdk-fbsvc-670f81cf1e.json");
 
 const token = execSync("firebase functions:secrets:access LINE_CHANNEL_ACCESS_TOKEN --project koimari-tasting", { encoding: "utf8" }).trim();
 if (!token) {

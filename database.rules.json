@@ -5,12 +5,12 @@
       ".write": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'"
     },
     "sessions": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
     "lineup": {
-      ".read": true,
-      ".write": true
+      ".read": "auth != null",
+      ".write": "auth != null"
     },
     "trash": {
       ".read": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'",
@@ -111,6 +111,10 @@
     "pushLog": {
       ".read": false,
       ".write": false
+    },
+    "bulletin": {
+      ".read": "auth != null",
+      ".write": "auth != null && (auth.token.role === 'owner' || auth.token.role === 'manager')"
     }
   }
 }
