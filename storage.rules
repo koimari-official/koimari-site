@@ -2,18 +2,18 @@ rules_version = '2';
 // koimari-tasting の保管庫の権限。反映元はこのファイルだけ（2026-10-22に一本化。社内ツール側の storage.rules は廃止）
 service firebase.storage {
   match /b/{bucket}/o {
-    // ホームページの画像：誰でも閲覧可。書き込みは管理画面の全機能の人（店舗共用・予約担当は不可）
+    // ホームページの画像：誰でも閲覧可。書き込みは管理画面の全機能の人（全機能の人だけ。権限未設定の人も不可）
     match /siteImages/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.token.get('store', false) != true && request.auth.token.get('koimariAdmin', '') != 'store';
+      allow write: if request.auth != null && ((request.auth.token.firebase.sign_in_provider == 'password' && request.auth.token.get('store', false) != true) || request.auth.token.get('koimariAdmin', '') == 'full');
     }
     // 試作ラボの写真・動画（レシピ）：正社員のみ（regular＝オーナー・店長・月給の社員）
     match /sweetsLab-media/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.token.get('regular', false) == true;
     }
-    // 名刺・ポスター作成の素材：ログインした従業員（店舗共用・予約担当は不可）
+    // 名刺・ポスター作成の素材：ログインした従業員（全機能の人だけ。権限未設定の人も不可）
     match /meishiStudio-media/{allPaths=**} {
-      allow read, write: if request.auth != null && request.auth.token.get('store', false) != true && request.auth.token.get('koimariAdmin', '') != 'store';
+      allow read, write: if request.auth != null && ((request.auth.token.firebase.sign_in_provider == 'password' && request.auth.token.get('store', false) != true) || request.auth.token.get('koimariAdmin', '') == 'full');
     }
     // それ以外の場所は、誰も読み書きできない
   }

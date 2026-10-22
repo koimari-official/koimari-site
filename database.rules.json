@@ -1,8 +1,8 @@
 {
   "rules": {
     "dashboardTasks": {
-      ".read": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'",
-      ".write": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'"
+      ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
+      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "sessions": {
       ".read": "auth != null",
@@ -13,13 +13,13 @@
       ".write": "auth != null"
     },
     "trash": {
-      ".read": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'",
-      ".write": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'"
+      ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
+      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "staffRequests": {
-      ".read": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'",
+      ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
       "$id": {
-        ".write": "(auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store') || (!data.exists() && newData.child('status').val() === 'pending')"
+        ".write": "(auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')) || (!data.exists() && newData.child('status').val() === 'pending')"
       }
     },
     "customerFlags": {
@@ -28,7 +28,7 @@
     },
     "reservationStaff": {
       ".read": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')",
-      ".write": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'"
+      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "reservations": {
       ".read": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')",
@@ -50,9 +50,9 @@
       }
     },
     "experiences": {
-      ".read": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'",
+      ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
       "$id": {
-        ".write": "(auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store') || !data.exists()"
+        ".write": "(auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')) || !data.exists()"
       }
     },
     "siteConfig": {
@@ -60,8 +60,8 @@
       ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "meishiDesigns": {
-      ".read": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'",
-      ".write": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'"
+      ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
+      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "koimariContent": {
       ".read": true,
@@ -69,21 +69,21 @@
     },
     "noritate": {
       ".read": true,
-      ".write": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'"
+      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "siteImages": {
       ".read": true,
       ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "koimariOps": {
-      ".read": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'",
-      ".write": "auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store'"
+      ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
+      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
     "lineMembers": {
       ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
       "$uid": {
         ".read": true,
-        ".write": "(auth != null && auth.token.store !== true && auth.token.koimariAdmin !== 'store') || !data.exists()",
+        ".write": "(auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')) || !data.exists()",
         "profile": {
           ".write": true
         },
@@ -115,6 +115,10 @@
     "bulletin": {
       ".read": "auth != null",
       ".write": "auth != null && (auth.token.role === 'owner' || auth.token.role === 'manager')"
+    },
+    "sessionTrash": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     }
   }
 }
