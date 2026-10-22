@@ -990,7 +990,19 @@ function ensureTierSpecs() {
 function checkedCream() { return (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "生クリーム"; }
 function saveActiveSpec() {
   ensureTierSpecs();
-  tierSpecs[activeTier] = { cream: checkedCream(), colors: selectedCreamColors.slice() };
+  tierSpecs[activeTier] = { cream: checkedCream(), colors: selectedCreamColors.slice(), fx: tierOptChecked("reserveFruitExtra"), ct: tierOptChecked("reserveCreamTopping") };
+}
+// 2段・3段では、フルーツ増量・生クリームたっぷり乗せは「いま選んでいる段」の設定（2026-10-22）
+function tierOptChecked(id) { const e = document.getElementById(id); return !!(e && e.checked); }
+function updateTierScopeNotes() {
+  const n = currentTierCount();
+  ["reserveFruitExtra", "reserveCreamTopping"].forEach((id) => {
+    const cb = document.getElementById(id); if (!cb) return;
+    const lab = cb.closest("label"); if (!lab) return;
+    let note = lab.querySelector(".tier-scope-note");
+    if (!note) { note = document.createElement("span"); note.className = "tier-scope-note"; note.style.cssText = "display:block;font-size:12px;color:#8a6a4a;font-weight:400;"; lab.appendChild(note); }
+    note.textContent = n > 1 ? "（" + tierName(activeTier, n) + "だけに付きます。ほかの段は段を切り替えて選んでください）" : "";
+  });
 }
 function loadActiveSpec() {
   ensureTierSpecs();
@@ -1003,11 +1015,13 @@ function loadActiveSpec() {
   selectedCreamColors = s.colors.slice();
   renderColorChips();
   syncColorSelectQuiet();
+  if (currentTierCount() > 1) { const f = document.getElementById("reserveFruitExtra"), c = document.getElementById("reserveCreamTopping"); if (f) f.checked = !!s.fx; if (c) c.checked = !!s.ct; }
+  try { updateTierScopeNotes(); } catch (e) {}
   try { applyCreamTierRules(); } catch (e) {}
 }
 function activeSpecs() {
   ensureTierSpecs();
-  return tierSpecs.slice(0, currentTierCount()).map((s, i) => i === activeTier ? { cream: checkedCream(), colors: selectedCreamColors.slice() } : s);
+  return tierSpecs.slice(0, currentTierCount()).map((s, i) => i === activeTier ? { cream: checkedCream(), colors: selectedCreamColors.slice(), fx: tierOptChecked("reserveFruitExtra"), ct: tierOptChecked("reserveCreamTopping") } : s);
 }
 function bottomCream() { return activeSpecs()[0].cream; }
 function totalColors() { return activeSpecs().reduce((n, s) => n + s.colors.length, 0); }
@@ -1211,7 +1225,7 @@ function applyFormSpec(s) {
     const setChk = (id, v) => { const e = document.getElementById(id); if (e) { e.checked = !!v; e.dispatchEvent(new Event("change", { bubbles: true })); } };
     setRadio("reserveType", s.type);
     setRadio("reserveTiers", String(s.tiers || 1));
-    tierSpecs = (s.specs || []).map(x => ({ cream: x.cream, colors: (x.colors || []).slice() }));
+    tierSpecs = (s.specs || []).map(x => ({ cream: x.cream, colors: (x.colors || []).slice(), fx: !!x.fx, ct: !!x.ct }));
     ensureTierSpecs();
     // 2026-10-03 不具合修正：この後のサイズ設定で「フォーム内の変更」処理が走り、画面でチェック中のベース（初期値の生クリーム）で
     // 記録が上書きされ、ギャラリーから来ても生クリーム以外のベース（ミッシェルBOX・ムース等）が選ばれていなかった。
@@ -1650,7 +1664,7 @@ function gatherEstimateInput() {
     tiers: Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value),
     occasion: checkedVal("reserveOccasion"),
     creamType: bottomCream(),
-    tierSpecs: activeSpecs().map(s => ({ cream: s.cream })),
+    tierSpecs: activeSpecs().map(s => ({ cream: s.cream, fruitExtra: !!s.fx, creamTopping: !!s.ct })),
     decoration: checkedVal("reserveDecoration"),
     includedDecoration: includedDecorationNow(),
     creamTopping: g("reserveCreamTopping") ? g("reserveCreamTopping").checked : false,
@@ -1664,7 +1678,7 @@ function gatherEstimateInput() {
     addOns: selectedAddOns(),
     toppings: selectedToppings(),
     omakase: selectedOmakase(),
-    fruitExtra: !!(g("reserveFruitExtra") && g("reserveFruitExtra").checked && g("reserveDecorationField").style.display !== "none"),
+    fruitExtra: currentTierCount() === 1 && !!(g("reserveFruitExtra") && g("reserveFruitExtra").checked && g("reserveDecorationField").style.display !== "none"), // 2段・3段は段ごと（tierSpecs）
     onsiteAssembly: currentTierCount() === 3 && !!(g("reserveOnsite") && g("reserveOnsite").checked),
     topCut: !!(g("reserveTopCut") && g("reserveTopCut").checked),
     cutCakes: selectedCutCakes()
@@ -2321,6 +2335,11 @@ function withTimeout(promise, ms, label) {
 
 const BAKED_GOODS_CATEGORY = "焼き菓子・ギフト";
 
+// 段ごとの内容「2段目：4号 生クリーム　色：赤　フルーツ増量・生クリームたっぷり乗せ」（2026-10-22）
+function tierSpecText(t) {
+  const opts = [t.fruitExtra ? "フルーツ増量" : "", t.creamTopping ? "生クリームたっぷり乗せ" : ""].filter(Boolean);
+  return t.tier + "：" + String(t.size || "").replace(/\(.*$/, "") + " " + (t.cream || "") + "　色：" + ((t.colors || []).length ? t.colors.join("・") : "なし") + (opts.length ? "　" + opts.join("・") : "");
+}
 async function sendReserveToFormspree(data) {
   try {
     const controller = new AbortController();
@@ -2352,10 +2371,11 @@ async function sendReserveToFormspree(data) {
         商品: productLines,
         ケーキの種類: item.flavor || "", ご利用シーン: data.occasion === "その他" ? data.occasionOther : (data.occasion || ""),
         ...(isCakeBody ? { クリームの種類: `${data.creamType}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`, 飾り付け: data.decoration } : {}),
-        生クリームたっぷり乗せ: data.creamTopping ? "あり" : "なし",
+        ...((data.tierSpecs || []).length > 1 ? { 各段の内容: data.tierSpecs.map(tierSpecText).join("\n") } : { 生クリームたっぷり乗せ: data.creamTopping ? "あり" : "なし" }),
         ...((isCakeBody || isRoll) ? { ろうそく: candleLine, メッセージプレート: messageLine } : {}),
         "メッセージプレートの文字（1枚目）": item.message || "",
         お見積もり: data.priceNeedsConsult ? "要電話案内（組み合わせにより個別にご案内）" : (data.subtotal ? estimateHeadline(data) + (estimateIsFixed(data) ? "（確定金額として案内済み）" : "（最低金額の目安）") : ""),
+        ...((data.estimateLines || []).length ? { お見積もりの内訳: data.estimateLines.map(l => l.label + " " + CakePricing.lineYen(l)).join("\n") } : {}),
         領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
         備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
       };
@@ -2603,7 +2623,7 @@ function renderReserveConfirm(data, targetId) {
     ${data.fruitExtra ? `<dt>フルーツ増量</dt><dd>あり</dd>` : ""}
     ${data.omakaseDeco ? `<dt>おまかせデコレーション</dt><dd>${escape(data.omakaseDeco)}${data.omakaseWish ? `<br>ご希望：${escape(data.omakaseWish)}` : ""}</dd>` : ""}
     ${(data.toppings || []).length ? `<dt>トッピング</dt><dd>${data.toppings.map(t => escape(t)).join("・")}（料金・納期は別途ご連絡）</dd>` : ""}
-    ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => `${escape(t.tier)}：${escape(String(t.size).replace(/\(.*$/, ""))} ${escape(t.cream)}${(t.colors || []).length ? `（${t.colors.map(c => escape(c)).join("・")}）` : ""}`).join("<br>")}</dd>` : ""}
+    ${(data.tierSpecs || []).length ? `<dt>各段の内容</dt><dd>${data.tierSpecs.map(t => escape(tierSpecText(t))).join("<br>")}</dd>` : ""}
     ${data.colorCream ? `<dt>カラークリーム</dt><dd>${data.colorCream.count}色${(data.colorCream.colors || []).length ? `：${data.colorCream.colors.map(c => escape(c)).join("・")}` : ""}${data.colorCream.note ? `（${escape(data.colorCream.note)}）` : ""}</dd>` : ""}
     ${data.strawberryAdd ? `<dt>オプション</dt><dd>フルーツトッピング（${escape(data.strawberryKind || "いちご")}）+¥1,000</dd>` : ""}
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
@@ -3073,7 +3093,7 @@ function setupReserveForm(uid, displayName) {
       const creamTypeNeedsSub = creamType === "フルーツタルトBOX" || creamType === "ストロベリータルトBOX";
       const creamTypeSub = creamTypeNeedsSub ? ((document.querySelector('input[name="reserveCreamTypeSub"]:checked') || {}).value || "") : "";
       const decoration = isCake ? ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "") : "";
-      const creamTopping = isCake && !isXmasOrder && document.getElementById("reserveCreamTopping").checked;
+      const creamTopping = isCake && !isXmasOrder && currentTierCount() === 1 && document.getElementById("reserveCreamTopping").checked; // 2段・3段は段ごと（tierSpecs）
       const candleNeeded = ((isBaked || isXmasOrder) ? false : document.getElementById("reserveCandleNeeded").checked);
       const candleType = candleNeeded ? ((document.querySelector('input[name="reserveCandleType"]:checked') || {}).value || "") : "";
       const candleBags = candleNeeded ? (Number(document.getElementById("reserveCandleBags").value) || 1) : 0;
@@ -3114,7 +3134,7 @@ function setupReserveForm(uid, displayName) {
         subtotal: priceResult.subtotal,
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [], priceIsFixed: !!priceResult.priceIsFixed,
         ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: specsNow.reduce((a, s) => a.concat(s.colors), []), note: colorCreamNote } } : {}),
-        ...(isCake && specsNow.length > 1 ? { tierSpecs: specsNow.map((s, i) => ({ tier: tierName(i, specsNow.length), size: (items[i] || {}).size || "", cream: s.cream, colors: s.colors })).reverse() } : {}),
+        ...(isCake && specsNow.length > 1 ? { tierSpecs: specsNow.map((s, i) => ({ tier: tierName(i, specsNow.length), size: (items[i] || {}).size || "", cream: s.cream, colors: s.colors, ...(s.fx ? { fruitExtra: true } : {}), ...(s.ct ? { creamTopping: true } : {}) })).reverse() } : {}),
         ...(strawberryAdd ? { strawberryAdd: true, strawberryKind: (document.querySelector('input[name="reserveStrawberryKind"]:checked') || {}).value || "いちご" } : {}),
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),
@@ -3122,7 +3142,7 @@ function setupReserveForm(uid, displayName) {
         ...(onsiteAssembly ? { onsiteAssembly: true } : {}),
         ...(isCake && selectedToppings().length ? { toppings: selectedToppings() } : {}),
         ...(isCake && selectedOmakase() ? { omakaseDeco: selectedOmakase() } : {}),
-        ...(isCake && document.getElementById("reserveFruitExtra").checked && document.getElementById("reserveDecorationField").style.display !== "none" ? { fruitExtra: true } : {}),
+        ...(isCake && currentTierCount() === 1 && document.getElementById("reserveFruitExtra").checked && document.getElementById("reserveDecorationField").style.display !== "none" ? { fruitExtra: true } : {}),
         ...(isCake && omakaseWish() ? { omakaseWish: omakaseWish() } : {}),
         ...(isCake && laterList().length ? { decideLater: laterList() } : {}),
         ...(isCake && specialReasons().length ? { specialReasons: specialReasons() } : {}),

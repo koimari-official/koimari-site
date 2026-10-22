@@ -21,7 +21,7 @@
       "7号": { cm: "約21cm", serves: "9〜10人前" }
     },
     christmas: { deadlineMonth: 12, deadlineDay: 20 },
-    fruitTopping: { "4号": 900, "5号": 1300, "6号": 1600, "7号": 1900 }, // 2026-10-22オーナー指示（ケーキ・タルト共通）
+    fruitTopping: { "セルクル": 500, "3号": 600, "4号": 900, "5号": 1300, "6号": 1600, "7号": 1900 }, // 2026-10-22オーナー指示（ケーキ・タルト共通。多段は段ごと）
     chocoCream: 500,
     colorCream: { 1: 500, 2: 1000, 3: 1500 },
     // ミッシェルBOX・ガトーショコラBOXの「フルーツトッピング」はいちごトッピングの意味（オーナー確認 2026-09-24）。
@@ -136,7 +136,20 @@
       if (fp) lines.push({ label: (input.decoration === "バラエティフルーツ" ? "ミックスフルーツ" : "いちご") + "の増量", amount: fp });
       else notes.push("フルーツ増量の料金は別途ご案内します");
     }
-    if (input.creamTopping && !isXmas) lines.push({ label: "生クリームたっぷり乗せ", amount: base.creamToppingPrice || 0 });
+    if (input.creamTopping && !isXmas && !multi) lines.push({ label: "生クリームたっぷり乗せ", amount: base.creamToppingPrice || 0 });
+    // 2段・3段は段ごと（2026-10-22）：specs[i] の fruitExtra / creamTopping（specs は下の段から）
+    if (multi && specs && !isXmas) {
+      var fruitName = input.decoration === "バラエティフルーツ" ? "ミックスフルーツ" : "いちご";
+      for (var ti = tiers.length - 1; ti >= 0; ti--) {
+        var tname = (tiers.length - ti) + "段目", tk = tierKey(tiers[ti]);
+        if (specs[ti] && specs[ti].fruitExtra) {
+          var tfp = SPEC.fruitTopping[tk];
+          if (tfp) lines.push({ label: tname + "（" + tk + "）" + fruitName + "の増量", amount: tfp });
+          else notes.push(tname + "（" + tk + "）のフルーツ増量の料金は別途ご案内します");
+        }
+        if (specs[ti] && specs[ti].creamTopping) lines.push({ label: tname + "（" + tk + "）生クリームたっぷり乗せ", amount: base.creamToppingPrice || 0 });
+      }
+    }
 
     if (!isXmas && input.candleNeeded) {
       var bags = Number(input.candleBags) || 1;

@@ -961,7 +961,7 @@ function orderDetailLines(data) {
   }
   if (Array.isArray(data.tierSpecs) && data.tierSpecs.length) {
     data.tierSpecs.forEach((t) => {
-      lines.push(diamondLine(t.tier, sizeWithDiameter(t.size) + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "")));
+      lines.push(diamondLine(t.tier, sizeWithDiameter(t.size) + " " + t.cream + ((t.colors || []).length ? "（" + t.colors.join("・") + "）" : "") + (t.fruitExtra ? "・フルーツ増量" : "") + (t.creamTopping ? "・生クリームたっぷり乗せ" : "")));
     });
   } else {
     if (it.size && it.size !== "ホール") lines.push(diamondLine("サイズ", sizeWithDiameter(it.size)));

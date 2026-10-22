@@ -5449,7 +5449,7 @@ function resSpecChipsHtml(r) {
   const tiersArr = Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? r.tierSpecs.slice() : null;
   if (tiersArr) {
     tiersArr.sort((a, b) => (parseInt(String(a.tier)) || 9) - (parseInt(String(b.tier)) || 9)); // 1段目（一番上）から
-    tiersArr.forEach((t) => add(String(t.tier || ""), resSizeKey(t.size) + "　" + (t.cream || "（種類なし）") + "　色：" + ((t.colors || []).length ? t.colors.join("・") : "なし"), "rc-chip--tier"));
+    tiersArr.forEach((t) => add(String(t.tier || ""), resSizeKey(t.size) + "　" + (t.cream || "（種類なし）") + "　色：" + ((t.colors || []).length ? t.colors.join("・") : "なし") + (t.fruitExtra ? "　フルーツ増量" : "") + (t.creamTopping ? "　生クリームたっぷり乗せ" : ""), "rc-chip--tier"));
   }
   add("内容", resCakeSpecLine(r, { noTiers: !!tiersArr }));
   if (Number(r.messageCount) > 0 || r.message || r.chocoText) add("メッセージ", (r.chocoText || r.message || "あり") + (Number(r.messageCount) > 1 ? "（" + r.messageCount + "枚）" : ""));
@@ -8049,7 +8049,7 @@ function buildPriceTable() {
   if (SO) [1, 2, 3].forEach(n => { cream += row("カラークリーム " + n + "色（合計）", yenIn("cso_color_" + n, SO.colorCream[n]), n === 3 ? "4色目以降は1色ごとに1色分を加算" : ""); });
   html += group("クリーム・色", "", table(cream));
   let top = row("生クリームたっぷり乗せ", yenIn("cfCreamToppingPrice"), "クリスマスケーキは対象外");
-  if (SO) ["4号", "5号", "6号", "7号"].forEach(k => { top += row("いちご・ミックスフルーツの増量 " + k, yenIn("cso_fruit_" + k, SO.fruitTopping[k]), k === "4号" ? "飾り付けのフルーツを増やすオプション" : ""); });
+  if (SO) ["セルクル", "3号", "4号", "5号", "6号", "7号"].forEach(k => { top += row("いちご・ミックスフルーツの増量 " + k, yenIn("cso_fruit_" + k, SO.fruitTopping[k]), k === "4号" ? "飾り付けのフルーツを増やすオプション" : ""); });
   if (SO) top += row("フルーツトッピング（いちご／ミックスフルーツ）", yenIn("cso_straw", SO.strawberryAdd.price), "ミッシェルBOX・ガトーショコラBOX");
   top += row("タルトにカットケーキを載せる入れ物代", yenIn("cfCutContainerFee", null, "未設定"), "空欄＝別途ご案内");
   html += group("トッピング・追加", "", table(top));
@@ -8166,7 +8166,7 @@ function initCakeSizePricesPanel() {
     onValue(ref(fbDb, "koimariContent/cakeSpecOverrides"), (snap) => {
       const o = snap.val() || {};
       const set = (id, v) => { const el = document.getElementById(id); if (!el || el.classList.contains("pt-changed")) return; const d = (window.ptDefaults || {})[id]; if (v != null) el.value = v; else if (d != null) el.value = d; };
-      ["4号", "5号", "6号", "7号"].forEach(k => set("cso_fruit_" + k, o.fruitTopping && o.fruitTopping[k]));
+      ["セルクル", "3号", "4号", "5号", "6号", "7号"].forEach(k => set("cso_fruit_" + k, o.fruitTopping && o.fruitTopping[k]));
       [1, 2, 3].forEach(n => set("cso_color_" + n, o.colorCream && o.colorCream[n]));
       set("cso_straw", o.strawberryPrice); set("cso_onsite", o.onsiteAssemblyFee);
       ["松", "竹", "梅"].forEach(k => set("cso_omakase_" + k, o.omakaseDeco && o.omakaseDeco[k]));
@@ -8178,7 +8178,7 @@ function initCakeSizePricesPanel() {
     if (!SO) return null;
     const n = id => { const el = document.getElementById(id); const v = el ? Number(el.value) : 0; return v > 0 ? v : null; };
     const o = { fruitTopping: {}, colorCream: {}, multiTier: {} };
-    ["4号", "5号", "6号", "7号"].forEach(k => { const v = n("cso_fruit_" + k); if (v) o.fruitTopping[k] = v; });
+    ["セルクル", "3号", "4号", "5号", "6号", "7号"].forEach(k => { const v = n("cso_fruit_" + k); if (v) o.fruitTopping[k] = v; });
     [1, 2, 3].forEach(i => { const v = n("cso_color_" + i); if (v) o.colorCream[i] = v; });
     const st = n("cso_straw"); if (st) o.strawberryPrice = st;
     const os = n("cso_onsite"); if (os) o.onsiteAssemblyFee = os;
