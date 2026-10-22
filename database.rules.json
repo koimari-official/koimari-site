@@ -113,15 +113,69 @@
       ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
       "$uid": {
         ".read": true,
-        ".write": "(auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')) || !data.exists()",
+        ".write": "(auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')) || (!data.exists() && $uid.matches(/^U[0-9a-f]{32}$/) && newData.hasChild('registeredAt'))",
+        "registeredAt": {
+          ".validate": "newData.isString() && newData.val().length <= 40"
+        },
+        "couponBlacklisted": {
+          ".validate": "newData.isBoolean()"
+        },
         "profile": {
-          ".write": true
+          ".write": "$uid.matches(/^U[0-9a-f]{32}$/) && root.child('lineMembers').child($uid).exists()",
+          "displayName": {
+            ".validate": "newData.isString() && newData.val().length <= 100"
+          },
+          "pictureUrl": {
+            ".validate": "newData.isString() && newData.val().length <= 500"
+          },
+          "lastSeenAt": {
+            ".validate": "newData.isString() && newData.val().length <= 40"
+          },
+          "birthday": {
+            ".validate": "newData.isString() && newData.val().length <= 10"
+          },
+          "autosaveDraft": {
+            ".validate": "newData.isString() && newData.val().length <= 16"
+          },
+          "pendingDraft": {
+            ".validate": "newData.isString() && newData.val().length <= 16"
+          },
+          "autosaveAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "pendingDraftAt": {
+            ".validate": "newData.isNumber()"
+          },
+          "$other": {
+            ".validate": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
+          }
         },
         "orders": {
-          ".write": true,
           "$oid": {
-            ".validate": "newData.hasChildren(['savedAt'])"
+            ".write": "$uid.matches(/^U[0-9a-f]{32}$/) && root.child('lineMembers').child($uid).exists() && !data.exists() && $oid.matches(/^-[A-Za-z0-9_-]{19}$/)",
+            ".validate": "newData.hasChildren(['savedAt'])",
+            "savedAt": {
+              ".validate": "newData.isNumber()"
+            },
+            "pickupDate": {
+              ".validate": "newData.isString() && newData.val().length <= 10"
+            },
+            "subtotal": {
+              ".validate": "newData.isNumber()"
+            },
+            "headline": {
+              ".validate": "newData.isString() && newData.val().length <= 300"
+            },
+            "spec": {
+              ".validate": "newData.isString() && newData.val().length <= 4000"
+            },
+            "$other": {
+              ".validate": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
+            }
           }
+        },
+        "$other": {
+          ".validate": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
         }
       }
     },
