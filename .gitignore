@@ -1,0 +1,10 @@
+# 社内向けの文書・設定は公開リポジトリに載せない（2026-10-23 セキュリティ点検。控えは非公開の company/backup/public-site-docs）
+CLAUDE.md
+MANUAL.md
+DEPLOY-CHECKLIST.md
+RETRO_DESIGN_SKILL.md
+line-oa-design-*.md
+.claude/
+fetch_data.py
+*.log
+firebase-debug*.log
