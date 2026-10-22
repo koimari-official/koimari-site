@@ -258,6 +258,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-chip--warn{background:#fdeeee;border-color:#e39a9a;color:#8a2020;font-weight:700}
 .rc-chip--note{background:#fffbea;border-color:#e6d48a}
 .rc-chip--tier{flex-basis:100%;background:#fff;border-color:#d8c3a5}
+.rc-change{margin:0 0 8px;padding:8px 12px;border:1px dashed #c9a96e;border-radius:8px;background:#fffdf7;font-size:14px;line-height:1.7}
+.rc-change__n{font-size:12px;color:#8a7766}
+.rc-change__items{font-size:12.5px;color:#6b5a48}
+.rc-change__open{margin-top:4px;border:none;background:none;color:#a5531a;font-weight:700;padding:0;cursor:pointer;text-decoration:underline;font-size:13px}
 
 /* 使い方マニュアル（2026-10-21） */
 .man{background:#fff;border:1px solid var(--color-line);padding:22px 26px;max-width:860px;font-size:15px;line-height:1.85;color:var(--color-text)}
@@ -5434,6 +5438,18 @@ function resVerifyWarnHtml(r) {
   if (v === "declined") return '<div class="rc-pb rc-pb--ng"><b>要確認</b>お断りしているお客様の可能性<small>自動のLINE・確認メールは送っていません</small></div>';
   return "";
 }
+// 変更があった予約：当初のご予約と現在の金額、変わった項目（全項目の比較は「詳細・変更」の変更履歴）
+function resChangeSummaryHtml(r, idx) {
+  const revs = r && r.revisions ? (Array.isArray(r.revisions) ? r.revisions.filter(Boolean) : Object.keys(r.revisions).sort((a, b) => a - b).map((k) => r.revisions[k])) : [];
+  if (revs.length < 2) return "";
+  const first = revs[0].snapshot || {}, last = revs[revs.length - 1].snapshot || {};
+  const yen = (sn) => sn.price ? "¥" + Number(sn.price).toLocaleString() + (sn.priceIsRange ? "〜" : "") : (sn.subtotal ? "¥" + Number(sn.subtotal).toLocaleString() + "〜" : "未定");
+  const changed = [];
+  revs.slice(1).forEach((v) => (v.changes || []).forEach((c) => { if (c && c.label && changed.indexOf(c.label) < 0) changed.push(c.label); }));
+  return '<div class="rc-change"><b>当初のご予約</b> ' + escapeHtml(yen(first)) + '　→　<b>現在</b> ' + escapeHtml(yen(last)) + '<span class="rc-change__n">（' + escapeHtml(revs[revs.length - 1].label || "") + "まで）</span>" +
+    (changed.length ? '<div class="rc-change__items">変わった項目：' + changed.map(escapeHtml).join("・") + "</div>" : "") +
+    '<button type="button" class="rc-change__open" onclick="openReservationEditor(' + idx + ')">当初と変更後をくわしく見る</button></div>';
+}
 function resPriceBadgeHtml(r) {
   const yen = (n) => "¥" + Number(n).toLocaleString();
   if (r.finalPrice) return '<div class="rc-pb rc-pb--ok"><b>金額確定</b>' + yen(r.finalPrice) + '<small>スタッフが確定済み</small></div>';
@@ -5492,7 +5508,7 @@ function resCardHtml(r, idx, byTel) {
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
         '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
       '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
-      resVerifyWarnHtml(r) + resPriceBadgeHtml(r) + resSpecChipsHtml(r) + alertHtml +
+      resVerifyWarnHtml(r) + resPriceBadgeHtml(r) + resChangeSummaryHtml(r, idx) + resSpecChipsHtml(r) + alertHtml +
       '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "</div>" +
       // アレルギー・備考・領収書は上の項目チップに表示（2026-10-21）
       '<div class="rc-checks">' +
