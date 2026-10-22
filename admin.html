@@ -605,7 +605,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
       <span class="tab-group-label">トップページコンテンツ</span>
       <button class="tab" data-panel="news">お知らせ</button>
-      <button class="tab" data-panel="spotlight">今月の主役</button>
+      <!-- 「今月の主役」タブは廃止（2026-10-22）。今月の主役は「お知らせ」の各記事で設定する -->
       <button class="tab" data-panel="instagram">Instagram投稿</button>
       <button class="tab" data-panel="statsTop">数字で見る</button>
       <button class="tab" data-panel="hero">ヒーロー画像</button>
@@ -1093,11 +1093,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     </section>
 
     <!-- ===== 今月の主役 ===== -->
-    <section class="panel" id="panel-spotlight">
-      <div class="panel__head"><h2 class="panel__title">今月の主役（特集）の管理</h2></div>
-      <p class="panel__desc">トップページに大きく掲載される特集枠です。季節限定商品やキャンペーンなどを設定すると、お客様の目に留まりやすくなります。<br><strong style="color:var(--color-accent-dark);">新しい月の主役を投稿するときは、必ず「ストックして新規作成」を押してください。</strong>今の内容が自動的にストックへ保存されるので、翌年以降も過去の投稿を参考にできます（2026-09-09追記）。「変更を保存」は今表示中の内容を直すだけで、ストックには残りません。</p>
-      <div id="spotlightForm" style="background:#fff; border:1px solid var(--color-line); padding:30px; max-width:760px;"></div>
-    </section>
+    <!-- 旧「今月の主役」パネルは削除（2026-10-22） -->
 
     <!-- ===== Instagram投稿 ===== -->
     <section class="panel" id="panel-instagram">
