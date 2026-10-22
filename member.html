@@ -1883,7 +1883,7 @@ function timeOptionsForDate(dateStr) {
   const firstSlotMin = KoimariHours.toMinutes(info.open) || 10 * 60;
   const lastSlotMin = KoimariHours.toMinutes(info.close) || 20 * 60;
   const opts = [];
-  for (let m = Math.ceil(firstSlotMin / 30) * 30; m <= lastSlotMin - 30; m += 30) { // 閉店30分前まで
+  for (let m = Math.ceil(firstSlotMin / 30) * 30; m <= lastSlotMin; m += 30) { // 閉店時刻まで選べる（2026-10-22オーナー指示）
     opts.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
   }
   return opts;
