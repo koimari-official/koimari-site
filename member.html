@@ -569,6 +569,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <p>直前のキャンセルは、<a href="terms.html" target="_blank" rel="noopener">利用規約</a>のキャンセルポリシーに基づき、ご請求させていただきます。</p>
             <p class="pre-notes__sub">小さなお店を続けていくため、何卒ご理解・ご協力をお願い申し上げます。</p>
           </div>
+          <!-- 期間限定のお知らせ（2026-10-22オーナー指示：報道中のPHP脆弱性への不安に対して）。data-until を過ぎると自動で表示しない -->
+          <div class="pre-notes__item" data-until="2026-11-30" hidden>
+            <div class="pre-notes__head">◆ セキュリティについて</div>
+            <p>当店のホームページ・ご予約フォームはPHPを使用していないため、報道されているPHPの脆弱性の影響は受けません。どうぞご安心ください。</p>
+          </div>
+          <script>(function(){var d=new Date(),t=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");document.querySelectorAll(".pre-notes [data-until]").forEach(function(e){if(t<=e.getAttribute("data-until"))e.hidden=false;});})();</script>
         </div>
         <div class="field">
           <label class="field__check">
