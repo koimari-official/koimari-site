@@ -982,7 +982,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <ol>
 <li><b>お名前</b>でご予約を確認します。同じ日に同じお名前があるときは、<b>予約番号</b>も合わせます。</li>
 <li>お支払いは、基本的に<b>受け取り当日に店頭</b>です。お会計が済んだら「支払い」にチェックを入れます。</li>
-<li>お渡ししたら、ステータスを「完了」にします。</li>
+<li>お渡ししたら、<b>「お渡し済み」</b>にチェックを入れます（ステータスも自動で「完了」になります）。受け取り日を過ぎてもチェックが無い予約は、赤く表示されます。</li>
 </ol>
 
 <h3>12．クリスマスケーキ</h3>
@@ -4989,6 +4989,30 @@ function updateConfirmCallWarning() {
     }
   }
 }
+// 「お渡し済み」（2026-10-22オーナー指示）。ステータスを手で「完了」にした予約も、お渡し済みとして扱う。
+function isHandedOver(r) { return !!(r && (r.handedOver || r.status === "完了")); }
+function isHandOverOverdue(r) {
+  if (!r || isHandedOver(r) || r.status === "キャンセル" || r.status === "引取りなし") return false;
+  const d = r.finalPickupDate || r.pickupDate; if (!/^\d{4}-\d{2}-\d{2}$/.test(d || "")) return false;
+  const t = new Date(), today = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
+  return d < today;
+}
+async function updateResHanded(idx, checked) {
+  const list = loadList(RES_KEY);
+  const r = list[idx];
+  if (!r) return;
+  if (checked && !r.paymentDone && !confirm("「支払い」にチェックが入っていません。\nお支払いを受けてから、お渡し済みにしてください。\n\nこのまま「お渡し済み」にしますか？")) { renderReservations(); return; }
+  const actor = await askActor(checked ? "お渡しした人" : "「お渡し済み」を外す人");
+  if (!actor) { renderReservations(); return; }
+  const now = new Date().toISOString();
+  const status = checked ? "完了" : (r.status === "完了" ? ((r.reservationConfirmed || r.confirmCallDone) ? "対応中" : "受付済") : (r.status || "受付済"));
+  const patch = { handedOver: checked, handedOverAt: checked ? now : null, handedOverBy: checked ? actor : null, status, statusBy: actor, statusAt: now };
+  Object.assign(r, patch);
+  localStorage.setItem(RES_KEY, JSON.stringify(list));
+  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
+  renderReservations(); updateCounts();
+  if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
+}
 // 「支払い済」チェック（2026-09-29オーナー指示：引き渡し・支払いの管理を楽にする）。
 async function updateResPayment(idx, checked) {
   const list = loadList(RES_KEY);
@@ -5606,6 +5630,7 @@ function resSpecChipsHtml(r) {
 function resCardHtml(r, idx, byTel) {
   const status = r.status || "受付済";
   const overdue = isConfirmCallOverdue(r), payOverdue = isChristmasPaymentOverdue(r);
+  const handed = isHandedOver(r), handOverdue = isHandOverOverdue(r);
   const tel = String(r.tel || "").replace(/\D/g, "");
   const visits = (byTel[tel] || []).slice().sort((a, b) => String(a.submittedAt).localeCompare(String(b.submittedAt)));
   const nth = visits.indexOf(r) + 1;
@@ -5631,6 +5656,7 @@ function resCardHtml(r, idx, byTel) {
         '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（未・3時間経過）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>" +
         '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">内容確定" + (r.reservationConfirmedBy ? byText(r.reservationConfirmedBy, r.reservationConfirmedAt) : (r.channel === "LINE" ? "（電話済みでLINE自動連絡）" : "")) + "</label>" +
         '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払い" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + byText(r.paymentDoneBy, r.paymentDoneAt) + "</label>" +
+        '<label class="' + (handed ? "on" : handOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResHanded(' + idx + ',this.checked)"' + (handed ? " checked" : "") + ">お渡し済み" + (handOverdue ? "（受け取り日を過ぎています）" : "") + byText(r.handedOverBy, r.handedOverAt) + "</label>" +
         '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
         '<button type="button" class="rc-del" onclick="deleteOneReservation(' + idx + ')">削除</button>' +
       "</div>" +
@@ -5771,7 +5797,7 @@ function renderReservationsTable() {
   // 絞り込みは表示するかどうかだけを切り替え、配列そのものは詰め直さない。
   const list = fullList;
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>予約番号</th><th>ステータス</th><th>電話済み</th><th>内容確定</th><th>支払い</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
+  html += '<th>予約番号</th><th>ステータス</th><th>電話済み</th><th>内容確定</th><th>支払い</th><th>お渡し済み</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
   html += '</tr></thead><tbody>';
   let shown = 0;
   list.forEach((r, idx) => {
@@ -5805,6 +5831,11 @@ function renderReservationsTable() {
         ${r.christmasOrder?'<div style="margin-top:4px;font-size:10px;font-weight:700;color:#0b7a37;white-space:nowrap;">🎄 12/20までに店頭で</div>':""}
         ${payOverdue?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 支払い期限超過</div>':""}
         ${r.paymentDone?byLine(r.paymentDoneBy, r.paymentDoneAt):""}
+      </td>
+      <td style="text-align:center;">
+        <input type="checkbox" onchange="updateResHanded(${idx},this.checked)" ${isHandedOver(r)?"checked":""} style="width:18px;height:18px;cursor:pointer;">
+        ${isHandOverOverdue(r)?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 受け取り日超過</div>':""}
+        ${r.handedOverBy?byLine(r.handedOverBy, r.handedOverAt):""}
       </td>
       <td>${fmtDate(r.submittedAt)}</td>
       <td>${escapeHtml(r.type)}${r.channel==="LINE"?'<br><span style="display:inline-block;margin-top:3px;font-size:10px;font-weight:700;color:#06962c;border:1px solid #06962c;border-radius:3px;padding:1px 5px;">LINE</span>':""}</td>
@@ -5983,8 +6014,8 @@ function downloadCsv(filename, headers, rows) {
 document.getElementById("exportRes").addEventListener("click", () => {
   const list = loadList(RES_KEY);
   if (!list.length) { showToast("出力するデータがありません", "error"); return; }
-  const headers = ["予約番号","支払い","受信日時","種別","お名前","ふりがな","電話","メール","郵便番号","住所","引取日","引取時間","ご注文商品","のし","表書き","名入れ","ラッピング","備考"];
-  const rows = list.map(r => [formatReservationNo(r.reservationNo),r.paymentDone?"済":"未",r.submittedAt,r.type,r.name,r.furigana,r.tel,r.email,r.zipcode,r.address,r.pickupDate,r.pickupTime,reservationItemsSummary(r).replace(/\n/g," | "),r.noshi,r.noshiTitle,r.noshiName,r.wrapping,(r.note||"").replace(/\n/g," ")]);
+  const headers = ["予約番号","支払い","お渡し","受信日時","種別","お名前","ふりがな","電話","メール","郵便番号","住所","引取日","引取時間","ご注文商品","のし","表書き","名入れ","ラッピング","備考"];
+  const rows = list.map(r => [formatReservationNo(r.reservationNo),r.paymentDone?"済":"未",isHandedOver(r)?"済":"未",r.submittedAt,r.type,r.name,r.furigana,r.tel,r.email,r.zipcode,r.address,r.pickupDate,r.pickupTime,reservationItemsSummary(r).replace(/\n/g," | "),r.noshi,r.noshiTitle,r.noshiName,r.wrapping,(r.note||"").replace(/\n/g," ")]);
   downloadCsv(`koimari_reservations_${new Date().toISOString().slice(0,10)}.csv`, headers, rows);
 });
 document.getElementById("exportExp").addEventListener("click", () => {
