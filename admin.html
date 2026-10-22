@@ -5073,7 +5073,9 @@ function askActor(title) {
 }
 window.askActor = askActor;
 function byLine(name, at) { return name || at ? '<div class="small" style="margin-top:3px;white-space:nowrap;">' + escapeHtml(name || "") + (at ? " " + fmtDate(at) : "") + "</div>" : ""; }
-function byText(name, at) { return name ? "（" + name + (at ? " " + fmtDate(at).replace(/^\d{4}\//, "") : "") + "）" : ""; }
+// 連絡文コピー：予約は番号から読み直す（データをボタンに埋め込まない）
+function copyTemplateAt(type, idx) { const r = loadList(RES_KEY)[idx]; if (r) copyTemplate(type, JSON.stringify(r)); }
+function byText(name, at) { return name ? "（" + escapeHtml(name) + (at ? " " + fmtDate(at).replace(/^\d{4}\//, "") : "") + "）" : ""; }
 async function updateResConfirmCall(idx, checked) {
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
@@ -5472,7 +5474,7 @@ function resPickupTime(r) { return String(r.finalPickupTime || r.pickupTime || "
 function resTodayStr() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
 function resDateLabel(ds) {
   const m = String(ds).match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return ds || "日付未定";
+  if (!m) return ds ? escapeHtml(ds) : "日付未定";
   const d = new Date(+m[1], +m[2] - 1, +m[3]);
   return (+m[2]) + "月" + (+m[3]) + "日（" + RES_WEEK[d.getDay()] + "）";
 }
@@ -5665,9 +5667,9 @@ function resCardHtml(r, idx, byTel) {
         reservationPriceHtml(r) +
         '<button type="button" class="rc-flagbtn" onclick="openCustomerFlagForm(' + idx + ')">要注意のお客様に登録</button>' +
         '<textarea rows="2" class="rc-memo" placeholder="スタッフメモ" onchange="updateResNotes(' + idx + ',this.value)">' + escapeHtml(r.notes || "") + "</textarea>" +
-        "<div class=\"rc-tpl\"><button class=\"btn btn--small\" onclick='copyTemplate(\"confirm\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>確認文</button>" +
-        "<button class=\"btn btn--small btn--ghost\" onclick='copyTemplate(\"complete\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>完了文</button>" +
-        "<button class=\"btn btn--small btn--danger\" onclick='copyTemplate(\"cancel\"," + JSON.stringify(JSON.stringify(r)).replace(/&/g, "&amp;").replace(/'/g, "&#39;") + ")'>キャンセル文</button></div>" +
+        "<div class=\"rc-tpl\"><button class=\"btn btn--small\" onclick=\"copyTemplateAt('confirm'," + idx + ")\">確認文</button>" +
+        "<button class=\"btn btn--small btn--ghost\" onclick=\"copyTemplateAt('complete'," + idx + ")\">完了文</button>" +
+        "<button class=\"btn btn--small btn--danger\" onclick=\"copyTemplateAt('cancel'," + idx + ")\">キャンセル文</button></div>" +
       "</details>" +
     "</div></article>";
 }
@@ -5846,9 +5848,9 @@ function renderReservationsTable() {
       <td>${r.receiptNeeded?`<div style="font-size:11px;font-weight:700;color:#a98554;margin-bottom:4px;">🧾 領収書必要<br>宛名: ${escapeHtml(r.receiptName)}</div>`:""}<span class="small">${(r.allergy||[]).map(escapeHtml).join("/")}</span><br><span class="small">${escapeHtml(r.note)}</span></td>
       <td><textarea rows="2" style="font-size:12px;width:120px;padding:4px;border:1px solid #ddd;resize:vertical;" onchange="updateResNotes(${idx},this.value)">${escapeHtml(r.notes||"")}</textarea></td>
       <td>
-        <button class="btn btn--small" onclick="copyTemplate('confirm',${JSON.stringify(JSON.stringify(r))})" style="padding:4px 8px;font-size:11px;white-space:nowrap;margin-bottom:4px;">確認文</button><br>
-        <button class="btn btn--small btn--ghost" onclick="copyTemplate('complete',${JSON.stringify(JSON.stringify(r))})" style="padding:4px 8px;font-size:11px;white-space:nowrap;margin-bottom:4px;">完了文</button><br>
-        <button class="btn btn--small btn--danger" onclick="copyTemplate('cancel',${JSON.stringify(JSON.stringify(r))})" style="padding:4px 8px;font-size:11px;white-space:nowrap;">キャンセル文</button>
+        <button class="btn btn--small" onclick="copyTemplateAt('confirm',${idx})" style="padding:4px 8px;font-size:11px;white-space:nowrap;margin-bottom:4px;">確認文</button><br>
+        <button class="btn btn--small btn--ghost" onclick="copyTemplateAt('complete',${idx})" style="padding:4px 8px;font-size:11px;white-space:nowrap;margin-bottom:4px;">完了文</button><br>
+        <button class="btn btn--small btn--danger" onclick="copyTemplateAt('cancel',${idx})" style="padding:4px 8px;font-size:11px;white-space:nowrap;">キャンセル文</button>
       </td>
     </tr>`;
   });

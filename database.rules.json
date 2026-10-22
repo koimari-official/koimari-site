@@ -60,6 +60,81 @@
         },
         "note": {
           ".validate": "newData.isString() && newData.val().length <= 2000"
+        },
+        "confirmCallDone": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "confirmCallBy": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "confirmCallAt": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "reservationConfirmed": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "reservationConfirmedBy": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "reservationConfirmedAt": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "paymentDone": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "paymentDoneBy": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "paymentDoneAt": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "handedOver": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "handedOverBy": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "handedOverAt": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "kitchenDone": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "kitchenDoneBy": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "kitchenDoneAt": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "statusBy": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "statusAt": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "finalPrice": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "finalPickupTime": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "revisions": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "revisionCount": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "finalPickupDate": {
+          ".validate": "(auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')) && newData.isString() && (newData.val() === '' || newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/))"
+        },
+        "pickupDate": {
+          ".validate": "newData.isString() && (newData.val() === '' || newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/))"
+        },
+        "status": {
+          ".validate": "newData.isString() && (newData.val() === '受付済' || (auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')))"
+        },
+        "notes": {
+          ".validate": "newData.isString() && newData.val().length <= 2000 && (newData.val() === '' || (auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')))"
         }
       }
     },
