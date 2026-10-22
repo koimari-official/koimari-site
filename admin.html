@@ -5342,9 +5342,16 @@ function resCakeTitle(r) {
   const pick = r.galleryPick && r.galleryPick.name ? (r.galleryPick.no ? cakeNoLabel(r.galleryPick.no) + " " : "") + r.galleryPick.name : "";
   if (it.category === "ロールケーキ") return "ロールケーキ" + (it.flavor ? "（" + it.flavor + "）" : "");
   if (it.category === "焼き菓子") return "焼き菓子・ギフト";
-  if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return it.category + "（合計" + r.items.reduce((s, x) => s + (Number(x.qty) || 1), 0) + "個）";
+  // カットケーキ・砂糖菓子：種類名と個数（2026-10-22）
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return it.category + "（" + r.items.filter((x) => x && x.flavor).map((x) => x.flavor + "×" + (Number(x.qty) || 1)).join("・") + "）";
+  // クリスマスケーキ：ケーキ名と号数
+  if (it.category === "クリスマスケーキ") return "クリスマスケーキ　" + ((r.galleryPick && r.galleryPick.name) || "") + (it.size ? "（" + resSizeKey(it.size) + "）" : "");
+  // デコレーション：ご利用シーン＋「デコレーション」＋段数（1段なら号数）
   const occ = r.occasion === "その他" && r.occasionOther ? r.occasionOther : r.occasion;
-  return (pick || ((occ && occ !== "その他" ? occ : "") + "デコレーションケーキ")) + (pick && occ ? "（" + occ + "）" : "");
+  const n = Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? r.tierSpecs.length : (Array.isArray(r.items) ? r.items.length : 1);
+  const scale = n > 1 ? n + "段" : resSizeKey(it.size || "");
+  if (pick) return pick + (scale ? "　" + scale : "") + (occ ? "（" + occ + "）" : "");
+  return (occ && occ !== "その他" ? occ : "") + "デコレーション" + (scale ? "　" + scale : "");
 }
 function resCakeSpecLine(r) {
   const items = Array.isArray(r.items) ? r.items : [];
