@@ -296,6 +296,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 /* 予約管理マニュアル第1版（2026-10-22） */
 .man-chk{font-weight:700;border:1.5px solid #333;padding:0 4px;border-radius:3px}
 .man-shot{text-align:center;margin:6px 0 14px}.man-shot img{width:100%;border:1px solid #cdbfae;border-radius:6px}
+
+/* マニュアル：画面例・LINEのご案内（2026-10-22） */
+.man .shots{display:flex;gap:16px;justify-content:center;align-items:flex-start;flex-wrap:wrap;margin:6px 0 14px}.man .shots figure{margin:0;width:min(260px,100%)}.man .shots img{display:block;width:100%;border:1px solid #cdbfae;border-radius:6px}.man .shots figcaption{font-size:12.5px;color:#6b5a48;margin:4px 0 10px;line-height:1.5;text-align:center}
+.man .msg{border:1px solid #cdbfae;border-radius:8px;background:#fff;padding:10px 14px;font-size:13.5px;line-height:1.7;margin:6px 0 10px}
+.man .qr{text-align:center;font-size:13px;line-height:1.6;margin:8px 0 14px}.man .qr img{display:block;width:160px;margin:0 auto 4px}
 </style>
 <script src="cake-pricing.js"></script>
 <script src="photo-adjust.js"></script>
@@ -832,8 +837,70 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-manual">
       <div class="panel__head"><h2 class="panel__title">予約管理マニュアル（第1版）</h2></div>
       <div class="man">
-        <p>ご予約を受けてから、お引き渡しまでの流れです（第1版・2026年10月22日）。分からないことは、楠田さん・永山さんに聞いてください。<span class="man-chk">【相談中】</span>の所は、まだ決まっていないことです。</p>
-<h3>1．ご予約は、すべて管理画面で管理します</h3>
+        <p>ホームページとLINEを使ったネット予約のしくみと、ご予約を受けてからお引き渡しまでの流れです（第1版・2026年10月22日）。分からないことは、楠田さん・永山さんに聞いてください。<span class="man-chk">【相談中】</span>の所は、まだ決まっていないことです。</p>
+<h3>1．はじめに：ネット予約を始めました（LINE会員登録とWEB予約受付）</h3>
+<p>こいまりでは、これまでの<b>電話・店頭</b>でのご予約に加えて、<b>ホームページとLINEを使ったネット予約</b>を始めました。お客様は、スマホからいつでも（24時間）ケーキを予約できます。しくみは、次の4つでできています。</p>
+<table class="man-table"><colgroup><col style="width:26%"><col style="width:74%"></colgroup>
+<tr><th>しくみ</th><th>どんなものか</th></tr>
+<tr><td>公式ホームページ</td><td>お店の紹介、ケーキの写真（ギャラリー）、料金、営業日カレンダーを見られます。<br>https://koimari-official.github.io/koimari-site/</td></tr>
+<tr><td>LINE公式アカウント<br>（こいまり公式LINE）</td><td>お客様がスマホのLINEで<b>「友だち追加」</b>すると、お店からのお知らせやクーポンが届きます。トーク画面の下のメニューから、ご予約・ギャラリー・クーポン・店舗情報を開けます。</td></tr>
+<tr><td>LINE会員登録</td><td>お客様がLINEの中で予約ページを開くと、<b>自動で会員登録</b>されます。名前やパスワードを決める手続きはありません（LINEのアカウントで本人を確かめます）。</td></tr>
+<tr><td>管理画面（お店用）</td><td>ネットで入ったご予約が<b>自動で入る</b>、お店専用の画面です。電話・店頭のご予約もここに入れて、すべてのご予約をまとめて管理します（4章）。</td></tr>
+</table>
+<h4>会員になると、お客様は</h4>
+<ul>
+<li>ご予約の受付・確定・変更のお知らせが、LINEに自動で届きます。</li>
+<li>受け取りの<b>3日前・前日・1時間前</b>に、LINEでお知らせ（リマインド）が届きます。</li>
+<li>LINE限定のクーポンが使えます。</li>
+<li>2回目からは、お名前や電話番号が自動で入ります。前に注文したケーキを、同じ内容で注文し直すこともできます。</li>
+</ul>
+<h4>お店にとってよいこと</h4>
+<ul>
+<li>お客様が自分で選んで入力するので、電話での聞き間違い・書き間違いが減ります。</li>
+<li>選んだ内容に合わせて、金額が自動で出ます。</li>
+<li>受付・確定・リマインドの連絡はLINEで自動で届くので、お店からの連絡の手間が減ります。</li>
+</ul>
+
+<h3>2．お客様のご予約の流れ（ネット予約）</h3>
+<p>お客様は、次の順番でご予約します。右の列は、そのときお店で起きること・することです。</p>
+<table class="man-table"><colgroup><col style="width:7%"><col style="width:50%"><col style="width:43%"></colgroup>
+<tr><th>順番</th><th>お客様がすること</th><th>お店で起きること・すること</th></tr>
+<tr><td>1</td><td>ホームページの<b>「ギャラリー」</b>でケーキの写真を見て、好きなケーキの「この内容で予約する」を押します。<br>（LINEのメニューの「ご予約」から始めることもできます）</td><td>―</td></tr>
+<tr><td>2</td><td>LINEが開きます。まだの方は「こいまり公式LINE」を友だち追加します。LINEの中で予約フォームが開き、<b>ここで自動的に会員登録</b>されます。ギャラリーで選んだ内容は、そのまま引き継がれます。</td><td>―</td></tr>
+<tr><td>3</td><td>予約フォームで、受け取り日・時間、ケーキの種類・サイズ（段数）、段ごとのクリームと色、フルーツ・砂糖菓子・ろうそく・メッセージなどを選びます。<b>選ぶたびに、見積もり金額がその場で出ます。</b></td><td>受け取り日は<b>3営業日前まで</b>。お休みの日は選べません。時間は閉店まで選べます。</td></tr>
+<tr><td>4</td><td>お名前・電話番号・メールアドレスを入れて、内容を確認して送ります。<br>LINEとメールに<b>「ご予約ありがとうございます」という受付のお知らせ</b>が自動で届きます（下の例）。</td><td>管理画面の予約一覧に<b>自動で入り</b>、お店のタブレットなどに通知が届きます（7章）。</td></tr>
+<tr><td>5</td><td>お店からの確認の電話に出ます。</td><td><b>その日のうち（難しければ翌営業日）</b>に確認の電話をして、内容と金額を確定します（8章）。</td></tr>
+<tr><td>6</td><td>LINEに<b>「ご予約確定」</b>のお知らせが自動で届きます。</td><td>管理画面で「電話済み」にチェックすると、自動で送られます。</td></tr>
+<tr><td>7</td><td>受け取りの3日前・前日・1時間前に、LINEでお知らせが届きます。</td><td>製造シートを見て準備します（9章）。</td></tr>
+<tr><td>8</td><td>店頭でお名前を伝えて受け取り、その場でお支払いします。</td><td>お名前（同じ名前がいれば予約番号）で確認し、お会計・お渡しをします（11章）。</td></tr>
+</table>
+<ul>
+<li>パソコンや、iPhoneのSafariなどLINE以外で見ている場合は、画面に出るQRコードをスマホで読み取るか、「LINEアプリで続きを開く」を押すと、LINEで続きから予約できます。</li>
+<li>電話・店頭でのご予約は、お店の人が管理画面に入力します（6章）。この場合はLINEのお知らせが届かないので、内容と金額は<b>口頭で</b>お伝えします。</li>
+<li>クリスマスケーキは、ホームページの<b>クリスマス特設ページ</b>から予約します（12章）。</li>
+</ul>
+
+
+<h4>実際の画面（お客様のスマホ）</h4>
+<div class="shots">
+<figure><img src="manual/flow-gallery.png" alt="" loading="lazy"><figcaption>ギャラリー：好きなケーキの「この内容で予約する」を押す</figcaption></figure>
+<figure><img src="manual/flow-form.png" alt="" loading="lazy"><figcaption>LINEの予約フォーム：選ぶと金額が出る</figcaption><img src="manual/flow-total.png" alt="" loading="lazy"><figcaption>いちばん下に、今のお見積もりが出る</figcaption></figure>
+</div>
+<h4>LINEに届く「受付」のお知らせの例</h4>
+<div class="msg">〇〇様、ご予約ありがとうございます<br>ご注文を以下の内容で承りました。<br>◆予約番号<br>◇（予約番号）<br>◆ご注文内容<br>◇（ケーキの内容）<br>◆お引き取り<br>◇（受け取り日・時間）<br>◆お見積もり<br>◇（金額）<br>（このあと、お支払いのご案内などが続きます）</div>
+<p>確認の電話のあとには、「ご注文が以下の内容で確定いたしました。」という<b>確定のお知らせ</b>が届きます。</p>
+
+<h3>3．お客様にLINE登録をおすすめしてください</h3>
+<p>電話や店頭のお客様にも、<b>LINEの友だち登録をおすすめして大丈夫です。</b>登録していただくと、次からはスマホでいつでもご予約でき、お知らせも自動で届くので、お店の電話や聞き取りの手間も減ります。</p>
+<table class="man-table"><colgroup><col style="width:24%"><col style="width:76%"></colgroup>
+<tr><th>いつ</th><td>電話・店頭でご予約を受けたとき、ケーキをお渡しするとき、お会計のときなど</td></tr>
+<tr><th>伝え方（例）</th><td>「LINEでお友だち登録していただくと、次回からスマホでいつでもケーキのご予約ができます。受け取り前のお知らせや、LINE限定のクーポンも届きますので、よろしければどうぞ。」</td></tr>
+<tr><th>登録のしかた</th><td>① 下のQRコードを、スマホのカメラかLINEで読み取ってもらう<br>② 「友だち追加」を押してもらう<br>③ ご予約は、トーク画面の下のメニューの<b>「ご予約」</b>からできます</td></tr>
+<tr><th>気をつけること</th><td>電話・店頭で受けたご予約は、あとからLINE登録しても、<b>そのご予約のお知らせはLINEに届きません</b>。内容と金額は口頭でお伝えします。LINEのお知らせが届くのは、次からLINEで予約したときです。</td></tr>
+</table>
+<div class="qr"><img src="manual/line-qr.png" alt="" loading="lazy"><br>こいまり公式LINE（友だち追加）<br>https://lin.ee/tgXqHoK</div>
+
+<h3>4．ご予約は、すべて管理画面で管理します</h3>
 <ul>
 <li>ご予約は、LINE・電話・店頭のどれで受けても、<b>管理画面の「予約一覧」</b>に入れます。</li>
 <li><span class="man-chk">【相談中】</span>店頭予約の控えの紙を渡すか、紙の原本のファイリングを続けるかは、パティシエと相談して決めます。</li>
@@ -845,14 +912,14 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <tr><th>見られる画面</th><td>パート・アルバイト：予約一覧・予約カレンダー・個別見積もり作成・使い方マニュアル・製造シート・店舗通知<br>楠田さん・永山さん：すべての画面</td></tr>
 </table>
 
-<h3>2．ご予約の入り方は3つ</h3>
+<h3>5．ご予約の入り方は3つ</h3>
 <table class="man-table"><colgroup><col style="width:20%"><col style="width:80%"></colgroup>
-<tr><th>LINE</th><td>お客様がホームページで商品を選び、LINEの予約フォームで送ります。予約一覧に<b>自動で入ります</b>。お客様のLINEには、受付のメッセージが自動で届きます。</td></tr>
-<tr><th>電話</th><td>電話を受けたら、その場で<b>「電話受付モード」</b>で入力します（下の3）。</td></tr>
+<tr><th>LINE</th><td>お客様がホームページで商品を選び、LINEの予約フォームで送ります（流れは2章）。予約一覧に<b>自動で入ります</b>。お客様のLINEには、受付のメッセージが自動で届きます。</td></tr>
+<tr><th>電話</th><td>電話を受けたら、その場で<b>「電話受付モード」</b>で入力します（6章）。</td></tr>
 <tr><th>店頭</th><td>店頭でのご予約も、電話と同じく<b>「電話受付モード」</b>で入力します。</td></tr>
 </table>
 
-<h3>3．電話・店頭でご予約を受けるとき（電話受付モード）</h3>
+<h3>6．電話・店頭でご予約を受けるとき（電話受付モード）</h3>
 <ol>
 <li>予約一覧の<b>「＋ 電話予約を登録」</b>を押します（新しい画面が開きます）。</li>
 <li>いちばん上の<b>「受付担当」</b>で、自分の名前を選びます。</li>
@@ -860,9 +927,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <li>お名前・電話番号を入れ、「内容を確認する」→「確定」を押します。</li>
 <li>決まった内容と金額を、<b>口頭で</b>お客様にお伝えします（SMSやLINEでは送りません）。</li>
 </ol>
-<div class="man-shot"><img src="manual/phone-mode.png" alt="" style="max-width:420px;"></div>
+<div class="man-shot"><img src="manual/phone-mode.png" alt="" loading="lazy" style="max-width:420px;"></div>
 
-<h3>4．ご予約が入ったら（予約一覧の見方）</h3>
+<h3>7．ご予約が入ったら（予約一覧の見方）</h3>
 <ul>
 <li>新しいご予約は、お店のタブレットと通知をオンにしたスマホに<b>通知</b>が届きます。予約一覧の上にも赤い帯が出ます。</li>
 <li>カードの<b>見出し</b>に、ケーキの種類と段数・号数が出ます（例：バースデーデコレーション　3段）。</li>
@@ -875,9 +942,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <tr><td>要確認（赤）</td><td>本人確認ができなかった予約です。お客様に自動の連絡は届いていません。電話で、本当にあるご予約か確認する</td></tr>
 </table>
 <p>変更があった予約には「当初のご予約 ¥◯ → 現在 ¥◯」と出ます。「当初と変更後をくわしく見る」で、初めの内容と変更後の内容を全部見られます。</p>
-<div class="man-shot"><img src="manual/reservation-card.png" alt="" style="max-width:640px;"></div>
+<div class="man-shot"><img src="manual/reservation-card.png" alt="" loading="lazy" style="max-width:640px;"></div>
 
-<h3>5．確認の電話（従業員全員）</h3>
+<h3>8．確認の電話（従業員全員）</h3>
 <table class="man-table"><colgroup><col style="width:30%"><col style="width:70%"></colgroup>
 <tr><th>いつまでに</th><td>基本は、ご予約が入った<b>その日のうち</b>に電話します。難しいときは、<b>翌営業日</b>までに必ず電話します（遅れるとクレームにつながります）。<br>フルオーダー・2段ケーキは、このときに専用の箱や材料があるかも確認します。</td></tr>
 <tr><th>確認すること</th><td>お名前・受け取り日時・ケーキの内容（段ごとのクリームと色・オプション）・メッセージの文字・アレルギー・金額・お支払い（受け取り当日に店頭）</td></tr>
@@ -896,39 +963,39 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <li>項目を選び直すと、「お伝え済みの金額」「差額」「変更後の金額」がその場で出ます。それをお伝えします。</li>
 <li>担当者を選び、「この内容で確定」を押す。変更の履歴が残り、LINEのお客様には変更後の内容が自動で届きます。</li>
 </ol>
-<div class="man-shot"><img src="manual/revision-history.png" alt="" style="max-width:640px;"></div>
+<div class="man-shot"><img src="manual/revision-history.png" alt="" loading="lazy" style="max-width:640px;"></div>
 
-<h3>6．製造の準備</h3>
+<h3>9．製造の準備</h3>
 <ul>
 <li>「製造シート」を見て、<b>受け取り日の3営業日前まで</b>に内容を確認し、準備を進めます。</li>
 <li>フルオーダー・2段ケーキは、予約が入ったら<b>その日のうち（難しければ翌営業日）</b>に、専用の箱や材料があるか確認します。</li>
 </ul>
 
-<h3>7．変更・キャンセル</h3>
+<h3>10．変更・キャンセル</h3>
 <table class="man-table"><colgroup><col style="width:30%"><col style="width:70%"></colgroup>
 <tr><th>受け取り日の<br>3営業日前まで</th><td>受けた人が「詳細・変更」で対応します。</td></tr>
 <tr><th>3営業日前を過ぎたら</th><td><b>パティシエ2名（楠田さん・永山さん）</b>が、受けられるか判断します。</td></tr>
 <tr><th>キャンセル</th><td>予約カードのステータスを「キャンセル」にします（削除はしません）。</td></tr>
 </table>
 
-<h3>8．お引き渡しとお会計</h3>
+<h3>11．お引き渡しとお会計</h3>
 <ol>
 <li><b>お名前</b>でご予約を確認します。同じ日に同じお名前があるときは、<b>予約番号</b>も合わせます。</li>
 <li>お支払いは、基本的に<b>受け取り当日に店頭</b>です。お会計が済んだら「支払い」にチェックを入れます。</li>
 <li>お渡ししたら、ステータスを「完了」にします。</li>
 </ol>
 
-<h3>9．クリスマスケーキ</h3>
+<h3>12．クリスマスケーキ</h3>
 <ul>
 <li>ご予約は、ホームページの<b>クリスマス特設ページからだけ</b>受けます。</li>
 <li><b>オプションはお受けできません</b>（ろうそくは無料、メッセージは「メリークリスマス」のプレートで固定）。</li>
 <li>お支払いは<b>12月20日までに店頭で事前精算</b>です。受け取り当日のお会計はありません。精算したら「支払い」にチェックを入れます。</li>
 </ul>
 
-<h3>10．お客様に自動で届くLINE（ネット予約）</h3>
+<h3>13．お客様に自動で届くLINE（ネット予約）</h3>
 <p>受付・確定・変更のお知らせと、お引き取りの<b>3日前・前日・1時間前</b>のリマインドが、通常・クリスマスとも自動で届きます。</p>
 
-<h3>11．決まりごと</h3>
+<h3>14．決まりごと</h3>
 <table class="man-table"><colgroup><col style="width:30%"><col style="width:70%"></colgroup>
 <tr><th>受付の締め切り</th><td>受け取り日の3営業日前まで</td></tr>
 <tr><th>受け取り時間</th><td><b>閉店時間まで</b>（日曜・祝日は19時閉店、火〜土は20時閉店）</td></tr>
@@ -937,7 +1004,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <tr><th>3段ケーキ</th><td>1段ずつ箱でお渡し。組み立てはお客様か、出張（5,000円〜・場所による。納期・日程は要確認）</td></tr>
 </table>
 
-<h3>12．困ったとき</h3>
+<h3>15．困ったとき</h3>
 <ul>
 <li>画面がおかしい・ログインできない：その画面のスクリーンショットをオーナーに送ってください。</li>
 <li>金額や納期の判断に迷う：楠田さん・永山さんに相談してから、お客様に折り返します。</li>
