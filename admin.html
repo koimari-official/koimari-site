@@ -5420,6 +5420,13 @@ function resFiltered(list) {
   return out;
 }
 // 金額の状態（電話の前に、確定で案内済みか・見積もりが必要かがひと目でわかるように）
+// 本人確認できなかった予約（2026-10-22）：お客様への自動のLINE・確認メールは送っていない
+function resVerifyWarnHtml(r) {
+  const v = r && r.verify && r.verify.result;
+  if (v === "unverified") return '<div class="rc-pb rc-pb--ng"><b>要確認</b>本人確認できない予約<small>LINE・確認メールは自動送信していません。お電話で実在のご予約か確認してください</small></div>';
+  if (v === "declined") return '<div class="rc-pb rc-pb--ng"><b>要確認</b>お断りしているお客様の可能性<small>自動のLINE・確認メールは送っていません</small></div>';
+  return "";
+}
 function resPriceBadgeHtml(r) {
   const yen = (n) => "¥" + Number(n).toLocaleString();
   if (r.finalPrice) return '<div class="rc-pb rc-pb--ok"><b>金額確定</b>' + yen(r.finalPrice) + '<small>スタッフが確定済み</small></div>';
@@ -5472,7 +5479,7 @@ function resCardHtml(r, idx, byTel) {
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
         '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
       '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
-      resPriceBadgeHtml(r) + resSpecChipsHtml(r) + alertHtml +
+      resVerifyWarnHtml(r) + resPriceBadgeHtml(r) + resSpecChipsHtml(r) + alertHtml +
       '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "</div>" +
       // アレルギー・備考・領収書は上の項目チップに表示（2026-10-21）
       '<div class="rc-checks">' +
@@ -7435,7 +7442,7 @@ window.fbDeleteCustomerFlag = (id) => remove(ref(fbDb, "customerFlags/" + id));
 window.fbCurrentEmail = () => (fbAuth.currentUser && fbAuth.currentUser.email) || "";
 
 // 電話で受けた予約を登録する（予約一覧・カレンダー・製造の目安に入るように）／要注意のお客様のネット予約を止める設定
-window.fbAddPhoneReservation = (data) => push(ref(fbDb, "reservations"), data);
+window.fbAddPhoneReservation = (data) => push(ref(fbDb, "reservations"), Object.assign({}, data, { createdByStaff: (fbAuth.currentUser && fbAuth.currentUser.uid) || "staff" })); // スタッフが作成（ログインした人しか付けられない。2026-10-22）
 window.fbGetHolidays = () => get(ref(fbDb, "koimariContent/holidays")).then((s) => s.val() || {}).catch(() => ({}));
 window.fbOnBlockDeclined = (cb) => onValue(ref(fbDb, "koimariOps/blockDeclinedCustomers"), (s) => cb(s.val() === true), () => {});
 window.fbSetBlockDeclined = (on) => set(ref(fbDb, "koimariOps/blockDeclinedCustomers"), !!on);

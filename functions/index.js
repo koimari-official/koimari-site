@@ -1103,6 +1103,54 @@ function buildConfirmMessage(data) {
   return lines.join("\n");
 }
 
+// ===== 予約の本人確認（2026-10-22）=====
+// 予約はお客様（未ログイン）が新規作成できるため、データベースに直接書き込まれた偽の予約でも受付LINE・確認メールが
+// 送られてしまっていた。予約フォームは保存の直前に LINE のアクセストークンを reservationVerify/{予約ID}（誰も読めない場所）に置く。
+// ここで LINE に照合し、予約の lineUserId と一致した場合だけ「本人確認済み」。管理画面の電話予約は createdByStaff（スタッフしか書けない）で信頼。
+// お断りしているお客様（customerFlags の decline）に当たる場合は declined とし、自動のLINE・メールは送らない。
+async function verifyReservation(pushId, data) {
+  const ref = admin.database().ref("reservationVerify/" + pushId);
+  let result = "unverified";
+  try {
+    if (data.createdByStaff) result = "staff";
+    else {
+      let rec = null;
+      for (let i = 0; i < 6 && !rec; i++) { rec = (await ref.once("value")).val(); if (!rec) await new Promise((r) => setTimeout(r, 500)); }
+      const token = rec && rec.t;
+      if (token && data.lineUserId) {
+        const v = await fetch("https://api.line.me/oauth2/v2.1/verify?access_token=" + encodeURIComponent(token));
+        const vj = v.ok ? await v.json() : {};
+        if (String(vj.client_id) === LIFF_CHANNEL_ID && Number(vj.expires_in) > 0) {
+          const pr = await fetch("https://api.line.me/v2/profile", { headers: { Authorization: "Bearer " + token } });
+          const uid = pr.ok ? (await pr.json()).userId : "";
+          if (uid && uid === data.lineUserId) result = "line";
+        }
+      }
+    }
+    if (result !== "staff") {
+      const on = (await admin.database().ref("koimariOps/blockDeclinedCustomers").once("value")).val() === true;
+      if (on) {
+        const flags = Object.values((await admin.database().ref("customerFlags").once("value")).val() || {});
+        const t = cfTelKey(data.tel), m = String(data.email || "").trim().toLowerCase(), l = String(data.lineUserId || "");
+        if (flags.some((f) => f && f.level === "decline" && ((t && cfTelKey(f.tel) === t) || (l && f.lineUserId === l) || (m && /@/.test(m) && String(f.email || "").trim().toLowerCase() === m)))) result = "declined";
+      }
+    }
+  } catch (e) { console.error("verifyReservation:", e.message); }
+  await admin.database().ref("reservations/" + pushId + "/verify").set({ result, at: new Date().toISOString() });
+  await ref.remove().catch(() => {});
+  return result;
+}
+// 本人確認の結果を待つ（確認は sendReservationReceivedMessage が行う）。最大15秒
+async function waitVerify(pushId) {
+  for (let i = 0; i < 30; i++) {
+    const v = (await admin.database().ref("reservations/" + pushId + "/verify/result").once("value")).val();
+    if (v) return v;
+    await new Promise((r) => setTimeout(r, 500));
+  }
+  return "unverified";
+}
+const TRUSTED_VERIFY = ["line", "staff"];
+
 exports.sendReservationReceivedMessage = onValueCreated(
   {
     ref: "/reservations/{pushId}",
@@ -1112,7 +1160,10 @@ exports.sendReservationReceivedMessage = onValueCreated(
   },
   async (event) => {
     const raw = event.data.val();
-    if (!raw || raw.channel !== "LINE" || !raw.lineUserId || raw.category === "kidsManager") return;
+    if (!raw) return;
+    const verified = await verifyReservation(event.params.pushId, raw);
+    if (raw.channel !== "LINE" || !raw.lineUserId || raw.category === "kidsManager") return;
+    if (!TRUSTED_VERIFY.includes(verified)) { console.warn("本人確認できない予約のため受付LINEを送らない:", event.params.pushId, verified); return; }
     const reservationNo = await assignReservationNo(event.params.pushId);
     const data = Object.assign({}, raw, { reservationNo });
     const messages = [];
@@ -1388,6 +1439,9 @@ exports.sendCustomerReservationEmail = onValueCreated(
   async (event) => {
     const data = event.data.val();
     if (!data) return;
+    // 本人確認できた予約（LINE本人・スタッフ作成）にだけ確認メールを送る（2026-10-22）
+    const verified = await waitVerify(event.params.pushId);
+    if (!TRUSTED_VERIFY.includes(verified)) { console.warn("本人確認できない予約のため確認メールを送らない:", event.params.pushId, verified); return; }
     const sent = await sendCustomerConfirmationEmail(data);
     if (!sent && data.email) await notifyStaffOfEmailFailure(data);
   }

@@ -3150,7 +3150,11 @@ function setupReserveForm(uid, displayName) {
 
     let savedRef;
     try {
-      savedRef = await withTimeout(push(reservationsRef, data), 12000, "予約保存");
+      // 本人確認（2026-10-22）：予約IDを先に決め、LINEのアクセストークンを誰も読めない場所に置いてから予約を保存する。
+      // サーバーがLINEに照合し、本人と確認できた予約にだけ受付LINE・確認メールを送る。
+      savedRef = push(reservationsRef);
+      try { const lt = (typeof liff !== "undefined" && liff.getAccessToken) ? liff.getAccessToken() : ""; if (lt) await withTimeout(set(ref(db, "reservationVerify/" + savedRef.key), { t: lt, at: Date.now() }), 8000, "本人確認"); } catch (e) { console.warn("本人確認の準備に失敗:", e); }
+      await withTimeout(set(savedRef, data), 12000, "予約保存");
       // 過去のご注文として会員に紐づけて保存（失敗しても予約自体には影響させない）
       try {
         const sp = (data.category === "cake") ? collectFormSpec() : null;

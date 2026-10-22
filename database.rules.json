@@ -39,6 +39,27 @@
         ".write": "(auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store') && ((auth.token.store !== true && auth.token.koimariAdmin !== 'store') || newData.exists())) || !data.exists()",
         "reservationNo": {
           ".read": true
+        },
+        "createdByStaff": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "verify": {
+          ".validate": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+        },
+        "name": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "furigana": {
+          ".validate": "newData.isString() && newData.val().length <= 80"
+        },
+        "tel": {
+          ".validate": "newData.isString() && newData.val().length <= 20"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().length <= 120"
+        },
+        "note": {
+          ".validate": "newData.isString() && newData.val().length <= 2000"
         }
       }
     },
@@ -119,6 +140,13 @@
     "sessionTrash": {
       ".read": "auth != null",
       ".write": "auth != null"
+    },
+    "reservationVerify": {
+      "$id": {
+        ".read": false,
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['t', 'at']) && newData.child('t').isString() && newData.child('t').val().length < 2000 && newData.child('at').isNumber()"
+      }
     }
   }
 }
