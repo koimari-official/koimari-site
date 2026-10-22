@@ -177,6 +177,17 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .xmas-guide p{margin:0 0 8px;font-size:13.5px;line-height:1.75}
 .xmas-guide__btn{display:block;text-align:center;background:#a8322a;color:#fff;font-weight:700;border-radius:999px;padding:11px 14px;text-decoration:none;font-size:15px;margin:4px 0 8px}
 .xmas-guide p.xmas-guide__sub{font-size:12.5px;color:#7a5a50;margin:0}
+
+/* 電話受付モード（2026-10-22）：片手で使えるよう、お見積もりと確認ボタンを画面の下に固定 */
+.phone-mode .profile-card,.phone-mode #lastOrderBanner,.phone-mode #pastOrders,.phone-mode #galleryTeaser,.phone-mode #resumeBanner{display:none!important}
+.phone-mode-bar{background:#2f4a3a;color:#fff;border-radius:12px;padding:12px 14px;margin:8px 0 14px}
+.phone-mode-bar__title{font-weight:700;font-size:16px;margin-bottom:6px}
+.phone-mode-bar label{display:block;font-size:14px}
+.phone-mode-bar select{margin-top:4px;font-size:17px;color:#222}
+.phone-mode-bar__hint{font-size:12.5px;opacity:.9;margin-top:6px;line-height:1.6}
+.phone-mode #liveTotalBar{position:sticky;bottom:64px;z-index:50;box-shadow:0 -4px 12px rgba(0,0,0,.08)}
+.phone-mode #reserveSubmitBtn{position:sticky;bottom:8px;z-index:51;width:100%;font-size:18px;padding:16px}
+.phone-mode .radio-list__opt{min-height:48px}
 </style>
 </head>
 <body>
@@ -667,9 +678,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, get, set, update, onValue, push } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { initializeAuth, browserLocalPersistence, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
 // LIFF_ID: LINEログインチャネル「こいマル」（プロバイダー: ケーキ屋さんこいまり）で発行（2026-08-10）
 const LIFF_ID = "2011059940-hMTBZaUz";
+// 電話受付モード（スタッフ用。2026-10-22）：member.html?phone=1。管理画面でログインしたスタッフだけが使える
+const PHONE_MODE = new URLSearchParams(location.search).get("phone") === "1";
+let phoneStaffUid = "";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
@@ -2347,12 +2362,12 @@ async function sendReserveToFormspree(data) {
     let body;
     if (data.category === "kidsManager") {
       body = {
-        _subject: `【こいまり】LINE新規ご予約: ${data.name} 様 (${data.type})`,
+        _subject: `【こいまり】${PHONE_MODE ? "電話" : "LINE"}新規ご予約: ${data.name} 様 (${data.type})`,
         "お名前（ふりがな）": data.furigana, お名前: data.name, 電話番号: data.tel, メールアドレス: data.email,
         種別: data.type,
         お子様のお名前: data.childName, 学年・年齢: data.grade, お菓子作り経験: data.bakingExperience,
         参加希望日: data.pickupDate, 参加人数: `${data.participantCount}名`,
-        備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
+        備考: data.note, 受信日時: data.submittedAt, チャネル: PHONE_MODE ? "電話（受付：" + ((document.getElementById("phoneTakenBy") || {}).value || "") + "）" : "LINE公式アカウント"
       };
     } else {
       const item = data.items[0];
@@ -2365,7 +2380,7 @@ async function sendReserveToFormspree(data) {
       const candleLine = candleQtyText(data, true);
       const messageLine = data.messageCount > 0 ? `${data.messageCount}枚${data.messageCount > 1 ? "（2枚目以降有料）" : ""}` : "なし";
       body = {
-        _subject: `【こいまり】LINE新規ご予約: ${data.name} 様 (${data.type})`,
+        _subject: `【こいまり】${PHONE_MODE ? "電話" : "LINE"}新規ご予約: ${data.name} 様 (${data.type})`,
         "お名前（ふりがな）": data.furigana, お名前: data.name, 電話番号: data.tel, メールアドレス: data.email,
         種別: data.type, 引取日: data.pickupDate, 引取時間: data.pickupTime,
         商品: productLines,
@@ -2377,7 +2392,7 @@ async function sendReserveToFormspree(data) {
         お見積もり: data.priceNeedsConsult ? "要電話案内（組み合わせにより個別にご案内）" : (data.subtotal ? estimateHeadline(data) + (estimateIsFixed(data) ? "（確定金額として案内済み）" : "（最低金額の目安）") : ""),
         ...((data.estimateLines || []).length ? { お見積もりの内訳: data.estimateLines.map(l => l.label + " " + CakePricing.lineYen(l)).join("\n") } : {}),
         領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
-        備考: data.note, 受信日時: data.submittedAt, チャネル: "LINE公式アカウント"
+        備考: data.note, 受信日時: data.submittedAt, チャネル: PHONE_MODE ? "電話（受付：" + ((document.getElementById("phoneTakenBy") || {}).value || "") + "）" : "LINE公式アカウント"
       };
     }
     const res = await fetch(FORMSPREE_ENDPOINT, {
@@ -2510,6 +2525,7 @@ function validateReserve(data) {
     if (!isBaked && !isRoll && cutPickerNeeded() && (data.cutCakes || []).reduce((s, c) => s + (Number(c.qty) || 0), 0) > cutMax()) { setReserveError("reserveCutError", cutBaseSize() + "に載せられるカットケーキは" + cutMax() + "個までです。個数を減らしてください"); ok = false; }
     if (!isBaked && !isRoll && cutPickerNeeded() && cutCatalog.length && !(data.cutCakes || []).length) { setReserveError("reserveCutError", "上に載せるカットケーキを1個以上お選びください"); ok = false; }
     if (isRoll && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
+    if (PHONE_MODE && !(document.getElementById("phoneTakenBy") || {}).value) { alert("受付担当を選んでください（画面の一番上）"); ok = false; }
     if (!isBaked && !data.occasion) { setReserveError("reserveOccasionError", "ご利用シーンをお選びください"); ok = false; }
     else if (data.occasion === "その他" && !data.occasionOther.trim()) { setReserveError("reserveOccasionError", "ご利用シーンをご記入ください"); ok = false; }
     else if (xmasOccasionChosen()) { setReserveError("reserveOccasionError", "クリスマスケーキは、特設ページからご予約ください（上のボタンから移動できます）"); ok = false; }
@@ -3059,7 +3075,7 @@ function setupReserveForm(uid, displayName) {
       noshi: "", noshiTitle: "", noshiName: "", messageCard: "", wrapping: "",
       status: "受付済", notes: "",
       submittedAt: new Date().toISOString(),
-      channel: "LINE", lineUserId: uid
+      ...(PHONE_MODE ? { channel: "電話", phoneTakenBy: (document.getElementById("phoneTakenBy") || {}).value || "", createdByStaff: phoneStaffUid } : { channel: "LINE", lineUserId: uid })
     };
 
     let data;
@@ -3211,13 +3227,13 @@ function setupReserveForm(uid, displayName) {
       // 本人確認（2026-10-22）：予約IDを先に決め、LINEのアクセストークンを誰も読めない場所に置いてから予約を保存する。
       // サーバーがLINEに照合し、本人と確認できた予約にだけ受付LINE・確認メールを送る。
       savedRef = push(reservationsRef);
-      try { const lt = (typeof liff !== "undefined" && liff.getAccessToken) ? liff.getAccessToken() : ""; if (lt) await withTimeout(set(ref(db, "reservationVerify/" + savedRef.key), { t: lt, at: Date.now() }), 8000, "本人確認"); } catch (e) { console.warn("本人確認の準備に失敗:", e); }
+      try { const lt = (!PHONE_MODE && typeof liff !== "undefined" && liff.getAccessToken) ? liff.getAccessToken() : ""; if (lt) await withTimeout(set(ref(db, "reservationVerify/" + savedRef.key), { t: lt, at: Date.now() }), 8000, "本人確認"); } catch (e) { console.warn("本人確認の準備に失敗:", e); }
       await withTimeout(set(savedRef, data), 12000, "予約保存");
       // 過去のご注文として会員に紐づけて保存（失敗しても予約自体には影響させない）
       try {
         const sp = (data.category === "cake") ? collectFormSpec() : null;
         const head = [data.type, (data.tierSpecs || []).length ? data.tierSpecs.map(t => t.tier + " " + String(t.size).replace(/\(.*$/, "") + " " + t.cream).join(" / ") : (data.items && data.items[0] ? String(data.items[0].size || "").replace(/\(.*$/, "") + " " + (data.creamType || "") : "")].filter(Boolean).join("\n");
-        await set(ref(db, "lineMembers/" + uid + "/orders/" + savedRef.key), { savedAt: Date.now(), pickupDate: data.pickupDate || "", subtotal: data.subtotal || 0, headline: head.slice(0, 300), spec: sp ? JSON.stringify(Object.assign({}, sp, { date: "", time: "" })).slice(0, 4000) : "" });
+        if (uid) await set(ref(db, "lineMembers/" + uid + "/orders/" + savedRef.key), { savedAt: Date.now(), pickupDate: data.pickupDate || "", subtotal: data.subtotal || 0, headline: head.slice(0, 300), spec: sp ? JSON.stringify(Object.assign({}, sp, { date: "", time: "" })).slice(0, 4000) : "" });
       } catch (e) { console.warn("過去の注文の保存に失敗:", e); }
     } catch (err) {
       console.warn("Firebase保存失敗:", err);
@@ -3268,7 +3284,35 @@ function setupReserveForm(uid, displayName) {
   });
 }
 
+async function mainPhone() {
+  const box = document.getElementById("loadingBox");
+  const auth = initializeAuth(fbApp, { persistence: browserLocalPersistence });
+  const user = await new Promise((res) => { const off = onAuthStateChanged(auth, (u) => { off(); res(u); }); });
+  let ok = false;
+  if (user) {
+    try { const c = (await user.getIdTokenResult()).claims || {}; ok = (c.firebase && c.firebase.sign_in_provider === "password") || c.koimariAdmin === "full" || c.koimariAdmin === "store"; } catch (e) {}
+  }
+  if (!ok) {
+    if (box) box.innerHTML = '<div class="notice-box"><div class="notice-box__title">電話受付モードはスタッフ専用です</div><div class="notice-box__desc">先に<a href="admin.html">管理画面</a>でログインしてから、管理画面の「＋ 電話予約を登録」から開いてください。</div></div>';
+    return;
+  }
+  phoneStaffUid = user.uid;
+  document.body.classList.add("phone-mode");
+  if (box) box.style.display = "none";
+  document.getElementById("memberArea").style.display = "block";
+  // 受付担当（管理画面の担当者リスト）
+  let staff = [];
+  try { const v = (await get(ref(db, "reservationStaff"))).val(); staff = Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {}); } catch (e) {}
+  const bar = document.createElement("div");
+  bar.className = "phone-mode-bar";
+  bar.innerHTML = '<div class="phone-mode-bar__title">電話受付モード（スタッフ用）</div><label>受付担当 <select id="phoneTakenBy" class="input select"><option value="">選んでください</option>' + staff.map((n) => '<option>' + String(n).replace(/[<>&"]/g, "") + "</option>").join("") + '</select></label><div class="phone-mode-bar__hint">お電話で伺いながら、上から順に選んでください。お客様のLINEには何も送られません。</div>';
+  const sec = document.getElementById("reserveSection");
+  sec.parentNode.insertBefore(bar, sec);
+  setupReserveForm("", "");
+  sec.scrollIntoView({ block: "start" });
+}
 async function main() {
+  if (PHONE_MODE) { try { await mainPhone(); } catch (e) { console.error(e); showError(e); } return; }
   try {
     await liff.init({ liffId: LIFF_ID });
 

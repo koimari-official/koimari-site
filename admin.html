@@ -805,7 +805,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
             <input type="checkbox" id="resUnpaidOnly" onchange="renderReservations()"> 未払いのみ表示
           </label>
-          <button class="btn btn--small" type="button" onclick="openPhoneReservation()">＋ 電話予約を登録</button>
+          <a class="btn btn--small" href="member.html?phone=1" target="_blank" rel="noopener">＋ 電話予約を登録</a>
+          <button class="btn btn--small btn--ghost" type="button" onclick="openPhoneReservation()" title="従来の簡易入力">簡易入力</button>
           <button class="btn btn--small btn--ghost" id="exportRes">CSV出力</button>
           <button class="btn btn--small btn--ghost" id="trashToggleRes">ゴミ箱</button>
           <button class="btn btn--small btn--danger" id="clearRes">全削除</button>
