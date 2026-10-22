@@ -28,7 +28,7 @@
     } catch (e) {}
     return list.map(function (n, i) { return { n: n, i: i, c: count[n] || 0 }; }).sort(function (a, b) { return b.c - a.c || a.i - b.i; }).map(function (x) { return x.n; });
   }
-  var TIMES = (function () { var a = []; for (var m = 600; m <= 1170; m += 30) a.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0")); return a; })();
+  var TIMES = (function () { var a = []; for (var m = 600; m <= 1200; m += 30) a.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0")); return a; })();
 
   var priceBase = null, refCakes = null;
   function getJson(path) { return fetch(DB + "/" + path + ".json").then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
