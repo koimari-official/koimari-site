@@ -109,6 +109,12 @@ old_hero = '<div class="hero" id="hero">'
 assert out.count(old_hero) == 1, "いまの最初の画面（#hero）の書き方が変わった"
 out = out.replace(old_hero, NEW["@kfHero"] + "\n" + old_hero, 1)
 
+# ---- 隠した欄を指すリンク（上部メニュー「商品・ケーキ」・フッター「商品カテゴリー」など）は、実際にあるページへ付け替える ----
+LINK_TO = {"categories": "gallery.html", "sugar": "gallery.html?cat=addon", "cakeShowcase": "gallery.html", "philosophy": "#kfSignature", "social": "#kfVoices"}
+for sid in HIDDEN:
+    out = out.replace('href="#%s"' % sid, 'href="%s"' % LINK_TO[sid])
+assert not re.search(r'href="#(%s)"' % "|".join(HIDDEN), out), "隠した欄を指すリンクが残っている"
+
 # ---- 検索に出さない・見た目と動き・スマホの固定ボタン ----
 assert out.count("</head>") == 1 and 'name="robots"' not in out
 out = out.replace("</head>", '<meta name="robots" content="noindex,nofollow">\n<link rel="stylesheet" href="fruit-top/fruit-top.css">\n</head>', 1)
