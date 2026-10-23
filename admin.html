@@ -2311,12 +2311,24 @@ window.openTabFromHash = openTabFromHash;
 // 全カテゴリーでmaxWidthを2400px（ヒーロー画像と同じ水準）に統一し、JPEG品質も0.85→0.92に
 // 引き上げた（オーナー指摘：登録した写真の解像度が落ちて見える）。2400px未満の画像は
 // そもそもリサイズされず、アップロードした元画像のままになる。
-function fileToDataUrl(file, maxWidth) {
+// 2026-10-23：失敗時のdata URLへのフォールバックを廃止した（埋め込み写真15枚・8.2MBで公開トップの表示に90秒
+// かかっていたため）。アップロードは3回までやり直し（fbUploadImage側）、それでもだめならエラーにして写真は変えない。
+// maxWidth未指定（Instagram投稿・今月の主役など）も、data URLにせず元のファイルのままStorageへ上げる。
+// 返すのは写真のURL（関数名も fileToDataUrl から変更）。
+const PHOTO_UPLOAD_FAILED = "写真をサーバーに保存できませんでした（写真は変更していません）。通信状況を確かめて、もう一度写真を選び直してください";
+async function uploadPhotoOrFail(blob, contentType) {
+  // 画面を開いた直後は、アップロードの処理（module側の window.fbUploadImage）の読み込みが終わっていないことがある
+  for (let i = 0; i < 50 && typeof window.fbUploadImage !== "function"; i++) await new Promise((r) => setTimeout(r, 200));
+  if (!blob || typeof window.fbUploadImage !== "function") throw new Error(PHOTO_UPLOAD_FAILED);
+  try { return await window.fbUploadImage(blob, contentType); }
+  catch (err) { console.warn("Storageアップロード失敗:", err); throw new Error(PHOTO_UPLOAD_FAILED); }
+}
+function fileToPhotoUrl(file, maxWidth) {
   return new Promise((resolve, reject) => {
     if (file.size > 15 * 1024 * 1024) { reject(new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください")); return; }
+    if (!maxWidth) { uploadPhotoOrFail(file, file.type).then(resolve, reject); return; }  // 元のファイルのまま（縮小・圧縮しない）
     const r = new FileReader();
     r.onload = () => {
-      if (!maxWidth) { resolve(r.result); return; }
       const img = new Image();
       img.onload = () => {
         let w = img.naturalWidth, h = img.naturalHeight;
@@ -2324,19 +2336,7 @@ function fileToDataUrl(file, maxWidth) {
         const canvas = document.createElement("canvas");
         canvas.width = w; canvas.height = h;
         canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-        canvas.toBlob(async (blob) => {
-          if (!blob || typeof window.fbUploadImage !== "function") {
-            try { resolve(canvas.toDataURL("image/jpeg", 0.92)); } catch (err) { resolve(r.result); }
-            return;
-          }
-          try {
-            resolve(await window.fbUploadImage(blob));
-          } catch (err) {
-            console.warn("Storageアップロード失敗、data URLにフォールバック:", err);
-            if (typeof showToast === "function") showToast("写真をサーバーに保存できませんでした（元の写真も保存されていません）。この写真は後から位置の選び直しができないため、通信状況を確認して、もう一度ファイルから選び直してください", "error");
-            try { resolve(canvas.toDataURL("image/jpeg", 0.92)); } catch (err2) { resolve(r.result); }
-          }
-        }, "image/jpeg", 0.92);
+        canvas.toBlob((blob) => { uploadPhotoOrFail(blob).then(resolve, reject); }, "image/jpeg", 0.92);
       };
       img.onerror = () => reject(new Error("画像を読み込めませんでした。ファイル形式（JPEG・PNG等）をご確認のうえ、もう一度お試しください"));
       img.src = r.result;
@@ -2464,22 +2464,19 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
   closeCropModal();
   _cropResolve = null;
   _cropOriginalBlob = null;
-  // 2026-09-11、切り抜き後の画像もStorageへアップロードしてURLを返す（fileToDataUrlと同じ理由）。
-  // アップロード失敗時はdata URLにフォールバックする。
+  // 2026-09-11、切り抜き後の画像もStorageへアップロードしてURLを返す（fileToPhotoUrlと同じ理由）。
+  // 2026-10-23、アップロード失敗時のdata URLへのフォールバックを廃止。失敗したら写真は変えず（キャンセル扱いのnull）、選び直してもらう。
   // 2026-09-23、元画像（originalBlob）が渡されている場合は、それも並行してStorageへアップロード
   // し、{cropped, original}の形で返す。「元画像はそのまま保存し、選んだ範囲を表示に使う」という
   // オーナー指示（一般的な非破壊トリミング）に対応するため。再トリミング（originalBlobなし）の
   // 場合はoriginal:nullを返し、呼び出し側は既存のオリジナルを上書きしない。
   canvas.toBlob(async (blob) => {
     let cropped;
-    try { cropped = canvas.toDataURL("image/jpeg", 0.92); } catch (err) { cropped = null; }
-    if (blob && typeof window.fbUploadImage === "function") {
-      try { cropped = await window.fbUploadImage(blob); }
-      catch (err) { console.warn("Storageアップロード失敗、data URLにフォールバック:", err); showToast("写真をサーバーに保存できませんでした（元の写真も保存されていません）。この写真は後から位置の選び直しができないため、通信状況を確認して、もう一度ファイルから選び直してください", "error"); }
-    }
+    try { cropped = await uploadPhotoOrFail(blob); }
+    catch (err) { showToast(err.message, "error"); if (resolveFn) resolveFn(null); return; }
     let original = null;
-    if (originalBlob && typeof window.fbUploadImage === "function") {
-      try { original = await window.fbUploadImage(originalBlob, originalBlob.type); }
+    if (originalBlob) {
+      try { original = await uploadPhotoOrFail(originalBlob, originalBlob.type); }
       catch (err) { console.warn("元画像のStorageアップロードに失敗（切り抜き結果は保存されます）:", err); showToast("元の写真をサーバーに保存できませんでした。後から位置を選び直せるよう、もう一度ファイルから選び直してください", "error"); }
     }
     if (resolveFn) resolveFn({ cropped, original, crop: cropBox });
@@ -2491,7 +2488,7 @@ document.getElementById("cropConfirmBtn").addEventListener("click", () => {
 // から渡す（オーダーメイド作品ギャラリー等、縦長の写真の全体を切らずに収めたい場合用）。
 async function cropAndResizeImage(file, aspectRatio, targetWidth, ratioOptions, padToFit) {
   if (file.size > 15 * 1024 * 1024) { throw new Error("画像のファイルサイズが大きすぎます（15MB以下にしてください）。スマホのカメラ設定で撮影解像度を下げるか、写真アプリの編集機能で画像の縦横サイズ（解像度）を小さくしてから、もう一度お試しください"); }
-  if (typeof Cropper !== "function") { return fileToDataUrl(file, targetWidth); }
+  if (typeof Cropper !== "function") { return fileToPhotoUrl(file, targetWidth); }
   const rawDataUrl = await new Promise((resolve, reject) => {
     const r = new FileReader();
     r.onload = () => resolve(r.result);
@@ -2606,7 +2603,7 @@ function makeImageItem({ preview, originalSrc, fields, onChange, onFile, onDelet
         const result = await cropAndResizeImage(file, aspectRatio, maxWidth, ratioOptions, padToFit);
         if (result !== null) onFile(result); // nullはキャンセルを意味するため何もしない
       } else {
-        onFile(await fileToDataUrl(file, maxWidth));
+        onFile(await fileToPhotoUrl(file, maxWidth));
       }
     } catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
   }
@@ -2851,7 +2848,7 @@ function makeGalleryEditor(item, key, { maxWidth, max, onChange }) {
     fileInput.addEventListener("change", async e => {
       if (!e.target.files[0]) return;
       try {
-        const url = await fileToDataUrl(e.target.files[0], maxWidth);
+        const url = await fileToPhotoUrl(e.target.files[0], maxWidth);
         images.push(url);
         onChange();
       } catch (err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
@@ -6653,7 +6650,7 @@ function renderSpotlightAdmin() {
       if (!file) return;
       try {
         // 画質を落とさないよう、元のファイルのまま保存する
-        sp.img = typeof window.fbUploadImage === "function" ? await window.fbUploadImage(file, file.type) : await fileToDataUrl(file);
+        sp.img = await fileToPhotoUrl(file);
         spotlightDirty = true;
         renderSpotlightAdmin();
         showToast("画像を入れました。「保存する」を押すと反映されます");
@@ -6775,7 +6772,7 @@ function renderInstaAdmin() {
   document.getElementById("instaFile").addEventListener("change", async e => {
     if (!e.target.files[0]) return;
     try {
-      const url = await fileToDataUrl(e.target.files[0]);
+      const url = await fileToPhotoUrl(e.target.files[0]);
       instaData.img = url;
       renderInstaAdmin();
     } catch(err) { showToast(err.message || "ファイル読み込みエラー", "error"); }
@@ -7273,9 +7270,20 @@ function applyFetchedOpsContent(all) {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-import { getDatabase, ref, onValue, update, remove, get, push, set, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, update as fbUpdateRaw, remove, get, push, set as fbSetRaw, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, initializeAuth, browserLocalPersistence, inMemoryPersistence, signInWithEmailAndPassword, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+// 2026-10-23：写真をデータへ直接埋め込んだまま（data:image…）保存しない。埋め込み写真15枚（8.2MB）のせいで、
+// 公開トップの「おすすめ商品」が出るまで90秒かかっていた。写真は必ずStorageに置き、データには写真のURLだけを入れる。
+// 万一埋め込みが紛れ込んでも、この画面からの保存（set・update）はすべてここを通るので、書き込む直前で止めて知らせる。
+const INLINE_PHOTO_MSG = "写真がサーバーに保存されていないため、保存を止めました。写真を選び直してから、もう一度保存してください";
+function hasInlinePhoto(v) {
+  if (typeof v === "string") return v.startsWith("data:image/");
+  return !!v && typeof v === "object" && Object.keys(v).some((k) => hasInlinePhoto(v[k]));
+}
+function set(r, v) { return hasInlinePhoto(v) ? Promise.reject(new Error(INLINE_PHOTO_MSG)) : fbSetRaw(r, v); }
+function update(r, v) { return hasInlinePhoto(v) ? Promise.reject(new Error(INLINE_PHOTO_MSG)) : fbUpdateRaw(r, v); }
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
@@ -7318,8 +7326,17 @@ window.fbUploadImage = async function (blob, contentType) {
   // 写真が反映されないまま終わっていた（カテゴリ「焼き菓子」で発生）。アップロード中は画面全体に案内を出し、保存も止める。
   uploadBusy(+1);
   try {
-    await uploadBytes(snapRef, blob, { contentType: type });
-    return await getDownloadURL(snapRef);
+    // 2026-10-23：通信の瞬断に備えて3回までやり直す（失敗しても写真をデータに埋め込まない方針にしたため）
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await uploadBytes(snapRef, blob, { contentType: type });
+        return await getDownloadURL(snapRef);
+      } catch (err) {
+        if (attempt >= 3) throw err;
+        console.warn("Storageアップロード失敗（" + attempt + "回目・やり直します）:", err);
+        await new Promise((r) => setTimeout(r, 1000 * attempt));
+      }
+    }
   } finally { uploadBusy(-1); }
 };
 function uploadBusy(d) {
