@@ -109,6 +109,12 @@ old_hero = '<div class="hero" id="hero">'
 assert out.count(old_hero) == 1, "いまの最初の画面（#hero）の書き方が変わった"
 out = out.replace(old_hero, NEW["@kfHero"] + "\n" + old_hero, 1)
 
+# ---- 看板商品の欄に、トップが読み込んだ商品データ（siteImages）を渡す（試作だけに差し込む。本番の index.html は変えない） ----
+hook = "function applyFetchedFeaturedMenu(data){"
+assert out.count(hook) == 1, "商品データを当てはめる処理（applyFetchedFeaturedMenu）の書き方が変わった"
+out = out.replace(hook, hook + 'try{window.__koimariMenu=data;window.dispatchEvent(new CustomEvent("koimari:menu",{detail:data}));}catch(e){}', 1)
+kf_config = json.dumps({"signature": cfg.get("signature")}, ensure_ascii=False).replace("</", "<\\/")
+
 # ---- 隠した欄を指すリンク（上部メニュー「商品・ケーキ」・フッター「商品カテゴリー」など）は、実際にあるページへ付け替える ----
 LINK_TO = {"categories": "gallery.html", "sugar": "gallery.html?cat=addon", "cakeShowcase": "gallery.html", "philosophy": "#kfSignature", "social": "#kfVoices"}
 for sid in HIDDEN:
@@ -122,7 +128,16 @@ out = re.sub(r"<title>(.*?)</title>", lambda m: "<title>%s（新トップ試作�
 tail = (fill(part("bar.html"), {"{{EC_BAR}}": ec["{{EC_BAR}}"]}) + "\n"
         '<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>\n'
         '<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>\n'
-        '<script src="fruit-top/fruit-top.js"></script>\n')
+        '<script id="kfConfig" type="application/json">' + kf_config + '</script>\n'
+        '<script src="fruit-top/fruit-top.js"></script>\n'
+        # BudouX（Googleの無料ライブラリ）：新しい欄の日本語を文節の切れ目でだけ折り返す（「に。」だけが次の行に落ちるのを防ぐ）
+        '<script type="module">\n'
+        "import { loadDefaultJapaneseParser } from 'https://cdn.jsdelivr.net/npm/budoux@0.9.3/+esm';\n"
+        'const parser = loadDefaultJapaneseParser();\n'
+        "const SEL = '.kf-title, .kf-lead, .kf-hero__sub, .kf-points__t, .kf-points__x, .kf-nums small, .kf-tile__cap b, .kf-tile__cap small, .kf-up__item b, .kf-up__hint';\n"
+        'window.kfBudoux = (root) => { (root || document).querySelectorAll(SEL).forEach((el) => { if (el.dataset.bdx === el.textContent) return; try { parser.applyToElement(el); el.dataset.bdx = el.textContent; } catch (e) {} }); };\n'
+        'window.kfBudoux(document);\n'
+        '</script>\n')
 i = out.rindex("</body>")
 out = out[:i] + tail + out[i:]
 open(OUT, "w", encoding="utf8").write(out)

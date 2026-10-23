@@ -1,6 +1,16 @@
 {
   "_note": "こいまり新トップ（試作 index-fruit.html）の設定（2026-10-23）。BASEのURLや、客単価アップ（D）の画像を入れると、その部分だけが表示される。空のあいだは何も表示しない（設定にない画像・文言・価格は出さないルール）。画像は fruit-top/img/ に元の解像度のまま置き、ここにファイル名を書く。直したら python fruit-top/make_fruit_top.py で組み立て直す。",
   "baseShopUrl": "",
+  "signature": {
+    "_note": "看板商品の欄。写真・名前・価格・説明・こだわりは管理画面の商品データ（siteImages の list）から、name が一致する商品を表示する。商品が非表示・見つからないときは欄ごと出さない。stats（大きな数字）はこの商品の事実（商品データの「こだわり」と同じ内容）なので、看板商品を替えるときは stats も見直す。",
+    "list": "cutcakes",
+    "productType": "cutcake",
+    "name": "たっぷり苺のショートケーキ",
+    "stats": [
+      { "to": 4.5, "dec": 1, "unit": "粒以上", "caption": "ひと切れのいちご" },
+      { "to": 125, "dec": 0, "unit": "%", "caption": "ふんわりスポンジ" }
+    ]
+  },
   "upsell": {
     "sizes": [
       { "size": "3号", "label": "約9cm／2〜3人前", "image": "" },
