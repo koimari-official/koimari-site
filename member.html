@@ -1076,6 +1076,18 @@ function svgColorOf(name) {
   return !c ? "#fff4e0" : c.css.indexOf("conic") === 0 ? "#c9a0e6" : c.css;
 }
 function tierIsSpecialTop(sizeVal) { return SPECIAL_TOP_OPTIONS.some(o => o.value && o.value === sizeVal); }
+// セルクル（2026-10-23オーナー指示）：セルクルのクリームは生クリームか生チョコクリームから選び、すぐ下の段も同じクリームにそろえる
+// （通常、セルクルは下の段と同じクリームで作るため）。セルクルの色は選ばない。
+const CERCLE = "セルクル";
+const CERCLE_CREAMS = ["生クリーム", "生チョコクリーム"];
+function cercleTierIndex() {
+  const n = currentTierCount();
+  for (let i = 1; i < n; i++) {
+    const s = document.querySelector('.tier-size-select[data-tier="' + i + '"]');
+    if (s && s.value === CERCLE) return i;
+  }
+  return -1;
+}
 function renderTierDiagram() {
   const wrap = document.getElementById("reserveTierDiagram");
   if (!wrap) return;
@@ -1135,7 +1147,7 @@ function renderTierDiagram() {
       <ellipse cx="${cx}" cy="${topY}" rx="${w / 2}" ry="${RY}" fill="url(#tdTop)"/>
       ${special ? "" : `<ellipse cx="${cx}" cy="${topY + 1}" rx="${w / 2 - 7}" ry="${RY - 3.5}" fill="none" stroke="#fff" stroke-opacity=".5" stroke-width="1"/>` + piping(topY, w / 2 - 4, rim)}
     </g>`;
-    const line2 = [special ? sz.replace(/\(.*$/, "") : (key || "サイズ未選択"), special ? "" : sp.cream, sp.colors.length ? sp.colors.map(colorLabelOf).join("・") : ""].filter(Boolean).join(" ／ ");
+    const line2 = [special ? sz.replace(/\(.*$/, "") : (key || "サイズ未選択"), special && sz !== CERCLE ? "" : sp.cream, sp.colors.length ? sp.colors.map(colorLabelOf).join("・") : ""].filter(Boolean).join(" ／ ");
     rows = `<button type="button" class="tier-row" data-tier="${i}" style="display:block;width:100%;min-height:${H - 6}px;margin:0 0 6px;text-align:left;padding:8px 12px;border-radius:12px;cursor:pointer;background:${on ? "linear-gradient(135deg,#fff8ea,#ffeec9)" : "#fff"};border:${on ? "2px solid #e08a00" : "1px solid #ddc9b0"};box-shadow:${on ? "0 3px 10px rgba(224,138,0,.25)" : "0 1px 2px rgba(0,0,0,.05)"};"><span style="font-weight:700;font-size:13px;">${tierName(i, n)}</span>${on ? ` <span style="background:#e08a00;color:#fff;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px;margin-left:4px;white-space:nowrap;display:inline-block;">選択中</span>` : ""}<br><span style="font-size:12px;color:#6b5a48;line-height:1.5;">${escape(line2 || "未選択")}</span></button>` + rows; // 上の段が先頭
   }
   const isBottom = activeTier === 0;
@@ -1185,6 +1197,10 @@ function syncSpecFromControls() {
 const AUTOSAVE_LS_KEY = "koimari_form_autosave";
 const AUTOSAVE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 let autosaveTimer = null, lastServerSaveAt = 0, lastServerSavedJson = "", autosaveSuppressed = false;
+// 2026-10-23：予約が完了したら、この画面では途中保存をしない。完了後にLINEを閉じた時（pagehide・visibilitychange）や
+// 送信前に始まっていた保存が後から終わった時に、完了した注文の選択（トッピング・出張など）が「途中の内容」として保存され、
+// 次の予約を開いた時に自動で入ってしまっていた（オーナー指摘：選んでいないのに入る＝クレームになりかねない）。
+let orderCompleted = false;
 function genDraftCode() { const a = new Uint8Array(8); crypto.getRandomValues(a); let s = ""; for (let i = 0; i < 8; i++) s += AUTOSAVE_ALPHABET[a[i] % AUTOSAVE_ALPHABET.length]; return s; }
 function collectFormSpec() {
   const g = id => document.getElementById(id);
@@ -1213,11 +1229,12 @@ function specIsMeaningful(s) {
   return (s.sizes || []).some(Boolean) || (s.specs || []).some(x => x.colors.length || x.cream !== "生クリーム") || s.occasion || s.date;
 }
 function scheduleAutosave() {
-  if (autosaveSuppressed) return;
+  if (autosaveSuppressed || orderCompleted) return;
   clearTimeout(autosaveTimer);
   autosaveTimer = setTimeout(() => autosaveNow(false), 1200);
 }
 async function autosaveNow(force) {
+  if (orderCompleted) return;
   let spec;
   try { spec = collectFormSpec(); } catch (e) { return; }
   if (!specIsMeaningful(spec)) return;
@@ -1235,6 +1252,7 @@ async function autosaveNow(force) {
     try {
       const res = await fetch(`${DRAFT_DB}/reservationDrafts/${code}.json`, { method: "PUT", keepalive: json.length < 6000, body: JSON.stringify({ name: "途中保存", productType: "autosave", createdAt: now, spec: json }) });
       if (res.ok) {
+        if (orderCompleted) return; // 保存中に予約が完了した：完了した注文を途中保存として残さない
         lastServerSavedJson = json;
         try { localStorage.setItem(AUTOSAVE_LS_KEY, JSON.stringify({ savedAt: now, spec, code })); } catch (e) {}
         if (memberUid) update(ref(db, "lineMembers/" + memberUid + "/profile"), { autosaveDraft: code, autosaveAt: now }).catch(() => {});
@@ -1297,7 +1315,10 @@ async function initResumeBanner(fromUrlSpec) {
   if (!el) return;
   let saved = null;
   if (fromUrlSpec) saved = { savedAt: fromUrlSpec.createdAt || Date.now(), spec: fromUrlSpec.spec, code: fromUrlSpec.code };
-  else { try { saved = JSON.parse(localStorage.getItem(AUTOSAVE_LS_KEY) || "null"); } catch (e) {} }
+  else {
+    try { saved = JSON.parse(localStorage.getItem(AUTOSAVE_LS_KEY) || "null"); } catch (e) {}
+    if (isLeftoverAutosave(saved, await completedOrders())) { try { localStorage.removeItem(AUTOSAVE_LS_KEY); } catch (e) {} saved = null; }
+  }
   if (!saved || !specIsMeaningful(saved.spec)) { el.style.display = "none"; return; }
   const d = new Date(saved.savedAt);
   const when = (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
@@ -1862,20 +1883,24 @@ function closeTimeForDate(dateStr) {
   const info = KoimariHours.dayInfo(reserveHolidays, key, d.getDay(), JP_HOLIDAYS.has(key), false);
   return info.close || "";
 }
+// 閉店間際の案内の文面（フォームの案内・確認画面で共通）。2026-10-23オーナー指示：注意を重ねると気に障るため、
+// 短くやわらかく。「お時間にお気をつけて」「当日のお渡しができかねる」は書かない。電話番号はタップでかけられるように。
+function nearCloseText(close) {
+  return "この日は<b>" + close + "</b>まで営業しております。お越しが遅くなりそうなときは、お気軽にお電話（" +
+    '<a href="tel:07091580641" style="white-space:nowrap;color:inherit;">070-9158-0641</a>）でお知らせください。';
+}
 function nearCloseNote(date, time) {
   const cm = KoimariHours.toMinutes(closeTimeForDate(date)), tm = KoimariHours.toMinutes(time);
-  return cm != null && tm != null && tm >= cm - 60 ? '<br><small style="color:#8a5a12;">閉店は' + closeTimeForDate(date) + 'です。遅れそうな場合は、お早めにお電話でご連絡ください。</small>' : "";
+  return cm != null && tm != null && tm >= cm - 60 ? '<br><small style="color:#8a5a12;">' + nearCloseText(closeTimeForDate(date)) + '</small>' : "";
 }
-// 閉店1時間前以降の時間を選んだら、閉店時刻と遅れる場合のお願いを丁寧にお知らせする（2026-10-22オーナー指示）
+// 閉店1時間前以降の時間を選んだら、閉店時刻と、遅くなりそうなときの連絡先をお知らせする（2026-10-22オーナー指示・10-23文面変更）
 function updateReserveTimeNotice() {
   const box = document.getElementById("reserveTimeNotice");
   if (!box) return;
   const date = (document.getElementById("reserveDate") || {}).value || "", time = (document.getElementById("reserveTime") || {}).value || "";
   const close = closeTimeForDate(date), cm = KoimariHours.toMinutes(close), tm = KoimariHours.toMinutes(time);
   if (!close || cm == null || tm == null || tm < cm - 60) { box.style.display = "none"; box.innerHTML = ""; return; }
-  box.innerHTML = "この日の閉店時刻は<b>" + close + "</b>です。お時間にお気をつけてお越しください。<br>" +
-    "遅れそうな場合は、お手数ですがお早めにお電話でご連絡をお願いいたします。<br>" +
-    "お越しが閉店時刻を過ぎた場合など、状況によっては当日のお渡しができかねることがございます。あらかじめご了承くださいませ。";
+  box.innerHTML = nearCloseText(close);
   box.style.display = "";
 }
 document.addEventListener("change", (e) => { if (e.target && (e.target.id === "reserveTime" || e.target.id === "reserveDate")) updateReserveTimeNotice(); });
@@ -2026,6 +2051,8 @@ function renderTierSizeSelects(tierCount) {
 // 段の大きさが後から変わって条件に合わなくなった段は、生クリームに戻してお知らせする。
 function creamAllowedOnTier(cream, i, n) {
   if (n <= 1) return true;
+  const ci = cercleTierIndex();
+  if (ci >= 1 && (i === ci || i === ci - 1)) return CERCLE_CREAMS.includes(cream); // セルクルとすぐ下の段
   const sizeOf = (k) => sizeKeyOf((document.querySelector('.tier-size-select[data-tier="' + k + '"]') || {}).value || "");
   const size = sizeOf(i);
   const base = (CakePricing.SPEC.baseSizes || {})[cream];
@@ -2039,31 +2066,62 @@ function applyCreamTierRules() {
   _creamRuleBusy = true;
   try {
     const n = currentTierCount();
+    const ci = cercleTierIndex();
+    const inCercle = (i) => ci >= 1 && (i === ci || i === ci - 1);
+    const cercleCtx = n > 1 && inCercle(activeTier); // いま選んでいる段が、セルクルかそのすぐ下の段
     const radios = Array.from(document.querySelectorAll('input[name="reserveCreamType"]'));
     radios.forEach((r) => {
       const ok = creamAllowedOnTier(r.value, activeTier, n);
       r.disabled = !ok;
       const lab = r.closest("label");
       if (lab) {
+        lab.style.display = !ok && cercleCtx ? "none" : ""; // セルクルまわりは、選べる2種類だけを見せる
         lab.style.opacity = ok ? "" : ".45";
         let note = lab.querySelector(".cream-tier-note");
         if (!ok && !note) { note = document.createElement("span"); note.className = "cream-tier-note"; note.style.cssText = "display:block;font-size:12px;color:#8a6a4a;"; lab.appendChild(note); }
         if (note) note.textContent = ok ? "" : ((CakePricing.SPEC.tierOnlyTop || []).includes(r.value) ? "（2段・3段では一番上の段だけ選べます）" : "（5号の段だけ選べます）");
       }
     });
+    { // セルクルまわりの案内（クリームの選択肢の上）
+      const list = document.querySelector("#reserveCreamTypeField .radio-list");
+      let cn = document.getElementById("reserveCercleCreamNote");
+      if (list && !cn) { cn = document.createElement("p"); cn.id = "reserveCercleCreamNote"; cn.style.cssText = "margin:0 0 8px;font-size:13px;line-height:1.7;color:#6b4a12;"; list.parentNode.insertBefore(cn, list); }
+      if (cn) {
+        cn.style.display = cercleCtx ? "" : "none";
+        cn.textContent = activeTier === ci ? "セルクルのクリームを、生クリームか生チョコクリームからお選びください。下の段も同じクリームになります。"
+          : "この段の上にセルクルを乗せるため、セルクルと同じクリーム（生クリームか生チョコクリーム）になります。";
+      }
+    }
     // 条件に合わなくなった段は生クリームに戻す
     if (n > 1) {
       ensureTierSpecs();
-      const fixed = [];
+      const fixed = [], fixedCercle = [];
       for (let i = 0; i < n; i++) {
         const cream = i === activeTier ? checkedCream() : (tierSpecs[i] || {}).cream;
         if (cream && !creamAllowedOnTier(cream, i, n)) {
-          fixed.push(tierName(i, n) + "の" + cream);
+          (inCercle(i) ? fixedCercle : fixed).push(tierName(i, n) + "の" + cream);
           if (i === activeTier) { const g = radios.find((r) => r.value === "生クリーム"); if (g) { g.checked = true; g.dispatchEvent(new Event("change", { bubbles: true })); } }
           else tierSpecs[i] = { cream: "生クリーム", colors: [] };
         }
       }
       if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ミッシェル・ガトーショコラは5号の段だけ、ムースは一番上の段だけ選べます）");
+      if (fixedCercle.length) alert(fixedCercle.join("・") + "は、セルクルを乗せる段では作れないため、生クリームに戻しました。\n（セルクルとそのすぐ下の段は、生クリームか生チョコクリームの同じクリームになります）");
+      // セルクルとすぐ下の段を同じクリームにそろえる。いま選んでいる段がどちらかなら、その段で選んだクリームに合わせる
+      if (ci >= 1) {
+        const cur = (i) => (i === activeTier ? checkedCream() : (tierSpecs[i] || {}).cream);
+        let c = cercleCtx ? cur(activeTier) : cur(ci - 1);
+        if (!CERCLE_CREAMS.includes(c)) c = CERCLE_CREAMS.includes(cur(ci)) ? cur(ci) : "生クリーム";
+        [ci - 1, ci].forEach((i) => {
+          if (i === activeTier) {
+            if (checkedCream() !== c) { const r = radios.find((x) => x.value === c); if (r) { r.checked = true; r.dispatchEvent(new Event("change", { bubbles: true })); } }
+          } else {
+            const t = tierSpecs[i] || { colors: [] };
+            // 生チョコクリームはカラークリーム不可（2026-09-26オーナー判断）。セルクルはもともと色なし
+            const colors = c === "生クリーム" && i !== ci ? (t.colors || []).slice() : [];
+            if (t.cream !== c || (t.colors || []).length !== colors.length) tierSpecs[i] = Object.assign({}, t, { cream: c, colors });
+          }
+        });
+      }
     }
   } finally { _creamRuleBusy = false; }
 }
@@ -2120,10 +2178,12 @@ function updateCakeOptionUI() {
   if (!colorOk && selectedCreamColors.length) { selectedCreamColors = []; saveActiveSpec(); renderColorChips(); syncColorSelectQuiet(); }
   g("reserveColorCreamNote").style.display = (colorOk && selectedCreamColors.some(n => n.indexOf("その他") === 0)) ? "" : "none";
 
-  // 選択中の段がセルクル・カットケーキの場合は、種類・色の選択なし。
+  // 選択中の段がカットケーキの場合は、種類・色の選択なし。セルクルは色なし・クリームは生クリームか生チョコクリームから選ぶ（2026-10-23）
   const activeSizeEl = document.querySelector('.tier-size-select[data-tier="' + activeTier + '"]');
   const activeSpecial = tierCount > 1 && activeSizeEl && tierIsSpecialTop(activeSizeEl.value);
-  if (activeSpecial) { g("reserveCreamTypeField").style.display = "none"; g("reserveColorCreamField").style.display = "none"; }
+  // 段を切り替えた時に必ず決め直す（以前はカットケーキの段から下の段へ戻ると、種類の欄が消えたままだった）
+  g("reserveCreamTypeField").style.display = activeSpecial && activeSizeEl.value !== CERCLE ? "none" : "";
+  if (activeSpecial) g("reserveColorCreamField").style.display = "none";
   renderTierDiagram();
   { // 小さいサイズへの「梅」の提案（2026-10-07 客単価アップ）
     const tip = g("reserveSmallDecoTip");
@@ -3009,11 +3069,41 @@ async function pendingDraftCode() {
   } catch (e) { return ""; }
 }
 const AUTOSAVE_KEEP_DAYS = 14;
+// 2026-10-23：完了した注文の選択が途中保存として残ってしまった分（この修正より前に保存されたもの）を、次の予約に持ち込まない。
+// 完了した注文（この端末の koimari_last_order・LINEアカウントの注文履歴）と同じ内容の途中保存、
+// または完了した注文より前の途中保存は捨てる。前回と同じ内容にしたい方は「前回と同じ内容にする」ボタンを押す。
+function specKey(s) { try { return JSON.stringify(Object.assign({}, s, { date: "", time: "" })); } catch (e) { return ""; } }
+let completedOrdersPromise = null;
+function completedOrders() {
+  if (!completedOrdersPromise) completedOrdersPromise = (async () => {
+    const list = [];
+    try { const l = JSON.parse(localStorage.getItem("koimari_last_order") || "null"); if (l && l.savedAt) list.push({ at: l.savedAt, key: specKey(l.spec) }); } catch (e) {}
+    if (memberUid) {
+      try {
+        const orders = (await get(ref(db, "lineMembers/" + memberUid + "/orders"))).val() || {};
+        Object.values(orders).forEach((o) => {
+          if (!o || !o.savedAt) return;
+          let key = ""; try { key = o.spec ? specKey(JSON.parse(o.spec)) : ""; } catch (e) {}
+          list.push({ at: o.savedAt, key });
+        });
+      } catch (e) {}
+    }
+    return list;
+  })();
+  return completedOrdersPromise;
+}
+function isLeftoverAutosave(saved, orders) {
+  if (!saved || !orders.length) return false;
+  const key = specKey(saved.spec);
+  return orders.some((o) => saved.savedAt <= o.at || (o.key && o.key === key));
+}
 // 途中保存（この端末 → なければLINEアカウントに記録したコード）のうち、新しい方を返す
 async function latestAutosave() {
+  const orders = await completedOrders();
   let local = null;
   try { local = JSON.parse(localStorage.getItem(AUTOSAVE_LS_KEY) || "null"); } catch (e) {}
   if (local && !(local.savedAt > Date.now() - AUTOSAVE_KEEP_DAYS * 86400000 && specIsMeaningful(local.spec))) local = null;
+  if (isLeftoverAutosave(local, orders)) { try { localStorage.removeItem(AUTOSAVE_LS_KEY); } catch (e) {} local = null; }
   let remote = null;
   if (memberUid) {
     try {
@@ -3021,6 +3111,10 @@ async function latestAutosave() {
       if (p.autosaveDraft && p.autosaveAt > Date.now() - AUTOSAVE_KEEP_DAYS * 86400000 && !(local && local.savedAt >= p.autosaveAt)) {
         const d = await fetchDraft(normalizeDraftCode(p.autosaveDraft));
         if (d && d.productType === "autosave") remote = { savedAt: p.autosaveAt, spec: JSON.parse(d.spec), code: p.autosaveDraft };
+        if (isLeftoverAutosave(remote, orders)) {
+          remote = null;
+          update(ref(db, "lineMembers/" + memberUid + "/profile"), { autosaveDraft: null, autosaveAt: null }).catch(() => {});
+        }
       }
     } catch (e) {}
   }
@@ -3312,6 +3406,7 @@ function setupReserveForm(uid, displayName) {
       return;
     }
     // 予約が確定したら保存済みの仕様コードは使い終わり。次回の予約に古い選択が残らないよう消す。
+    orderCompleted = true; clearTimeout(autosaveTimer); // この後の途中保存（LINEを閉じた時など）も止める
     try { const sp = collectFormSpec(); if (sp) localStorage.setItem("koimari_last_order", JSON.stringify({ savedAt: Date.now(), spec: Object.assign({}, sp, { date: "", time: "" }) })); } catch (e) {}
     try { localStorage.removeItem(DRAFT_LS_KEY); localStorage.removeItem(AUTOSAVE_LS_KEY); } catch (e) {}
     clearPendingDraft(); // 予約が完了したので、保存していたギャラリーの仕様は使い終わり
