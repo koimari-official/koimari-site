@@ -1,0 +1,119 @@
+/* こいまり新トップ（試作 index-fruit.html）2026-10-23
+   色・書体は、いまのサイトの設定（--color-* / --font-*）をそのまま使う。差し色は苺の赤（--kf-berry）だけ。
+   数字は --font-sans（数字に装飾書体を使わないルール）。絵文字は使わない。 */
+:root{--kf-berry:#c8283f;--kf-berry-dark:#a51d32;--kf-hdr:64px}
+
+/* 使わない欄は表示だけ隠す（読み込みの処理が止まらないよう、HTMLは残している） */
+#hero,#categories,#sugar,#cakeShowcase,#philosophy,#social{display:none!important}
+
+.kf-wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.kf-label{font-family:var(--font-en);font-style:italic;font-size:20px;letter-spacing:.06em;color:var(--color-accent-dark);margin:0}
+.kf-title{font-family:var(--font-mincho);font-weight:700;font-size:clamp(28px,3.2vw,44px);line-height:1.45;color:var(--color-text);margin:8px 0 0}
+.kf-lead{font-family:var(--font-sans);font-size:16px;line-height:2;color:var(--color-text-soft);margin:20px 0 0;max-width:34em}
+.kf-link{display:inline-block;margin-top:24px;font-family:var(--font-sans);font-weight:700;font-size:16px;color:var(--color-text);text-decoration:none;border-bottom:2px solid var(--kf-berry);padding-bottom:4px}
+.kf-btn{display:inline-flex;align-items:center;justify-content:center;min-height:54px;padding:0 30px;border-radius:999px;font-family:var(--font-sans);font-weight:700;font-size:16px;letter-spacing:.04em;text-decoration:none;color:var(--color-text);background:#fff;border:1.5px solid var(--color-text);transition:transform .25s,background .25s,color .25s}
+.kf-btn:hover{transform:translateY(-2px)}
+.kf-btn--primary{background:var(--kf-berry);border-color:var(--kf-berry);color:#fff}
+.kf-btn--primary:hover{background:var(--kf-berry-dark);border-color:var(--kf-berry-dark)}
+.kf-cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:28px}
+
+/* 青海波（Wikimedia Commons「Seigaiha.svg」・Public domain）を、うっすら敷く */
+.kf-pat{position:relative;isolation:isolate}
+.kf-pat::before{content:"";position:absolute;inset:0;z-index:-1;background:url(img/seigaiha.svg) 0 0/88px 88px repeat;opacity:.07;mix-blend-mode:multiply;pointer-events:none}
+
+/* 1 最初の画面：左に言葉、右に断面の大写真（スマホは写真の上に言葉） */
+.kf-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);min-height:100vh;min-height:100svh;background:var(--color-bg)}
+.kf-hero__text{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;padding:56px 5vw 56px 6vw}
+.kf-hero__mark{display:block;width:min(190px,40%);height:auto;margin:0 0 26px}
+.kf-hero__en{font-family:var(--font-en);font-style:italic;font-size:22px;color:var(--color-accent-dark);margin:0}
+.kf-hero__catch{font-family:var(--font-mincho);font-weight:800;font-size:clamp(40px,5vw,80px);line-height:1.32;letter-spacing:.02em;color:var(--color-text);margin:14px 0 0}
+.kf-hero__sub{font-family:var(--font-sans);font-size:16px;line-height:1.9;color:var(--color-text-soft);margin:22px 0 0}
+.kf-hero__ctas{display:flex;flex-wrap:wrap;gap:14px;margin-top:32px}
+.kf-hero__media{position:relative;overflow:hidden;background:var(--color-bg-soft)}
+.kf-hero__media img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 62%}
+
+/* 2 看板商品 */
+.kf-sig{padding:110px 0;background:#fff}
+.kf-sig__grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center}
+.kf-sig__photos{position:relative;aspect-ratio:1/1.05}
+.kf-sig__p1{position:absolute;left:0;top:0;width:66%;aspect-ratio:3/4;object-fit:cover;border-radius:8px}
+.kf-sig__p2{position:absolute;right:0;bottom:0;width:58%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;border:8px solid #fff}
+.kf-nums{list-style:none;margin:30px 0 0;padding:0;display:flex;gap:16px;flex-wrap:wrap}
+.kf-nums li{display:flex;flex-direction:column;gap:6px;padding:16px 22px;background:var(--color-bg);border-radius:12px;min-width:160px}
+.kf-nums__v{display:flex;align-items:baseline;gap:4px;color:var(--kf-berry)}
+.kf-count{font-family:var(--font-sans);font-weight:800;font-size:46px;line-height:1}
+.kf-nums__u{font-family:var(--font-sans);font-weight:700;font-size:16px}
+.kf-nums small{font-family:var(--font-sans);font-size:13px;color:var(--color-text-soft);text-wrap:balance}
+
+/* 3 目的から選ぶ（写真のタイル） */
+.kf-occ{padding:100px 0;background:var(--color-bg)}
+.kf-bento{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:230px;gap:14px;margin-top:36px}
+.kf-tile{position:relative;display:block;overflow:hidden;border-radius:14px;background:var(--color-bg-soft);text-decoration:none;color:var(--color-text)}
+.kf-tile img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+.kf-tile:hover img{transform:scale(1.05)}
+.kf-tile--xl{grid-column:span 2;grid-row:span 2}
+.kf-tile--wide{grid-column:1/-1}
+.kf-tile__cap{position:absolute;left:10px;right:10px;bottom:10px;display:flex;flex-direction:column;gap:2px;padding:12px 14px;background:rgba(255,255,255,.94);border-radius:10px}
+.kf-tile__cap b{font-family:var(--font-mincho);font-weight:700;font-size:17px;line-height:1.5;word-break:keep-all;overflow-wrap:anywhere}  /* 言葉の途中で切らない（折り返すのは <wbr> の位置だけ） */
+.kf-tile__cap small{font-family:var(--font-sans);font-size:13px;color:var(--color-text-soft)}
+.kf-tile--xl .kf-tile__cap b{font-size:22px}
+
+/* 4 おうちでこいまり（BASEのURLが入ったときだけ） */
+.kf-ec{padding:100px 0;background:#fff}
+.kf-ec__grid{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:56px;align-items:center}
+.kf-ec__media img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:14px}
+
+/* 5 ぴったりのケーキ選び（D：画像が入った項目だけ） */
+.kf-up{padding:100px 0;background:#fff}
+.kf-up__block{margin-top:44px}
+.kf-up__ttl{font-family:var(--font-mincho);font-weight:700;font-size:22px;color:var(--color-text);margin:0}
+.kf-up__hint{font-family:var(--font-sans);font-size:15px;line-height:1.9;color:var(--color-text-soft);margin:8px 0 0}
+.kf-up__list{list-style:none;margin:18px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.kf-up__item{background:var(--color-bg);border-radius:12px;overflow:hidden}
+.kf-up__item a{color:inherit;text-decoration:none}
+.kf-up__item img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+.kf-up__item b{display:block;padding:12px 14px 2px;font-family:var(--font-sans);font-weight:700;font-size:15px;color:var(--color-text)}
+.kf-up__item small{display:block;padding:0 14px 14px;font-family:var(--font-sans);font-size:13px;color:var(--color-text-soft)}
+
+/* 6 たぬきち */
+.kf-tanuki{padding:100px 0;background:#f3e6d6}
+.kf-tanuki__grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:56px;align-items:center}
+.kf-tanuki__photos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.kf-tanuki__photos img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:14px}
+.kf-tanuki__photos img:nth-child(2){margin-top:48px}
+
+/* 7 口コミと写真 */
+.kf-voices{padding:100px 0;background:var(--color-bg)}
+.kf-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:30px}
+.kf-strip img{width:100%;aspect-ratio:1/1;object-fit:cover;border-radius:10px}
+
+/* 8 スマホの画面下の固定ボタン */
+.kf-bar{display:none}
+
+@media (max-width:767px){
+  .kf-wrap{padding:0 20px}
+  html body .fab{display:none!important}  /* スマホは画面下の固定ボタン（ご予約・LINE・電話）に一本化。PCの丸い「ご予約」はそのまま */
+  .kf-hero{display:block;position:relative;min-height:100vh;min-height:100svh}
+  .kf-hero__mark{width:118px;margin-bottom:14px}
+  .kf-hero__media{position:absolute;inset:0}
+  .kf-hero__media img{object-position:50% 80%}
+  .kf-hero__text{position:relative;z-index:1;padding:24px 20px 22px;background:rgba(247,243,238,.88)}
+  .kf-hero__en{font-size:18px}
+  .kf-hero__catch{font-size:clamp(34px,10vw,44px);margin-top:8px}
+  .kf-hero__sub{font-size:14.5px;margin-top:12px}
+  .kf-hero__ctas{margin-top:18px}
+  .kf-sig,.kf-occ,.kf-ec,.kf-up,.kf-tanuki,.kf-voices{padding:72px 0}
+  .kf-sig__grid,.kf-ec__grid,.kf-tanuki__grid{grid-template-columns:1fr;gap:32px}
+  .kf-count{font-size:40px}
+  .kf-nums li{min-width:0;flex:1}
+  .kf-bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:170px;gap:10px}
+  .kf-tile__cap{left:6px;right:6px;bottom:6px;padding:9px 10px}
+  .kf-tile__cap b{font-size:14px}
+  .kf-tile--xl .kf-tile__cap b{font-size:19px}
+  .kf-tanuki__photos img:nth-child(2){margin-top:28px}
+  .kf-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kf-bar{position:fixed;left:0;right:0;bottom:0;z-index:1100;display:flex;gap:1px;background:var(--color-line);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(46,33,24,.12)}
+  .kf-bar a{flex:1;display:flex;align-items:center;justify-content:center;min-height:56px;background:#fff;color:var(--color-text);font-family:var(--font-sans);font-weight:700;font-size:15px;text-decoration:none}
+  .kf-bar a.kf-bar__main{flex:1.4;background:var(--kf-berry);color:#fff}
+  body{padding-bottom:calc(56px + env(safe-area-inset-bottom))}
+}

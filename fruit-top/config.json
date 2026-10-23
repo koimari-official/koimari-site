@@ -1,0 +1,22 @@
+{
+  "_note": "こいまり新トップ（試作 index-fruit.html）の設定（2026-10-23）。BASEのURLや、客単価アップ（D）の画像を入れると、その部分だけが表示される。空のあいだは何も表示しない（設定にない画像・文言・価格は出さないルール）。画像は fruit-top/img/ に元の解像度のまま置き、ここにファイル名を書く。直したら python fruit-top/make_fruit_top.py で組み立て直す。",
+  "baseShopUrl": "",
+  "upsell": {
+    "sizes": [
+      { "size": "3号", "label": "約9cm／2〜3人前", "image": "" },
+      { "size": "4号", "label": "約12cm／3〜4人前", "image": "" },
+      { "size": "5号", "label": "約15cm／5〜6人前", "image": "" },
+      { "size": "6号", "label": "約18cm／7〜8人前", "image": "" },
+      { "size": "7号", "label": "約21cm／9〜10人前", "image": "" }
+    ],
+    "options": [
+      { "name": "メッセージプレート（名入れチョコ）", "image": "" },
+      { "name": "フルーツ増量・生クリームたっぷり", "image": "" },
+      { "name": "たぬきちを1個載せる", "image": "" }
+    ],
+    "gifts": [
+      { "name": "焼き菓子", "image": "", "link": "gallery.html?cat=baked" },
+      { "name": "ギフト", "image": "", "link": "gallery.html?cat=gift" }
+    ]
+  }
+}
