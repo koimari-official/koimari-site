@@ -132,6 +132,7 @@ section.section-visible{animation:fadeInUp .8s ease-out forwards}
   .cat-card[data-cat="roll"]{order:3}
   .cat-card[data-cat="gift"]{order:4}
   .cat-card[data-cat="baked"]{order:5}
+
 }
 @media(min-width:601px){
   /* 5枚を等分して画面幅いっぱいに。gapを差し引いた残りを均等割りするのでどの画面幅でも収まる */
@@ -632,7 +633,29 @@ body.chrome-visible .site-header{opacity:1;pointer-events:auto}
    だけでは自然に現れないため、JSでbody.chrome-visibleを付け外しして合わせている。 */
 body:not(.chrome-visible) .fab{display:none!important}
 .fab--mobile{bottom:18px;right:18px;left:18px}
-img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{display:none!important}}</style>
+img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{display:none!important}}/* 2026-10-23 「こいまりのお品書き」の写真タイル形式（管理画面の「カテゴリ画像」で選んだときだけ。siteConfig/categoriesLayout="bento"）
+   デコレーションケーキを大きく、ほかは小さな写真で並べる。名前は写真の上の白い板にのせる */
+.categories--bento .categories__grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:230px;gap:14px;max-width:1180px;margin:0 auto;flex-wrap:initial;align-items:stretch}
+.categories--bento .cat-card{position:relative;display:block;flex:initial;max-width:none;min-width:0;border-radius:14px;overflow:hidden;background:var(--color-bg-soft);text-align:left}
+.categories--bento .cat-card:hover{transform:none}
+.categories--bento .cat-card[data-cat="cutcake"]{order:1}.categories--bento .cat-card[data-cat="roll"]{order:2}.categories--bento .cat-card[data-cat="gift"]{order:3}.categories--bento .cat-card[data-cat="baked"]{order:4}
+.categories--bento .cat-card[data-cat="cake"]{order:0;grid-column:span 2;grid-row:span 2}
+.categories--bento .cat-card__img{position:absolute;inset:0;aspect-ratio:auto;border-radius:0;box-shadow:none}
+.categories--bento .cat-card__img img{width:100%;height:100%;object-fit:cover}
+.categories--bento .cat-card:hover .cat-card__img img{transform:scale(1.05)}
+.categories--bento .cat-card__body{position:absolute;left:10px;right:10px;bottom:10px;padding:12px 14px;background:rgba(255,255,255,.94);border-radius:10px}
+.categories--bento .cat-card__title{font-size:17px;white-space:normal;word-break:keep-all;overflow-wrap:anywhere;line-height:1.5}
+.categories--bento .cat-card[data-cat="cake"] .cat-card__title{font-size:22px}
+.categories--bento .cat-card__en{font-size:14px;letter-spacing:.08em}
+@media (max-width:767px){
+  .categories--bento .categories__grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:170px;gap:10px}
+  .categories--bento .cat-card{flex:initial;max-width:none}
+  .categories--bento .cat-card__body{left:6px;right:6px;bottom:6px;padding:9px 10px}
+  .categories--bento .cat-card__title{font-size:14px;letter-spacing:.02em}
+  .categories--bento .cat-card[data-cat="cake"] .cat-card__title{font-size:19px}
+  .categories--bento .cat-card__en{font-size:12px}
+}
+</style>
 <script src="price-format.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
@@ -1738,6 +1761,22 @@ onValue(ref(db, "siteConfig/showStatsSection"), (snapshot) => {
   const el = document.getElementById("statsKoimari");
   if (el) el.style.display = snapshot.val() ? "" : "none";
 });
+// 「こいまりのお品書き」の見せ方（2026-10-23 オーナー指示）：管理画面の「カテゴリ画像」で「写真タイル」を選ぶと siteConfig/categoriesLayout="bento" になり、
+// 大きな1枚＋小さな写真のタイル形式で並べる。URLに ?catLayout=bento を付けると、保存前に見た目を確かめられる（そのときは設定を読まない）。
+// 前回の設定は、この端末にだけ覚えておき、開いた瞬間の形の切り替わり（ちらつき）を抑える（正しい設定はデータベースの値）。
+(function () {
+  const sec = document.getElementById("categories");
+  const apply = (v) => { if (sec) sec.classList.toggle("categories--bento", v === "bento"); };
+  const preview = new URLSearchParams(location.search).get("catLayout");
+  if (preview) { apply(preview); return; }
+  try { apply(localStorage.getItem("koimariCatLayout") || ""); } catch (e) {}
+  onValue(ref(db, "siteConfig/categoriesLayout"), (snapshot) => {
+    const v = snapshot.val() === "bento" ? "bento" : "";
+    apply(v);
+    try { localStorage.setItem("koimariCatLayout", v); } catch (e) {}
+  });
+})();
+
 
 // 管理画面で保存された画像データ(ヒーロー・カテゴリ・おすすめ・体験プログラム等)を反映する。
 // 従来はブラウザのlocalStorageのみに保存され、管理者本人の端末にしか反映されていなかったための対応。

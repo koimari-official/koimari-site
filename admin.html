@@ -1169,6 +1169,17 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-categories">
       <div class="panel__head"><h2 class="panel__title">カテゴリ画像</h2><button class="btn btn--small" id="addCategory">＋ カテゴリを追加</button></div>
       <p class="panel__desc">商品一覧セクションのカテゴリカードです。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">推奨サイズ：横幅600px程度。「ファイルから選択」でアップロードすると自動的にこのサイズへ縮小・圧縮されるため、事前のリサイズは不要です（元ファイルは15MB以下にしてください）。</span></p>
+      <!-- トップの「こいまりのお品書き」の見せ方（2026-10-23 オーナー指示：写真タイル形式も選べるように） -->
+      <div style="background:#fff;border:1px solid var(--color-line);padding:20px 24px;max-width:680px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:var(--font-mincho);font-weight:600;font-size:14px;margin-bottom:4px;" id="catLayoutLabel">読み込み中...</div>
+          <div style="font-size:12px;color:var(--color-text-soft);">トップページの「こいまりのお品書き」の見せ方を選びます。写真タイルは、デコレーションケーキを大きく、ほかを小さな写真で並べます。<a href="index.html?catLayout=bento" target="_blank" rel="noopener">写真タイルを保存前に見る</a></div>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn--small" id="catLayoutCircle" data-layout="">丸い写真</button>
+          <button class="btn btn--small" id="catLayoutBento" data-layout="bento">写真タイル</button>
+        </div>
+      </div>
       <div class="img-grid" id="categoriesGrid"></div>
     </section>
     <section class="panel" id="panel-decorationCakes">
@@ -8150,6 +8161,37 @@ function initStatsSectionToggle() {
   }
 }
 
+
+// トップの「こいまりのお品書き」の見せ方（siteConfig/categoriesLayout："bento"＝写真タイル／なし＝丸い写真）。2026-10-23 オーナー指示
+const catLayoutRef = ref(fbDb, "siteConfig/categoriesLayout");
+let catLayout = "";
+function renderCatLayoutToggle() {
+  const label = document.getElementById("catLayoutLabel");
+  if (!label) return;
+  label.textContent = catLayout === "bento" ? "✓ 写真タイルで表示中" : "✓ 丸い写真で表示中";
+  [["catLayoutCircle", ""], ["catLayoutBento", "bento"]].forEach(([id, v]) => {
+    const b = document.getElementById(id);
+    if (!b) return;
+    const on = catLayout === v;
+    b.className = "btn btn--small " + (on ? "" : "btn--ghost");
+    b.disabled = on;
+  });
+}
+function initCatLayoutToggle() {
+  onValue(catLayoutRef, (snapshot) => { catLayout = snapshot.val() === "bento" ? "bento" : ""; renderCatLayoutToggle(); });
+  ["catLayoutCircle", "catLayoutBento"].forEach((id) => {
+    const btn = document.getElementById(id);
+    if (!btn || btn.dataset.bound) return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", () => {
+      update(ref(fbDb, "siteConfig"), { categoriesLayout: btn.dataset.layout || null }).catch((err) => {
+        console.warn("見せ方の保存失敗:", err);
+        showToast("切り替えに失敗しました。通信状況をご確認の上、もう一度お試しください", "error");
+      });
+    });
+  });
+}
+
 /* ===== ケーキの種類一覧エディタ（デコレーションケーキ／ロールケーキ共通の仕組み） =====
    スタッフとの打合せ前の「たたき台」。Firebase未設定時のみ各仮リストを表示する。 */
 function createFlavorListEditor({ fbPath, defaultList, listElId, inputElId, addBtnId }) {
@@ -8617,7 +8659,7 @@ onAuthStateChanged(fbAuth, (user) => {
     step("AI要確認", syncAiReviewFromFirebase);
     step("季節イベント設定", initEventConfigPanel);
     step("体験プログラム候補日", initExpDatesPanel);
-    step("統計", initStatsSectionToggle);
+    step("統計", initStatsSectionToggle); step("カテゴリーの見せ方", initCatLayoutToggle);
     step("料金表・ケーキの種類", initCakeFlavorsPanel);
     step("個別見積もり", initQuoteBuilder);
     try { if (typeof window.showAdmin === "function") window.showAdmin(); }
