@@ -307,7 +307,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261022"></script>
+<script src="reservation-editor.js?v=20261024"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -4305,35 +4305,28 @@ document.getElementById("salesGoalSave").addEventListener("click", async () => {
    予約ステータス・メモ更新
    ============================================================ */
 async function updateResStatus(idx, status) {
-  const list = loadList(RES_KEY);
-  if (!list[idx]) return;
+  const key = resKeyNow(idx); // 押した瞬間の予約で決める（担当者を選んでいる間に一覧が並び替わっても、同じ予約に書く）
+  if (!loadList(RES_KEY)[idx]) return;
   const actor = await askActor("ステータスを「" + status + "」にした人");
   if (!actor) { renderReservations(); return; }
-  list[idx].status = status; list[idx].statusBy = actor; list[idx].statusAt = new Date().toISOString();
-  localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, { status, statusBy: actor, statusAt: list[idx].statusAt });
-  updateCounts();
-  if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
+  await saveResPatch(key, { status, statusBy: actor, statusAt: new Date().toISOString() }, "ステータス：" + status);
 }
 // 予約を1件だけ削除（ゴミ箱へ移動。ゴミ箱から復元できる）2026-10-07
 async function deleteOneReservation(idx) {
+  const key = resKeyNow(idx); // 押した瞬間の予約で決める（担当者を選んでいる間に並び替わっても、別の予約を消さない）
   const list = loadList(RES_KEY);
   const r = list[idx];
   if (!r) return;
-  if (!confirm((r.name || "お客様") + " 様のご予約（" + (r.pickupDate || "日付未定") + "）を削除しますか？\n削除した予約はゴミ箱に入り、あとから復元できます。")) return;
+  if (!confirm((r.name || "お客様") + " 様のご予約（" + (r.finalPickupDate || r.pickupDate || "日付未定") + "）を削除しますか？\n削除した予約はゴミ箱に入り、あとから復元できます。")) return;
   const actor = await askActor("予約を削除する人");
   if (!actor) return;
-  const key = typeof window.resKeyAt === "function" ? window.resKeyAt(idx) : null;
   if (!key || typeof window.fbTrashOne !== "function") { showToast("削除できませんでした（読み込み中）", "error"); return; }
   try { await window.fbTrashOne("reservations", key, actor); showToast("削除しました（ゴミ箱に移動）"); }
   catch (e) { showToast("削除できませんでした（この画面では削除の権限がありません）", "error"); }
 }
 function updateResNotes(idx, notes) {
-  const list = loadList(RES_KEY);
-  if (!list[idx]) return;
-  list[idx].notes = notes;
-  localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, { notes });
+  if (!loadList(RES_KEY)[idx]) return;
+  saveResPatch(resKeyNow(idx), { notes }, "メモ", { render: false }); // 入力中の他のメモ欄を描き直さない
 }
 
 /* ============================================================
@@ -5007,6 +5000,7 @@ function isHandOverOverdue(r) {
   return d < today;
 }
 async function updateResHanded(idx, checked) {
+  const key = resKeyNow(idx); // 押した瞬間の予約で決める
   const list = loadList(RES_KEY);
   const r = list[idx];
   if (!r) return;
@@ -5014,25 +5008,19 @@ async function updateResHanded(idx, checked) {
   const actor = await askActor(checked ? "お渡しした人" : "「お渡し済み」を外す人");
   if (!actor) { renderReservations(); return; }
   const now = new Date().toISOString();
-  const status = checked ? "完了" : (r.status === "完了" ? ((r.reservationConfirmed || r.confirmCallDone) ? "対応中" : "受付済") : (r.status || "受付済"));
+  const cur = resByKey(key) || r; // 担当者を選んでいる間に変わっていても、いまの内容でステータスを決める
+  const status = checked ? "完了" : (cur.status === "完了" ? ((cur.reservationConfirmed || cur.confirmCallDone) ? "対応中" : "受付済") : (cur.status || "受付済"));
   const patch = { handedOver: checked, handedOverAt: checked ? now : null, handedOverBy: checked ? actor : null, status, statusBy: actor, statusAt: now };
-  Object.assign(r, patch);
-  localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
-  renderReservations(); updateCounts();
-  if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard();
+  await saveResPatch(key, patch, checked ? "お渡し済み" : "お渡し済みを外す");
 }
 // 「支払い済」チェック（2026-09-29オーナー指示：引き渡し・支払いの管理を楽にする）。
 async function updateResPayment(idx, checked) {
-  const list = loadList(RES_KEY);
-  if (!list[idx]) return;
+  const key = resKeyNow(idx); // 押した瞬間の予約で決める
+  if (!loadList(RES_KEY)[idx]) return;
   const actor = checked ? await askActor("お支払いを受けた人") : null;
   if (checked && !actor) { renderReservations(); return; }
   const patch = { paymentDone: checked, paymentDoneAt: checked ? new Date().toISOString() : null, paymentDoneBy: checked ? actor : null };
-  Object.assign(list[idx], patch);
-  localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
-  renderReservations();
+  await saveResPatch(key, patch, checked ? "支払い" : "支払いを外す");
 }
 // 予約の検索（2026-10-02オーナー指示：お客様から電話が来たら予約番号や会員情報で探せるように）。
 // 予約番号は「142」「0142」「No.0142」のどれでも当たる。電話番号はハイフン・空白を無視して比べる。
@@ -5086,12 +5074,13 @@ function byLine(name, at) { return name || at ? '<div class="small" style="margi
 function copyTemplateAt(type, idx) { const r = loadList(RES_KEY)[idx]; if (r) copyTemplate(type, JSON.stringify(r)); }
 function byText(name, at) { return name ? "（" + escapeHtml(name) + (at ? " " + fmtDate(at).replace(/^\d{4}\//, "") : "") + "）" : ""; }
 async function updateResConfirmCall(idx, checked) {
+  const key = resKeyNow(idx); // 押した瞬間の予約で決める（担当者・金額・日時を入れている間に一覧が並び替わっても、同じ予約に書く）
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
   const cur = list[idx];
   if (!checked) {
     if (!confirm("「電話済み」を外しますか？")) { renderReservations(); return; }
-    applyResPatch(idx, { confirmCallDone: false, confirmCallAt: null, confirmCallBy: null });
+    await saveResPatch(key, { confirmCallDone: false, confirmCallAt: null, confirmCallBy: null }, "電話済みを外す");
     return;
   }
   // 電話で内容を確定した時点でチェック。確定金額・お引き取り日時を入力すると、LINEのお客様には確定連絡が自動で届き「内容確定」になる
@@ -5105,43 +5094,89 @@ async function updateResConfirmCall(idx, checked) {
   if (dtIn === null) { renderReservations(); return; }
   const m = String(dtIn).match(/(\d{4}-\d{2}-\d{2})\s+(\d{1,2}:\d{2})/);
   if (!m) { showToast("日時は「2026-10-03 14:00」の形式で入力してください", "error"); renderReservations(); return; }
-  applyResPatch(idx, { confirmCallDone: true, confirmCallAt: new Date().toISOString(), confirmCallBy: actor, finalPrice: price, finalPickupDate: m[1], finalPickupTime: m[2].padStart(5, "0") });
+  const date = m[1], time = m[2].padStart(5, "0"), now0 = resByKey(key) || cur;
+  // 確定した日時は希望日時（pickupDate/Time）にも入れる（2026-10-24）。製造の予定・今日/明日のお引き取り・予約表・リマインダーは
+  // 希望日時を見ているため、以前は電話で日にちを変えても元の日のままだった。お客様が最初に希望した日時は requestedPickup… に残す。
+  const patch = { confirmCallDone: true, confirmCallAt: new Date().toISOString(), confirmCallBy: actor, finalPrice: price,
+    finalPickupDate: date, finalPickupTime: time, pickupDate: date, pickupTime: time };
+  if (!now0.requestedPickupDate) Object.assign(patch, { requestedPickupDate: now0.pickupDate || "", requestedPickupTime: now0.pickupTime || "" });
+  if (date !== (now0.finalPickupDate || now0.pickupDate) || time !== (now0.finalPickupTime || now0.pickupTime)) patch.reminderSent = null; // 日時が変わったら、リマインダーは新しい日時で送り直す
+  if (!(await saveResPatch(key, patch, "電話済み"))) return;
   // 変更履歴にも「電話で確定」として、確定前と確定後の仕様・金額・お引き取り日時を残す（2026-10-21）
   try {
-    const key = typeof window.resKeyAt === "function" ? window.resKeyAt(idx) : null;
-    if (key && window.ReservationEditor && window.ReservationEditor.logPhoneConfirm) window.ReservationEditor.logPhoneConfirm(key, cur, { actor, price, date: m[1], time: m[2].padStart(5, "0") }).catch((e) => console.error("履歴の記録に失敗", e));
+    if (key && window.ReservationEditor && window.ReservationEditor.logPhoneConfirm) window.ReservationEditor.logPhoneConfirm(key, cur, { actor, price, date, time }).catch((e) => { console.error("履歴の記録に失敗", e); resSaveBar("error", "「電話済み」は保存しましたが、変更履歴を残せませんでした：" + (e && e.message ? e.message : e)); });
   } catch (e) { console.error("履歴の記録に失敗", e); }
   if (cur.channel === "LINE" && cur.lineUserId) showToast("お客様のLINEに確定のお見積もり・お引き取り日時を自動で連絡し、「内容確定」にします");
 }
-function applyResPatch(idx, patch) {
-  const list = loadList(RES_KEY);
-  if (!list[idx]) return;
-  Object.assign(list[idx], patch);
-  localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
-  renderReservations();
+// ===== 予約への保存（2026-10-24オーナー指示「仕様の変更の未登録や保存不良、納期の変更などの抜け漏れは死活問題」）=====
+// ・保存先は一覧の番号ではなく予約のキーで決める。一覧は受付の新しい順なので、担当者を選んでいる間に新しい予約が入ると
+//   番号が1つずれ、別の予約に「お渡し済み・支払い済み」などを書いていた
+// ・削除された予約には書かない（fbPatchReservation）。失敗・通信待ちは画面上部の帯で知らせ、失敗したら表示を Firebase の内容に戻す
+// ・保存が終わる前に画面を閉じようとしたら止める
+const resSeenAtClick = {}; // 押した時点の予約（保存前に削除されても、どの予約の失敗かを帯に出すため）
+function resKeyNow(idx) {
+  const key = typeof window.resKeyAt === "function" ? (window.resKeyAt(idx) || "") : "";
+  const r = loadList(RES_KEY)[idx];
+  if (key && r) resSeenAtClick[key] = r;
+  return key;
 }
-function updateResConfirmCall_OLD(idx, checked) {
-  const list = loadList(RES_KEY);
-  if (!list[idx]) return;
-  const patch = { confirmCallDone: checked, confirmCallAt: checked ? new Date().toISOString() : null };
-  Object.assign(list[idx], patch);
-  localStorage.setItem(RES_KEY, JSON.stringify(list));
-  if (typeof window.fbUpdateReservation === "function") window.fbUpdateReservation(idx, patch);
-  renderReservations();
+function resByKey(key) {
+  const keys = typeof window.resKeys === "function" ? window.resKeys() : [];
+  const i = key ? keys.indexOf(key) : -1;
+  return i >= 0 ? (loadList(RES_KEY)[i] || null) : null;
 }
+let resSavesPending = 0;
+function resSaveBar(kind, text) {
+  let bar = document.getElementById("resSaveBar");
+  if (!bar) {
+    bar = document.createElement("div"); bar.id = "resSaveBar"; bar.setAttribute("role", "alert");
+    bar.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:9700;padding:10px 14px;font-size:14px;font-weight:700;line-height:1.6;color:#fff;display:none;";
+    document.body.appendChild(bar);
+  }
+  if (!kind) { if (bar.dataset.kind !== "error") bar.style.display = "none"; return; } // 失敗の帯は「閉じる」まで残す
+  bar.dataset.kind = kind;
+  bar.style.background = kind === "error" ? "#b94a3a" : "#b7791f";
+  bar.innerHTML = escapeHtml(text) + (kind === "error" ? ' <button type="button" style="margin-left:8px;padding:2px 12px;border-radius:999px;border:1px solid #fff;background:transparent;color:#fff;font-weight:700;cursor:pointer;">閉じる</button>' : "");
+  const b = bar.querySelector("button");
+  if (b) b.addEventListener("click", () => { bar.dataset.kind = ""; bar.style.display = "none"; });
+  bar.style.display = "block";
+}
+window.resSaveBar = resSaveBar;
+async function saveResPatch(key, patch, what, opts) {
+  const r = resByKey(key), seen = r || resSeenAtClick[key];
+  const label = (seen ? (seen.name || "お客様") + "様" + (seen.reservationNo ? "（" + formatReservationNo(seen.reservationNo) + "）" : "") : "予約") + "の「" + what + "」";
+  if (!key || !r || typeof window.fbPatchReservation !== "function") { resSaveBar("error", label + "を保存できませんでした（予約が見つかりません。削除された可能性があります）。画面を読み込み直してください"); return false; }
+  // この端末の画面にはすぐ反映（保存に失敗したら Firebase の内容に戻す）
+  const keys = window.resKeys(), list = loadList(RES_KEY), i = keys.indexOf(key);
+  if (i >= 0 && list[i]) { Object.assign(list[i], patch); localStorage.setItem(RES_KEY, JSON.stringify(list)); }
+  if (!opts || opts.render !== false) { renderReservations(); updateCounts(); if (document.getElementById("panel-dashboard").classList.contains("active")) renderDashboard(); }
+  resSavesPending++;
+  const slow = setTimeout(() => resSaveBar("pending", "保存中です（" + label + "）。通信がつながるまで、この画面を閉じないでください"), 6000);
+  try {
+    await window.fbPatchReservation(key, patch);
+    return true;
+  } catch (err) {
+    resSaveBar("error", label + "を保存できませんでした：" + (err && err.message ? err.message : err) + "。通信を確かめて、もう一度操作してください");
+    if (typeof window.resResync === "function") window.resResync();
+    return false;
+  } finally {
+    clearTimeout(slow); resSavesPending--; if (!resSavesPending) resSaveBar(null);
+  }
+}
+window.addEventListener("beforeunload", (e) => { if (resSavesPending > 0) { e.preventDefault(); e.returnValue = ""; } });
 // 「確認電話」とは別の段階：予約内容そのものが最終確定したかどうか（2026-08-19オーナー指示）。
 // スタッフ全員がリアルタイムで進捗を共有できるよう、確認電話チェックと同じ仕組みで追加。
 async function updateResConfirmed(idx, checked) {
+  const key = resKeyNow(idx); // 押した瞬間の予約で決める
   const list = loadList(RES_KEY);
   if (!list[idx]) return;
   // 「内容確定」は、電話済み（確定金額・日時の入力）のあと、お客様のLINEへ確定連絡を送った時点で自動でチェックされる。
   // LINEで予約していないお客様などは、ここから手動でチェックできる（誰がチェックしたかを記録）。
   if (checked && !list[idx].confirmCallDone && !confirm("まだ「電話済み」になっていません。内容確定にしてよいですか？")) { renderReservations(); return; }
-  if (!checked) { if (!confirm("「内容確定」を外しますか？")) { renderReservations(); return; } applyResPatch(idx, { reservationConfirmed: false, reservationConfirmedAt: null, reservationConfirmedBy: null }); return; }
+  if (!checked) { if (!confirm("「内容確定」を外しますか？")) { renderReservations(); return; } await saveResPatch(key, { reservationConfirmed: false, reservationConfirmedAt: null, reservationConfirmedBy: null }, "内容確定を外す"); return; }
   const actor = await askActor("内容確定にした人");
   if (!actor) { renderReservations(); return; }
-  applyResPatch(idx, { reservationConfirmed: true, reservationConfirmedAt: new Date().toISOString(), reservationConfirmedBy: actor });
+  await saveResPatch(key, { reservationConfirmed: true, reservationConfirmedAt: new Date().toISOString(), reservationConfirmedBy: actor }, "内容確定");
 }
 // 管理画面を開きっぱなしにしていても「未確認が3時間経過」の状態を検知できるよう、定期的にバッジを再計算する
 setInterval(updateConfirmCallWarning, 5 * 60 * 1000);
@@ -7561,25 +7596,26 @@ let unsubCorporate = null;
 let reservationsFirstLoad = true;
 function syncReservationsFromFirebase() {
   if (unsubReservations) return; // 既にリスニング中なら何もしない
-  unsubReservations = onValue(reservationsRef, (snapshot) => {
-    const val = snapshot.val() || {};
-    const entries = Object.entries(val);
-    entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
-    if (!reservationsFirstLoad) {
-      const prevKeys = new Set(reservationKeys);
-      entries.forEach(([k, data]) => { if (!prevKeys.has(k) && typeof window.handleNewSubmissionAlert === "function") window.handleNewSubmissionAlert("reservations", data); });
-    }
-    reservationsFirstLoad = false;
-    if (typeof window.updatePendingResAlert === "function") window.updatePendingResAlert(entries);
-    reservationKeys = entries.map(([k]) => k);
-    const list = entries.map(([, data]) => data);
-    localStorage.setItem("koimari_reservations", JSON.stringify(list));
-    if (typeof window.updateCounts === "function") window.updateCounts();
-    const resPanel = document.getElementById("panel-reservations");
-    if (resPanel && resPanel.classList.contains("active") && typeof window.renderReservations === "function") window.renderReservations();
-    const dashPanel = document.getElementById("panel-dashboard");
-    if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
-  });
+  unsubReservations = onValue(reservationsRef, applyReservationsSnapshot);
+}
+function applyReservationsSnapshot(snapshot) {
+  const val = snapshot.val() || {};
+  const entries = Object.entries(val);
+  entries.sort((a, b) => new Date(b[1].submittedAt || 0) - new Date(a[1].submittedAt || 0));
+  if (!reservationsFirstLoad) {
+    const prevKeys = new Set(reservationKeys);
+    entries.forEach(([k, data]) => { if (!prevKeys.has(k) && typeof window.handleNewSubmissionAlert === "function") window.handleNewSubmissionAlert("reservations", data); });
+  }
+  reservationsFirstLoad = false;
+  if (typeof window.updatePendingResAlert === "function") window.updatePendingResAlert(entries);
+  reservationKeys = entries.map(([k]) => k);
+  const list = entries.map(([, data]) => data);
+  localStorage.setItem("koimari_reservations", JSON.stringify(list));
+  if (typeof window.updateCounts === "function") window.updateCounts();
+  const resPanel = document.getElementById("panel-reservations");
+  if (resPanel && resPanel.classList.contains("active") && typeof window.renderReservations === "function") window.renderReservations();
+  const dashPanel = document.getElementById("panel-dashboard");
+  if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
 }
 
 let experiencesFirstLoad = true;
@@ -7659,6 +7695,18 @@ function syncCorporateFromFirebase() {
 
 // 予約の詳細・変更画面（reservation-editor.js）が使うFirebase操作（2026-10-02）
 window.resKeyAt = function (idx) { return reservationKeys[idx]; };
+window.resKeys = function () { return reservationKeys.slice(); };
+// 予約への書き込み（2026-10-24オーナー指示「保存不良などの抜け漏れは死活問題」）：
+// 予約のキーで書く／削除された予約には書かない（以前は update が項目の一部だけの予約を復活させていた＝名前のない予約 k1）／
+// 失敗は呼び出し側に返す（以前は console に出すだけで、画面ではチェックが付いたまま保存されていなかった）
+window.fbPatchReservation = async function (key, patch) {
+  if (!key) throw new Error("予約が見つかりません");
+  const r = ref(fbDb, "reservations/" + key);
+  if (!(await get(r)).exists()) throw new Error("この予約は削除されているため、保存しませんでした");
+  await update(r, patch);
+};
+// 表示を Firebase の実際の内容に戻す（保存に失敗した時）
+window.resResync = function () { return get(reservationsRef).then(applyReservationsSnapshot).catch(() => {}); };
 window.fbOnPriceTableSource = (cb) => onValue(ref(fbDb, "koimariContent/priceTableSource"), (s) => cb(s.val()));
 
 /* ===== 要注意のお客様（customerFlags、2026-10-04オーナー指示） ⚠️ 機密 ===== */
@@ -7689,16 +7737,24 @@ window.fbOpsSet = (k, v) => set(ref(fbDb, "koimariOps/" + k), v);
 window.fbResEditorApi = {
   getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
   multiUpdate: (patch) => update(ref(fbDb), patch),
+  // 修正・電話確定の保存（2026-10-24）：削除された予約には書かない（項目の一部だけの予約が復活するのを防ぐ）
+  multiUpdateReservation: async (key, patch) => {
+    if (!key || !(await get(ref(fbDb, "reservations/" + key))).exists()) throw new Error("この予約は削除されているため、保存しませんでした");
+    return update(ref(fbDb), patch);
+  },
   getStaff: () => get(ref(fbDb, "reservationStaff")).then(s => s.val()),
   setStaff: (list) => set(ref(fbDb, "reservationStaff"), list),
   uploadImage: (blob, type) => window.fbUploadImage(blob, type),
   pushSentImage: (key, data) => push(ref(fbDb, "reservations/" + key + "/sentImages"), data),
   currentUserEmail: () => (fbAuth.currentUser && fbAuth.currentUser.email) || ""
 };
+// 以前の呼び方（一覧の番号）。予約の画面からは saveResPatch（キーで保存）を使う。残っている呼び出しがあっても失敗は画面に出す
 window.fbUpdateReservation = function (idx, patch) {
   const key = reservationKeys[idx];
-  if (!key) return;
-  update(ref(fbDb, "reservations/" + key), patch).catch(err => console.warn("Firebase更新失敗:", err));
+  return window.fbPatchReservation(key, patch).catch((err) => {
+    if (typeof window.resSaveBar === "function") window.resSaveBar("error", "保存できませんでした：" + (err && err.message ? err.message : err));
+    window.resResync();
+  });
 };
 window.fbUpdateExperience = function (idx, patch) {
   const key = experienceKeys[idx];

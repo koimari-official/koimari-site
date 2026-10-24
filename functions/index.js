@@ -202,9 +202,14 @@ function productLabel(data) {
 
 // 引き取り日時をJSTの絶対時刻として計算する。process.env.TZの設定に依存せず正しく動くよう、
 // タイムゾーンオフセットをISO文字列に明示的に含める。
+// お引き取り日時は、電話で確定した日時（finalPickupDate/Time）を優先する（2026-10-24。以前は希望日時だけを見ていたため、
+// 電話で日時を変えるとリマインダーが元の日時で届いていた）。
+function pickupDateOf(data) { return (data && (data.finalPickupDate || data.pickupDate)) || ""; }
+function pickupTimeOf(data) { return (data && (data.finalPickupTime || data.pickupTime)) || ""; }
 function computePickupDateTime(data) {
-  if (!data || !data.pickupDate || !data.pickupTime) return null;
-  const d = new Date(`${data.pickupDate}T${data.pickupTime}:00+09:00`);
+  const date = pickupDateOf(data), time = pickupTimeOf(data);
+  if (!date || !time) return null;
+  const d = new Date(`${date}T${time}:00+09:00`);
   return isNaN(d.getTime()) ? null : d;
 }
 
@@ -225,7 +230,7 @@ function buildReminderMessage(stage, data, now) {
       "",
       "◆ご注文",
       diamondLine("商品", product),
-      diamondLine("お引き取り", formatPickupDateTimeJp(data.pickupDate, data.pickupTime)),
+      diamondLine("お引き取り", formatPickupDateTimeJp(pickupDateOf(data), pickupTimeOf(data))),
       "",
       ...paymentLines(data, "reminder").slice(1),
       "",
@@ -241,7 +246,7 @@ function buildReminderMessage(stage, data, now) {
       name + "様、いよいよ明日お引き取りの日です🍓",
       "",
       "◆お引き取り",
-      "◇" + formatPickupDateTimeJp(data.pickupDate, data.pickupTime),
+      "◇" + formatPickupDateTimeJp(pickupDateOf(data), pickupTimeOf(data)),
       "",
       "◆ご注文",
       diamondLine("商品", product),
@@ -440,7 +445,7 @@ ${faqKnowledgeText}
 exports._internal = {
   buildConfirmMessage, buildReceivedMessage, isPushRecipient: (...a) => isPushRecipient(...a), pushContext: () => pushContext(),
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
-  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
+  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage, dueReminderStages,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
   assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost, customerFlagLines, birthdayReminderText, birthdayReminderTargets,
@@ -587,6 +592,19 @@ const REMINDER_STAGES = [
   { key: "oneDay", minHours: 20, maxHours: 28 },
   { key: "oneHour", minHours: 0, maxHours: 2 },
 ];
+// いま送るリマインダーの段階（2026-10-24）。送信済みの印（reminderSent/段階）は「どの日時に向けて送ったか」で持つ。
+// お引き取り日時が変わったら、新しい日時に向けて送り直す（以前は true だけで、日時を変えた後の案内が届かなかった）。
+// true は以前の形式で「いまの日時に向けて送った」扱い。お渡し済み・引取りなし・キャンセルの予約には送らない。
+function dueReminderStages(data, now) {
+  if (!data || data.channel !== "LINE" || !data.lineUserId) return [];
+  if (data.handedOver || ["キャンセル", "完了", "引取りなし"].includes(data.status)) return [];
+  const pickupAt = computePickupDateTime(data);
+  if (!pickupAt) return [];
+  const target = pickupAt.toISOString(), hoursUntil = (pickupAt.getTime() - now.getTime()) / 3600000, sent = data.reminderSent || {};
+  return REMINDER_STAGES
+    .filter((s) => !(sent[s.key] === true || sent[s.key] === target) && hoursUntil >= s.minHours && hoursUntil <= s.maxHours)
+    .map((s) => s.key);
+}
 
 
 // ===== お誕生日リマインダー（2026-10-09オーナー指示） =====
@@ -661,19 +679,14 @@ exports.sendPickupReminders = onSchedule(
     const now = new Date();
 
     for (const [key, data] of Object.entries(all)) {
-      if (!data || data.channel !== "LINE" || !data.lineUserId || data.status === "キャンセル") continue;
-      const pickupAt = computePickupDateTime(data);
-      if (!pickupAt) continue;
-      const hoursUntil = (pickupAt.getTime() - now.getTime()) / 3600000;
-      const sent = data.reminderSent || {};
-
-      for (const stage of REMINDER_STAGES) {
-        if (sent[stage.key]) continue;
-        if (hoursUntil < stage.minHours || hoursUntil > stage.maxHours) continue;
-        const text = buildReminderMessage(stage.key, data, now);
+      const stages = dueReminderStages(data, now);
+      if (!stages.length) continue;
+      const target = computePickupDateTime(data).toISOString();
+      for (const stage of stages) {
+        const text = buildReminderMessage(stage, data, now);
         const ok = await pushLineMessage(data.lineUserId, text, accessToken);
         if (ok) {
-          await admin.database().ref(`reservations/${key}/reminderSent/${stage.key}`).set(true);
+          await admin.database().ref(`reservations/${key}/reminderSent/${stage}`).set(target);
         }
       }
     }

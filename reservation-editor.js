@@ -249,7 +249,21 @@
     m.querySelector(".re-close").addEventListener("click", close);
     return m;
   }
-  function close() { var m = document.getElementById("resEditor"); if (m) m.classList.remove("show"); document.body.style.overflow = ""; state.edit = null; }
+  // 保存していない変更があるか（2026-10-24オーナー指示「仕様の変更の未登録は死活問題」）。以前は×・外側のクリック・「やめる」で黙って消えていた
+  function hasUnsaved() {
+    if (!state.edit || !state.snap || !document.getElementById("reSave")) return false;
+    try {
+      readEdit(false);
+      var e = JSON.parse(JSON.stringify(state.edit)); delete e._priceManual;
+      var memo = document.getElementById("reMemo");
+      return diffRows(state.snap, e).length > 0 || !!(memo && memo.value.trim());
+    } catch (err) { return false; }
+  }
+  function confirmDiscard() { return !hasUnsaved() || confirm("保存していない変更があります。\nこのまま閉じると、変更は消えます。閉じますか？"); }
+  function close() {
+    if (!confirmDiscard()) return;
+    var m = document.getElementById("resEditor"); if (m) m.classList.remove("show"); document.body.style.overflow = ""; state.edit = null;
+  }
 
   function open(key) {
     var api = window.fbResEditorApi;
@@ -432,7 +446,7 @@
     });
     document.getElementById("rePrice").addEventListener("input", function () { state.edit._priceManual = true; });
     var xa = document.getElementById("reExtraAmt"); if (xa) xa.addEventListener("change", function () { readEdit(true); });
-    document.getElementById("reCancel").addEventListener("click", function () { state.edit = null; renderView(); });
+    document.getElementById("reCancel").addEventListener("click", function () { if (!confirmDiscard()) return; state.edit = null; renderView(); });
     document.getElementById("reSave").addEventListener("click", save);
     document.getElementById("reEditStaff").addEventListener("click", editStaff);
   }
@@ -491,8 +505,13 @@
     up[base + "revisions/" + n] = { label: label, savedAt: now, by: staff, byAccount: api.currentUserEmail() || "", memo: memo, changes: changes, snapshot: e };
     Object.keys(patch).forEach(function (k) { up[base + k] = patch[k]; });
     up[base + "revisionCount"] = Number(label.replace(/[^0-9]/g, "")) || n; up[base + "lastRevisionAt"] = now;
+    // お引き取り日時が変わったら、リマインダーは新しい日時で送り直す。お客様が最初に希望した日時は残す（2026-10-24）
+    if (e.pickupDate !== (r.finalPickupDate || r.pickupDate) || e.pickupTime !== (r.finalPickupTime || r.pickupTime)) {
+      up[base + "reminderSent"] = null;
+      if (!r.requestedPickupDate) { up[base + "requestedPickupDate"] = r.pickupDate || ""; up[base + "requestedPickupTime"] = r.pickupTime || ""; }
+    }
     document.getElementById("reSave").disabled = true;
-    api.multiUpdate(up).then(function () {
+    (api.multiUpdateReservation ? api.multiUpdateReservation(state.key, up) : api.multiUpdate(up)).then(function () { // 削除された予約には書かない
       if (typeof window.showToast === "function") window.showToast(label + "として保存しました");
       open(state.key);
     }).catch(function (err) { alert("保存に失敗しました：" + (err && err.message || err)); document.getElementById("reSave").disabled = false; });
@@ -527,7 +546,7 @@
     if (info.time) after.pickupTime = info.time;
     if (!revs.length) up[base + "revisions/0"] = { label: "初回予約", savedAt: r.submittedAt || now, by: r.channel === "LINE" ? "お客様（LINE予約フォーム）" : "お客様（予約フォーム）", snapshot: before };
     up[base + "revisions/" + n] = { label: "電話で確定", savedAt: now, by: info.actor || "", byAccount: api.currentUserEmail() || "", changes: diffRows(before, after), snapshot: after, noNotify: true };
-    return api.multiUpdate(up);
+    return api.multiUpdateReservation ? api.multiUpdateReservation(key, up) : api.multiUpdate(up); // 削除された予約には書かない
   }
   window.ReservationEditor = { open: open, logPhoneConfirm: logPhoneConfirm, snapshotOf: snapshotOf, rowsOf: rowsOf, diffRows: diffRows, patchOf: patchOf };
 })();
