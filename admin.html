@@ -7401,9 +7401,13 @@ window.fbDeleteImage = async function (url) {
 const reservationsRef = ref(fbDb, "reservations");
 const experiencesRef = ref(fbDb, "experiences");
 const corporateRef = ref(fbDb, "corporate");
-const trashReservationsRef = ref(fbDb, "trash/reservations");
-const trashExperiencesRef = ref(fbDb, "trash/experiences");
-const trashCorporateRef = ref(fbDb, "trash/corporate");
+// 管理画面のゴミ箱は koimariTrash に置く（2026-10-24）。以前の trash/ は会社ダッシュボードのゴミ箱（DBの trash 直下を
+// 全部タスクとして並べる）と同じ場所で、予約を1件でも削除するとダッシュボードに変なタスクが出て、そこで「完全に削除」すると
+// 削除した予約がまとめて消えるおそれがあった。
+const TRASH_ROOT = "koimariTrash";
+const trashReservationsRef = ref(fbDb, TRASH_ROOT + "/reservations");
+const trashExperiencesRef = ref(fbDb, TRASH_ROOT + "/experiences");
+const trashCorporateRef = ref(fbDb, TRASH_ROOT + "/corporate");
 const siteImagesRef = ref(fbDb, "siteImages");
 // 2026-09-09判明：siteImages配下は実写真base64を大量に含み全体で5MB超に達しており、
 // get(siteImagesRef)/set(siteImagesRef, ...)のように"siteImages"全体を1回の通信で
@@ -7767,7 +7771,7 @@ window.fbUpdateCorporate = function (idx, patch) {
   update(ref(fbDb, "corporate/" + key), patch).catch(err => console.warn("Firebase更新失敗:", err));
 };
 
-/* ===== ゴミ箱（全削除→復元可能な形でtrash/以下に退避） ===== */
+/* ===== ゴミ箱（全削除→復元可能な形で koimariTrash/ 以下に退避） ===== */
 const LIVE_REFS = { reservations: reservationsRef, experiences: experiencesRef, corporate: corporateRef };
 const TRASH_REFS = { reservations: trashReservationsRef, experiences: trashExperiencesRef, corporate: trashCorporateRef };
 
@@ -7809,15 +7813,15 @@ window.fbLoadTrash = async function (type) {
 window.fbRestoreTrashBatch = async function (type, batchKey) {
   const liveRef = LIVE_REFS[type];
   if (!liveRef) return;
-  const snap = await get(ref(fbDb, "trash/" + type + "/" + batchKey));
+  const snap = await get(ref(fbDb, TRASH_ROOT + "/" + type + "/" + batchKey));
   const batch = snap.val();
   if (!batch || !batch.items) return;
   await update(liveRef, batch.items);
-  await remove(ref(fbDb, "trash/" + type + "/" + batchKey));
+  await remove(ref(fbDb, TRASH_ROOT + "/" + type + "/" + batchKey));
 };
 
 window.fbPurgeTrashBatch = async function (type, batchKey) {
-  await remove(ref(fbDb, "trash/" + type + "/" + batchKey));
+  await remove(ref(fbDb, TRASH_ROOT + "/" + type + "/" + batchKey));
 };
 
 window.firebaseLogin = function (email, password) {
