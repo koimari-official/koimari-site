@@ -515,7 +515,7 @@ function renderProductPage(){
   // ここでのカテゴリー(type=category)は商品ではないため対象外。
   const oldReserve = document.getElementById('productReserve');
   if (oldReserve) oldReserve.remove();
-  if (productType !== 'category' && productType !== 'recommended' && window.KoimariDraft && !item.notForSale) {
+  if (productType !== 'category' && productType !== 'recommended' && window.KoimariDraft && !item.notForSale && !notReservableSale(item)) {
     const box = document.createElement('div');
     box.id = 'productReserve';
     box.className = 'product-reserve';
@@ -533,7 +533,7 @@ function renderProductPage(){
     });
   }
   setupSticky(item);
-  if (item.notForSale) { const st = document.getElementById('pdSticky'); if (st) st.remove(); } // 販売休止中は予約ボタンを出さない
+  if (item.notForSale || notReservableSale(item)) { const st = document.getElementById('pdSticky'); if (st) st.remove(); } // 販売休止中・店頭販売のみ・全国配送は予約ボタンを出さない
   renderRelated(list, config);
 }
 
@@ -703,6 +703,37 @@ function renderSizeTable(item, photoSize) {
   });
 }
 var currentGuide = ''; // フルオーダーの目安（例：5号 ¥5,000〜）。予約フォームへ引き継ぐ
+// 焼き菓子・ギフトの販売方法（2026-10-24オーナー指示。管理画面の「販売方法」）：store＝店頭販売のみ（予約・お取り置きなし）／
+// reserve＝ご予約可／ship＝全国配送。未設定は「店頭販売のみ」（単品の焼き菓子は予約できない決まり。設定し忘れても予約できる状態にしない）
+const SALE_TYPES = ['baked', 'gift'];
+const SALE_DB = 'https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app'; // DATABASE_URL は最初の表示より後で定義されるため、ここ専用に持つ
+function saleModeOf(it) { const m = it && it.saleMode; return m === 'reserve' || m === 'ship' ? m : 'store'; }
+function notReservableSale(it) { return SALE_TYPES.includes(productType) && saleModeOf(it) !== 'reserve'; }
+// 店頭販売のみ・全国配送の商品の「お買い求めについて」。全国配送の商品があれば、店頭販売のみの商品から案内する（データにあるものだけ）
+async function renderSaleBlock(item, lead) {
+  const mode = saleModeOf(item);
+  const rows = mode === 'ship'
+    ? ['<b>全国配送</b>でお届けします。']
+    : ['<b>店頭でお買い求めいただけます。</b>単品のため、ご予約・お取り置きは承っておりません。'];
+  const draw = () => { lead.innerHTML = '<h2 class="pd-block__h">お買い求めについて</h2><ul class="pd-lead__list">' + rows.map(r => '<li>' + r + '</li>').join('') + '</ul>'; };
+  draw();
+  try {
+    if (mode === 'ship') {
+      const url = await (await fetch(SALE_DB + '/siteConfig/baseShopUrl.json')).json();
+      rows.push(/^https:\/\/[^\s"'<>]+$/.test(url || '')
+        ? '<a class="pd-tel-btn" href="' + esc(url) + '" target="_blank" rel="noopener"><span>オンラインショップで購入する</span><b>↗</b></a>'
+        : 'オンラインショップは11月中旬にオープン予定です。店頭でもお買い求めいただけます。');
+    } else {
+      const ships = [];
+      for (const t of SALE_TYPES) {
+        const v = await (await fetch(SALE_DB + '/siteImages/' + t + '.json')).json();
+        (Array.isArray(v) ? v : Object.values(v || {})).forEach((it, i) => { if (it && it.name && it.visible !== false && !it.notForSale && saleModeOf(it) === 'ship') ships.push('<a href="product.html?type=' + t + '&idx=' + i + '">' + esc(String(it.name).replace(/<[^>]*>/g, '')) + '</a>'); });
+      }
+      if (ships.length) rows.push('贈り物には、<b>全国配送</b>でお届けできる商品もございます：' + ships.join('、'));
+    }
+  } catch (e) {}
+  draw();
+}
 // ② 納期の目安・注意書き と ③ お電話でのご予約（電話番号はページ内でここ1か所にまとめる）
 function renderLeadAndTel(item, size) {
   const lead = document.getElementById('pdLead'), howto = document.getElementById('pdHowto'), tel = document.getElementById('pdTel');
@@ -710,6 +741,7 @@ function renderLeadAndTel(item, size) {
   const isProduct = productType !== 'category' && productType !== 'recommended';
   lead.style.display = howto.style.display = isProduct ? '' : 'none';
   if (!isProduct) return;
+  if (notReservableSale(item) && !item.notForSale) { howto.style.display = 'none'; renderSaleBlock(item, lead); return; } // 予約を受けない商品は「ご予約方法」を出さない
   const custom = productType === 'decorationCake' && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === 'custom';
   const rows = productType === 'addOn'
     ? ['ケーキのご予約に<b>追加</b>することも、<b>砂糖菓子・ゼリー菓子だけ</b>のご注文もできます。', 'ご注文はお受け取りの<b>3営業日前まで</b>承ります。', '3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。']

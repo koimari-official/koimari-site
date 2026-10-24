@@ -19,14 +19,17 @@
   var TARTS = ["フルーツタルトBOX", "ストロベリータルトBOX"];
   var OCCASIONS = ["", "バースデー", "クリスマス", "その他"];
   // 基本の並び（2026-10-03オーナー指定）。実際の表示は、修正の記録で選ばれた回数が多い順（同じ回数ならこの順）
-  var DEFAULT_STAFF = ["楠田", "永山", "小見", "お母さん", "橋本", "木村", "オーナー"];
+  // 2026-10-24オーナー指示：「アルバイト」を追加し、「お母さん」は回数に関係なく一番下（STAFF_LAST）
+  var DEFAULT_STAFF = ["楠田", "永山", "小見", "橋本", "木村", "オーナー", "アルバイト", "お母さん"];
+  var STAFF_LAST = ["お母さん"];
   function orderStaffByUse(list) {
     var count = {};
     try {
       var all = typeof window.loadList === "function" ? window.loadList("koimari_reservations") : JSON.parse(localStorage.getItem("koimari_reservations") || "[]");
       (all || []).forEach(function (r) { var revs = r && r.revisions ? (Array.isArray(r.revisions) ? r.revisions : Object.values(r.revisions)) : []; revs.forEach(function (v) { if (v && v.by) count[v.by] = (count[v.by] || 0) + 1; }); });
     } catch (e) {}
-    return list.map(function (n, i) { return { n: n, i: i, c: count[n] || 0 }; }).sort(function (a, b) { return b.c - a.c || a.i - b.i; }).map(function (x) { return x.n; });
+    var sorted = list.map(function (n, i) { return { n: n, i: i, c: count[n] || 0 }; }).sort(function (a, b) { return b.c - a.c || a.i - b.i; }).map(function (x) { return x.n; });
+    return sorted.filter(function (n) { return STAFF_LAST.indexOf(n) < 0; }).concat(sorted.filter(function (n) { return STAFF_LAST.indexOf(n) >= 0; }));
   }
   var TIMES = (function () { var a = []; for (var m = 600; m <= 1200; m += 30) a.push(String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0")); return a; })();
 
@@ -96,7 +99,7 @@
       var colors = specs ? (specs[i].colors || []) : (i === 0 && r.colorCream ? (r.colorCream.colors || []) : []);
       return { size: plainSize(it.size), cream: cream, color: colors[0] || "" };
     });
-    return {
+    var snap = {
       category: (items[0] || {}).category || r.type || "",
       flavor: (items[0] || {}).flavor || "",
       tiers: tiers,
@@ -128,6 +131,10 @@
       subtotal: Number(r.subtotal) || 0,
       cuts: isCutRes(r) ? items.filter(function (it) { return it.flavor; }).map(function (it) { return { name: it.flavor, qty: Number(it.qty) || 1, price: Number(it.price) || 0 }; }) : undefined
     };
+    // カットケーキ以外は cuts を持たない（2026-10-24：undefined のまま履歴に入れると Firebase が
+    // 「values argument contains undefined」で保存全体を失敗させ、初めての修正が確定できなかった）
+    if (snap.cuts === undefined) delete snap.cuts;
+    return snap;
   }
   // 表示・比較用の行 [項目, 内容]
   function rowsOf(s) {

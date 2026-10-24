@@ -307,7 +307,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261024b"></script>
+<script src="reservation-editor.js?v=20261024d"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -3442,7 +3442,10 @@ function appendCopyEditor(item, obj, onUpdate) {
   });
   item.appendChild(box);
 }
-function appendExtraFlags(item, obj, onUpdate) {
+// 焼き菓子・ギフトの販売方法（2026-10-24オーナー指示）。未設定は「店頭販売のみ」（単品の焼き菓子は予約・取り置きをしない決まり。
+// 設定し忘れても予約できる状態にしない）。商品ページ・ギャラリー・LINE予約フォームの出し分けは各ページの saleModeOf と同じ判定
+const SALE_MODES = [["store", "店頭販売のみ（予約・お取り置きなし）"], ["reserve", "ご予約可（店頭でお受け取り）"], ["ship", "全国配送（オンラインショップ）"]];
+function appendExtraFlags(item, obj, onUpdate, opts) {
   const box = document.createElement("div");
   box.style.cssText = "padding:10px 14px;margin-top:8px;background:rgba(201,169,110,0.08);border-left:3px solid var(--color-accent);display:flex;gap:18px;flex-wrap:wrap;align-items:center;";
   const mk = (label, key) => {
@@ -3462,6 +3465,18 @@ function appendExtraFlags(item, obj, onUpdate) {
   box.appendChild(mk("販売休止中（予約で選べなくする）", "notForSale"));
   // ギャラリーのジャンル選択「すべて」の丸い写真に使う（2026-10-02オーナー指示）。複数に付けた場合はギャラリーで前に並ぶものが優先
   box.appendChild(mk("ギャラリーの「すべて」の写真にする", "galleryCover"));
+  if (opts && opts.saleMode) {
+    const wrap = document.createElement("label");
+    wrap.style.cssText = "display:flex;align-items:center;gap:6px;font-size:13px;flex-basis:100%;";
+    wrap.appendChild(document.createTextNode("販売方法"));
+    const sel = document.createElement("select");
+    sel.style.cssText = "padding:4px 8px;font-size:13px;border:1px solid var(--color-border,#d8c9b0);border-radius:6px;background:#fff;";
+    SALE_MODES.forEach(([v, l]) => { const o = document.createElement("option"); o.value = v; o.textContent = l; sel.appendChild(o); });
+    sel.value = SALE_MODES.some(([v]) => v === obj.saleMode) ? obj.saleMode : "store";
+    sel.addEventListener("change", () => { obj.saleMode = sel.value; onUpdate(); });
+    wrap.appendChild(sel);
+    box.appendChild(wrap);
+  }
   item.appendChild(box);
   appendCopyEditor(item, obj, onUpdate);
 }
@@ -3691,7 +3706,7 @@ function renderBaked() {
     appendImageHistoryUI(item, r, "img", () => { renderBaked(); updateSaveBar(); });
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderBaked(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.baked[i].visible, () => { workingData.baked[i].visible = !workingData.baked[i].visible; renderBaked(); updateSaveBar(); });
-    appendExtraFlags(item, r, () => updateSaveBar());
+    appendExtraFlags(item, r, () => updateSaveBar(), { saleMode: true });
     appendReorderControls(item, workingData.baked, i, () => { renderBaked(); updateSaveBar(); }, "baked");
     grid.appendChild(item);
   });
@@ -3720,7 +3735,7 @@ function renderGift() {
     appendImageHistoryUI(item, r, "img", () => { renderGift(); updateSaveBar(); });
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderGift(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.gift[i].visible, () => { workingData.gift[i].visible = !workingData.gift[i].visible; renderGift(); updateSaveBar(); });
-    appendExtraFlags(item, r, () => updateSaveBar());
+    appendExtraFlags(item, r, () => updateSaveBar(), { saleMode: true });
     appendReorderControls(item, workingData.gift, i, () => { renderGift(); updateSaveBar(); }, "gift");
     grid.appendChild(item);
   });
@@ -5390,7 +5405,12 @@ async function renderBasePanel() {
   });
   document.getElementById("bsAddProduct").addEventListener("click", () => { bsData.products.push(bsNewProduct()); bsDraw(); });
   document.getElementById("bsSave").addEventListener("click", async () => {
-    try { bsData.updatedAt = new Date().toISOString(); await window.fbOpsSet("baseShop", bsData); document.getElementById("bsMsg").textContent = "保存しました"; bsDraw(); }
+    try {
+      bsData.updatedAt = new Date().toISOString(); await window.fbOpsSet("baseShop", bsData);
+      // 商品ページの「全国配送」から開けるよう、ショップのURLだけは公開の設定にも置く（koimariOps は外から読めないため。2026-10-24）
+      if (typeof window.fbSetPublicBaseUrl === "function") await window.fbSetPublicBaseUrl(bsData.shopUrl || "");
+      document.getElementById("bsMsg").textContent = "保存しました"; bsDraw();
+    }
     catch (e) { document.getElementById("bsMsg").textContent = "保存できませんでした（管理者アカウントのみ変更できます）"; }
   });
 }
@@ -7314,7 +7334,7 @@ function applyFetchedOpsContent(all) {
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app-check.js";
-import { getDatabase, ref, onValue, update as fbUpdateRaw, remove, get, push, set as fbSetRaw, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, onValue, update as fbUpdateRaw, remove, get, push as fbPushRaw, set as fbSetRaw, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 import { getAuth, initializeAuth, browserLocalPersistence, inMemoryPersistence, signInWithEmailAndPassword, signInWithCustomToken, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import { getStorage, ref as storageRef, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
@@ -7326,8 +7346,20 @@ function hasInlinePhoto(v) {
   if (typeof v === "string") return v.startsWith("data:image/");
   return !!v && typeof v === "object" && Object.keys(v).some((k) => hasInlinePhoto(v[k]));
 }
-function set(r, v) { return hasInlinePhoto(v) ? Promise.reject(new Error(INLINE_PHOTO_MSG)) : fbSetRaw(r, v); }
-function update(r, v) { return hasInlinePhoto(v) ? Promise.reject(new Error(INLINE_PHOTO_MSG)) : fbUpdateRaw(r, v); }
+// Firebase は undefined を受け付けず（「values argument contains undefined」）、1か所でも混ざると保存全体が失敗する。
+// 書き込む直前に取り除く（2026-10-24：予約の修正の初回確定が、履歴の写しの cuts: undefined で失敗していた）。配列の中は null にする
+function dropUndefined(v) {
+  if (Array.isArray(v)) return v.map((x) => (x === undefined ? null : dropUndefined(x)));
+  if (v && typeof v === "object" && Object.getPrototypeOf(v) === Object.prototype) {
+    const o = {};
+    Object.keys(v).forEach((k) => { if (v[k] !== undefined) o[k] = dropUndefined(v[k]); });
+    return o;
+  }
+  return v;
+}
+function set(r, v) { return hasInlinePhoto(v) ? Promise.reject(new Error(INLINE_PHOTO_MSG)) : fbSetRaw(r, v === undefined ? null : dropUndefined(v)); }
+function update(r, v) { return hasInlinePhoto(v) ? Promise.reject(new Error(INLINE_PHOTO_MSG)) : fbUpdateRaw(r, dropUndefined(v)); }
+function push(r, v) { return v === undefined ? fbPushRaw(r) : fbPushRaw(r, dropUndefined(v)); } // 戻り値（.key を持つ参照）はそのまま
 
 const firebaseConfig = {
   apiKey: "AIzaSyBMnJaIuF2vohO0YqKVmbcWeMBt9ZmSACI",
@@ -7751,6 +7783,7 @@ window.fbSetBlockDeclined = (on) => set(ref(fbDb, "koimariOps/blockDeclinedCusto
 // ===== お誕生日リマインダー・通販（BASE）（2026-10-09） =====
 window.fbOpsGet = (k) => get(ref(fbDb, "koimariOps/" + k)).then((s) => s.val()).catch(() => null);
 window.fbOpsSet = (k, v) => set(ref(fbDb, "koimariOps/" + k), v);
+window.fbSetPublicBaseUrl = (u) => update(ref(fbDb, "siteConfig"), { baseShopUrl: /^https:\/\/[^\s"'<>]+$/.test(u || "") ? u : null });
 window.fbResEditorApi = {
   getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
   multiUpdate: (patch) => update(ref(fbDb), patch),

@@ -300,7 +300,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="ロールケーキ"> ロールケーキ</label>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="カットケーキ"> カットケーキ（3個から）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="砂糖菓子・ゼリー菓子"> 砂糖菓子・ゼリー菓子のみ</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveType" value="焼き菓子・ギフト"> 焼き菓子・ギフト</label>
+            <label class="radio-list__opt" id="reserveTypeBakedOpt" style="display:none;"><input type="radio" name="reserveType" value="焼き菓子・ギフト" disabled> 焼き菓子・ギフト</label>
             <label class="radio-list__opt" id="reserveTypeXmasOpt" style="display:none;"><input type="radio" name="reserveType" value="クリスマスケーキ"> クリスマスケーキ（12月22日〜25日お渡し）</label>
           </div>
         </div>
@@ -2243,6 +2243,19 @@ onValue(ref(db, "koimariContent/cakeFlavors"), (snap) => {
   currentCakeFlavors = snap.val() || DEFAULT_CAKE_FLAVORS;
   if ((document.querySelector('input[name="reserveType"]:checked') || {}).value === "デコレーションケーキ") populateFlavorSelect(currentCakeFlavors);
 });
+// 焼き菓子・ギフトの販売方法（2026-10-24オーナー指示）：「ご予約可」の商品が1つもなければ、予約の種類に「焼き菓子・ギフト」を出さない
+// （単品は店頭販売のみ・セットは全国配送のため）。未設定は店頭販売のみ＝product.html の saleModeOf と同じ判定。
+// HTMLでは最初から隠しておき、ご予約可の商品があると分かった時だけ出す（読み込み中に一瞬出て消えないように）
+const bakedReservable = { baked: false, gift: false };
+["baked", "gift"].forEach((k) => onValue(ref(db, "siteImages/" + k), (snap) => {
+  const v = snap.val();
+  bakedReservable[k] = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).some((it) => it && it.name && it.visible !== false && !it.notForSale && it.saleMode === "reserve");
+  const ok = bakedReservable.baked || bakedReservable.gift;
+  const lab = document.getElementById("reserveTypeBakedOpt"), r = lab && lab.querySelector("input");
+  if (!lab || !r) return;
+  lab.style.display = ok ? "" : "none"; r.disabled = !ok;
+  if (!ok && r.checked) { const d = document.querySelector('input[name="reserveType"][value="デコレーションケーキ"]'); if (d) { d.checked = true; d.dispatchEvent(new Event("change", { bubbles: true })); } }
+}));
 // 2026-10-07：ロールケーキの種類は、管理画面の「ケーキの種類」ではなく、ギャラリーのロールケーキ（商品）から作る
 // （同じものを2か所で管理しないため。「ケーキの種類」タブは廃止）。
 onValue(ref(db, "siteImages/rollcakes"), (snap) => {
@@ -2910,7 +2923,7 @@ function applyDraft(d) {
   const radioValue = DRAFT_TYPE_TO_RADIO[d.productType];
   if (radioValue) {
     const radio = Array.from(document.querySelectorAll('input[name="reserveType"]')).find(r => r.value === radioValue);
-    if (radio && !radio.checked) { radio.checked = true; radio.dispatchEvent(new Event("change", { bubbles: true })); }
+    if (radio && !radio.checked && !radio.disabled) { radio.checked = true; radio.dispatchEvent(new Event("change", { bubbles: true })); } // 選べない種類（例：店頭販売のみの焼き菓子）は選ばない
   }
   // 管理画面で商品ごとに設定された仕様（サイズ・クリーム・飾り付け・ご利用シーン・段数）があれば、フォームに自動で選ぶ
   // （2026-09-29）。お客様は内容をそのまま変更できる。不正な値は各選択肢に一致しないため無視される。
