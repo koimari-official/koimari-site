@@ -131,6 +131,7 @@
       omakaseWish: r.omakaseWish || "",
       note: r.note || "",
       extraAmount: Number(r.extraCharge) || 0,
+      tel: r.tel || "", // お客様の電話番号（2026-10-24：電話番号の変更にも対応）
       pickupDate: r.finalPickupDate || r.pickupDate || "",
       pickupTime: r.finalPickupTime || r.pickupTime || "",
       price: Number(r.finalPrice) || (r.priceIsFixed ? Number(r.subtotal) || 0 : 0),
@@ -175,6 +176,7 @@
     if (s.note) rows.push(["備考", s.note]);
     if (s.extraNote || s.extraAmount) rows.push(["追加のご注文", (s.extraNote || "内容未記入") + (s.extraAmount ? "　" + yen(s.extraAmount) : "")]);
     rows.push(["お引き取り", (s.pickupDate || "未定") + " " + (s.pickupTime || "")]);
+    if (s.tel !== undefined) rows.push(["電話番号", s.tel || "未登録"]); // 以前の記録（電話番号を持たない写し）には出さない
     rows.push(["金額（税込）", s.price ? yen(s.price) + (s.priceIsRange ? "〜" : "") : (s.subtotal ? yen(s.subtotal) + "〜（目安）" : "お電話でご案内")]);
     return rows;
   }
@@ -333,7 +335,8 @@
       var rows = v.snapshot ? rowsOf(v.snapshot) : [];
       var before = {}; if (prev) rowsOf(prev).forEach(function (r) { before[r[0]] = r[1]; });
       var body = rows.map(function (row) {
-        var changed = prev && before[row[0]] !== row[1];
+        // 電話番号は 2026-10-24 から記録している。それより前の記録との比較では「変更」としない
+        var changed = prev && before[row[0]] !== row[1] && !(row[0] === "電話番号" && prev.tel === undefined);
         return '<tr' + (changed ? ' class="is-changed"' : "") + "><th>" + esc(row[0]) + (changed ? '<span class="re-chg">変更</span>' : "") + "</th><td>" +
           (changed && before[row[0]] != null ? '<s class="re-was">' + esc(before[row[0]]) + "</s><br>" : "") + esc(row[1]) + "</td></tr>";
       }).join("");
@@ -467,6 +470,7 @@
       var tot = cutTotalOf(e);
       html += '<div class="re-told' + (tot < 3 ? " re-told--warn" : "") + '">合計 <b>' + tot + "個</b>" + (tot < 3 ? "（通常は3個からのご予約です。お電話で了承済みの場合のみ確定してください）" : "") + "</div>";
     }
+    html += field("電話番号（お客様の連絡先）", '<input type="tel" class="input re-in" id="reTel" inputmode="tel" autocomplete="off" value="' + esc(e.tel || "") + '">');
     html += field("お引き取り日", '<input type="date" class="input re-in" id="reDate" value="' + esc(e.pickupDate) + '">');
     html += field("お引き取り時間", sel("reTime", [""].concat(TIMES), e.pickupTime, function (o) { return o || "選択"; }));
     var est = cake || e.cuts ? estimateOf(e, r) : null;
@@ -548,6 +552,8 @@
       if (add) e.cuts.push({ name: add, qty: 1, price: (cutInfo(add) || {}).price || 0 });
     }
     e.pickupDate = g("reDate").value; e.pickupTime = g("reTime").value;
+    // 電話番号：全角の数字・ハイフンは半角に直す
+    if (g("reTel")) e.tel = g("reTel").value.replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[－ー―‐]/g, "-").trim();
     e.price = Number(g("rePrice").value) || 0; e.priceIsRange = false;
     if (rerender) {
       renderEdit();
@@ -562,6 +568,8 @@
     if (!staff) { alert("担当者を選んでください"); return; }
     if (!e.pickupDate || !e.pickupTime) { alert("お引き取り日時を選んでください"); return; }
     if (!e.price) { alert("確定金額を入力してください（自動計算の金額を入れるボタンも使えます）"); return; }
+    if (state.snap.tel && !e.tel) { alert("電話番号を空にはできません。新しい電話番号を入力してください"); return; }
+    if (e.tel && String(e.tel).replace(/[^0-9]/g, "").length < 10) { alert("電話番号の桁数が足りないようです（例：090-1234-5678）。もう一度ご確認ください"); return; }
     e = JSON.parse(JSON.stringify(e)); delete e._priceManual;
     var changes = diffRows(state.snap, e);
     if (!changes.length && !memo) { alert("変更点がありません"); return; }
@@ -574,6 +582,7 @@
     var est = isCakeRes(r) || e.cuts ? estimateOf(e, r) : null;
     var patch = patchOf(e, r, est);
     if (!isCakeRes(r) && !e.cuts) { patch = { pickupDate: e.pickupDate, pickupTime: e.pickupTime, finalPickupDate: e.pickupDate, finalPickupTime: e.pickupTime, finalPrice: e.price, priceIsFixed: true }; }
+    if (e.tel && e.tel !== (r.tel || "")) patch.tel = e.tel; // 電話番号の変更（2026-10-24）
     up[base + "revisions/" + n] = { label: label, savedAt: now, by: staff, byAccount: api.currentUserEmail() || "", memo: memo, changes: changes, snapshot: e };
     Object.keys(patch).forEach(function (k) { up[base + k] = patch[k]; });
     up[base + "revisionCount"] = Number(label.replace(/[^0-9]/g, "")) || n; up[base + "lastRevisionAt"] = now;
