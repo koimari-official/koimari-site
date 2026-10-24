@@ -1848,12 +1848,35 @@ window.addEventListener("beforeunload", (e) => {
     e.returnValue = "";
   }
 });
+// 2026-10-24：前の表示のタイマーを止めずに次を出していたため、写真のアップロード完了の案内の直後に保存すると、
+// 「保存しました」が前のタイマーで0.05秒で消えていた（オーナー報告「緑の保存完了の表示が出ない」）。
+// 新しい表示を出すときは前のタイマーを止め、表示時間は文の長さに合わせる（最低2.6秒・最長8秒）
 function showToast(msg, type) {
   const t = document.getElementById("toast");
   t.textContent = msg;
   t.style.background = type === "error" ? "#b94a3a" : "var(--color-success)";
   t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2200);
+  clearTimeout(window.__toastTimer);
+  // 時間は「画面に描かれてから」数える（保存直後の描き直しで画面が止まっている間に時間切れになり、見えないまま消えていた）
+  const ms = Math.min(8000, Math.max(2600, String(msg || "").length * 70)), seq = (window.__toastSeq = (window.__toastSeq || 0) + 1);
+  let started = false;
+  const start = () => { if (started || seq !== window.__toastSeq) return; started = true; window.__toastTimer = setTimeout(() => t.classList.remove("show"), ms); };
+  requestAnimationFrame(() => requestAnimationFrame(start));
+  setTimeout(start, 1000); // 描画の合図が来ない環境（裏に回った画面など）でも、1秒後には数え始める
+}
+// 保存できたことが必ず分かるよう、右下に「✓ 時刻 保存しました」を30秒出す（トーストを見逃しても確かめられるように）
+function showSavedStamp() {
+  let el = document.getElementById("savedStamp");
+  if (!el) {
+    el = document.createElement("div"); el.id = "savedStamp"; el.setAttribute("role", "status");
+    el.style.cssText = "position:fixed;right:16px;bottom:16px;z-index:1600;background:#2f7d4f;color:#fff;padding:10px 18px;border-radius:999px;font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.2);display:none;";
+    document.body.appendChild(el);
+  }
+  const d = new Date();
+  el.textContent = "✓ " + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + " 保存しました（サイトに反映されます）";
+  el.style.display = "block";
+  clearTimeout(window.__savedStampTimer);
+  window.__savedStampTimer = setTimeout(() => { el.style.display = "none"; }, 30000);
 }
 function escapeHtml(s) {
   if (!s) return "";
@@ -3929,7 +3952,9 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     workingData = merged;
     savedData = JSON.parse(JSON.stringify(merged));
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(workingData)); } catch (e) { /* ローカルキャッシュへの反映は失敗しても致命的ではないため無視 */ }
-    renderAll();
+    showSavedStamp(); // 保存できた時点で出す（この後の描き直しでエラーが出ても、保存できたことが分かるように。2026-10-24）
+    try { renderAll(); }
+    catch (e) { console.error("画面の描き直しに失敗（保存はできています）:", e); showToast("保存しました。ただ、画面の表示の更新に失敗したため、ページを読み込み直してください", "error"); return; }
     if (conflicts.length) {
       showToast(`他の人も同時に編集していた項目がありましたが、今回保存した内容を優先して反映しました: ${conflicts.join("、")}。内容に相違がないかご確認ください。`, "error");
     } else {
@@ -6243,6 +6268,7 @@ async function saveByKey(key, data) {
 // 保存結果を各パネルに反映する共通処理（成功時はローカルデータを更新して再描画、競合があれば警告を出す）
 function afterSave(result, applyFn, successMsg) {
   if (!result) return; // 失敗時は既にエラートーストが表示済み
+  showSavedStamp(); // 保存できたことを右下に30秒出す（2026-10-24）
   applyFn(result.merged);
   if (result.conflicts.length) {
     showToast(`他の人も同時に編集していた項目がありましたが、今回保存した内容を優先して反映しました: ${result.conflicts.join("、")}。内容に相違がないかご確認ください。`, "error");
