@@ -622,10 +622,15 @@ function renderInfo(item, plainName, config) {
   renderLeadAndTel(item, size);
   const text = plainName + ' ' + String(item.desc || '');
   const pts = [];
-  if (/フルーツ|いちご|苺|果実|ベリー|タルト/.test(text)) pts.push('季節のフルーツをたっぷり。見た目も味も華やかに仕上げます');
-  // デコレーションケーキ（オーダーケーキ含む）・ロールケーキは甘さ控えめ（2026-10-06オーナー指示）
-  if (productType === 'decorationCake' || productType === 'rollcake') pts.push('甘さを控えた設計で、パティシエ厳選のフルーツや素材の味を堪能していただけます');
-  if (productType !== 'category' && productType !== 'recommended') pts.push('お店で一つひとつ手作りしています');
+  if (productType === 'baked' || productType === 'gift') {
+    // 焼き菓子・ギフトは、オーナー指定の文面だけ（2026-10-24）。フルーツの行は出さない（ラズベリークッキー等に「フルーツたっぷり」と出ていた）
+    pts.push('職人が丁寧に焼き上げる手作りの焼き菓子です');
+  } else {
+    if (/フルーツ|いちご|苺|果実|ベリー|タルト/.test(text)) pts.push('季節のフルーツをたっぷり。見た目も味も華やかに仕上げます');
+    // デコレーションケーキ（オーダーケーキ含む）・ロールケーキは甘さ控えめ（2026-10-06オーナー指示）
+    if (productType === 'decorationCake' || productType === 'rollcake') pts.push('甘さを控えた設計で、パティシエ厳選のフルーツや素材の味を堪能していただけます');
+    if (productType !== 'category' && productType !== 'recommended') pts.push('お店で一つひとつ手作りしています');
+  }
   pts.push('お酒はごく少量で、焼き上げの時にしっかり加熱して飛ばしています。小さなお子様にも安心です');
   document.getElementById('pdPoints').innerHTML = '<li class="pd-points__head">お店のこだわり</li>' + pts.map(t => '<li>' + esc(t) + '</li>').join('');
   renderProductCopy(item);
