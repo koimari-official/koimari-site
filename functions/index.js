@@ -445,7 +445,7 @@ ${faqKnowledgeText}
 exports._internal = {
   buildConfirmMessage, buildReceivedMessage, isPushRecipient: (...a) => isPushRecipient(...a), pushContext: () => pushContext(),
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
-  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage, dueReminderStages,
+  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage, dueReminderStages, orderPhotoCard,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
   assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost, customerFlagLines, birthdayReminderText, birthdayReminderTargets,
@@ -1104,6 +1104,33 @@ function buildReceivedMessage(data) {
 function isPhotoChristmas(data) {
   return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img);
 }
+// 受付LINEに添える「ご予約のケーキ」の写真カード（2026-10-24オーナー指示）。ギャラリーで選んだデコレーションケーキ
+// （価格確定・フルオーダー）と写真で選ぶクリスマスケーキが対象。画像だけのメッセージはLINEで「保存」できてしまうため、
+// 写真はカード（Flex）に入れ、タップしても何も開かない形にする（スクリーンショットはどの方法でも防げない）。
+const PHOTO_CARD_TYPES = ["decorationCake", "custom", "christmasCake"];
+function orderPhotoCard(data) {
+  const p = (data && data.galleryPick) || {};
+  const img = String(p.img || "");
+  if (!/^https:\/\//.test(img) || img.length > 2000) return null;
+  if (!PHOTO_CARD_TYPES.includes(p.productType) && !isPhotoChristmas(data)) return null;
+  const custom = !!data.quoteSeparately || p.productType === "custom";
+  const title = (galleryPickLabel(p) + (p.size ? "（" + p.size + "）" : "")).slice(0, 120) || "ギャラリーで選んだケーキ";
+  return {
+    type: "flex", altText: "ご予約のケーキの写真",
+    contents: {
+      type: "bubble",
+      hero: { type: "image", url: img, size: "full", aspectRatio: "1:1", aspectMode: "cover" },
+      body: {
+        type: "box", layout: "vertical", spacing: "sm",
+        contents: [
+          { type: "text", text: "ご予約のケーキ", size: "xs", color: "#8a6a4a" },
+          { type: "text", text: title, weight: "bold", size: "md", wrap: true, color: "#2e2118" },
+          { type: "text", text: custom ? "この写真をもとに、お見積もり・納期をスタッフよりご連絡します" : "この写真のケーキで承りました", size: "xs", wrap: true, color: "#6b5a48" },
+        ],
+      },
+    },
+  };
+}
 
 // ③ 管理画面で「修正n」として変更を確定した時に送る文面（2026-10-02オーナー指示）。
 // 変更点（変更前→変更後）と、変更後のご注文内容・お引き取り日時・金額をまとめて送る。
@@ -1221,7 +1248,8 @@ exports.sendReservationReceivedMessage = onValueCreated(
     const reservationNo = await assignReservationNo(event.params.pushId);
     const data = Object.assign({}, raw, { reservationNo });
     const messages = [];
-    if (isPhotoChristmas(data)) messages.push(imageMessage(data.galleryPick.img));
+    const photoCard = orderPhotoCard(data); // 選んだケーキの写真（保存されにくいカード形式。以前のクリスマスは画像だけで送っていた）
+    if (photoCard) messages.push(photoCard);
     messages.push({ type: "text", text: buildReceivedMessage(data) });
     await pushLineMessages(data.lineUserId, messages, LINE_CHANNEL_ACCESS_TOKEN.value());
   }

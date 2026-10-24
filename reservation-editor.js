@@ -292,10 +292,10 @@
     var html = "";
     // カットケーキのご予約は、選んだカットケーキの写真を並べる（デコレーションケーキの参考写真は出さない）
     if (isCutRes(r)) {
-      (r.items || []).forEach(function (it) { if (it.image) html += '<figure class="re-photo"><img src="' + esc(it.image) + '" alt=""><figcaption><span>カットケーキ</span>' + esc(it.flavor) + " ×" + esc(it.qty || 1) + "</figcaption></figure>"; });
+      (r.items || []).forEach(function (it) { if (it.image) html += '<figure class="re-photo"><img src="' + esc(it.image) + '" alt="" draggable="false"><figcaption><span>カットケーキ</span>' + esc(it.flavor) + " ×" + esc(it.qty || 1) + "</figcaption></figure>"; });
       return html || '<div class="re-photo re-photo--none">カットケーキ（写真なし）</div>';
     }
-    if (img) html += '<figure class="re-photo"><img src="' + esc(img) + '" alt=""><figcaption><span>' + esc(label) + "</span>" + esc(name) + "</figcaption></figure>";
+    if (img) html += '<figure class="re-photo"><img src="' + esc(img) + '" alt="" draggable="false"><figcaption><span>' + esc(label) + "</span>" + esc(name) + "</figcaption></figure>";
     else if (pick.name) html += '<div class="re-photo re-photo--none">ギャラリーで選択：' + esc(name) + "（写真なし）</div>";
     sent.sort(function (a, b) { return String(a.sentAt).localeCompare(String(b.sentAt)); }).forEach(function (si) {
       html += '<figure class="re-photo re-photo--sent"><img src="' + esc(si.url) + '" alt=""><figcaption><span>お客様に送った確定画像</span>' + esc((si.sentAt || "").slice(0, 16).replace("T", " ")) + " " + esc(si.by || "") + "</figcaption></figure>";

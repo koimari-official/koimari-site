@@ -201,7 +201,12 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .opt-photo{width:64px;height:64px;object-fit:cover;border-radius:8px;margin-right:8px;flex-shrink:0;vertical-align:middle}
 .opt-photo--wide{display:block;width:100%;max-width:280px;height:auto;aspect-ratio:4/3;margin:0 0 10px}
 .opt-photo--card{display:block;width:100%;height:auto;aspect-ratio:1/1;margin:0 0 6px}
+/* ギャラリーで選んだケーキの写真は保存させない（長押し・右クリック・ドラッグ。スクリーンショットは防げない）2026-10-24オーナー指示 */
+.ns-img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;pointer-events:none}/* 長押し・右クリックが写真に当たらない＝iPhone・Androidとも保存メニューが出ない */
 </style>
+<script>
+["contextmenu", "dragstart"].forEach(function (t) { document.addEventListener(t, function (e) { if (e.target && e.target.closest && e.target.closest(".ns-img")) e.preventDefault(); }, true); });
+</script>
 <style>.grecaptcha-badge{visibility:hidden!important}</style>
 </head>
 <body>
@@ -3031,7 +3036,7 @@ function renderDraftBanner() {
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   if (currentDraft) {
     el.innerHTML = `<div style="display:flex;gap:12px;align-items:center;background:#f3ece1;border:1px solid #d8baa4;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
-      ${currentDraft.img ? `<img src="${esc(currentDraft.img)}" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ""}
+      ${currentDraft.img ? `<img class="ns-img" src="${esc(currentDraft.img)}" alt="" draggable="false" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ""}
       <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${Number(currentDraft.no) > 0 ? "No.D" + String(currentDraft.no).padStart(2, "0") + " " : ""}${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div>${draftGuideNow() ? `<div style="font-size:13px;color:#8a3a2a;font-weight:700;margin-top:2px;">${esc(draftGuideNow().replace(/^目安\s*/, "目安："))}（税込）・お見積もりは別途ご回答</div>` : ""}${currentDraftSpecApplied ? `<div style="font-size:12px;color:#4a3a2a;margin-top:2px;">この商品の仕様を自動で選びました。内容は下でご変更いただけます。</div>` : ""}</div>
       <button type="button" id="draftClear" style="font-size:12px;border:1px solid #c9a96e;background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;">解除</button></div>`;
     document.getElementById("draftClear").addEventListener("click", () => { currentDraft = null; try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {} clearPendingDraft(); renderDraftBanner(); });
