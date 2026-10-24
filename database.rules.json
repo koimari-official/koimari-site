@@ -16,6 +16,10 @@
       ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
       ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"
     },
+    "reservationEditDrafts": {
+      ".read": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')",
+      ".write": "auth != null && (auth.token.firebase.sign_in_provider === 'password' || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
+    },
     "koimariTrash": {
       ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
       ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')"

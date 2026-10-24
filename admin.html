@@ -307,7 +307,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261024d"></script>
+<script src="reservation-editor.js?v=20261024f"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -606,6 +606,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
   </header>
 
   <main>
+    <!-- 途中で止まっている予約変更（2026-10-24オーナー指示）。中身は renderEditDraftAlert が作る -->
+    <div id="editDraftAlert" role="status" style="display:none;margin:0 0 14px;padding:12px 16px;border-radius:12px;background:#fff4dc;border:2px solid #e0a83a;color:#5a3a08;font-size:14.5px;line-height:1.7;"></div>
     <nav class="tabs">
       <span class="tab-group-label">ホーム</span>
       <button class="tab active" data-panel="dashboard">ダッシュボード</button>
@@ -5184,6 +5186,33 @@ async function saveResPatch(key, patch, what, opts) {
   }
 }
 window.addEventListener("beforeunload", (e) => { if (resSavesPending > 0) { e.preventDefault(); e.returnValue = ""; } });
+// ===== 途中で止まっている予約変更（2026-10-24オーナー指示）=====
+// 修正画面で変更を始めると、途中の内容が reservationEditDrafts/{予約キー} に自動で保存される（reservation-editor.js）。
+// 「この内容で確定」（お客様のLINEへの連絡＋保存）か「破棄」で消える。残っている間は、誰が・どのお客様の予約変更を止めているかを出す。
+let editDraftsCache = {};
+const EDIT_ACTIVE_MIN = 5; // 最後の操作から5分以内は「変更中」
+function renderEditDraftAlert(drafts) {
+  if (drafts !== undefined) editDraftsCache = drafts || {};
+  const el = document.getElementById("editDraftAlert");
+  if (!el) return;
+  const keys = typeof window.resKeys === "function" ? window.resKeys() : [];
+  const items = Object.entries(editDraftsCache).filter(([k, d]) => d && keys.includes(k)) // 削除された予約の分は出さない
+    .sort((a, b) => String(a[1].updatedAt || "").localeCompare(String(b[1].updatedAt || "")));
+  if (!items.length) { el.style.display = "none"; el.innerHTML = ""; return; }
+  const now = Date.now();
+  el.innerHTML = '<b style="font-size:16px;">予約変更が完了していません（' + items.length + "件）</b>" + items.map(([k, d]) => {
+    const t = Date.parse(d.updatedAt || d.startedAt || "") || 0, mins = Math.floor((now - t) / 60000);
+    const who = "<b>" + escapeHtml(d.by || "担当者不明") + "</b>さん";
+    const cust = escapeHtml((d.name || "お客様") + "様") + (d.no ? "（" + escapeHtml(formatReservationNo(d.no)) + "）" : "");
+    const state = mins < EDIT_ACTIVE_MIN ? who + "が変更中です" : who + "が途中で止めています（最後の操作 " + escapeHtml(t ? fmtDate(new Date(t).toISOString()) : "不明") + "）";
+    return '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px;"><span style="flex:1;min-width:220px;">' + cust + "の予約変更を、" + state +
+      '</span><button type="button" class="btn btn--small" data-edit-draft="' + escapeHtml(k) + '">開いて続ける</button></div>';
+  }).join("") + '<div class="small" style="margin-top:6px;">「この内容で確定」を押すと、お客様のLINEへの連絡と予約の保存が終わり、この表示は消えます。</div>';
+  el.style.display = "block";
+}
+window.renderEditDraftAlert = renderEditDraftAlert;
+document.addEventListener("click", (e) => { const b = e.target.closest && e.target.closest("[data-edit-draft]"); if (b && window.ReservationEditor) window.ReservationEditor.open(b.dataset.editDraft); });
+setInterval(() => renderEditDraftAlert(), 60 * 1000); // 5分たったら「変更中」→「途中で止めています」
 // 予約の写真（一覧・詳細・製造シート）は保存させない：右クリック・長押しのメニューとドラッグを止める（2026-10-24オーナー指示）
 ["contextmenu", "dragstart"].forEach((t) => document.addEventListener(t, (e) => {
   if (e.target && e.target.closest && e.target.closest(".res-open img, .re-photo img, .k-photo img")) e.preventDefault();
@@ -7647,6 +7676,12 @@ function syncReservationsFromFirebase() {
   if (unsubReservations) return; // 既にリスニング中なら何もしない
   unsubReservations = onValue(reservationsRef, applyReservationsSnapshot);
 }
+// 予約変更の途中保存（reservation-editor.js が書く）。残っている間は上の帯で知らせる（2026-10-24オーナー指示）
+let unsubEditDrafts = null;
+function syncEditDraftsFromFirebase() {
+  if (unsubEditDrafts) return;
+  unsubEditDrafts = onValue(ref(fbDb, "reservationEditDrafts"), (s) => { if (typeof window.renderEditDraftAlert === "function") window.renderEditDraftAlert(s.val() || {}); }, () => {});
+}
 function applyReservationsSnapshot(snapshot) {
   const val = snapshot.val() || {};
   const entries = Object.entries(val);
@@ -7665,6 +7700,7 @@ function applyReservationsSnapshot(snapshot) {
   if (resPanel && resPanel.classList.contains("active") && typeof window.renderReservations === "function") window.renderReservations();
   const dashPanel = document.getElementById("panel-dashboard");
   if (dashPanel && dashPanel.classList.contains("active") && typeof window.renderDashboard === "function") window.renderDashboard();
+  if (typeof window.renderEditDraftAlert === "function") window.renderEditDraftAlert(); // 予約の名前・番号・削除の反映
 }
 
 let experiencesFirstLoad = true;
@@ -7787,6 +7823,14 @@ window.fbSetPublicBaseUrl = (u) => update(ref(fbDb, "siteConfig"), { baseShopUrl
 window.fbResEditorApi = {
   getReservation: (key) => get(ref(fbDb, "reservations/" + key)).then(s => s.val()),
   multiUpdate: (patch) => update(ref(fbDb), patch),
+  // 予約変更の途中保存（2026-10-24）
+  getEditDraft: (key) => get(ref(fbDb, "reservationEditDrafts/" + key)).then((s) => s.val()),
+  setEditDraft: (key, data) => set(ref(fbDb, "reservationEditDrafts/" + key), data),
+  clearEditDraft: (key) => remove(ref(fbDb, "reservationEditDrafts/" + key)),
+  currentActorLabel: () => {
+    const email = String((fbAuth.currentUser && fbAuth.currentUser.email) || "").toLowerCase();
+    return (window.__actor && window.__actor.name) || (STORE_ACCOUNTS.includes(email) ? "店舗の共用アカウント" : email);
+  },
   // 修正・電話確定の保存（2026-10-24）：削除された予約には書かない（項目の一部だけの予約が復活するのを防ぐ）
   multiUpdateReservation: async (key, patch) => {
     if (!key || !(await get(ref(fbDb, "reservations/" + key))).exists()) throw new Error("この予約は削除されているため、保存しませんでした");
@@ -8776,6 +8820,7 @@ onAuthStateChanged(fbAuth, (user) => {
     const failed = [];
     const step = (name, fn) => { try { fn(); } catch (e) { console.error("ログイン後の準備に失敗:", name, e); failed.push(name + "（" + ((e && (e.name + ": " + e.message)) || e) + "）"); } };
     step("予約一覧", syncReservationsFromFirebase);
+    step("予約変更の途中", syncEditDraftsFromFirebase);
     step("応募一覧", syncExperiencesFromFirebase);
     step("法人ご相談", syncCorporateFromFirebase);
     step("LINE会員", syncLineMembersFromFirebase);

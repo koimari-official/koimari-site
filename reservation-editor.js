@@ -22,6 +22,13 @@
   // 2026-10-24オーナー指示：「アルバイト」を追加し、「お母さん」は回数に関係なく一番下（STAFF_LAST）
   var DEFAULT_STAFF = ["楠田", "永山", "小見", "橋本", "木村", "オーナー", "アルバイト", "お母さん"];
   var STAFF_LAST = ["お母さん"];
+  // 日時の表示は日本時間（端末の時刻）で（2026-10-24：保存してある ISO 形式＝世界標準時の先頭をそのまま出していて、9時間ずれていた）
+  function fmtLocal(iso) {
+    var d = new Date(iso || "");
+    if (isNaN(d.getTime())) return String(iso || "").slice(0, 16).replace("T", " ");
+    return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0") + " " +
+      String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+  }
   function orderStaffByUse(list) {
     var count = {};
     try {
@@ -269,6 +276,7 @@
   function confirmDiscard() { return !hasUnsaved() || confirm("保存していない変更があります。\nこのまま閉じると、変更は消えます。閉じますか？"); }
   function close() {
     if (!confirmDiscard()) return;
+    if (state.edit && state.key) clearDraft(state.key); // 変更中に閉じる＝破棄を選んだ（途中保存も消す）
     var m = document.getElementById("resEditor"); if (m) m.classList.remove("show"); document.body.style.overflow = ""; state.edit = null;
   }
 
@@ -279,10 +287,11 @@
     m.classList.add("show");
     document.body.style.overflow = "hidden";
     document.getElementById("reBody").innerHTML = '<p style="padding:30px;">読み込み中…</p>';
-    Promise.all([api.getReservation(key), loadPriceBase(), loadRefCakes(), api.getStaff().catch(function () { return null; })]).then(function (v) {
+    Promise.all([api.getReservation(key), loadPriceBase(), loadRefCakes(), api.getStaff().catch(function () { return null; }),
+      api.getEditDraft ? api.getEditDraft(key).catch(function () { return null; }) : null]).then(function (v) {
       if (Array.isArray(v[3]) && v[3].length) state.staff = v[3].filter(Boolean);
       state.staff = orderStaffByUse(state.staff);
-      var go = function () { state.key = key; state.r = v[0] || {}; state.snap = snapshotOf(state.r); state.edit = null; renderView(); };
+      var go = function () { state.key = key; state.r = v[0] || {}; state.snap = snapshotOf(state.r); state.edit = null; state.editor = ""; state.draft = v[4] && v[4].edit ? v[4] : null; renderView(); };
       return isCutRes(v[0] || {}) ? loadCutCatalog().then(go, go) : go();
     }).catch(function (e) { document.getElementById("reBody").innerHTML = '<p style="padding:30px;color:#b03b48;">読み込みに失敗しました：' + esc(e && e.message || e) + "</p>"; });
   }
@@ -305,7 +314,7 @@
     if (img) html += '<figure class="re-photo"><img src="' + esc(img) + '" alt="" draggable="false"><figcaption><span>' + esc(label) + "</span>" + esc(name) + "</figcaption></figure>";
     else if (pick.name) html += '<div class="re-photo re-photo--none">ギャラリーで選択：' + esc(name) + "（写真なし）</div>";
     sent.sort(function (a, b) { return String(a.sentAt).localeCompare(String(b.sentAt)); }).forEach(function (si) {
-      html += '<figure class="re-photo re-photo--sent"><img src="' + esc(si.url) + '" alt=""><figcaption><span>お客様に送った確定画像</span>' + esc((si.sentAt || "").slice(0, 16).replace("T", " ")) + " " + esc(si.by || "") + "</figcaption></figure>";
+      html += '<figure class="re-photo re-photo--sent"><img src="' + esc(si.url) + '" alt=""><figcaption><span>お客様に送った確定画像</span>' + esc(fmtLocal(si.sentAt)) + " " + esc(si.by || "") + "</figcaption></figure>";
     });
     return html;
   }
@@ -331,7 +340,7 @@
       if (v.snapshot) prev = v.snapshot;
       var label = v.label || (v.n ? "修正" + v.n : "初回予約");
       return '<li class="re-tl"><div class="re-tl__step">' + (i + 1) + '</div><div class="re-tl__body"><div class="re-history__head"><b>' + esc(label) + "</b>　" +
-        esc(String(v.savedAt || "").slice(0, 16).replace("T", " ")) + "　担当：" + esc(v.by || "—") +
+        esc(fmtLocal(v.savedAt)) + "　担当：" + esc(v.by || "—") +
         (v.notified ? '　<span class="re-tag">LINE送信済み</span>' : "") + "</div>" +
         (v.memo ? '<div class="re-memo">' + esc(v.memo) + "</div>" : "") +
         (rows.length ? '<table class="re-table re-table--small re-table--hist">' + body + "</table>" : "") + "</div></li>";
@@ -345,10 +354,22 @@
     html += '<div class="re-grid"><div class="re-media">' + imageHtml(r, s) + (r.lineUserId ? '<label class="re-btn re-btn--ghost re-upload">確定のケーキ画像をLINEで送る<input type="file" accept="image/*" id="reSendImage" hidden></label><p class="re-hint">仕様が確定したケーキの写真を、お客様のLINEにお送りします。</p>' : "") + "</div>";
     html += '<div class="re-info"><h3 class="re-sec">現在のご予約内容</h3><table class="re-table">' + rowsOf(s).map(function (row) { return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>"; }).join("") + "</table>";
     if (r.note) html += '<div class="re-note"><b>お客様の備考</b><br>' + esc(r.note) + "</div>";
+    if (state.draft) {
+      var d = state.draft, at = fmtLocal(d.updatedAt || d.startedAt);
+      html += '<div class="re-note" style="border-color:#e0a83a;background:#fff4dc;"><b>途中で止まっている変更があります</b><br>' + esc(d.by || "担当者不明") + "さん・" + esc(at) +
+        "（まだ確定していないため、お客様には届いていません）" + '<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;"><button type="button" class="re-btn" id="reResumeDraft">続きから再開する</button>' +
+        '<button type="button" class="re-btn re-btn--ghost" id="reDropDraft">この変更を破棄する</button></div></div>';
+    }
     html += '<button type="button" class="re-btn" id="reStartEdit">内容を変更する（電話しながら）</button></div></div>';
     html += '<h3 class="re-sec">変更履歴（古い順）</h3>' + historyHtml(revs);
     document.getElementById("reBody").innerHTML = html;
-    document.getElementById("reStartEdit").addEventListener("click", startEdit);
+    document.getElementById("reStartEdit").addEventListener("click", function () { startEdit(null); });
+    var rd = document.getElementById("reResumeDraft"); if (rd) rd.addEventListener("click", function () { startEdit(state.draft); });
+    var dd = document.getElementById("reDropDraft");
+    if (dd) dd.addEventListener("click", function () {
+      if (!confirm("途中で止まっている変更を破棄しますか？（お客様には何も届きません）")) return;
+      clearDraft(state.key).then(function () { state.draft = null; renderView(); });
+    });
     var up = document.getElementById("reSendImage");
     if (up) up.addEventListener("change", function (e) { sendImage(e.target.files && e.target.files[0]); });
   }
@@ -358,7 +379,39 @@
     return '<select class="input select re-in" id="' + id + '">' + options.map(function (o) { return '<option value="' + esc(o) + '"' + (String(o) === String(value) ? " selected" : "") + ">" + esc(labelFn ? labelFn(o) : (o || "なし")) + "</option>"; }).join("") + "</select>";
   }
   function field(label, inner) { return '<div class="re-field"><label>' + esc(label) + "</label>" + inner + "</div>"; }
-  function startEdit() {
+  // ===== 予約変更の途中保存（2026-10-24オーナー指示）=====
+  // 変更を始めたら、途中の内容を reservationEditDrafts/{予約キー} に自動保存する。「この内容で確定」（LINE送信＋保存）か
+  // 「破棄」で消える。残っている間は、管理画面の上の帯に「誰が・どのお客様の予約変更を途中で止めているか」が出る（admin.html）。
+  // 誰の作業かが分かるよう、変更を始める時に担当者を選んでもらう（個人アカウントは自動）。
+  var draftTimer = null;
+  function draftNote(text) { var n = document.getElementById("reDraftNote"); if (n) n.textContent = text; }
+  function saveDraftNow() {
+    var api = window.fbResEditorApi;
+    if (!state.edit || !state.key || !api || !api.setEditDraft) return;
+    var e = JSON.parse(JSON.stringify(state.edit)); delete e._priceManual;
+    var memoEl = document.getElementById("reMemo"), staffEl = document.getElementById("reStaff");
+    var memo = memoEl ? memoEl.value.trim() : "", staff = staffEl ? staffEl.value : "";
+    if (!diffRows(state.snap, e).length && !memo) { api.clearEditDraft(state.key).catch(function () {}); draftNote(""); return; }
+    api.setEditDraft(state.key, {
+      by: staff || state.editor || (api.currentActorLabel ? api.currentActorLabel() : "") || "担当者不明",
+      name: state.r.name || "", no: Number(state.r.reservationNo) || 0,
+      startedAt: state.draftStartedAt || new Date().toISOString(), updatedAt: new Date().toISOString(),
+      edit: e, memo: memo, staff: staff
+    }).then(function () { var d = new Date(); draftNote("途中の内容を自動で保存しました（" + String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0") + "）。「この内容で確定」を押すまで、お客様には届きません"); })
+      .catch(function (err) { draftNote("途中の内容を保存できませんでした（" + (err && err.message || err) + "）。このまま確定はできます"); });
+  }
+  function scheduleDraft() { clearTimeout(draftTimer); draftTimer = setTimeout(saveDraftNow, 1000); }
+  function clearDraft(key) { var api = window.fbResEditorApi; clearTimeout(draftTimer); if (key && api && api.clearEditDraft) return api.clearEditDraft(key).catch(function () {}); return Promise.resolve(); }
+  function startEdit(draft) {
+    var ask = typeof window.askActor === "function" ? window.askActor("予約の内容を変更する人") : Promise.resolve("");
+    return Promise.resolve(ask).then(function (who) {
+      if (who === null) return; // 担当者を選ばずにやめた
+      state.editor = who || "";
+      state.draftStartedAt = (draft && draft.startedAt) || new Date().toISOString();
+      startEditNow(draft);
+    });
+  }
+  function startEditNow(draft) {
     state.edit = JSON.parse(JSON.stringify(state.snap));
     // 金額：仕様（サイズ・クリーム等）を変えたら自動計算に追従させる。この画面で金額を手入力した場合だけ、その金額で固定する。
     // 仕様を変えない限り、予約時の金額はそのまま（料金表が後から改定されていても勝手に変えない）。
@@ -371,7 +424,12 @@
     var b0 = estimateOf(state.snap, state.r);
     state.baseAuto = b0 && !b0.needsConsult ? b0.subtotal : null;
     if (!state.edit.price && state.told.price) state.edit.price = state.told.price;
+    if (draft && draft.edit) { state.edit = Object.assign(state.edit, JSON.parse(JSON.stringify(draft.edit))); state.edit._priceManual = true; } // 途中の内容から再開
     renderEdit();
+    if (draft) {
+      var m = document.getElementById("reMemo"); if (m && draft.memo) m.value = draft.memo;
+      var s = document.getElementById("reStaff"); if (s && draft.staff && state.staff.indexOf(draft.staff) >= 0) s.value = draft.staff;
+    }
   }
   function renderEdit() {
     var e = state.edit, r = state.r, cake = isCakeRes(r) || e.tiers.length > 0 && e.category === "デコレーションケーキ";
@@ -435,14 +493,21 @@
     var nextLabel = nextRevLabel(revisionsOf(r));
     html += '<div class="re-actions"><button type="button" class="re-btn re-btn--ghost" id="reCancel">やめる</button><button type="button" class="re-btn" id="reSave">この内容で確定（' + nextLabel + "）</button></div>";
     if (r.lineUserId) html += '<p class="re-hint">確定すると、お客様のLINEに「ご予約内容を変更しました（' + nextLabel + "）」と変更後の内容が自動で届きます。</p>";
+    html += '<p class="re-hint" id="reDraftNote" style="color:#8a5a12;"></p>';
     html += "</div>";
+    var keepMemo = document.getElementById("reMemo"), keepStaff = document.getElementById("reStaff");
+    var memoNow = keepMemo ? keepMemo.value : "", staffNow = keepStaff ? keepStaff.value : "";
     document.getElementById("reBody").innerHTML = html;
+    // 描き直しても、入力中のメモ・担当者は残す。担当者は「変更を始めた人」を最初から選んでおく
+    var mEl = document.getElementById("reMemo"); if (mEl && memoNow) mEl.value = memoNow;
+    var sEl = document.getElementById("reStaff");
+    if (sEl) { if (staffNow) sEl.value = staffNow; else if (state.editor && state.staff.indexOf(state.editor) >= 0) sEl.value = state.editor; }
     bindEdit();
   }
   function bindEdit() {
     var body = document.getElementById("reBody");
     body.querySelectorAll(".re-in, input[type=checkbox]").forEach(function (el) {
-      el.addEventListener(el.tagName === "SELECT" || el.type === "checkbox" || el.type === "date" ? "change" : "input", function () { readEdit(el.tagName === "SELECT" || el.type === "checkbox"); });
+      el.addEventListener(el.tagName === "SELECT" || el.type === "checkbox" || el.type === "date" ? "change" : "input", function () { readEdit(el.tagName === "SELECT" || el.type === "checkbox"); scheduleDraft(); });
     });
     var au = document.getElementById("reUseAuto");
     if (au) au.addEventListener("click", function () {
@@ -453,7 +518,7 @@
     });
     document.getElementById("rePrice").addEventListener("input", function () { state.edit._priceManual = true; });
     var xa = document.getElementById("reExtraAmt"); if (xa) xa.addEventListener("change", function () { readEdit(true); });
-    document.getElementById("reCancel").addEventListener("click", function () { if (!confirmDiscard()) return; state.edit = null; renderView(); });
+    document.getElementById("reCancel").addEventListener("click", function () { if (!confirmDiscard()) return; clearDraft(state.key); state.edit = null; renderView(); });
     document.getElementById("reSave").addEventListener("click", save);
     document.getElementById("reEditStaff").addEventListener("click", editStaff);
   }
@@ -518,9 +583,11 @@
       if (!r.requestedPickupDate) { up[base + "requestedPickupDate"] = r.pickupDate || ""; up[base + "requestedPickupTime"] = r.pickupTime || ""; }
     }
     document.getElementById("reSave").disabled = true;
+    clearTimeout(draftTimer);
     (api.multiUpdateReservation ? api.multiUpdateReservation(state.key, up) : api.multiUpdate(up)).then(function () { // 削除された予約には書かない
       if (typeof window.showToast === "function") window.showToast(label + "として保存しました");
-      open(state.key);
+      var key = state.key;
+      return clearDraft(key).then(function () { state.edit = null; open(key); }); // 予約変更の完了：途中保存を消す（管理画面の帯も消える）
     }).catch(function (err) { alert("保存に失敗しました：" + (err && err.message || err)); document.getElementById("reSave").disabled = false; });
   }
   function editStaff() {
