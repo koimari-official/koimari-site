@@ -708,31 +708,38 @@ function renderSizeTable(item, photoSize) {
   });
 }
 var currentGuide = ''; // フルオーダーの目安（例：5号 ¥5,000〜）。予約フォームへ引き継ぐ
-// 焼き菓子・ギフトの販売方法（2026-10-24オーナー指示。管理画面の「販売方法」）：store＝店頭販売のみ（予約・お取り置きなし）／
-// reserve＝ご予約可／ship＝全国配送。未設定は「店頭販売のみ」（単品の焼き菓子は予約できない決まり。設定し忘れても予約できる状態にしない）
+// 焼き菓子・ギフトの販売方法（2026-10-24オーナー指示・同日「複数選べるように」。管理画面の「販売方法」）：
+// store＝店頭販売／reserve＝ご予約可（店頭でお受け取り）／ship＝全国配送 の組み合わせ（item.saleModes）。
+// 何も選んでいない・未設定は「店頭販売のみ」（単品の焼き菓子は予約できない決まり。設定し忘れても予約できる状態にしない）。以前の1つだけの形（saleMode）も読む
 const SALE_TYPES = ['baked', 'gift'];
+const SALE_KEYS = ['store', 'reserve', 'ship'];
 const SALE_DB = 'https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app'; // DATABASE_URL は最初の表示より後で定義されるため、ここ専用に持つ
-function saleModeOf(it) { const m = it && it.saleMode; return m === 'reserve' || m === 'ship' ? m : 'store'; }
-function notReservableSale(it) { return SALE_TYPES.includes(productType) && saleModeOf(it) !== 'reserve'; }
-// 店頭販売のみ・全国配送の商品の「お買い求めについて」。全国配送の商品があれば、店頭販売のみの商品から案内する（データにあるものだけ）
+function saleModesOf(it) {
+  const raw = it && it.saleModes;
+  const a = (Array.isArray(raw) ? raw : raw && typeof raw === 'object' ? Object.values(raw) : []).filter(m => SALE_KEYS.includes(m));
+  if (a.length) return a;
+  return it && SALE_KEYS.includes(it.saleMode) ? [it.saleMode] : ['store'];
+}
+function notReservableSale(it) { return SALE_TYPES.includes(productType) && !saleModesOf(it).includes('reserve'); }
+async function shopUrl() { try { const u = await (await fetch(SALE_DB + '/siteConfig/baseShopUrl.json')).json(); return /^https:\/\/[^\s"'<>]+$/.test(u || '') ? u : ''; } catch (e) { return ''; } }
+function shopButton(url) { return '<a class="pd-tel-btn" href="' + esc(url) + '" target="_blank" rel="noopener"><span>オンラインショップで購入する</span><b>↗</b></a>'; }
+// 予約を受けない商品の「お買い求めについて」。店頭販売だけの商品からは、全国配送の商品を案内する（データにあるものだけ）
 async function renderSaleBlock(item, lead) {
-  const mode = saleModeOf(item);
-  const rows = mode === 'ship'
-    ? ['<b>全国配送</b>でお届けします。']
-    : ['<b>店頭でお買い求めいただけます。</b>単品のため、ご予約・お取り置きは承っておりません。'];
+  const modes = saleModesOf(item), store = modes.includes('store'), ship = modes.includes('ship');
+  const rows = [];
+  if (ship) rows.push('<b>全国配送</b>でお届けします。');
+  if (store) rows.push(ship ? '<b>店頭</b>でもお買い求めいただけます（ご予約・お取り置きは承っておりません）。' : '<b>店頭でお買い求めいただけます。</b>単品のため、ご予約・お取り置きは承っておりません。');
   const draw = () => { lead.innerHTML = '<h2 class="pd-block__h">お買い求めについて</h2><ul class="pd-lead__list">' + rows.map(r => '<li>' + r + '</li>').join('') + '</ul>'; };
   draw();
   try {
-    if (mode === 'ship') {
-      const url = await (await fetch(SALE_DB + '/siteConfig/baseShopUrl.json')).json();
-      rows.push(/^https:\/\/[^\s"'<>]+$/.test(url || '')
-        ? '<a class="pd-tel-btn" href="' + esc(url) + '" target="_blank" rel="noopener"><span>オンラインショップで購入する</span><b>↗</b></a>'
-        : 'オンラインショップは11月中旬にオープン予定です。店頭でもお買い求めいただけます。');
+    if (ship) {
+      const url = await shopUrl();
+      rows.splice(1, 0, url ? shopButton(url) : 'オンラインショップは11月中旬にオープン予定です。');
     } else {
       const ships = [];
       for (const t of SALE_TYPES) {
         const v = await (await fetch(SALE_DB + '/siteImages/' + t + '.json')).json();
-        (Array.isArray(v) ? v : Object.values(v || {})).forEach((it, i) => { if (it && it.name && it.visible !== false && !it.notForSale && saleModeOf(it) === 'ship') ships.push('<a href="product.html?type=' + t + '&idx=' + i + '">' + esc(String(it.name).replace(/<[^>]*>/g, '')) + '</a>'); });
+        (Array.isArray(v) ? v : Object.values(v || {})).forEach((it, i) => { if (it && it.name && it.visible !== false && !it.notForSale && saleModesOf(it).includes('ship')) ships.push('<a href="product.html?type=' + t + '&idx=' + i + '">' + esc(String(it.name).replace(/<[^>]*>/g, '')) + '</a>'); });
       }
       if (ships.length) rows.push('贈り物には、<b>全国配送</b>でお届けできる商品もございます：' + ships.join('、'));
     }
@@ -759,6 +766,11 @@ function renderLeadAndTel(item, size) {
   { const n = new Date(), m = n.getMonth() + 1, d = n.getDate();
     rows.push('<strong>お支払い</strong>は、お引き取り日当日、お受け取りの際に店頭でお願いいたします。' + ((m === 10 || m === 11 || (m === 12 && d <= 20)) ? '<span class="pay-xmas">※クリスマスのご予約は、12月20日までに店舗での事前精算が必要です。</span>' : '')); }
   lead.innerHTML = '<h2 class="pd-block__h">お引き渡しの目安・ご注意</h2><ul class="pd-lead__list">' + rows.map(r => '<li>' + r + '</li>').join('') + '</ul>';
+  // ご予約可の焼き菓子・ギフトで「全国配送」も選んでいる場合は、その案内も足す（2026-10-24）
+  if (SALE_TYPES.includes(productType) && saleModesOf(item).includes('ship')) shopUrl().then((url) => {
+    const ul = lead.querySelector('.pd-lead__list');
+    if (ul) ul.insertAdjacentHTML('beforeend', '<li><b>全国配送</b>でもお届けします。' + (url ? '</li><li>' + shopButton(url) : 'オンラインショップは11月中旬にオープン予定です。') + '</li>');
+  });
   const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
   const say = no ? '「' + no + (size ? '・' + esc(size) : '') + '」' : '「' + esc(String(item.name || '').replace(/<[^>]*>/g, '')) + '」';
   tel.innerHTML = '<div class="pd-howto__label">お電話でご予約の方（LINEをお持ちでない方）</div>' +

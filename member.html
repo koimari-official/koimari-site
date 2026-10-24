@@ -2249,7 +2249,9 @@ onValue(ref(db, "koimariContent/cakeFlavors"), (snap) => {
 const bakedReservable = { baked: false, gift: false };
 ["baked", "gift"].forEach((k) => onValue(ref(db, "siteImages/" + k), (snap) => {
   const v = snap.val();
-  bakedReservable[k] = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).some((it) => it && it.name && it.visible !== false && !it.notForSale && it.saleMode === "reserve");
+  // 販売方法は複数選択（saleModes）。以前の1つだけの形（saleMode）も読む
+  const modesOf = (it) => { const raw = it.saleModes; const a = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : []; return a.length ? a : (it.saleMode ? [it.saleMode] : []); };
+  bakedReservable[k] = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).some((it) => it && it.name && it.visible !== false && !it.notForSale && modesOf(it).includes("reserve"));
   const ok = bakedReservable.baked || bakedReservable.gift;
   const lab = document.getElementById("reserveTypeBakedOpt"), r = lab && lab.querySelector("input");
   if (!lab || !r) return;

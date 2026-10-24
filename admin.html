@@ -3444,9 +3444,16 @@ function appendCopyEditor(item, obj, onUpdate) {
   });
   item.appendChild(box);
 }
-// 焼き菓子・ギフトの販売方法（2026-10-24オーナー指示）。未設定は「店頭販売のみ」（単品の焼き菓子は予約・取り置きをしない決まり。
-// 設定し忘れても予約できる状態にしない）。商品ページ・ギャラリー・LINE予約フォームの出し分けは各ページの saleModeOf と同じ判定
-const SALE_MODES = [["store", "店頭販売のみ（予約・お取り置きなし）"], ["reserve", "ご予約可（店頭でお受け取り）"], ["ship", "全国配送（オンラインショップ）"]];
+// 焼き菓子・ギフトの販売方法（2026-10-24オーナー指示・同日「複数選べるように」）。item.saleModes＝["store","reserve","ship"] の組み合わせ。
+// 何も選ばない・未設定は「店頭販売のみ」（単品の焼き菓子は予約・取り置きをしない決まり。設定し忘れても予約できる状態にしない）。
+// 以前の1つだけの形（item.saleMode）も読む。商品ページ・ギャラリー・LINE予約フォームの出し分けは各ページの saleModesOf と同じ判定
+const SALE_MODES = [["store", "店頭販売"], ["reserve", "ご予約可（店頭でお受け取り）"], ["ship", "全国配送（オンラインショップ）"]];
+function saleModesOf(it) {
+  const raw = it && it.saleModes;
+  const a = (Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : []).filter((m) => SALE_MODES.some(([v]) => v === m));
+  if (a.length) return a;
+  return it && SALE_MODES.some(([v]) => v === it.saleMode) ? [it.saleMode] : ["store"];
+}
 function appendExtraFlags(item, obj, onUpdate, opts) {
   const box = document.createElement("div");
   box.style.cssText = "padding:10px 14px;margin-top:8px;background:rgba(201,169,110,0.08);border-left:3px solid var(--color-accent);display:flex;gap:18px;flex-wrap:wrap;align-items:center;";
@@ -3468,15 +3475,30 @@ function appendExtraFlags(item, obj, onUpdate, opts) {
   // ギャラリーのジャンル選択「すべて」の丸い写真に使う（2026-10-02オーナー指示）。複数に付けた場合はギャラリーで前に並ぶものが優先
   box.appendChild(mk("ギャラリーの「すべて」の写真にする", "galleryCover"));
   if (opts && opts.saleMode) {
-    const wrap = document.createElement("label");
-    wrap.style.cssText = "display:flex;align-items:center;gap:6px;font-size:13px;flex-basis:100%;";
-    wrap.appendChild(document.createTextNode("販売方法"));
-    const sel = document.createElement("select");
-    sel.style.cssText = "padding:4px 8px;font-size:13px;border:1px solid var(--color-border,#d8c9b0);border-radius:6px;background:#fff;";
-    SALE_MODES.forEach(([v, l]) => { const o = document.createElement("option"); o.value = v; o.textContent = l; sel.appendChild(o); });
-    sel.value = SALE_MODES.some(([v]) => v === obj.saleMode) ? obj.saleMode : "store";
-    sel.addEventListener("change", () => { obj.saleMode = sel.value; onUpdate(); });
-    wrap.appendChild(sel);
+    const wrap = document.createElement("div");
+    wrap.className = "sale-modes";
+    wrap.style.cssText = "display:flex;align-items:center;gap:14px;font-size:13px;flex-basis:100%;flex-wrap:wrap;";
+    wrap.appendChild(document.createTextNode("販売方法（複数選べます）"));
+    const cur = saleModesOf(obj);
+    const boxes = SALE_MODES.map(([v, l]) => {
+      const lab = document.createElement("label");
+      lab.style.cssText = "display:flex;align-items:center;gap:6px;cursor:pointer;";
+      const cb = document.createElement("input");
+      cb.type = "checkbox"; cb.value = v; cb.checked = cur.includes(v);
+      lab.appendChild(cb); lab.appendChild(document.createTextNode(l));
+      wrap.appendChild(lab);
+      return cb;
+    });
+    const note = document.createElement("span");
+    note.style.cssText = "font-size:12px;color:var(--color-text-soft,#8a7a68);";
+    note.textContent = "何も選ばないと「店頭販売」だけになります";
+    wrap.appendChild(note);
+    boxes.forEach((cb) => cb.addEventListener("change", () => {
+      const on = boxes.filter((b) => b.checked).map((b) => b.value);
+      obj.saleModes = on.length ? on : null;
+      obj.saleMode = null; // 以前の1つだけの形は使わない（保存で消える）
+      onUpdate();
+    }));
     box.appendChild(wrap);
   }
   item.appendChild(box);
