@@ -174,6 +174,27 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .pre-notes__item p{margin:0;font-size:13px;line-height:1.75;color:#4a3a2a}
 .pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
 
+/* 予約フォームの段階表示（2026-10-26 試作・?ui=step のときだけ） */
+.step-ui .step-off{display:none!important}
+.step-ui #reserveSubmitBtn{display:none!important}
+.stephead{margin:0 0 18px}
+.stephead__dots{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;list-style:none;margin:0 0 14px;padding:0}
+.stephead__dot{width:100%;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;line-height:1.2;color:#9a8a76;font-weight:700;border:0;background:none;padding:0;font-family:inherit;cursor:default}
+.stephead__dot i{display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;border:1.5px solid #d8c8b2;background:#fff;font-style:normal;font-size:13px;color:#9a8a76;font-family:var(--font-sans)}
+.stephead__dot.is-done{cursor:pointer;color:#6b5a48}
+.stephead__dot.is-done i{background:#efe3d0;border-color:#c9a96e;color:#6b4a2a}
+.stephead__dot.is-cur{color:#2e2118}
+.stephead__dot.is-cur i{background:#a88a52;border-color:#a88a52;color:#fff}
+.stephead__dot.is-skip{opacity:.35}
+.stephead__title{font-size:20px;font-weight:700;color:#2e2118;line-height:1.4}
+.stephead__title small{display:block;font-size:13px;font-weight:700;color:#a88a52;letter-spacing:.06em;font-family:var(--font-sans)}
+.stepalert{display:none;margin:0 0 16px;padding:12px 14px;border-radius:10px;background:#fdecec;border:1.5px solid #e2a3a3;color:#9b2c2c;font-size:14px;line-height:1.7;font-weight:700}
+.stepnav{display:flex;align-items:center;gap:10px}
+.stepnav__price{flex:1;min-width:0;line-height:1.3}
+.stepnav__price span{display:block;font-size:12px;color:#7a6a58}
+.stepnav__price b{font-size:16px;color:#a88a52;font-family:var(--font-sans)}
+.stepnav__back{min-height:46px;padding:0 16px;border-radius:999px;border:1px solid #d8baa4;background:#fff;color:#6b4a2a;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+.stepnav__next{min-height:46px;padding:0 24px;border-radius:999px;border:0;background:#a88a52;color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
 /* クリスマスケーキ特設ページへの案内（2026-10-25） */
 .xmas-link{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 18px;padding:13px 16px;background:#fbf3ef;border:1px solid #d9a99a;border-radius:12px;color:#8a2a20;font-weight:700;font-size:16px;line-height:1.5;text-align:center;text-decoration:none}
 .xmas-link__arrow{font-size:20px;line-height:1}
@@ -702,6 +723,33 @@ import { initializeAuth, browserLocalPersistence, onAuthStateChanged } from "htt
 const LIFF_ID = "2011059940-hMTBZaUz";
 // 電話受付モード（スタッフ用。2026-10-22）：member.html?phone=1。管理画面でログインしたスタッフだけが使える
 const PHONE_MODE = new URLSearchParams(location.search).get("phone") === "1";
+// ===== 予約フォームの段階表示（2026-10-26 試作・第1段階）=====
+// 手順書：company/operations/product/koimari-reserve-form-redesign-procedure_20261026.md。
+// ?ui=step で開いたときだけ（LINEでは https://liff.line.me/2011059940-hMTBZaUz?ui=step#reserve）。?ui=classic で元の表示に戻る。
+// 今の入力欄・判定・計算・自動保存はそのまま使い、各部品に「何番目のステップか」（data-step）を付けて、今のステップの部品だけを見せる。
+const STEP_UI = (() => {
+  try {
+    const q = new URLSearchParams(location.search);
+    let v = q.get("ui");
+    const st = q.get("liff.state"); // LINEから開いたとき、最初はここに「?ui=step#reserve」が入って届く
+    if (!v && st) v = new URLSearchParams((st.split("?")[1] || "").split("#")[0]).get("ui");
+    if (v === "step") sessionStorage.setItem("koimari_ui", "step");
+    if (v === "classic") sessionStorage.removeItem("koimari_ui");
+    return sessionStorage.getItem("koimari_ui") === "step";
+  } catch (e) { return false; }
+})();
+const STEPS = [["種類", "ご注文の種類"], ["サイズ", "段数とサイズ"], ["中身", "ケーキの中身"], ["飾り", "飾りとオプション"], ["日時", "お受け取りの日時"], ["お客様", "お客様の情報"], ["確認", "ご確認"]];
+// ":id"＝その入力欄を含む項目（.field）、"=name"＝そのラジオを含む項目、".class"＝フォーム内の要素、それ以外は id
+const STEP_PARTS = [
+  ["draftBanner", "resumeBanner", "lastOrderBanner", "pastOrders", "reserveCategoryField", "=reserveType"],
+  ["reserveTiersField", "reserveTierDiagram", "reserveSizeField", "reserveTierNoticeField", "reserveOnsiteField"],
+  ["reserveFlavorField", "reserveShopField", "refImageBox", "reserveCreamTypeField", "reserveColorCreamField", "reserveSpecialNotice", "kidsManagerFieldsWrap"],
+  ["reserveTopCutField", "reserveStrawberryAddField", "reserveDecorationField", "reserveCreamToppingField", "reserveToppingsField", "reserveOccasionField", "reserveCandleField", "reserveChocoField", "reserveAddOnsField", "reserveOmakaseField", "liveTotalBar"],
+  [":reserveDate", ":reserveTime"],
+  [":reserveFurigana", ":reserveName", ":reserveTel", ":reserveEmail", "reserveReceiptField", ":reserveNote"],
+  [":reserveStoreConfirm", ".pre-notes", ":reserveConsent", "reserveFormErrorBanner", "reserveSubmitBtn"],
+];
+let curStep = 1;
 let phoneStaffUid = "";
 
 const firebaseConfig = {
@@ -1402,10 +1450,122 @@ function updateReserveFloat() {
   const pct = Math.round(((TOTAL - Math.min(TOTAL, miss.length)) / TOTAL) * 100);
   const r = computeCakeSubtotal();
   const price = !r.applicable || r.incomplete ? "" : quoteSeparatelyNow() ? "お見積もりは別途ご回答" : r.priceNeedsConsult ? "特殊仕様（お電話で確認）" : (r.priceIsFixed ? yenFixed(r.subtotal) : CakePricing.fromYen(r.subtotal)) + "（税込）";
+  if (STEP_UI && document.getElementById("stepHead")) { el.style.display = "block"; syncStepNav(el, price); return; }
   el.style.display = "block";
   el.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:12.5px;"><span style="color:#6b5a48;">' + (miss.length ? "あと" + miss.length + "項目で確認画面へ" : "入力OK！確認画面へ進めます") + '</span><b style="color:#a88a52;font-size:16px;">' + price + '</b></div>' +
     '<div style="height:5px;background:#eee3d3;border-radius:3px;margin-top:5px;overflow:hidden;"><div style="height:100%;width:' + pct + '%;background:' + (miss.length ? "#e0a13a" : "#3aa76d") + ';transition:width .3s;"></div></div>';
 }
+function stepPartEl(key) {
+  if (key[0] === ":") { const e = document.getElementById(key.slice(1)); return e && e.closest(".field"); }
+  if (key[0] === "=") { const e = document.querySelector('input[name="' + key.slice(1) + '"]'); return e && e.closest(".field"); }
+  if (key[0] === ".") return document.querySelector("#reserveFormWrap " + key);
+  return document.getElementById(key);
+}
+// ステップで隠しているのを除いたときに見えるか（種類によって出ない欄があるため、中身の無いステップは飛ばす）
+function stepWouldShow(e) {
+  const off = e.classList.contains("step-off");
+  if (off) e.classList.remove("step-off");
+  const v = e.getClientRects().length > 0;
+  if (off) e.classList.add("step-off");
+  return v;
+}
+function stepHasContent(n) { return Array.from(document.querySelectorAll('#reserveFormWrap [data-step="' + n + '"]')).some(stepWouldShow); }
+function stepOf(el) { const p = el && el.closest("[data-step]"); return p ? Number(p.dataset.step) : 0; }
+function initStepUI() {
+  if (!STEP_UI || document.getElementById("stepHead")) return;
+  const wrap = document.getElementById("reserveFormWrap");
+  if (!wrap) return;
+  wrap.classList.add("step-ui");
+  // 並べ替え（2026-10-26オーナー決定：ご利用シーンはろうそく・プレートのすぐ上／おまかせデコレーションは飾りとオプションの中）
+  const occ = document.getElementById("reserveOccasionField"), candle = document.getElementById("reserveCandleField");
+  if (occ && candle) candle.parentNode.insertBefore(occ, candle);
+  const oma = document.getElementById("reserveOmakaseField"), total = document.getElementById("liveTotalBar");
+  if (oma && total) total.parentNode.insertBefore(oma, total);
+  STEP_PARTS.forEach((keys, i) => keys.forEach((k) => { const e = stepPartEl(k); if (e) e.dataset.step = String(i + 1); }));
+  // 選択肢が1つしかない「ご予約の種類」は出さない（data-step=0＝どのステップでも隠す）
+  const cat = document.getElementById("reserveCategoryField");
+  if (cat && Array.from(cat.querySelectorAll("input[name=\"reserveCategory\"]")).filter((r) => r.closest("label") && r.closest("label").getClientRects().length).length <= 1) cat.dataset.step = "0";
+  const head = document.createElement("div");
+  head.id = "stepHead"; head.className = "stephead";
+  wrap.insertBefore(head, wrap.firstChild);
+  const al = document.createElement("div");
+  al.id = "stepAlert"; al.className = "stepalert";
+  head.after(al);
+  showStep(1, 1, true);
+}
+function renderStepHead() {
+  const head = document.getElementById("stepHead");
+  if (!head) return;
+  head.innerHTML = '<ol class="stephead__dots">' + STEPS.map((st, i) => {
+    const n = i + 1;
+    const cls = n === curStep ? " is-cur" : n < curStep ? " is-done" : "";
+    const skip = n !== curStep && n > 1 && n < 7 && !stepHasContent(n) ? " is-skip" : "";
+    return '<li><button type="button" class="stephead__dot' + cls + skip + '"' + (n < curStep ? ' data-stepgo="' + n + '"' : " disabled") + "><i>" + n + "</i>" + st[0] + "</button></li>";
+  }).join("") + '</ol><div class="stephead__title"><small>STEP ' + curStep + " / 7</small>" + STEPS[curStep - 1][1] + "</div>";
+}
+function showStep(n, dir, noScroll) {
+  dir = dir || 1;
+  while (n > 1 && n < 7 && !stepHasContent(n)) n += dir; // 中身の無いステップ（ロールケーキの「段数とサイズ」など）は飛ばす
+  curStep = Math.max(1, Math.min(7, n));
+  document.querySelectorAll("#reserveFormWrap [data-step]").forEach((e) => e.classList.toggle("step-off", Number(e.dataset.step) !== curStep));
+  const al = document.getElementById("stepAlert"); if (al) al.style.display = "none";
+  renderStepHead();
+  updateReserveFloat();
+  if (!noScroll) { const h = document.getElementById("stepHead"); if (h) h.scrollIntoView({ behavior: "smooth", block: "start" }); }
+}
+function showStepAlert(errs) {
+  const al = document.getElementById("stepAlert");
+  if (al) { al.innerHTML = errs.map((e) => escape(e.textContent.trim())).join("<br>"); al.style.display = "block"; }
+  errs[0].scrollIntoView({ behavior: "smooth", block: "center" });
+}
+// 「次へ」：今の送信前の確認（validateReserve）をそのまま使い、このステップまでの項目だけを見る
+function stepNext() {
+  if (curStep >= 7) { stepSubmit(); return; }
+  try { if (reserveDataBuilder) validateReserve(reserveDataBuilder()); } catch (e) { console.error("段階表示の確認", e); }
+  const errs = Array.from(document.querySelectorAll("#reserveFormWrap .error")).filter((e) => e.textContent.trim() && stepOf(e) > 0);
+  errs.filter((e) => stepOf(e) > curStep).forEach((e) => { e.textContent = ""; }); // まだ進んでいないステップの「未入力」は出さない
+  const bad = errs.filter((e) => stepOf(e) <= curStep);
+  if (bad.length) {
+    const first = Math.min.apply(null, bad.map(stepOf));
+    if (first !== curStep) showStep(first, -1, true);
+    showStepAlert(bad.filter((e) => stepOf(e) === first));
+    return;
+  }
+  showStep(curStep + 1, 1);
+}
+// 最後のステップ：今の「ご予約内容を確認する」をそのまま押す。前のステップに不足があれば、そのステップへ戻す
+function stepSubmit() {
+  document.getElementById("reserveSubmitBtn").click();
+  const conf = document.getElementById("reserveConfirmWrap");
+  if (conf && conf.style.display === "block") { updateReserveFloat(); return; }
+  const errs = Array.from(document.querySelectorAll("#reserveFormWrap .error")).filter((e) => e.textContent.trim() && stepOf(e) > 0 && stepOf(e) < 7);
+  if (!errs.length) return;
+  const first = Math.min.apply(null, errs.map(stepOf));
+  showStep(first, -1, true);
+  showStepAlert(errs.filter((e) => stepOf(e) === first));
+}
+// 画面下のバー（お見積もり＋戻る／次へ）。ボタンは一度だけ作り、あとは文字だけ書き換える
+// （入力のたびに作り直すと、入力直後に押した「次へ」が作り直しで消えて効かないことがあるため）
+function syncStepNav(el, price) {
+  if (!el.querySelector(".stepnav")) el.innerHTML = '<div class="stepnav"><div class="stepnav__price"><span>お見積もり</span><b></b></div><button type="button" class="stepnav__back" data-stepnav="back">戻る</button><button type="button" class="stepnav__next" data-stepnav="next"></button></div>';
+  const pr = el.querySelector(".stepnav__price");
+  pr.style.visibility = price ? "" : "hidden";
+  pr.querySelector("b").textContent = price || "";
+  el.querySelector(".stepnav__back").style.display = curStep > 1 ? "" : "none";
+  const nx = el.querySelector(".stepnav__next"), label = curStep >= 7 ? "確認画面へ" : "次へ";
+  if (nx.textContent !== label) nx.textContent = label;
+}
+document.addEventListener("click", (e) => {
+  if (!STEP_UI) return;
+  const t = e.target && e.target.closest ? e.target.closest("[data-stepnav],[data-stepgo]") : null;
+  if (t) {
+    if (t.dataset.stepgo) showStep(Number(t.dataset.stepgo), -1);
+    else if (t.dataset.stepnav === "back") showStep(curStep - 1, -1);
+    else stepNext();
+    return;
+  }
+  if (e.target && e.target.closest && e.target.closest("#reserveBackBtn")) setTimeout(updateReserveFloat, 0); // 確認画面から戻ったとき、下のバーを出し直す
+});
 function updateChocoPreview() {
   const box = document.getElementById("reserveChocoPreview");
   if (!box) return;
@@ -2639,6 +2799,7 @@ function updateReserveFieldVisibility() {
   updateXmasLinkBar();
   if (isCake) populateFlavorSelect(currentCakeFlavors);
   else if (isRoll) populateFlavorSelect(currentRollFlavors);
+  if (STEP_UI && document.getElementById("stepHead")) setTimeout(renderStepHead, 0);
   if (!isCake) ["reserveColorCreamField", "reserveColorChocoNote", "reserveColorCreamNote", "reserveStrawberryAddField", "reserveTopCutField", "reserveCutPickerField", "reserveOnsiteField", "tier3Notice", "reserveSpecialNotice", "reserveSmallDecoTip", "reserveChristmasNotice"].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = "none"; });
   updateCakeOptionUI();
   updateLivePriceDisplay();
@@ -3558,6 +3719,7 @@ async function mainPhone() {
   const sec = document.getElementById("reserveSection");
   sec.parentNode.insertBefore(bar, sec);
   setupReserveForm("", "");
+  initStepUI();
   // お客様向けの確認チェックは、電話ではスタッフが口頭で確認するため自動でチェックして隠す
   ["reserveStoreConfirm", "reserveLeadConfirm", "reserveConsent"].forEach((id) => { const c = document.getElementById(id); if (c) { c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); const f = c.closest(".field") || c.closest("label"); if (f) f.style.display = "none"; } });
   sec.scrollIntoView({ block: "start" });
@@ -3633,6 +3795,7 @@ async function main() {
     });
 
     setupReserveForm(uid, profile.displayName || "");
+    initStepUI();
     checkFriendship();
     if (location.hash === "#reserve") {
       document.getElementById("reserveSection").scrollIntoView({ block: "start" });
