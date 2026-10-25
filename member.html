@@ -157,6 +157,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .dcal__day.is-closed{background:#ece7e0;border-color:#ece7e0;color:#b5aca0;cursor:not-allowed;text-decoration:line-through}
 .dcal__day.is-closed small{font-size:10px;text-decoration:none;color:#9a8f82;line-height:1}
 .dcal__day.is-out{background:transparent;border-color:transparent;color:#cfc6ba;cursor:default;font-weight:400}
+.dcal__phone{margin-top:6px;font-size:13.5px;line-height:1.7;color:#8a2a1a}.dcal__phone a{color:#8a2a1a;font-weight:700}
 .dcal__legend{margin-top:8px;font-size:12px;color:#7a6a58}
 .dcal__lg-closed{display:inline-block;padding:0 6px;border-radius:4px;background:#ece7e0;color:#9a8f82;font-weight:700}
 
@@ -276,7 +277,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="error" id="reserveStoreConfirmError"></div>
           <label class="field__check" style="margin-top:10px;">
             <input type="checkbox" id="reserveLeadConfirm">
-            <span>お受取日の<strong>3営業日前まで</strong>のご予約が基本です。<strong>3営業日前を切る場合は、ご予約内容を送信いただき、お電話（070-9158-0641）をお願いいたします</strong>（ご予約の確定はお電話で対応可否を確認してからになります）。特別仕様は、お渡しまでお時間をいただく場合があります。<br>本ページで仕様を選択いただいてからお電話いただきますと、スムーズにご案内できます。</span>
+            <span>お受取日の<strong>3営業日前まで</strong>のご予約をお願いいたします。<strong>2営業日前〜当日はお電話（070-9158-0641）でご相談ください。</strong>特別仕様は、お渡しまでお時間をいただく場合があります。</span>
           </label>
           <div class="error" id="reserveLeadConfirmError"></div>
         </div>
@@ -2365,10 +2366,12 @@ function renderDateCal() {
   let html = '<div class="dcal__head"><button type="button" class="dcal__nav" data-dcal-nav="-1" aria-label="前の月">‹</button><b>' + y + "年" + (mo + 1) + '月</b><button type="button" class="dcal__nav" data-dcal-nav="1" aria-label="次の月">›</button></div>';
   html += '<div class="dcal__grid">' + DCAL_DOW.map((w, i) => '<span class="dcal__dow' + (i === 0 ? " is-sun" : i === 6 ? " is-sat" : "") + '">' + w + "</span>").join("");
   for (let i = 0; i < first.getDay(); i++) html += "<span></span>";
+  let phoneOnlyShown = false;
   for (let dd = 1; dd <= days; dd++) {
     const d = new Date(y, mo, dd), key = dateKeyLocal(d);
     const closed = isClosedDate(d);
-    const out = d < today || (minKey && key < minKey) || (maxKey && key > maxKey);
+    const out = d < today || (minKey && key < minKey) || (maxKey && key > maxKey) || (!closed && isPhoneOnlyDate(d));
+    if (!closed && d >= today && isPhoneOnlyDate(d)) phoneOnlyShown = true;
     const sel = input.value === key;
     const cls = "dcal__day" + (closed ? " is-closed" : "") + (out ? " is-out" : "") + (sel ? " is-sel" : "") + (d.getDay() === 0 || JP_HOLIDAYS.has(key) ? " is-sun" : d.getDay() === 6 ? " is-sat" : "");
     html += closed || out
@@ -2376,6 +2379,7 @@ function renderDateCal() {
       : '<button type="button" class="' + cls + '" data-dcal-day="' + key + '">' + dd + "</button>";
   }
   html += '</div><div class="dcal__legend"><span class="dcal__lg-closed">休</span> お休み（選べません）</div>';
+  if (phoneOnlyShown) html += '<div class="dcal__phone">2営業日前〜当日は、お電話（<a href="tel:07091580641">070-9158-0641</a>）でご相談ください</div>';
   box.innerHTML = html;
 }
 function syncDateCalButton() {
@@ -2478,6 +2482,14 @@ function computeOrderDeadline(pickupDate) {
     guard++;
   }
   return d;
+}
+// 2営業日前〜当日のお引き取りは、ネット予約では受けずにお電話でご相談いただく（2026-10-26オーナー決定）。
+// スタッフの電話受付モードはその場で対応可否を確かめられるので従来どおり選べる。クリスマスケーキは専用の受付期間と12/20締切で判断する
+const PHONE_ONLY_TEXT = "2営業日前〜当日のお引き取りは、お電話（070-9158-0641）でご相談ください";
+function isPhoneOnlyDate(d) {
+  if (PHONE_MODE || shopMode() === "xmas") return false;
+  const today = new Date(); today.setHours(0, 0, 0, 0);
+  return today > computeOrderDeadline(d);
 }
 
 function withTimeout(promise, ms, label) {
@@ -2680,7 +2692,8 @@ function validateReserve(data) {
       if (isClosedDate(pick)) { setReserveError("reserveDateError", "その日は定休日・臨時休業のためお引き取りいただけません"); ok = false; }
       else if (!isBaked && data.occasion === "バースデー" && birthdayBlockFor(data.pickupDate)) { setReserveError("reserveDateError", birthdayBlockText(birthdayBlockFor(data.pickupDate))); ok = false; }
       else if (!isBaked && (reserveHolidays.cakeFullDates || []).includes(dateKeyLocal(pick))) { setReserveError("reserveDateError", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください"); ok = false; }
-      else if (today > computeOrderDeadline(pick)) { data.shortLead = true; } // 3営業日前を切る：送信は受け付け、未確定（お電話で対応可否を確認）
+      else if (isPhoneOnlyDate(pick)) { setReserveError("reserveDateError", PHONE_ONLY_TEXT + "。"); ok = false; }
+      else if (today > computeOrderDeadline(pick)) { data.shortLead = true; } // 電話受付モード・クリスマスで3営業日前を切る：送信は受け付け、未確定（対応可否を確認）
       else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
       else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
     }
@@ -3179,6 +3192,14 @@ function updateReservePhoneNotice() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const pick = v ? new Date(v) : null;
   if (!pick || isNaN(pick) || isClosedDate(pick) || today <= computeOrderDeadline(pick)) { el.style.display = "none"; el.innerHTML = ""; return; }
+  if (isPhoneOnlyDate(pick)) {
+    el.style.display = "block";
+    el.innerHTML = '<div style="margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.8;">' +
+      '<div style="font-weight:700;color:#b03b48;margin-bottom:6px;">' + PHONE_ONLY_TEXT + '</div>' +
+      '<div style="color:#2e2118;margin-bottom:10px;">ホームページの写真を見ながら、ご希望のケーキをお伝えいただくとスムーズです。</div>' +
+      '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">お電話する：070-9158-0641</a></div>';
+    return;
+  }
   const typeVal = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
   const productLine = currentDraft ? currentDraft.name + (currentDraft.size ? "（" + currentDraft.size + "）" : "") : typeVal;
   const price = computeCakeSubtotal();
