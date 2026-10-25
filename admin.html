@@ -302,12 +302,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .man .msg{border:1px solid #cdbfae;border-radius:8px;background:#fff;padding:10px 14px;font-size:13.5px;line-height:1.7;margin:6px 0 10px}
 .man .qr{text-align:center;font-size:13px;line-height:1.6;margin:8px 0 14px}.man .qr img{display:block;width:160px;margin:0 auto 4px}
 </style>
-<script src="cake-pricing.js"></script>
+<script src="cake-pricing.js?v=20261025"></script>
 <script src="photo-adjust.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261024g"></script>
+<script src="reservation-editor.js?v=20261025a"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -3533,7 +3533,7 @@ function appendExtraFlags(item, obj, onUpdate, opts) {
 // reserve-draft.js の buildSpec() と完全に一致させること。未設定の項目は自動選択しない。
 const SPEC_OPTIONS = {
   tiers: [["1", "1段"], ["2", "2段"], ["3", "3段"]],
-  size: [["3号(約9cm)", "3号（約9cm・ムースのみ）"], ["4号(約12cm/3-4名)", "4号（約12cm）"], ["5号(約15cm/5-6名)", "5号（約15cm）"], ["6号(約18cm/7-8名)", "6号（約18cm）"], ["7号(約21cm/9-10名)", "7号（約21cm）"]],
+  size: [["4号(約12cm/3-4名)", "4号（約12cm）"], ["5号(約15cm/5-6名)", "5号（約15cm）"], ["6号(約18cm/7-8名)", "6号（約18cm）"], ["7号(約21cm/9-10名)", "7号（約21cm）"]],
   cream: ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース", "モンブラン"].map((v) => [v, v]),
   decoration: ["いちごのみ", "バラエティフルーツ"].map((v) => [v, v]),
   occasion: ["バースデー"].map((v) => [v, v]), // クリスマスはご利用シーンから外した（2026-10-22）。クリスマスケーキは特設ページのみ
@@ -8472,7 +8472,7 @@ onValue(ref(fbDb, "koimariContent/costPublicPrices"), (snap) => { const v = snap
 const cakeCutContainerFeeRef = ref(fbDb, "koimariContent/cakeCutContainerFee");
 // member.htmlの種類別価格表（CakePricing.estimateのtypePrices）。種類名はフォームのクリームの種類の値と揃える。
 const CAKE_TYPE_PRICE_ROWS = ["フルーツタルトBOX","ストロベリータルトBOX","ミッシェルBOX","ガトーショコラBOX","ブルーベリーケーキ","ムース"]; // ムース：グランマニエBOX等（2026-10-03追加）
-const CAKE_TYPE_PRICE_SIZES = [3, 4, 5, 6, 7]; // 3号はムース（グランマニエBOX）用（2026-10-07）
+const CAKE_TYPE_PRICE_SIZES = [4, 5, 6, 7]; // ムース（グランマニエBOX）は4号（2026-10-25訂正。1段の3号は作らない）
 const cakeCreamToppingPriceRef = ref(fbDb, "koimariContent/cakeCreamToppingPrice");
 const cakeChocoCreamSurchargeRef = ref(fbDb, "koimariContent/cakeChocoCreamSurcharge");
 const cakeCandleBagPriceNumberRef = ref(fbDb, "koimariContent/cakeCandleBagPriceNumber");

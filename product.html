@@ -392,7 +392,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js"></script>
+<script src="cake-pricing.js?v=20261025"></script>
 <script src="photo-adjust.js"></script>
 <script src="price-hint.js"></script>
 <script src="price-format.js"></script>
@@ -643,13 +643,13 @@ function omakaseHtml() {
     '<div class="pd-omakase__list">' + ["松", "竹", "梅"].map(k => '<span><b>' + k + '</b>　+¥' + Number(S[k]).toLocaleString() + '</span>').join('') + '</div>' +
     '<p class="pd-omakase__note">パティシエがケーキに合わせて、オーナメントや砂糖菓子、チョコなどでデコレーションします。デコレーションの内容は、お客様のご希望に合わせて変わります。ご予約時にお選びいただくと、予約後のスタッフからの予約内容確認のお電話で、ご希望の雰囲気もお伺いできます。</p></div>';
 }
-// ベースの種類で号数が1つに決まっているケーキ（例：グランマニエBOX＝ムース3号のみ）はその号数を返す
+// ベースの種類で号数が1つに決まっているケーキ（例：グランマニエBOX＝ムース4号のみ）はその号数を返す
 function onlySizeOf(item) {
   const cream = item && item.spec && item.spec.cream;
   const a = cream && window.CakePricing && window.CakePricing.SPEC.baseSizes && window.CakePricing.SPEC.baseSizes[cream];
   return a && a.length === 1 ? a[0] : '';
 }
-// 号数が1つだけのケーキ（例：グランマニエBOX＝3号・2〜3人前）は、人数が多い方向けに大きいサイズを選べるケーキを提案する（2026-10-07 客単価アップ）
+// 号数が1つだけのケーキ（例：グランマニエBOX＝4号・3〜4人前）は、人数が多い方向けに大きいサイズを選べるケーキを提案する（2026-10-07 客単価アップ）
 function renderBiggerSuggest(box, onlyRow) {
   const list = (loadImages().decorationCakes || []).map((it, idx) => ({ it, idx })).filter(o => o.it && o.it.visible !== false && o.it.img && o.idx !== productIdx && !onlySizeOf(o.it) && !(window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(o.it) === 'custom'));
   const choco = o => /チョコ|ショコラ|ミッシェル/.test(o.it.name || '') || ['ミッシェルBOX', '生チョコクリーム'].indexOf((o.it.spec || {}).cream) >= 0;
@@ -657,7 +657,7 @@ function renderBiggerSuggest(box, onlyRow) {
   if (!picks.length) return;
   const div = document.createElement('div');
   div.className = 'pd-bigger';
-  div.innerHTML = '<div class="pd-bigger__title">4人以上で召し上がるなら</div><p class="pd-bigger__lead">このケーキは' + esc(onlyRow.size) + '（' + esc(onlyRow.serves || '') + '）のみです。大きいサイズを選べる、こちらのケーキもおすすめです。</p><div class="pd-bigger__list">' +
+  div.innerHTML = '<div class="pd-bigger__title">' + (Number((String(onlyRow.serves || '').match(/(\d+)人前/) || [])[1] || 4) + 1) + '人以上で召し上がるなら</div><p class="pd-bigger__lead">このケーキは' + esc(onlyRow.size) + '（' + esc(onlyRow.serves || '') + '）のみです。大きいサイズを選べる、こちらのケーキもおすすめです。</p><div class="pd-bigger__list">' +
     picks.map(o => '<a class="pd-bigger__item" href="product.html?type=decorationCake&idx=' + o.idx + '"><img src="' + esc(o.it.img) + '" alt="" loading="lazy"><span class="pd-bigger__name">' + esc(String(o.it.name || '').replace(/<[^>]*>/g, '')) + '</span><span class="pd-bigger__price" data-i="' + o.idx + '"></span></a>').join('') + '</div>';
   box.appendChild(div);
   picks.forEach(o => priceHintFor(o.it, 'decorationCake').then(t => { const el = div.querySelector('.pd-bigger__price[data-i="' + o.idx + '"]'); if (el && t) el.textContent = t + '（税込）'; }).catch(() => {}));
