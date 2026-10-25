@@ -229,6 +229,9 @@ function formatPickupDateTimeJp(pickupDate, pickupTime) {
   return `${y}年${mo}月${d}日${h}時${mi ? `${mi}分` : ""}`;
 }
 
+// お店のGoogleマップ（「ケーキ屋さん こいまり 城東店」の店舗ページ。2026-10-25 スマホ・PCで飛び先を確認。
+// 店名だけの検索だと門真店に当たるおそれがあるため、店舗固有の番号で指定している）
+const STORE_MAP_URL = "https://maps.google.com/?cid=14670102984916208885";
 function buildReminderMessage(stage, data, now) {
   const name = data.name || "お客様";
   const product = productLabel(data);
@@ -260,6 +263,9 @@ function buildReminderMessage(stage, data, now) {
       diamondLine("商品", product),
       ...paymentLines(data, "reminder"),
       "",
+      "◆お店の場所（Googleマップ）",
+      STORE_MAP_URL,
+      "",
       "道中お気をつけてお越しくださいね。",
       "お会いできるのを楽しみにしております。",
     ].join("\n");
@@ -269,8 +275,11 @@ function buildReminderMessage(stage, data, now) {
     name + "様、まもなくお引き取りのお時間です" + comfort.emoji,
     "",
     "◆お引き取り",
-    "◇本日 " + data.pickupTime + "〜",
+    "◇本日 " + pickupTimeOf(data) + "〜",
     ...paymentLines(data, "reminder"),
+    "",
+    "◆お店の場所（Googleマップ）",
+    STORE_MAP_URL,
     "",
     comfort.text,
     "ゆっくりいらしてくださいね。",
