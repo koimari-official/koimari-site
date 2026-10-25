@@ -157,7 +157,9 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .dcal__day.is-closed{background:#ece7e0;border-color:#ece7e0;color:#b5aca0;cursor:not-allowed;text-decoration:line-through}
 .dcal__day.is-closed small{font-size:10px;text-decoration:none;color:#9a8f82;line-height:1}
 .dcal__day.is-out{background:transparent;border-color:transparent;color:#cfc6ba;cursor:default;font-weight:400}
-.dcal__phone{margin-top:6px;font-size:13.5px;line-height:1.7;color:#8a2a1a}.dcal__phone a{color:#8a2a1a;font-weight:700}
+.dcal__day.is-phone:not(.is-sel){background:#fdf1ec;border-color:#e6b8a6}
+.dcal__day.is-phone small{font-size:10px;color:#8a2a1a;line-height:1}.dcal__day.is-phone.is-sel small{color:#fff}
+.dcal__lg-phone{display:inline-block;padding:0 6px;border-radius:4px;background:#fdf1ec;color:#8a2a1a;font-weight:700}
 .dcal__legend{margin-top:8px;font-size:12px;color:#7a6a58}
 .dcal__lg-closed{display:inline-block;padding:0 6px;border-radius:4px;background:#ece7e0;color:#9a8f82;font-weight:700}
 
@@ -315,7 +317,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <ul>
               <li>1段ずつ箱に入れてお渡しします。</li>
               <li>ご予約は、お受取日の<b>3営業日前まで</b>承ります。</li>
-              <li>組み立ては、次のどちらかをお選びください。<br>① お持ち帰りのうえ、お客様ご自身で重ねて載せていただく<br>② 出張料<b>5,000円〜</b>（お伺いする場所により異なります）で、パティシエがお伺いして組み立てる<br>※出張の場合は<b>納期・日程は要確認</b>です。パティシエの予定を確認のうえ、スタッフよりご連絡します。</li>
+              <li>組み立ては、次のどちらかをお選びください。<br>① お持ち帰りのうえ、お客様ご自身で重ねて載せていただく<br>② 出張料<b class="onsite-fee"></b>（遠方の場合は、交通費を加算させていただきます）で、パティシエがお伺いして組み立てる<br>※出張の場合は、お受け取りの<b class="onsite-lead"></b>までのご予約が必要です。日程はパティシエの予定を確認のうえ、スタッフよりご連絡します。</li>
             </ul>
           </div>
         </div>
@@ -440,11 +442,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
         </div>
         <div class="field" id="reserveOnsiteField" style="display:none;">
-          <div class="field__hint" style="margin-bottom:8px;">3段ケーキは1段ずつ箱に入れてお渡しします。お持ち帰りのうえ、お客様ご自身で重ねて載せていただくか、出張料5,000円〜（お伺いする場所により異なります）を加算のうえ、パティシエがお伺いして組み立てるかをお選びください（出張は日程によりお受けできない場合があります）。</div>
+          <div class="field__hint" style="margin-bottom:8px;">日程はパティシエの予定を確認のうえ、スタッフよりご連絡します（日程によりお受けできない場合があります）。</div>
           <label class="field__check">
             <input type="checkbox" id="reserveOnsite">
-            <span>出張での組み立てを希望する（出張料 ¥5,000〜・お伺いする場所により異なります。納期・日程は要確認：パティシエの予定を確認のうえご連絡します）</span>
+            <span>出張での組み立てを希望する（出張料<span class="onsite-fee"></span>・遠方の場合は交通費を加算／お受け取りの<span class="onsite-lead"></span>までのご予約）</span>
           </label>
+          <div id="reserveOnsiteLate" style="display:none;margin-top:6px;font-size:14px;line-height:1.7;color:#b03b48;font-weight:700;">この日は、出張の受付期限（お受け取りの<span class="onsite-lead"></span>）を過ぎています。日付を変えるか、出張なしをお選びください。</div>
         </div>
         <div class="field" id="reserveTierNoticeField" style="display:none;">
           <div class="field__hint">2段以上のケーキは、デコレーションの配置をスタッフよりお電話にてご確認のうえでのご予約となります。</div>
@@ -861,7 +864,8 @@ onValue(ref(db, "koimariContent/cakeMessagePlatePrice"), (snap) => { currentMess
 // お子様と一緒に写真を見ながら選べるよう、画像つきのカードで＋−で個数を選ぶ。登録が無い間は欄ごと非表示。
 // ケーキの種類（ミッシェルBOX等）ごとに単段の金額が異なるため、種類別の価格表（koimariContent/cakeTypePrices）を持つ。
 let currentTypePrices = {};
-onValue(ref(db, "koimariContent/cakeSpecOverrides"), (snap) => { CakePricing.applyOverrides(snap.val()); updateLivePriceDisplay(); });
+renderOnsiteTexts();
+onValue(ref(db, "koimariContent/cakeSpecOverrides"), (snap) => { CakePricing.applyOverrides(snap.val()); renderOnsiteTexts(); updateLivePriceDisplay(); });
 let currentCutContainerFee = 0;
 onValue(ref(db, "koimariContent/cakeCutContainerFee"), (snap) => { currentCutContainerFee = Number(snap.val()) || 0; updateLivePriceDisplay(); });
 onValue(ref(db, "koimariContent/cakeTypePrices"), (snap) => { currentTypePrices = snap.val() || {}; updateLivePriceDisplay(); });
@@ -2165,6 +2169,7 @@ function updateCakeOptionUI() {
   g("reserveOnsiteField").style.display = tierCount === 3 ? "" : "none";
   { const t3 = g("tier3Notice"); if (t3) t3.style.display = tierCount === 3 ? "" : "none"; }
   if (tierCount !== 3) g("reserveOnsite").checked = false;
+  { const w = g("reserveOnsiteLate"); if (w) w.style.display = tierCount === 3 && g("reserveOnsite").checked && onsiteTooLate((g("reserveDate") || {}).value) ? "" : "none"; }
   g("reserveAddOnsField").style.display = addOnCatalog.length ? "" : "none";
   const tartOk = CakePricing.SPEC.tartTypes.includes(creamType);
   g("reserveTopCutField").style.display = tartOk ? "" : "none";
@@ -2370,16 +2375,17 @@ function renderDateCal() {
   for (let dd = 1; dd <= days; dd++) {
     const d = new Date(y, mo, dd), key = dateKeyLocal(d);
     const closed = isClosedDate(d);
-    const out = d < today || (minKey && key < minKey) || (maxKey && key > maxKey) || (!closed && isPhoneOnlyDate(d));
-    if (!closed && d >= today && isPhoneOnlyDate(d)) phoneOnlyShown = true;
+    const out = d < today || (minKey && key < minKey) || (maxKey && key > maxKey);
+    const phone = !closed && !out && isPhoneOnlyDate(d); // 2営業日前〜当日：選べるが、お電話でのご注文
+    if (phone) phoneOnlyShown = true;
     const sel = input.value === key;
-    const cls = "dcal__day" + (closed ? " is-closed" : "") + (out ? " is-out" : "") + (sel ? " is-sel" : "") + (d.getDay() === 0 || JP_HOLIDAYS.has(key) ? " is-sun" : d.getDay() === 6 ? " is-sat" : "");
+    const cls = "dcal__day" + (closed ? " is-closed" : "") + (out ? " is-out" : "") + (phone ? " is-phone" : "") + (sel ? " is-sel" : "") + (d.getDay() === 0 || JP_HOLIDAYS.has(key) ? " is-sun" : d.getDay() === 6 ? " is-sat" : "");
     html += closed || out
       ? '<span class="' + cls + '" aria-disabled="true">' + dd + (closed && !out ? "<small>休</small>" : "") + "</span>"
-      : '<button type="button" class="' + cls + '" data-dcal-day="' + key + '">' + dd + "</button>";
+      : '<button type="button" class="' + cls + '" data-dcal-day="' + key + '">' + dd + (phone ? "<small>電話</small>" : "") + "</button>";
   }
   html += '</div><div class="dcal__legend"><span class="dcal__lg-closed">休</span> お休み（選べません）</div>';
-  if (phoneOnlyShown) html += '<div class="dcal__phone">2営業日前〜当日は、お電話（<a href="tel:07091580641">070-9158-0641</a>）でご相談ください</div>';
+  if (phoneOnlyShown) html += '<div class="dcal__legend"><span class="dcal__lg-phone">電話</span> 2営業日前〜当日は、お電話でのご注文です</div>';
   box.innerHTML = html;
 }
 function syncDateCalButton() {
@@ -2485,7 +2491,34 @@ function computeOrderDeadline(pickupDate) {
 }
 // 2営業日前〜当日のお引き取りは、ネット予約では受けずにお電話でご相談いただく（2026-10-26オーナー決定）。
 // スタッフの電話受付モードはその場で対応可否を確かめられるので従来どおり選べる。クリスマスケーキは専用の受付期間と12/20締切で判断する
-const PHONE_ONLY_TEXT = "2営業日前〜当日のお引き取りは、お電話（070-9158-0641）でご相談ください";
+const PHONE_ONLY_TEXT = "2営業日前〜当日のお引き取りは、お電話でご注文ください";
+// 出張組み立て（3段）の料金・受付期限の表示。料金は管理画面「料金表」の値（CakePricing.SPEC に反映済み）を使う（2026-10-26）
+function onsiteFeeLabel() { return "¥" + CakePricing.SPEC.onsiteAssemblyFee.toLocaleString() + "〜（税込）"; }
+function renderOnsiteTexts() {
+  document.querySelectorAll(".onsite-fee").forEach((e) => { e.textContent = onsiteFeeLabel(); });
+  document.querySelectorAll(".onsite-lead").forEach((e) => { e.textContent = CakePricing.SPEC.onsiteLeadDays + "日前"; });
+}
+// 出張を伴うご予約は、お受け取りの15日前まで（パティシエ不在中の人手を確保するため。2026-10-26オーナー指示）
+function onsiteTooLate(dateKey) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey || "")) return false;
+  const lim = new Date(); lim.setHours(0, 0, 0, 0); lim.setDate(lim.getDate() + CakePricing.SPEC.onsiteLeadDays);
+  return new Date(dateKey + "T00:00:00") < lim;
+}
+// 入力中の内容から予約データを作る部品（setupReserveForm の中で用意する。送信と、お電話でのご注文の案内で共通）
+let reserveDataBuilder = null;
+// お電話でご注文いただくときに、スタッフへ伝えていただく内容（確認画面・お店への通知と同じ文から、ご注文の中身だけを抜き出す。2026-10-26）
+function phoneOrderLines(data) {
+  const skip = /^(【|お名前|お電話番号|メールアドレス|領収書|内容の確認後|引き取り希望日時|※|　内訳|　・|　※)/;
+  const src = buildReserveSummaryText(data).split("\n");
+  const out = [];
+  src.forEach((l, i) => {
+    if (!l.trim() || skip.test(l) || /undefined|null/.test(l)) return;
+    if (/^[^　][^:：]*[:：]\s*$/.test(l) && !/^　/.test(src[i + 1] || "")) return; // 未選択の項目は出さない
+    out.push(l);
+  });
+  out.push("お引き取り希望: " + dcalLabel(data.pickupDate) + (data.pickupTime ? " " + data.pickupTime : ""));
+  return out;
+}
 function isPhoneOnlyDate(d) {
   if (PHONE_MODE || shopMode() === "xmas") return false;
   const today = new Date(); today.setHours(0, 0, 0, 0);
@@ -2693,6 +2726,7 @@ function validateReserve(data) {
       else if (!isBaked && data.occasion === "バースデー" && birthdayBlockFor(data.pickupDate)) { setReserveError("reserveDateError", birthdayBlockText(birthdayBlockFor(data.pickupDate))); ok = false; }
       else if (!isBaked && (reserveHolidays.cakeFullDates || []).includes(dateKeyLocal(pick))) { setReserveError("reserveDateError", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください"); ok = false; }
       else if (isPhoneOnlyDate(pick)) { setReserveError("reserveDateError", PHONE_ONLY_TEXT + "。"); ok = false; }
+      else if (!isBaked && data.onsiteAssembly && onsiteTooLate(data.pickupDate)) { setReserveError("reserveDateError", "出張での組み立ては、お受け取りの" + CakePricing.SPEC.onsiteLeadDays + "日前までのご予約が必要です。日付を変えるか、出張なしをお選びください。"); ok = false; }
       else if (today > computeOrderDeadline(pick)) { data.shortLead = true; } // 電話受付モード・クリスマスで3営業日前を切る：送信は受け付け、未確定（対応可否を確認）
       else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
       else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
@@ -2798,7 +2832,7 @@ function renderReserveConfirm(data, targetId) {
     ${(data.addOns || []).length ? `<dt>追加商品</dt><dd>${data.addOns.map(a => `${escape(a.name)} × ${a.qty}`).join("<br>")}</dd>` : ""}
     ${(data.cutCakes || []).length ? `<dt>上に載せるカットケーキ</dt><dd>${data.cutCakes.map(c => `${escape(c.name)} × ${c.qty}`).join("<br>")}</dd>` : ""}
     ${data.topCut ? `<dt>カットケーキ載せ</dt><dd>載せる（入れ物代あり）${data.topCut.note ? `：${escape(data.topCut.note)}` : ""}</dd>` : ""}
-    ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料5,000円〜・場所により異なります／納期・日程は要確認）</dd>` : ""}
+    ${data.onsiteAssembly ? `<dt>3段ケーキの組み立て</dt><dd>出張組み立てを希望（出張料${escape(onsiteFeeLabel())}・遠方の場合は交通費を加算／日程は要確認）</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>ろうそく</dt><dd>${data.christmasOrder ? "無料でお付けします" : candleLine}</dd>` : ""}
     ${(isCake || isRoll) ? `<dt>メッセージプレート</dt><dd>${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}</dd>` : ""}
     ${(isCake && (data.subtotal || data.priceNeedsConsult)) ? `<dt>お見積もり</dt><dd><strong>${estimateHeadline(data)}</strong>${(data.estimateLines || []).length ? `<div style="font-size:12.5px;margin-top:8px;line-height:1.8;"><div style="font-weight:700;">内訳</div>${data.estimateLines.map(l => `${escape(l.label)}　${CakePricing.lineYen(l)}`).join("<br>")}</div>` : ""}${(data.estimateNotes || []).length ? `<div style="font-size:12px;margin-top:4px;">※${data.estimateNotes.map(n => escape(n)).join("／")}</div>` : ""}<div style="font-size:11.5px;color:#856e58;margin-top:6px;">${estimateDisclaimer(data)}</div></dd>` : ""}
@@ -2868,7 +2902,7 @@ function buildReserveSummaryText(data) {
   (data.addOns || []).forEach(a => lines.push(`追加商品: ${a.name} × ${a.qty}`));
   if ((data.cutCakes || []).length) lines.push(`上に載せるカットケーキ: ${data.cutCakes.map(c => c.name + "×" + c.qty).join("、")}`);
   if (data.topCut) lines.push(`カットケーキ載せ: 載せる（入れ物代あり）${data.topCut.note ? "：" + data.topCut.note : ""}`);
-  if (data.onsiteAssembly) lines.push("3段ケーキの組み立て: 出張組み立てを希望（出張料5,000円〜・場所により異なります／納期・日程は要確認）");
+  if (data.onsiteAssembly) lines.push("3段ケーキの組み立て: 出張組み立てを希望（出張料" + onsiteFeeLabel() + "・遠方の場合は交通費を加算／日程は要確認）");
   if (isCake || isRoll) lines.push(`ろうそく: ${data.christmasOrder ? "無料でお付けします" : candleLine}`);
   if (isCake || isRoll) lines.push(`メッセージプレート: ${data.christmasOrder ? "「メリークリスマス」のチョコプレート（固定）" : messageLine}`);
   if (isCake && (data.subtotal || data.priceNeedsConsult)) {
@@ -3193,11 +3227,16 @@ function updateReservePhoneNotice() {
   const pick = v ? new Date(v) : null;
   if (!pick || isNaN(pick) || isClosedDate(pick) || today <= computeOrderDeadline(pick)) { el.style.display = "none"; el.innerHTML = ""; return; }
   if (isPhoneOnlyDate(pick)) {
+    let rows = [];
+    try { const data = reserveDataBuilder ? reserveDataBuilder() : null; if (data) rows = phoneOrderLines(data); } catch (e) { console.error("お電話用のまとめ", e); }
     el.style.display = "block";
     el.innerHTML = '<div style="margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.8;">' +
-      '<div style="font-weight:700;color:#b03b48;margin-bottom:6px;">' + PHONE_ONLY_TEXT + '</div>' +
-      '<div style="color:#2e2118;margin-bottom:10px;">ホームページの写真を見ながら、ご希望のケーキをお伝えいただくとスムーズです。</div>' +
-      '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:12px;">お電話する：070-9158-0641</a></div>';
+      '<div style="font-weight:700;color:#b03b48;margin-bottom:8px;">' + PHONE_ONLY_TEXT + '</div>' +
+      '<a href="tel:07091580641" style="display:block;text-align:center;background:#a88a52;color:#fff;font-weight:700;font-size:16px;text-decoration:none;border-radius:999px;padding:12px;">お電話する：070-9158-0641</a>' +
+      (rows.length ? '<div style="font-weight:700;color:#2e2118;margin:14px 0 6px;">お電話でお伝えいただく内容</div>' +
+        '<div style="white-space:pre-wrap;background:#fff;border:1px solid #ecd9c4;border-radius:8px;padding:10px 12px;font-size:14px;line-height:1.8;color:#2e2118;">' + escape(rows.join("\n")) + '</div>' +
+        '<div style="font-size:12.5px;color:#7a5a50;margin-top:6px;">選び直すと、この内容も変わります</div>' : '') +
+      '</div>';
     return;
   }
   const typeVal = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
@@ -3255,7 +3294,8 @@ function setupReserveForm(uid, displayName) {
 
   let pendingData = null;
 
-  document.getElementById("reserveSubmitBtn").addEventListener("click", () => {
+  // 入力中の内容から予約データを作る（送信時と、2営業日前〜当日のお電話でのご注文の案内で共通。2026-10-26）
+  const buildReserveData = () => {
     const topCategory = currentReserveCategory(); // "cake" | "kidsManager"
     const furigana = document.getElementById("reserveFurigana").value || "";
     const name = document.getElementById("reserveName").value || "";
@@ -3368,6 +3408,11 @@ function setupReserveForm(uid, displayName) {
       };
     }
     if (data && data.category === "cake" && shopMode()) data = buildShopReservation(data);
+    return data;
+  };
+  reserveDataBuilder = buildReserveData;
+  document.getElementById("reserveSubmitBtn").addEventListener("click", () => {
+    const data = buildReserveData();
     const banner = document.getElementById("reserveFormErrorBanner");
     if (!validateReserve(data)) {
       const messages = Array.from(document.querySelectorAll("#reserveFormWrap .error")).map(el => el.textContent).filter(Boolean);

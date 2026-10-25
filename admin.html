@@ -1009,7 +1009,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <tr><th>受け取り時間</th><td><b>閉店時間まで</b>（日曜・祝日は19時閉店、火〜土は20時閉店）</td></tr>
 <tr><th>アレルギー</th><td>卵・乳製品のアレルギーには対応していません。フルーツのアレルギー・苦手な果物は備考に書いてもらいます</td></tr>
 <tr><th>金額の伝え方</th><td>「概算」という言葉は使いません。決まっていない金額は「◯◯円〜」と伝えます</td></tr>
-<tr><th>3段ケーキ</th><td>1段ずつ箱でお渡し。組み立てはお客様か、出張（5,000円〜・場所による。納期・日程は要確認）</td></tr>
+<tr><th>3段ケーキ</th><td>1段ずつ箱でお渡し。組み立てはお客様か、出張（15,000円〜・遠方は交通費を加算。お受け取りの15日前までのご予約。日程は要確認）</td></tr>
 </table>
 
 <h3>15．困ったとき</h3>
@@ -8519,7 +8519,7 @@ function buildPriceTable() {
     ["4号", "5号", "6号", "7号"].forEach(k => { cut += row("一番下が " + k, yenIn("cso_cutded_" + k, SO.cutTopDeduction[k])); });
     html += group("一番上をカットケーキにした時の値引き", "同じ組み合わせのホールケーキのセット価格からこの金額を引き、選んだカットケーキの代金を足します。", table(cut));
     html += group("おまかせデコレーション", "パティシエがケーキに合わせて飾り付けるオプション", table(["松", "竹", "梅"].map(k => row(k, yenIn("cso_omakase_" + k, SO.omakaseDeco[k]))).join("")));
-    html += group("その他", "", table(row("3段の出張組み立て料（最低額）", yenIn("cso_onsite", SO.onsiteAssemblyFee), "お客様には「この金額〜」と案内。場所により加算")));
+    html += group("その他", "", table(row("3段の出張組み立て料（最低額）", yenIn("cso_onsite", SO.onsiteAssemblyFee), "お客様には「この金額〜（税込）」と案内。遠方の場合は交通費を加算")));
   }
   html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・ゼリー菓子などの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
   html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。<b>原価表にない組み合わせは「特殊仕様」</b>となり、予約フォームでは金額を出さず、スタッフがお電話で仕様・料金を確認します。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div><details style="margin-top:8px;"><summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6f9c;">原価計算アプリとの対応表を見る（自動判定が正しいか確認できます）</summary><div id="ptSourceMap" style="margin-top:8px;overflow-x:auto;"></div></details></div>' + html;
