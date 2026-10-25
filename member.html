@@ -171,12 +171,9 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .pre-notes__item p{margin:0;font-size:13px;line-height:1.75;color:#4a3a2a}
 .pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
 
-/* クリスマスの案内（2026-10-22） */
-.xmas-guide{margin-top:10px;background:#fbf3ef;border:1px solid #d9a99a;border-radius:12px;padding:12px 14px;color:#5a2a20}
-.xmas-guide__title{font-weight:700;font-size:15px;margin-bottom:4px;color:#8a2a20}
-.xmas-guide p{margin:0 0 8px;font-size:13.5px;line-height:1.75}
-.xmas-guide__btn{display:block;text-align:center;background:#a8322a;color:#fff;font-weight:700;border-radius:999px;padding:11px 14px;text-decoration:none;font-size:15px;margin:4px 0 8px}
-.xmas-guide p.xmas-guide__sub{font-size:12.5px;color:#7a5a50;margin:0}
+/* クリスマスケーキ特設ページへの案内（2026-10-25） */
+.xmas-link{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 18px;padding:13px 16px;background:#fbf3ef;border:1px solid #d9a99a;border-radius:12px;color:#8a2a20;font-weight:700;font-size:16px;line-height:1.5;text-align:center;text-decoration:none}
+.xmas-link__arrow{font-size:20px;line-height:1}
 
 /* 電話受付モード（2026-10-22）：片手で使えるよう、お見積もりと確認ボタンを画面の下に固定 */
 .phone-mode .profile-card,.phone-mode #lastOrderBanner,.phone-mode #pastOrders,.phone-mode #galleryTeaser,.phone-mode #resumeBanner{display:none!important}
@@ -264,6 +261,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
     <div class="section" id="reserveSection">
       <div class="section__title">ご予約</div>
+      <a id="xmasLinkBar" class="xmas-link" href="christmas.html" style="display:none;">クリスマスケーキのご予約はこちら<span class="xmas-link__arrow" aria-hidden="true">›</span></a>
       <div style="text-align:center;margin-bottom:20px;">
         <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
       </div>
@@ -1562,6 +1560,16 @@ function shopCutCatalog() {
 }
 function shopCutSelected() { return shopCutCatalog().filter(c => shopCutQty[c.name] > 0).map(c => ({ name: c.name, img: c.img, price: c.price, qty: shopCutQty[c.name] })); }
 function xmasOpen() { return !!(xmasConf && xmasConf.status === "open"); }
+// フォームの上の「クリスマスケーキのご予約はこちら」（2026-10-25オーナー指示）。ご利用シーンからクリスマスを外したため、特設ページへご案内する。
+// 11月1日〜受付締切（12月20日）の日本時間で、管理画面「クリスマス」が受付中のときだけ。電話受付モード・クリスマスケーキを選んでいる間は出さない。
+function updateXmasLinkBar() {
+  const bar = document.getElementById("xmasLinkBar");
+  if (!bar) return;
+  const jst = new Date(Date.now() + 9 * 3600 * 1000);
+  const md = (jst.getUTCMonth() + 1) * 100 + jst.getUTCDate();
+  const end = CakePricing.SPEC.christmas.deadlineMonth * 100 + CakePricing.SPEC.christmas.deadlineDay;
+  bar.style.display = !PHONE_MODE && md >= 1101 && md <= end && xmasOpen() && shopMode() !== "xmas" ? "" : "none";
+}
 function xmasSizes(c) { return (Array.isArray(c && c.sizes) ? c.sizes : []).filter(s => s && s.size); }
 function xmasMd(ds) { const m = String(ds || "").match(/^\d{4}-(\d{2})-(\d{2})$/); return m ? (+m[1]) + "月" + (+m[2]) + "日" : ""; }
 function xmasRangeText() { return xmasConf && xmasConf.pickupFrom ? xmasMd(xmasConf.pickupFrom) + "〜" + xmasMd(xmasConf.pickupTo) : "12月22日〜12月25日"; }
@@ -1659,6 +1667,7 @@ onValue(ref(db, "koimariContent/christmas"), (snap) => {
   xmasConf = snap.val();
   const opt = document.getElementById("reserveTypeXmasOpt");
   if (opt) opt.style.display = xmasOpen() ? "" : "none";
+  updateXmasLinkBar();
   renderShopPicker();
 });
 function buildShopReservation(base) {
@@ -2575,6 +2584,7 @@ function updateReserveFieldVisibility() {
   }
 
   renderShopPicker();
+  updateXmasLinkBar();
   if (isCake) populateFlavorSelect(currentCakeFlavors);
   else if (isRoll) populateFlavorSelect(currentRollFlavors);
   if (!isCake) ["reserveColorCreamField", "reserveColorChocoNote", "reserveColorCreamNote", "reserveStrawberryAddField", "reserveTopCutField", "reserveCutPickerField", "reserveOnsiteField", "tier3Notice", "reserveSpecialNotice", "reserveSmallDecoTip", "reserveChristmasNotice"].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = "none"; });
