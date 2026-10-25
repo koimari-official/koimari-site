@@ -195,6 +195,13 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .stepnav__price b{font-size:16px;color:#a88a52;font-family:var(--font-sans)}
 .stepnav__back{min-height:46px;padding:0 16px;border-radius:999px;border:1px solid #d8baa4;background:#fff;color:#6b4a2a;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
 .stepnav__next{min-height:46px;padding:0 24px;border-radius:999px;border:0;background:#a88a52;color:#fff;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer}
+/* 上に載せるカットケーキ（プルダウン。2026-10-26） */
+.cutrow{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.cutrow__img{flex:0 0 48px;width:48px;height:48px;border-radius:8px;object-fit:cover;background:#f7efe3;display:block}
+.cutrow__name{flex:1;min-width:0}
+.cutrow__qty{flex:0 0 78px;width:78px}
+.cutrow__del{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid #d8baa4;background:#fff;color:#8a6a4a;font-size:18px;line-height:1;cursor:pointer;font-family:inherit}
+.cutrow__add{display:block;width:100%;margin-top:2px;padding:11px;border:1px dashed #d8baa4;border-radius:10px;background:#fffaf3;color:#6b4a2a;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
 /* クリスマスケーキ特設ページへの案内（2026-10-25） */
 .xmas-link{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 18px;padding:13px 16px;background:#fbf3ef;border:1px solid #d9a99a;border-radius:12px;color:#8a2a20;font-weight:700;font-size:16px;line-height:1.5;text-align:center;text-decoration:none}
 .xmas-link__arrow{font-size:20px;line-height:1}
@@ -300,7 +307,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="error" id="reserveStoreConfirmError"></div>
           <label class="field__check" style="margin-top:10px;">
             <input type="checkbox" id="reserveLeadConfirm">
-            <span>お受取日の<strong>3営業日前まで</strong>のご予約をお願いいたします。<strong>2営業日前〜当日はお電話（070-9158-0641）でご相談ください。</strong>特別仕様は、お渡しまでお時間をいただく場合があります。</span>
+            <span>お受け取りの<strong>3営業日前まで</strong>のご予約をお願いいたします。<strong>2営業日前〜当日のお引き取りは、お電話（070-9158-0641）でご相談ください。</strong>2段・3段のケーキや特別仕様は、お渡しまでお時間をいただくことがございます。</span>
           </label>
           <div class="error" id="reserveLeadConfirmError"></div>
         </div>
@@ -439,8 +446,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div id="reserveCutPickerField" style="display:none;margin-top:14px;">
             <label class="field__label">上に載せるカットケーキ<span id="reserveCutLabelMax">（合計1〜5個）</span><span class="req-mark">必須</span></label>
             <div class="field__hint" style="margin-bottom:6px;">載せられる数は土台の大きさで決まります（7号：5個／6号：4個／5号：3個／4号：2個まで）。</div>
-            <div class="field__hint" style="margin-bottom:8px;">写真を見ながら、＋−で個数をえらんでください。カットケーキの代金が加算されます。</div>
-            <div id="reserveCutGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;"></div>
+            <div class="field__hint" style="margin-bottom:8px;">プルダウンから選んでください。載せたいケーキが無いときは「その他」を選び、ご希望をご記入ください（スタッフよりご回答します）。カットケーキの代金が加算されます。</div>
+            <div id="reserveCutGrid"></div>
+            <input type="text" id="reserveCutOtherNote" class="input" style="display:none;margin-top:4px;" maxlength="60" placeholder="載せたいカットケーキのご希望（例: チョコのケーキ2個）">
             <div id="reserveCutStatus" class="field__hint" style="margin-top:8px;"></div>
             <div id="reserveCutTip" style="display:none;margin-top:6px;font-size:13.5px;font-weight:700;color:#a35a2a;"></div>
             <div id="reserveCutMix" style="display:none;margin-top:8px;background:#fffaf0;border:1px solid #e3c98f;border-radius:10px;padding:10px 12px;font-size:13.5px;line-height:1.7;color:#5a4a3a;">いま人気は、<b>たぬきちケーキ</b>を載せるスタイルです。<button type="button" id="reserveCutTanukiBtn" style="display:block;margin-top:8px;padding:8px 16px;border:1px solid #c8891e;background:#fff;color:#8a5a12;border-radius:999px;font-weight:700;cursor:pointer;">たぬきちを1個載せる</button></div>
@@ -710,7 +718,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js?v=20261025"></script>
+<script src="cake-pricing.js?v=20261026"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
@@ -725,7 +733,7 @@ const LIFF_ID = "2011059940-hMTBZaUz";
 const PHONE_MODE = new URLSearchParams(location.search).get("phone") === "1";
 // ===== 予約フォームの段階表示（2026-10-26 試作・第1段階）=====
 // 手順書：company/operations/product/koimari-reserve-form-redesign-procedure_20261026.md。
-// ?ui=step で開いたときだけ（LINEでは https://liff.line.me/2011059940-hMTBZaUz?ui=step#reserve）。?ui=classic で元の表示に戻る。
+// 2026-10-26から標準（オーナー指示）。?ui=classic で元の1ページ表示（スタッフの電話受付モードは元の表示が標準、?ui=step で段階表示）。
 // 今の入力欄・判定・計算・自動保存はそのまま使い、各部品に「何番目のステップか」（data-step）を付けて、今のステップの部品だけを見せる。
 const STEP_UI = (() => {
   try {
@@ -734,8 +742,10 @@ const STEP_UI = (() => {
     const st = q.get("liff.state"); // LINEから開いたとき、最初はここに「?ui=step#reserve」が入って届く
     if (!v && st) v = new URLSearchParams((st.split("?")[1] || "").split("#")[0]).get("ui");
     if (v === "step") sessionStorage.setItem("koimari_ui", "step");
-    if (v === "classic") sessionStorage.removeItem("koimari_ui");
-    return sessionStorage.getItem("koimari_ui") === "step";
+    if (v === "classic") sessionStorage.setItem("koimari_ui", "classic");
+    const saved = sessionStorage.getItem("koimari_ui");
+    if (saved) return saved === "step";
+    return !PHONE_MODE; // 2026-10-26オーナー指示で段階表示を標準に。スタッフの電話受付モードは従来の1ページ表示
   } catch (e) { return false; }
 })();
 const STEPS = [["種類", "ご注文の種類"], ["サイズ", "段数とサイズ"], ["中身", "ケーキの中身"], ["飾り", "飾りとオプション"], ["日時", "お受け取りの日時"], ["お客様", "お客様の情報"], ["確認", "ご確認"]];
@@ -808,7 +818,7 @@ const SIZE_3 = { value: "3号(約9cm)", label: "3号（約9cm／2〜3人前）" 
 const SPECIAL_TOP_OPTIONS = [
   { value: "", label: "選択してください" },
   { value: "セルクル", label: "セルクル" },
-  { value: "カットケーキ(たぬきち含む・内容はご予約後にご相談)", label: "カットケーキ（写真から選べます）" }
+  { value: "カットケーキ(たぬきち含む・内容はご予約後にご相談)", label: "カットケーキ" }
 ];
 function isSpecialTierValue(v) {
   return SPECIAL_TOP_OPTIONS.some(o => o.value && o.value === v);
@@ -1271,7 +1281,7 @@ function collectFormSpec() {
     occasionOther: (g("reserveOccasionOther") || {}).value || "",
     creamTopping: !!(g("reserveCreamTopping") || {}).checked, strawberry: !!(g("reserveStrawberryAdd") || {}).checked, strawberryKind: cv("reserveStrawberryKind"),
     topCut: !!(g("reserveTopCut") || {}).checked, topCutNote: (g("reserveTopCutNote") || {}).value || "",
-    cutQty: Object.assign({}, cutQty),
+    cutQty: Object.assign({}, cutQty), cutOtherNote: (g("reserveCutOtherNote") || {}).value || "",
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
     candle: !!(g("reserveCandleNeeded") || {}).checked, candleType: cv("reserveCandleType"), candleBags: (g("reserveCandleBags") || {}).value || "1",
     msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
@@ -1349,7 +1359,8 @@ function applyFormSpec(s) {
     setRadio("reserveCreamTypeSub", s.creamSub); setRadio("reserveDecoration", s.decoration); setRadio("reserveOccasion", s.occasion);
     setVal("reserveOccasionOther", s.occasionOther || "");
     setChk("reserveCreamTopping", s.creamTopping); setChk("reserveStrawberryAdd", s.strawberry); setRadio("reserveStrawberryKind", s.strawberryKind); setChk("reserveTopCut", s.topCut); setVal("reserveTopCutNote", s.topCutNote || "");
-    Object.keys(cutQty).forEach(k => delete cutQty[k]); Object.assign(cutQty, s.cutQty || {}); renderCutPicker();
+    Object.keys(cutQty).forEach(k => delete cutQty[k]); Object.assign(cutQty, s.cutQty || {}); cutRowOrder = []; setVal("reserveCutOtherNote", s.cutOtherNote || ""); renderCutPicker();
+    setTimeout(convertTartTopCut, 0); // 以前の形（1段のタルト＋カットケーキを載せる）は2段に読み替える
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
     setChk("reserveCandleNeeded", s.candle); setRadio("reserveCandleType", s.candleType); setVal("reserveCandleBags", s.candleBags || "1");
     setVal("reserveMessageCount", s.msgCount || "0"); setVal("reserveChocoText", s.msgText || "");
@@ -1676,7 +1687,56 @@ function cutPickerNeeded() {
 }
 function selectedCutCakes() {
   if (!cutPickerNeeded()) return [];
-  return cutCatalog.filter(c => cutQty[c.name] > 0).map(c => ({ name: c.name, price: c.price, qty: cutQty[c.name] }));
+  const list = cutCatalog.filter(c => cutQty[c.name] > 0).map(c => ({ name: c.name, price: c.price, qty: cutQty[c.name] }));
+  // 「その他」は名前にご希望を入れて渡す（料金は別途＝スタッフよりご回答。確認画面・お店への通知・調理シートにそのまま出る）
+  if ((cutQty[CUT_OTHER] || 0) > 0) list.push({ name: "その他（ご希望：" + (cutOtherNoteVal() || "未記入") + "）", price: 0, qty: cutQty[CUT_OTHER] });
+  return list;
+}
+// ===== 上に載せるカットケーキ：プルダウンで選ぶ（2026-10-26オーナー指示。以前は写真の一覧から＋−）=====
+// 1行＝ケーキ1種類（名前・個数）。「＋ 別のカットケーキを追加」で行を増やす。数の合計は土台の大きさまで（cutMax）。
+// ケーキの一覧は管理画面で「上に載せるカットケーキとして選べる」にした商品。ご希望が無いときは「その他」＋ご希望の記入。
+const CUT_OTHER = "__other";
+let cutRowOrder = []; // 行の並び（ケーキ名。"" はまだ選んでいない行）。個数は cutQty
+function cutOtherNoteVal() { return ((document.getElementById("reserveCutOtherNote") || {}).value || "").trim(); }
+function cutRows() {
+  Object.keys(cutQty).forEach((k) => { if (cutQty[k] > 0 && !cutRowOrder.includes(k)) cutRowOrder.push(k); });
+  cutRowOrder = cutRowOrder.filter((k) => k === "" || cutQty[k] > 0);
+  if (!cutRowOrder.length) cutRowOrder = [""];
+  return cutRowOrder;
+}
+function cutAfterChange() { renderCutPicker(); updateLivePriceDisplay(); try { scheduleAutosave(); } catch (e) {} }
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (!t || !t.closest || !t.closest("#reserveCutGrid")) return;
+  const i = Number(t.dataset.row), rows = cutRows(), old = rows[i];
+  if (t.classList.contains("cutrow__name")) {
+    const q = old ? (cutQty[old] || 1) : 1;
+    if (old) delete cutQty[old];
+    if (t.value) cutQty[t.value] = Math.min(q, Math.max(1, cutMax() - cutTotal()));
+    cutRowOrder[i] = t.value;
+  } else if (t.classList.contains("cutrow__qty") && old) cutQty[old] = Number(t.value) || 1;
+  cutAfterChange();
+});
+document.addEventListener("click", (e) => {
+  const t = e.target && e.target.closest ? e.target.closest(".cutrow__del, #reserveCutAddRow") : null;
+  if (!t) return;
+  if (t.id === "reserveCutAddRow") { if (cutTotal() < cutMax()) cutRowOrder.push(""); }
+  else { const rows = cutRows(), name = rows[Number(t.dataset.row)]; if (name) delete cutQty[name]; cutRowOrder.splice(Number(t.dataset.row), 1); }
+  cutAfterChange();
+});
+document.addEventListener("input", (e) => { if (e.target && e.target.id === "reserveCutOtherNote") { updateLivePriceDisplay(); try { scheduleAutosave(); } catch (x) {} } });
+// 以前の形（1段のタルト＋「カットケーキを載せる」）の内容・ギャラリーの作品は、2段（上がカットケーキ）に読み替える（2026-10-26）
+function convertTartTopCut() {
+  const chk = document.getElementById("reserveTopCut");
+  if (!chk || !chk.checked || currentTierCount() !== 1 || !CakePricing.SPEC.tartTypes.includes(bottomCream())) return;
+  const bottomVal = (document.querySelector('.tier-size-select[data-tier="0"]') || {}).value || "";
+  chk.checked = false;
+  const r2 = document.querySelector('input[name="reserveTiers"][value="2"]');
+  if (!r2) return;
+  r2.checked = true; r2.dispatchEvent(new Event("change", { bubbles: true }));
+  const b = document.querySelector('.tier-size-select[data-tier="0"]');
+  if (b && bottomVal && b.value !== bottomVal && Array.from(b.options).some((o) => o.value === bottomVal)) { b.value = bottomVal; b.dispatchEvent(new Event("change", { bubbles: true })); }
+  updateCakeOptionUI(); renderCutPicker(); updateLivePriceDisplay();
 }
 function renderCutPicker() {
   const grid = document.getElementById("reserveCutGrid");
@@ -1684,17 +1744,20 @@ function renderCutPicker() {
   const CUT_MAX_NOW = cutMax();
   { const lbl = document.getElementById("reserveCutLabelMax"); if (lbl) lbl.textContent = "（" + (cutBaseSize() || "") + "には合計1〜" + CUT_MAX_NOW + "個）"; }
   const total = cutTotal();
-  grid.innerHTML = cutCatalog.map((c, i) => {
-    const q = cutQty[c.name] || 0;
-    return '<div style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;' + (q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : "") + '">' +
-      (c.img ? '<img src="' + escape(c.img) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">' : '<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;"></div>') +
-      '<div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + (c.name.indexOf('たぬきち') >= 0 ? '<span style="display:inline-block;background:#c8891e;color:#fff;font-size:10.5px;border-radius:999px;padding:1px 7px;margin-right:4px;">人気</span>' : '') + escape(c.name) + '</div>' +
-      '<div style="font-size:12px;color:#a88a52;">' + (c.price ? "¥" + c.price.toLocaleString() : "料金は別途") + '</div>' +
-      '<div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">' +
-      '<button type="button" class="cut-minus" data-i="' + i + '" style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;">−</button>' +
-      '<span style="min-width:18px;font-weight:700;">' + q + '</span>' +
-      '<button type="button" class="cut-plus" data-i="' + i + '" ' + (total >= CUT_MAX_NOW ? "disabled" : "") + ' style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;' + (total >= CUT_MAX_NOW ? "opacity:.35;" : "") + '">＋</button></div></div>';
+  const rows = cutRows(), used = (i) => rows.filter((r, j) => j !== i && r);
+  let html = rows.map((name, i) => {
+    const q = name ? (cutQty[name] || 0) : 0, room = Math.max(1, CUT_MAX_NOW - (total - q)), c = cutCatalog.find((x) => x.name === name);
+    return '<div class="cutrow">' + (c && c.img ? '<img class="cutrow__img" src="' + escape(c.img) + '" alt="">' : '<span class="cutrow__img"></span>') +
+      '<select class="input select cutrow__name" data-row="' + i + '" aria-label="載せるカットケーキ"><option value="">選択してください</option>' +
+      cutCatalog.filter((x) => !used(i).includes(x.name)).map((x) => '<option value="' + escape(x.name) + '"' + (x.name === name ? " selected" : "") + ">" + escape(x.name) + "（" + (x.price ? "¥" + x.price.toLocaleString() : "料金は別途") + "）</option>").join("") +
+      (used(i).includes(CUT_OTHER) ? "" : '<option value="' + CUT_OTHER + '"' + (name === CUT_OTHER ? " selected" : "") + ">その他（ご希望を記入）</option>") + "</select>" +
+      '<select class="input select cutrow__qty" data-row="' + i + '" aria-label="個数"' + (name ? "" : " disabled") + ">" +
+      Array.from({ length: room }, (_, k) => '<option value="' + (k + 1) + '"' + (k + 1 === q ? " selected" : "") + ">" + (k + 1) + "個</option>").join("") + "</select>" +
+      (rows.length > 1 ? '<button type="button" class="cutrow__del" data-row="' + i + '" aria-label="この行を消す">×</button>' : "") + "</div>";
   }).join("");
+  if (total < CUT_MAX_NOW && rows.every(Boolean)) html += '<button type="button" class="cutrow__add" id="reserveCutAddRow">＋ 別のカットケーキを追加</button>';
+  if (grid.__html !== html) { grid.innerHTML = html; grid.__html = html; } // 変わらないときは作り直さない（押した瞬間に消えないように）
+  { const on = document.getElementById("reserveCutOtherNote"); if (on) on.style.display = rows.includes(CUT_OTHER) ? "" : "none"; }
   const st = document.getElementById("reserveCutStatus");
   { const tipEl = document.getElementById("reserveCutTip");
     const baseK = cutBaseSize();
@@ -1706,8 +1769,6 @@ function renderCutPicker() {
     const tipOk = total > 0 && total < CUT_MAX_NOW && baseK !== "4号";
     if (tipEl) { tipEl.style.display = tipOk ? "" : "none"; tipEl.textContent = tipOk ? "あと" + (CUT_MAX_NOW - total) + "個まで載せられます。もう1個追加すると、ぐっとにぎやかになります" : ""; } }
   if (st) st.textContent = total ? "選んだカットケーキ：" + total + "個" + (total >= CUT_MAX_NOW ? "（これ以上は載せられません）" : "（あと" + (CUT_MAX_NOW - total) + "個まで選べます）") : "1〜" + CUT_MAX_NOW + "個までお選びください";
-  grid.querySelectorAll(".cut-plus").forEach(b => b.addEventListener("click", () => { if (cutTotal() >= cutMax()) return; const c = cutCatalog[Number(b.dataset.i)]; cutQty[c.name] = (cutQty[c.name] || 0) + 1; renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave(); }));
-  grid.querySelectorAll(".cut-minus").forEach(b => b.addEventListener("click", () => { const c = cutCatalog[Number(b.dataset.i)]; cutQty[c.name] = Math.max(0, (cutQty[c.name] || 0) - 1); renderCutPicker(); updateLivePriceDisplay(); scheduleAutosave(); }));
 }
 
 // ===== カットケーキ単体のご予約・クリスマスケーキ（2026-10-03オーナー指示） =====
@@ -1929,7 +1990,8 @@ function computeCakeSubtotal() {
   });
   // 金額を「確定」で出せるのは、①個別案内が不要 ②「別途ご案内」の注記が無い ③1段（多段は組み合わせ次第で変動しうる）の3つを満たす場合のみ。
   const noteFilled = hasMeaningfulNote((document.getElementById("reserveNote") || {}).value);
-  const fixed = !r.needsConsult && (r.notes || []).length === 0 && input.tiers.length === 1 && !noteFilled && !quoteSeparatelyNow();
+  const oneTier = input.tiers.length === 1 || CakePricing.isTartCut(input.tiers, bottomCream()); // タルトの2段（上がカットケーキ）は1段のタルトと同じ扱い
+  const fixed = !r.needsConsult && (r.notes || []).length === 0 && oneTier && !noteFilled && !quoteSeparatelyNow();
   return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, priceIsFixed: fixed, applicable: true, lines: r.lines, notes: r.notes };
 }
 // 確認画面・完了画面・LINEサマリーで共通のお見積もり文言（2026-09-29オーナー指示）。
@@ -2193,7 +2255,10 @@ function renderTierSizeSelects(tierCount) {
   let html = tierFieldHtml(0, tierCount, "", editableSizeSelectHtml(0, bottomOptions, bottomVal, tierCount));
 
   if (tierCount === 2) {
-    if (bKey === "4号") {
+    if (bKey && CakePricing.SPEC.tartTypes.includes(bottomCream())) {
+      // タルトの2段は、上にカットケーキを載せる形だけ（ホールケーキは載せられない。2026-10-26オーナー指示）
+      html += tierFieldHtml(1, 2, "（タルトの2段は、上にカットケーキを載せます）", lockedSizeSelectHtml(1, SPECIAL_TOP_OPTIONS[2].value));
+    } else if (bKey === "4号") {
       const topVal = SPECIAL_TOP_OPTIONS.some(o => o.value === prevSizes[1]) ? prevSizes[1] : "";
       html += tierFieldHtml(1, 2, "（セルクルまたはカットケーキからお選びください）", editableSizeSelectHtml(1, SPECIAL_TOP_OPTIONS, topVal, 0));
     } else if (TIER_PARTNER_2[bKey]) {
@@ -2231,6 +2296,7 @@ function creamAllowedOnTier(cream, i, n) {
   if (n <= 1) return true;
   const ci = cercleTierIndex();
   if (ci >= 1 && (i === ci || i === ci - 1)) return CERCLE_CREAMS.includes(cream); // セルクルとすぐ下の段
+  if (CakePricing.SPEC.tartTypes.includes(cream)) return n === 2 && i === 0; // タルトは2段の一番下だけ（上はカットケーキ。2026-10-26）
   const sizeOf = (k) => sizeKeyOf((document.querySelector('.tier-size-select[data-tier="' + k + '"]') || {}).value || "");
   const size = sizeOf(i);
   const base = (CakePricing.SPEC.baseSizes || {})[cream];
@@ -2257,7 +2323,7 @@ function applyCreamTierRules() {
         lab.style.opacity = ok ? "" : ".45";
         let note = lab.querySelector(".cream-tier-note");
         if (!ok && !note) { note = document.createElement("span"); note.className = "cream-tier-note"; note.style.cssText = "display:block;font-size:12px;color:#8a6a4a;"; lab.appendChild(note); }
-        if (note) note.textContent = ok ? "" : ((CakePricing.SPEC.tierOnlyTop || []).includes(r.value) ? "（2段・3段では、一番上が" + ((CakePricing.SPEC.baseSizes || {})[r.value] || []).join("・") + "の段だけ選べます）" : "（5号の段だけ選べます）");
+        if (note) note.textContent = ok ? "" : CakePricing.SPEC.tartTypes.includes(r.value) ? "（2段の一番下の段だけ選べます。上にはカットケーキを載せます）" : ((CakePricing.SPEC.tierOnlyTop || []).includes(r.value) ? "（2段・3段では、一番上が" + ((CakePricing.SPEC.baseSizes || {})[r.value] || []).join("・") + "の段だけ選べます）" : "（5号の段だけ選べます）");
       }
     });
     { // セルクルまわりの案内（クリームの選択肢の上）
@@ -2282,7 +2348,7 @@ function applyCreamTierRules() {
           else tierSpecs[i] = { cream: "生クリーム", colors: [] };
         }
       }
-      if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ミッシェル・ガトーショコラは5号の段だけ、ムースは一番上が4号の段だけ選べます）");
+      if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ミッシェル・ガトーショコラは5号の段だけ、ムースは一番上が4号の段だけ、タルトは2段の一番下の段だけ選べます）");
       if (fixedCercle.length) alert(fixedCercle.join("・") + "は、セルクルを乗せる段では作れないため、生クリームに戻しました。\n（セルクルとそのすぐ下の段は、生クリームか生チョコクリームの同じクリームになります）");
       // セルクルとすぐ下の段を同じクリームにそろえる。いま選んでいる段がどちらかなら、その段で選んだクリームに合わせる
       if (ci >= 1) {
@@ -2305,6 +2371,15 @@ function applyCreamTierRules() {
 }
 function updateCakeOptionUI() {
   try { applyCreamTierRules(); } catch (e) { console.error(e); }
+  { // 一番下をタルトにした／やめたとき、上の段（カットケーキに固定かどうか）を描き直す
+    const top = document.querySelector('.tier-size-select[data-tier="1"]');
+    const bottomSet = !!sizeKeyOf((document.querySelector('.tier-size-select[data-tier="0"]') || {}).value || "");
+    if (currentTierCount() === 2 && top && bottomSet) {
+      const tartNow = CakePricing.SPEC.tartTypes.includes(bottomCream());
+      const lockedCut = top.disabled && String(top.value).indexOf("カットケーキ") === 0;
+      if (tartNow !== lockedCut) { renderTierSizeSelects(2); setTimeout(() => { updateCakeOptionUI(); updateLivePriceDisplay(); updateReserveDateNotices(); }, 0); }
+    }
+  }
   const g = id => document.getElementById(id);
   const category = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
   if (category !== "デコレーションケーキ") return;
@@ -2339,8 +2414,8 @@ function updateCakeOptionUI() {
   { const w = g("reserveOnsiteLate"); if (w) w.style.display = tierCount === 3 && g("reserveOnsite").checked && onsiteTooLate((g("reserveDate") || {}).value) ? "" : "none"; }
   g("reserveAddOnsField").style.display = addOnCatalog.length ? "" : "none";
   const tartOk = CakePricing.SPEC.tartTypes.includes(creamType);
-  g("reserveTopCutField").style.display = tartOk ? "" : "none";
-  if (!tartOk) g("reserveTopCut").checked = false;
+  g("reserveTopCutField").style.display = "none"; // タルトにカットケーキを載せるのは「2段」で選ぶ形に一本化（2026-10-26）
+  if (!tartOk || currentTierCount() > 1) g("reserveTopCut").checked = false;
   g("reserveTopCutNote").style.display = "none"; // 写真から選ぶ方式に変更（2026-09-30）。自由記入欄は使わない
   { const need = cutPickerNeeded() && cutCatalog.length > 0; g("reserveCutPickerField").style.display = need ? "" : "none"; if (need) renderCutPicker(); }
   { // 特別仕様（ブルーベリー・段ごとに種類が異なる・金粉/金箔/アラザン）が含まれる場合の案内
@@ -2394,7 +2469,7 @@ function updateReserveDateNotices() {
   const occasion = (document.querySelector('input[name="reserveOccasion"]:checked') || {}).value || "";
   const box = (color, bg, border, text) => `<div style="margin-top:10px;background:${bg};border:1px solid ${border};border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:${color};">${text}</div>`;
   let html = "";
-  const lead = CakePricing.checkLead(tiers, v, new Date());
+  const lead = CakePricing.checkLead(tiers, v, new Date(), bottomCream());
   const days = lead.min === lead.soft ? String(lead.min) : lead.min + "〜" + lead.soft;
   if (lead.level === "block") html += box("#8a2a1a", "#fdeeea", "#e6a698", `この段数・サイズの組み合わせは、箱・資材の手配のため、お受取日の${days}日前までのご予約が必要です。お受取日が近いため、お電話（070-9158-0641）でご相談ください。`);
   else if (lead.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `箱・資材の調達状況により、お受取日まで${lead.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
@@ -2866,9 +2941,9 @@ function validateReserve(data) {
   } else {
     const isShopCut = data.type === "カットケーキ予約", isShopXmas = data.type === "クリスマスケーキ予約", isShopAddon = data.type === "砂糖菓子・ゼリー菓子予約";
     const isBaked = data.type === "焼き菓子予約" || isShopCut || isShopXmas || isShopAddon;
+    setReserveError("reserveShopError", ""); // 先に消してから確かめる（2026-10-26：以前は「1個以上お選びください」を出した直後に消していて、理由が出ないまま止まっていた）
     if (isShopAddon && !((data.cutOrder || {}).count > 0)) { setReserveError("reserveShopError", "砂糖菓子・ゼリー菓子を1個以上お選びください"); ok = false; } // カット・クリスマスはケーキの仕様の入力が無いので焼き菓子と同じ扱い
     const isRoll = data.items[0] && data.items[0].category === "ロールケーキ";
-    setReserveError("reserveShopError", "");
     if (isShopCut && ((data.cutOrder || {}).count || 0) < SHOP_CUT_MIN) { setReserveError("reserveShopError", "カットケーキは合計3個からご予約いただけます（2個以下はお電話でお問い合わせください）"); ok = false; }
     if (isShopXmas && !xmasOpen()) { setReserveError("reserveShopError", "クリスマスケーキのご予約は、ただいま受付期間外です"); ok = false; }
     else if (isShopXmas && !(data.xmasCake && data.xmasCake.name && data.xmasCake.size)) { setReserveError("reserveShopError", "ケーキとサイズをお選びください"); ok = false; }
@@ -2878,6 +2953,7 @@ function validateReserve(data) {
     setReserveError("reserveCutError", "");
     if (!isBaked && !isRoll && cutPickerNeeded() && (data.cutCakes || []).reduce((s, c) => s + (Number(c.qty) || 0), 0) > cutMax()) { setReserveError("reserveCutError", cutBaseSize() + "に載せられるカットケーキは" + cutMax() + "個までです。個数を減らしてください"); ok = false; }
     if (!isBaked && !isRoll && cutPickerNeeded() && cutCatalog.length && !(data.cutCakes || []).length) { setReserveError("reserveCutError", "上に載せるカットケーキを1個以上お選びください"); ok = false; }
+    else if (!isBaked && !isRoll && cutPickerNeeded() && (cutQty[CUT_OTHER] || 0) > 0 && !cutOtherNoteVal()) { setReserveError("reserveCutError", "「その他」を選んだ場合は、ご希望のカットケーキをご記入ください"); ok = false; }
     if (isRoll && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
     if (PHONE_MODE && !(document.getElementById("phoneTakenBy") || {}).value) { alert("受付担当を選んでください（画面の一番上）"); ok = false; }
     if (!isBaked && !data.occasion) { setReserveError("reserveOccasionError", "ご利用シーンをお選びください"); ok = false; }
@@ -2896,7 +2972,7 @@ function validateReserve(data) {
       else if (isPhoneOnlyDate(pick)) { setReserveError("reserveDateError", PHONE_ONLY_TEXT + "。"); ok = false; }
       else if (!isBaked && data.onsiteAssembly && onsiteTooLate(data.pickupDate)) { setReserveError("reserveDateError", "出張での組み立ては、お受け取りの" + CakePricing.SPEC.onsiteLeadDays + "日前までのご予約が必要です。日付を変えるか、出張なしをお選びください。"); ok = false; }
       else if (today > computeOrderDeadline(pick)) { data.shortLead = true; } // 電話受付モード・クリスマスで3営業日前を切る：送信は受け付け、未確定（対応可否を確認）
-      else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
+      else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date(), bottomCream()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
       else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
     }
     if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }

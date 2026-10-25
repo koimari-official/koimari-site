@@ -71,6 +71,12 @@
     if (!baseCombo || ded == null) return null;
     return { price: baseCombo.price - ded, lead: baseCombo.lead, cutTop: true, basePrice: baseCombo.price, deduction: ded };
   }
+  // タルトの2段＝一番下がタルト・上がカットケーキ（2026-10-26オーナー指示：タルトの上にホールケーキは載せられない）。
+  // 料金・納期は「タルトにカットケーキを載せる」と同じ（タルト代＋カットケーキ代＋入れ物代・納期は通常どおり。2026-09-26オーナー確認）
+  function isTartCut(tiers, bottomCream) {
+    var keys = (tiers || []).filter(Boolean).map(tierKey);
+    return keys.length === 2 && keys[1] === "カットケーキ" && SPEC.tartTypes.indexOf(bottomCream || "") >= 0;
+  }
   function yen(n) { return "¥" + Number(n).toLocaleString(); }
   function fromYen(n) { return yen(n) + "〜"; }
 
@@ -90,6 +96,8 @@
     var specs = input.tierSpecs && input.tierSpecs.length === tiers.length ? input.tierSpecs : null;
     var creamOf = function (i) { return specs ? (specs[i].cream || cream) : cream; };
     var anyTier = function (f) { for (var i = 0; i < tiers.length; i++) if (f(creamOf(i))) return true; return false; };
+    var tartCut = isTartCut(tiers, creamOf(0));
+    if (tartCut) { multi = false; cream = creamOf(0); } // タルトの2段は、1段のタルトにカットケーキを載せるのと同じ計算
     if (!multi) {
       var k = tierKey(tiers[0]);
       // ケーキの種類ごとに単段の価格が異なる（typePrices: 種類→{号数→金額}）。種類別の価格が未登録で、かつ
@@ -186,7 +194,7 @@
       else cutUnpriced = true;
     });
     if (cutUnpriced) notes.push("一部のカットケーキの料金は別途ご案内します");
-    if (input.topCut && SPEC.tartTypes.indexOf(cream) >= 0) {
+    if ((input.topCut || tartCut) && SPEC.tartTypes.indexOf(cream) >= 0) {
       var fee = base.cutContainerFee || 0;
       if (fee > 0) lines.push({ label: "カットケーキ用の入れ物代", amount: fee });
       if (!cuts.length) notes.push("カットケーキ代" + (fee > 0 ? "" : "・入れ物代") + "は別途ご案内します（納期は通常どおりです）");
@@ -201,7 +209,8 @@
   }
 
   // 箱・資材の調達リードタイム。today/pickupは日付(時刻は無視)。
-  function checkLead(tiers, pickup, today) {
+  function checkLead(tiers, pickup, today, bottomCream) {
+    if (isTartCut(tiers, bottomCream)) return { level: "ok" }; // タルトの2段は納期は通常どおり
     var combo = resolveCombo(tiers);
     if (!combo || !combo.lead || !pickup) return { level: "ok" };
     var p = new Date(pickup); p.setHours(0, 0, 0, 0);
@@ -253,7 +262,7 @@
   }
 
   function lineYen(l) { return yen(l && l.amount) + (l && l.range ? "〜" : ""); }
-  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);
