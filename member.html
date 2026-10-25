@@ -430,7 +430,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field" id="reserveCreamToppingField" style="display:none;">
           <label class="field__check">
             <input type="checkbox" id="reserveCreamTopping">
-            <span id="reserveCreamToppingLabel">生クリームたっぷり乗せ（+540円・税込）</span>
+            <span id="reserveCreamToppingLabel">生クリームたっぷり乗せ</span>
           </label>
         </div>
         <div class="field" id="reserveToppingsField">
@@ -792,8 +792,14 @@ onValue(ref(db, "koimariContent/cakeSizePrices"), (snap) => {
   const wrap = document.getElementById("reserveTierSizesWrap");
   if (wrap && wrap.querySelector("select")) renderTierSizeSelects(currentTierCount());
 });
+// 金額は読み込めてから表示する（2026-10-26：読み込み前に作った「+0円」がそのまま残っていた）
+function syncCreamToppingLabel() {
+  const el = document.getElementById("reserveCreamToppingLabel");
+  if (el) el.textContent = "生クリームたっぷり乗せ" + (currentCreamToppingPrice > 0 ? "（+¥" + currentCreamToppingPrice.toLocaleString() + "・税込）" : "");
+}
 onValue(ref(db, "koimariContent/cakeCreamToppingPrice"), (snap) => {
   currentCreamToppingPrice = snap.val() || DEFAULT_CREAM_TOPPING_PRICE;
+  syncCreamToppingLabel();
 });
 onValue(ref(db, "koimariContent/cakeChocoCreamSurcharge"), (snap) => {
   currentChocoCreamSurcharge = snap.val() != null ? snap.val() : DEFAULT_CHOCO_CREAM_SURCHARGE;
@@ -2616,7 +2622,7 @@ function updateReserveFieldVisibility() {
   document.getElementById("reserveTierNoticeField").style.display = (isCake && currentTierCount() > 1) ? "" : "none";
   document.getElementById("reserveReceiptField").style.display = (isBaked || isShop) ? "" : "none";
   document.getElementById("reserveNoteReq").style.display = isBaked ? "inline-block" : "none";
-  document.getElementById("reserveCreamToppingLabel").textContent = `生クリームたっぷり乗せ（+${currentCreamToppingPrice.toLocaleString()}円・税込）`;
+  syncCreamToppingLabel();
 
   const sizeField = document.getElementById("reserveSizeField");
   if (isRoll || isShop) {
