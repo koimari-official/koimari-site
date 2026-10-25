@@ -31,6 +31,15 @@ const VAPID_PRIVATE_KEY = defineSecret("VAPID_PRIVATE_KEY"); // 予約のWeb Pus
 // （member.html:264のLIFF_IDと同じ値。#reserveでご予約セクションまで自動スクロールする）。
 const RESERVE_CARD_TRIGGER_TEXT = "予約について教えてください";
 const RESERVE_LIFF_URL = "https://liff.line.me/2011059940-hMTBZaUz#reserve";
+// ご予約の締切の案内（2026-10-26オーナー指示：読み物を増やさず端的に）。友だち追加直後の案内と「ご予約」ボタンの返信で共通
+const RESERVE_DEADLINE_LINES = [
+  "◆ご予約の締切",
+  "◇お受け取りの3営業日前まで",
+  "◇2営業日前〜当日はお電話で",
+  "　ご相談ください（070-9158-0641）",
+  "◇ホームページの写真を見ながら",
+  "　お伝えいただくとスムーズです",
+];
 const RESERVE_CARD_REPLY_TEXT = `ご予約はこちらからどうぞ🎂
 
 ${RESERVE_LIFF_URL}
@@ -42,13 +51,7 @@ ${RESERVE_LIFF_URL}
 ◇焼き菓子・ギフト
 ◇砂糖菓子・ゼリー菓子
 
-◆ネット予約の締切
-◇お引き取り希望日の3営業日前まで
-
-◆3営業日前を切る・お急ぎの場合
-◇お電話（070-9158-0641）へ
-
-ホームページのギャラリーで選んだ仕様をお伝えいただくと、よりスムーズにご案内できます🍓`;
+${RESERVE_DEADLINE_LINES.join("\n")}`;
 // 焼き菓子・ギフトは、管理画面の「販売方法」で「ご予約可」にした商品があるときだけ「ご予約できる商品」に載せる
 // （2026-10-25。単品は店頭販売のみ・セットは全国配送のため。予約フォーム member.html の bakedReservable と同じ判定）
 async function reserveCardReplyText() {
@@ -951,11 +954,7 @@ function buildFollowMessage(pick, coupons) {
     "◇送信後、スタッフより",
     "　お電話で内容を確認いたします",
     "",
-    "◆ご予約の締切",
-    "◇お引き取りの3営業日前まで",
-    "　※オーダーケーキの場合、14日程度お日にちを頂く場合がございます。",
-    "◇お急ぎの方はお電話へ",
-    "　（070-9158-0641）",
+    ...RESERVE_DEADLINE_LINES,
     "",
     "◆お支払い",
     "◇お引き取り日当日、",
