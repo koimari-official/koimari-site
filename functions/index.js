@@ -49,6 +49,14 @@ ${RESERVE_LIFF_URL}
 ◇お電話（070-9158-0641）へ
 
 ホームページのギャラリーで選んだ仕様をお伝えいただくと、よりスムーズにご案内できます🍓`;
+// 焼き菓子・ギフトは、管理画面の「販売方法」で「ご予約可」にした商品があるときだけ「ご予約できる商品」に載せる
+// （2026-10-25。単品は店頭販売のみ・セットは全国配送のため。予約フォーム member.html の bakedReservable と同じ判定）
+async function reserveCardReplyText() {
+  const lists = await Promise.all(["baked", "gift"].map((k) => admin.database().ref("siteImages/" + k).once("value").then((snap) => snap.val())));
+  const modesOf = (it) => { const raw = it.saleModes; const a = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : []; return a.length ? a : (it.saleMode ? [it.saleMode] : []); };
+  const reservable = lists.some((v) => (Array.isArray(v) ? v : (v ? Object.values(v) : [])).some((it) => it && it.name && it.visible !== false && !it.notForSale && modesOf(it).includes("reserve")));
+  return reservable ? RESERVE_CARD_REPLY_TEXT : RESERVE_CARD_REPLY_TEXT.replace("◇焼き菓子・ギフト\n", "");
+}
 
 // リッチメニュー「スタンプカード」タップ時の送信テキスト・返信（2026-09-08、旧「よくある質問」タイルを差し替え）。
 // LINE公式アカウント自体のショップカード機能への一本化を予定しているが、公開URLが未確定のため、
@@ -442,7 +450,7 @@ ${faqKnowledgeText}
 }
 
 // ローカルテスト用に内部ロジックも公開する（Cloud Functionsとしてはデプロイされない、ただのプロパティ）。
-exports._internal = {
+exports._internal = { reserveCardReplyText,
   buildConfirmMessage, buildReceivedMessage, isPushRecipient: (...a) => isPushRecipient(...a), pushContext: () => pushContext(),
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage, dueReminderStages, orderPhotoCard,
@@ -499,7 +507,7 @@ exports.lineWebhook = onRequest(
       try {
         // カード②「ご予約について教えてください」はAIの生成に任せず、確実にLIFF予約フォームへ案内する。
         if (event.message.text.trim() === RESERVE_CARD_TRIGGER_TEXT) {
-          await replyToLine(event.replyToken, RESERVE_CARD_REPLY_TEXT, LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
+          await replyToLine(event.replyToken, await reserveCardReplyText(), LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
           continue;
         }
 
