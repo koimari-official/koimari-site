@@ -379,6 +379,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
           <label class="field__label">カラークリーム（1段につき1色）</label>
+          <div class="field__hint" style="margin:-4px 0 8px;">色だけが変わります（味は生クリームのままです）</div>
           <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。1つの段は1色までです（段ごとに違う色をお選びいただけます）。色をタップしてお選びください。</div>
           <div id="reserveColorChips"></div>
           <div id="reserveColorSummary" class="field__hint">色を選ぶと、色数に応じた金額が加算されます</div>
@@ -951,13 +952,13 @@ document.addEventListener("click", (e) => {
   if (t.id === "reserveAddOnsBody") closeToppingSheet(); // 画面の外側を押したら閉じる
 });
 
-// ===== カラークリームの色選択（2026-09-24オーナー指示：黒・赤・青・紺・黄色・ピンク・緑・黄緑・茶色・水色ほか）=====
+// ===== カラークリームの色選択（2026-10-26：味と取り違えないよう、表示名はすべて「〜カラー」。2026-09-24オーナー指示：黒・赤・青・紺・黄色・ピンク・緑・黄緑・茶色・水色ほか）=====
 // 色数（1〜3色）が金額に直結するため、色のチップを最大3色まで選ぶ形にする。選んだ数が隠しselect(#reserveColorCream)の値になり、
 // 従来の概算計算・確認画面の仕組みをそのまま使う。色の追加・変更はこの配列だけを直せばよい。
 const CREAM_COLORS = [
-  { name: "黒", label: "ノワール", css: "#2b2b2b" }, { name: "グレー", label: "シルバーミスト", css: "#9a9a9a" }, { name: "赤", label: "ルージュ", css: "#d62839" }, { name: "青", label: "ロイヤルブルー", css: "#2f6fd6" }, { name: "紺", label: "ミッドナイト", css: "#1c2f6b" },
-  { name: "黄色", label: "レモンムース", css: "#f6d21f" }, { name: "ピンク", label: "ロゼ", css: "#f7a6c1" }, { name: "緑", label: "フォレスト", css: "#2e9b52" }, { name: "黄緑", label: "ピスタチオ", css: "#9bd13f" },
-  { name: "茶色", label: "ショコラ", css: "#7a4a2a" }, { name: "水色", label: "スカイソーダ", css: "#8fd3f4" },
+  { name: "黒", label: "ノワールカラー", css: "#2b2b2b" }, { name: "グレー", label: "シルバーミストカラー", css: "#9a9a9a" }, { name: "赤", label: "ルージュカラー", css: "#d62839" }, { name: "青", label: "ロイヤルブルーカラー", css: "#2f6fd6" }, { name: "紺", label: "ミッドナイトカラー", css: "#1c2f6b" },
+  { name: "黄色", label: "レモンムースカラー", css: "#f6d21f" }, { name: "ピンク", label: "ロゼカラー", css: "#f7a6c1" }, { name: "緑", label: "フォレストカラー", css: "#2e9b52" }, { name: "黄緑", label: "ピスタチオカラー", css: "#9bd13f" },
+  { name: "茶色", label: "ショコラカラー", css: "#7a4a2a" }, { name: "水色", label: "スカイソーダカラー", css: "#8fd3f4" },
   { name: "その他（下に記入）", label: "あなただけの色", css: "conic-gradient(#f7a6c1,#f6d21f,#9bd13f,#8fd3f4,#8a5bd0,#f7a6c1)" }
 ];
 function colorLabelOf(name) { const c = CREAM_COLORS.find(x => x.name === name); return c ? c.label + (c.name.indexOf("その他") === 0 ? "" : "（" + c.name + "）") : name; }
