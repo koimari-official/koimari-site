@@ -168,6 +168,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 
 /* ご予約前のご確認（2026-10-22） */
 .pre-notes{background:#fbf7f1;border:1px solid #e6d8c4;border-radius:12px;padding:12px 14px;margin:0 0 12px}
+.pre-notes__list{margin:6px 0 0;padding-left:1.2em;font-size:14px;line-height:1.8}.pre-notes__list li{margin:2px 0}
 .pre-notes__title{font-size:14.5px;font-weight:700;color:#4a3a2a;margin-bottom:8px}
 .pre-notes__item{padding:8px 0;border-top:1px dashed #e3d3bd}
 .pre-notes__head{font-size:13.5px;font-weight:700;color:#5a3a20;margin-bottom:2px}
@@ -685,29 +686,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <label class="omakase-none"><input type="radio" name="reserveOmakase" value="" checked> おまかせデコレーションはつけない</label>
         </div>
         <div class="pre-notes">
-          <div class="pre-notes__title">ご予約前に、ご確認ください</div>
-          <div class="pre-notes__item">
-            <div class="pre-notes__head">◆ 価格の変更について</div>
-            <p>戦争や紛争、自然災害などにより、原材料や資材の価格が急激に高騰した場合など、<b>やむを得ない事情があるときに限り</b>、価格を予告なく変更させていただく場合がございます。</p>
-            <p class="pre-notes__sub">※クリスマスケーキなどのイベント商品は対象外です。</p>
-          </div>
-          <div class="pre-notes__item">
-            <div class="pre-notes__head">◆ キャンセルについて</div>
-            <p>直前のキャンセルは、<a href="terms.html" target="_blank" rel="noopener">利用規約</a>のキャンセルポリシーに基づき、ご請求させていただきます。</p>
-            <p>ご予約内容の確認のご連絡（お電話）がつかない場合は、ご予約をキャンセルとさせていただくことがございます。</p>
-            <p class="pre-notes__sub">小さなお店を続けていくため、何卒ご理解・ご協力をお願い申し上げます。</p>
-          </div>
-          <!-- 期間限定のお知らせ（2026-10-22オーナー指示：報道中のPHP脆弱性への不安に対して）。data-until を過ぎると自動で表示しない -->
-          <div class="pre-notes__item" data-until="2026-11-30" hidden>
-            <div class="pre-notes__head">◆ セキュリティについて</div>
-            <p>当店のホームページ・ご予約フォームはPHPを使用していないため、報道されているPHPの脆弱性の影響は受けません。どうぞご安心ください。</p>
-          </div>
-          <script>(function(){var d=new Date(),t=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");document.querySelectorAll(".pre-notes [data-until]").forEach(function(e){if(t<=e.getAttribute("data-until"))e.hidden=false;});})();</script>
+          <!-- 2026-10-26オーナー指示：お客様を怯えさせない短い3行に（以前の「戦争や紛争」「ご請求」「小さなお店を続けていくため」、PHPの説明は削除） -->
+          <div class="pre-notes__title">ご予約について</div>
+          <ul class="pre-notes__list">
+            <li>原材料の急な値上がりなど、やむを得ない場合に価格が変わることがあります（クリスマスなどのイベント商品は除きます）。</li>
+            <li>キャンセルは、<a href="terms.html" target="_blank" rel="noopener">利用規約</a>のキャンセルポリシーにそって承ります。</li>
+            <li>ご予約内容の確認のお電話がつながらない場合は、ご予約をお受けできないことがあります。</li>
+          </ul>
         </div>
         <div class="field">
           <label class="field__check">
             <input type="checkbox" id="reserveConsent">
-            <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>・<a href="terms.html" target="_blank" rel="noopener">利用規約</a>（キャンセルポリシー含む）と、上記のご注意事項に同意する</span>
+            <span><a href="privacy.html" target="_blank" rel="noopener">プライバシーポリシー</a>・<a href="terms.html" target="_blank" rel="noopener">利用規約</a>（キャンセルポリシー含む）と、上記の内容に同意する</span>
           </label>
           <div class="error" id="reserveConsentError"></div>
         </div>
