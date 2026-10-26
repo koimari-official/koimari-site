@@ -108,7 +108,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .confirm-call-warning.show { display: flex; }
 .res-row--overdue { background: #fdecec !important; }
 
-.panel { display: none; }
+.panel { display: none; scroll-margin-top: 8px; }
 .panel.active { display: block; }
 .panel__head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; flex-wrap: wrap; gap: 14px; }
 .panel__title { font-family: var(--font-mincho); font-size: 22px; letter-spacing: 0.1em; font-weight: 600; }
@@ -2042,7 +2042,7 @@ function updatePendingResAlert(entries) {
   }
 }
 window.updatePendingResAlert = updatePendingResAlert;
-document.getElementById("pendingResOpen").addEventListener("click", () => { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); window.scrollTo({ top: 0, behavior: "smooth" }); });
+document.getElementById("pendingResOpen").addEventListener("click", () => { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }); // 予約一覧の位置への移動はタブを押したときの処理で行う
 // スマホ・タブレットは一度タップするまで音を鳴らせないため、最初のタップで音を有効にする
 document.addEventListener("pointerdown", function unlockOnce() {
   if (notifyAudioUnlocked) return;
@@ -2314,7 +2314,12 @@ function activateTab(t, updateHash) {
     if (updateHash !== false) { try { history.replaceState(null, "", "#" + t.dataset.panel); } catch (e) {} }
   }
 }
-document.querySelectorAll(".tab").forEach(t => { t.addEventListener("click", () => activateTab(t)); });
+// タブを押したら、その画面（予約一覧など）の位置まで移動する。タブが上にたくさん並び、押しても下に出た画面に気づきにくいため（2026-10-26オーナー指示）
+function scrollToPanel(t) {
+  const p = t && document.getElementById("panel-" + t.dataset.panel);
+  if (p) requestAnimationFrame(() => p.scrollIntoView({ behavior: "smooth", block: "start" }));
+}
+document.querySelectorAll(".tab").forEach(t => { t.addEventListener("click", () => { activateTab(t); scrollToPanel(t); }); });
 // URLの#で開くタブを指定する（例: admin.html#reservations で予約一覧をそのまま開く）。
 // ログイン直後にも呼ぶ（onAuthStateChangedの中でopenTabFromHash()を実行）。
 function openTabFromHash() {
