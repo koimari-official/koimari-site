@@ -124,12 +124,20 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .topping-teaser__img img{width:100%;height:100%;object-fit:contain;display:block}
 .topping-teaser__sel{margin-top:8px;font-size:13px;font-weight:700;color:#8a5a12;line-height:1.6}
 .topping-sheet{position:fixed;inset:0;z-index:9000;background:rgba(40,26,16,.55);align-items:flex-end;justify-content:center}
-.topping-sheet__panel{background:#fff;width:100%;max-width:640px;max-height:88vh;max-height:calc(100dvh - 10px);border-radius:18px 18px 0 0;padding:12px 12px 0;display:flex;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.topping-sheet__panel{background:#fff;width:100%;max-width:640px;max-height:88vh;max-height:calc(100dvh - 10px);border-radius:18px 18px 0 0;padding:12px 12px 0;display:flex;flex-direction:column;overflow:hidden}
 .topping-sheet__head{display:flex;align-items:center;justify-content:space-between;font-size:17px}
 .topping-sheet__close{border:1px solid #d8baa4;background:#fff;border-radius:999px;padding:6px 14px;font-size:14px;cursor:pointer}
 .topping-sheet__hint{font-size:12px;color:#7a6a58;line-height:1.5;margin:4px 0 6px}
-.topping-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(3,auto);grid-auto-columns:calc((100% - 16px) / 3);gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x proximity;padding-bottom:6px;min-height:0}
-.topping-grid .addon-card{scroll-snap-align:start;padding:6px!important}
+/* トッピングは3列で縦にスクロール。下に「▼ 下へスクロール」とぼかしを重ね、続きがあることを見せる（2026-10-26オーナー指示：横スクロールはわかりにくい） */
+.topping-scroll{position:relative;flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+.topping-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-content:start;gap:8px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:2px 2px 70px;flex:1 1 auto;min-height:0}
+.topping-grid .addon-card{padding:6px!important}
+.topping-more{position:absolute;left:0;right:0;bottom:0;padding:30px 8px 10px;text-align:center;font-size:14px;font-weight:700;color:#8a5a12;line-height:1.5;background:linear-gradient(rgba(255,255,255,0),#fff 50%);pointer-events:none;transition:opacity .3s}
+.topping-more__arrow{display:inline-block;font-size:16px;animation:toppingBounce 1.4s ease-in-out infinite}
+.topping-more.is-end{opacity:0}
+@keyframes toppingBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
+@media(prefers-reduced-motion:reduce){.topping-more__arrow{animation:none}}
+@media(min-width:700px){.topping-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .topping-grid .addon-card > div:nth-of-type(1){font-size:11.5px!important;margin-top:3px!important;line-height:1.3!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
 .topping-grid .addon-card button{width:28px!important;height:28px!important;font-size:16px!important}
 .topping-grid .addon-card > div:last-child{margin-top:4px!important;gap:8px!important}
@@ -589,8 +597,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div id="reserveAddOnsBody" class="topping-sheet" style="display:none;" role="dialog" aria-modal="true" aria-label="ケーキの上のトッピング">
             <div class="topping-sheet__panel">
               <div class="topping-sheet__head"><b>ケーキの上のトッピング</b><button type="button" class="topping-sheet__close" id="toppingClose">閉じる</button></div>
-              <div class="topping-sheet__hint">お子様の好きなキャラクター風の砂糖菓子で、特別なケーキに。横にスクロールして、＋−で個数をおえらびください。</div>
-              <div id="reserveAddOnsGrid"></div>
+              <div class="topping-sheet__hint">お子様の好きなキャラクター風の砂糖菓子で、特別なケーキに。下へスクロールして、＋−で個数をお選びください。</div>
+              <div class="topping-scroll">
+                <div id="reserveAddOnsGrid"></div>
+                <div class="topping-more" id="toppingMore"><span class="topping-more__arrow">▼</span> 下へスクロールすると、<br>ほかのトッピングも見られます<span id="toppingMoreCount"></span></div>
+              </div>
               <div class="topping-sheet__foot"><span id="toppingTotal">まだ選ばれていません</span><button type="button" class="topping-sheet__done" id="toppingDone">この内容で決定</button></div>
             </div>
           </div>
@@ -975,7 +986,7 @@ function renderCandleRows() {
   let html = candleRows.map((r, i) => '<div class="cutrow">' +
     '<select class="input select cutrow__name candle-num" data-row="' + i + '" aria-label="ろうそくの番号"><option value="">番号を選ぶ</option>' +
     "0123456789".split("").filter((d) => d === r.num || !used(i).includes(d)).map((d) => '<option value="' + d + '"' + (d === r.num ? " selected" : "") + ">「" + d + "」</option>").join("") + "</select>" +
-    '<select class="input select cutrow__qty candle-qty" data-row="' + i + '" aria-label="本数">' + [1, 2, 3, 4, 5].map((q) => '<option value="' + q + '"' + (q === r.qty ? " selected" : "") + ">" + q + "本</option>").join("") + "</select>" +
+    '<select class="input select cutrow__qty candle-qty" data-row="' + i + '" aria-label="本数">' + [0, 1, 2, 3, 4, 5].map((q) => '<option value="' + q + '"' + (q === r.qty ? " selected" : "") + ">" + q + "本</option>").join("") + "</select>" +
     (candleRows.length > 1 ? '<button type="button" class="candle-del" data-row="' + i + '" aria-label="この行を消す">×</button>' : "") + "</div>").join("");
   if (candleRows.every((r) => r.num !== "") && candleRows.length < 10) html += '<button type="button" class="candle-add" id="candleAddRow">＋ 別の番号を追加</button>';
   if (box.__html !== html) { box.innerHTML = html; box.__html = html; } // 変わらないときは作り直さない
@@ -986,7 +997,7 @@ document.addEventListener("change", (e) => {
   if (!t || !t.closest || !t.closest("#candleNumRows")) return;
   const r = candleRows[Number(t.dataset.row)];
   if (!r) return;
-  if (t.classList.contains("candle-num")) r.num = t.value; else if (t.classList.contains("candle-qty")) r.qty = Number(t.value) || 1;
+  if (t.classList.contains("candle-num")) r.num = t.value; else if (t.classList.contains("candle-qty")) r.qty = t.value === "" || isNaN(Number(t.value)) ? 1 : Number(t.value); // 0本も選べる（2026-10-26オーナー指示）。0本の行は控え・金額に入れない
   candleAfterChange();
 });
 document.addEventListener("click", (e) => {
@@ -1047,7 +1058,9 @@ function renderAddOns() {
   renderToppingTeaser();
   { const total = selectedAddOns().reduce((s, a) => s + a.qty, 0); const tg = document.getElementById("reserveAddOnsToggle"), body = document.getElementById("reserveAddOnsBody");
     if (tg) tg.textContent = total ? "砂糖菓子・ゼリー菓子・クッキー：" + total + "個 選択中（タップで" + (body && body.style.display !== "none" ? "閉じる" : "開く") + "）" : (body && body.style.display !== "none" ? "− 閉じる（砂糖菓子・ゼリー菓子・クッキー）" : "＋ 砂糖菓子・ゼリー菓子・クッキーを写真から選ぶ（任意）"); }
-  grid.style.cssText = ""; grid.className = "topping-grid"; // 縦3段×横3列ずつ、横スクロール（2026-10-21）
+  grid.style.cssText = ""; grid.className = "topping-grid"; // 3列ずつ、縦スクロール（2026-10-26オーナー指示で横から変更）
+  if (!grid.__moreBound) { grid.__moreBound = true; grid.addEventListener("scroll", updateToppingMore, { passive: true }); }
+  updateToppingMore();
   grid.querySelectorAll(".addon-plus, .addon-minus").forEach(btn => btn.addEventListener("click", () => {
     const it = addOnCatalog[Number(btn.dataset.i)];
     const k = addOnKey(it);
@@ -1075,7 +1088,17 @@ function openToppingSheet(index) {
   renderAddOns();
   b.style.display = "flex";
   document.body.style.overflow = "hidden";
-  if (index != null) { const card = document.querySelector('#reserveAddOnsGrid .addon-card[data-i="' + index + '"]'); if (card) card.scrollIntoView({ block: "nearest", inline: "center" }); }
+  if (index != null) { const card = document.querySelector('#reserveAddOnsGrid .addon-card[data-i="' + index + '"]'); if (card) card.scrollIntoView({ block: "center", inline: "nearest" }); }
+  requestAnimationFrame(updateToppingMore); // 開いて大きさが決まってから、続きがあるかを判定
+}
+// 一覧の下に「▼ 下へスクロール」を出す。一番下まで見たら消す
+function updateToppingMore() {
+  const grid = document.getElementById("reserveAddOnsGrid"), more = document.getElementById("toppingMore");
+  if (!grid || !more) return;
+  const cnt = document.getElementById("toppingMoreCount");
+  if (cnt) cnt.textContent = addOnCatalog.length ? "（全" + addOnCatalog.length + "種類）" : "";
+  const atEnd = grid.scrollHeight - grid.clientHeight - grid.scrollTop <= 12;
+  more.classList.toggle("is-end", atEnd);
 }
 function closeToppingSheet() {
   const b = document.getElementById("reserveAddOnsBody");
