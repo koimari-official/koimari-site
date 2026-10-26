@@ -203,6 +203,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .thanks-photo__title{font-size:16px;font-weight:700;color:#6b4a2a;margin:0 0 8px}
 .thanks-photo__img{display:block;width:100%;max-width:520px;aspect-ratio:1/1;object-fit:contain;background:#fff;border:1px solid #ecd9c4;border-radius:14px;margin:0 auto}
 .thanks-photo__cap{margin-top:8px;text-align:center;font-size:15px;font-weight:700;color:#2e2118;line-height:1.6}
+.thanks-photo__note{margin-top:2px;text-align:center;font-size:13px;color:#7a6a58}
 /* ケーキの種類：タルトはフルーツ／ストロベリーを「タルトBOX」1つにまとめる（いちご／ミックスフルーツは飾り付けで選ぶ。2026-10-26） */
 .radio-list__opt.opt-merged{display:none!important}
 /* ブラウザで開く（2026-10-26） */
@@ -2346,14 +2347,34 @@ function renderThanksPhoto(data) {
   const box = document.getElementById("reserveThanksPhoto");
   if (!box) return;
   const p = (data && data.galleryPick) || {};
-  const img = String(p.img || "");
-  if (!/^(https:\/\/|data:image\/)/.test(img) || !(THANKS_PHOTO_TYPES.includes(p.productType) || isPhotoChristmas(data))) { box.style.display = "none"; box.innerHTML = ""; return; }
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
-  const label = (Number(p.no) > 0 ? "No.D" + String(p.no).padStart(2, "0") + " " : "") + (p.name || "") + (p.size ? "（" + p.size + "）" : "");
+  let img = String(p.img || ""), label = "", note = "";
+  if (/^(https:\/\/|data:image\/)/.test(img) && (THANKS_PHOTO_TYPES.includes(p.productType) || isPhotoChristmas(data))) {
+    label = (Number(p.no) > 0 ? "No.D" + String(p.no).padStart(2, "0") + " " : "") + (p.name || "") + (p.size ? "（" + p.size + "）" : "");
+  } else {
+    // ギャラリーを通らない予約は、選んだ種類・飾りに合う定番ケーキの写真を「イメージ」として出す（2026-10-26オーナー指示）
+    const rc = refCakeForData(data);
+    if (!rc) { box.style.display = "none"; box.innerHTML = ""; return; }
+    img = rc.img; label = (rc.no > 0 ? "No.D" + String(rc.no).padStart(2, "0") + " " : "") + rc.name; note = "写真はイメージです";
+  }
   box.innerHTML = '<div class="thanks-photo__title">ご予約のケーキ</div>' +
-    '<img class="ns-img thanks-photo__img" src="' + esc(img) + '" alt="' + esc(p.name || "ご予約のケーキ") + '" draggable="false">' +
-    (label ? '<div class="thanks-photo__cap">' + esc(label) + "</div>" : "");
+    '<img class="ns-img thanks-photo__img" src="' + esc(img) + '" alt="' + esc(label || "ご予約のケーキ") + '" draggable="false">' +
+    (label ? '<div class="thanks-photo__cap">' + esc(label) + "</div>" : "") +
+    (note ? '<div class="thanks-photo__note">' + esc(note) + "</div>" : "");
   box.style.display = "";
+}
+// 予約の内容（クリーム・飾り・タルトの生クリームの有無）に合う、ギャラリーの定番ケーキを1つ選ぶ。
+// 照合は予約フォームの「参考イメージ」と同じ（refCandidatesByCream）。段のあるケーキ・フルオーダー・カットケーキ等は対象外
+function refCakeForData(data) {
+  if (!data || !refCakes || !refCakes.length) return null;
+  const it = (Array.isArray(data.items) && data.items[0]) || {};
+  if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子" || data.christmasOrder) return null;
+  if (Array.isArray(data.tierSpecs) && data.tierSpecs.length > 1) return null;
+  const tart = CakePricing.SPEC.tartTypes.includes(data.creamType);
+  const cream = tart ? (data.decoration === "いちごのみ" ? "ストロベリータルトBOX" : "フルーツタルトBOX") : (data.creamType || "");
+  const deco = tart ? "" : (data.decoration || "");
+  const sub = tart ? (data.creamTypeSub || "") : "";
+  return refCandidatesByCream(cream).find((c) => (!deco || !c.decoration || c.decoration === deco) && (!sub || !c.creamSub || c.creamSub === sub)) || null;
 }
 function estimateIsFixed(data) {
   if (data.quoteSeparately) return false;
@@ -3587,7 +3608,7 @@ let refLastKey = "";
     const res = await fetch("https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app/siteImages/decorationCakes.json");
     const data = res.ok ? await res.json() : null;
     const arr = Array.isArray(data) ? data : Object.values(data || {});
-    refCakes = arr.filter(it => it && it.img && it.visible !== false && !it.notForSale).map(it => ({ name: String(it.name || ""), img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }));
+    refCakes = arr.filter(it => it && it.img && it.visible !== false && !it.notForSale).map(it => ({ name: String(it.name || ""), no: Number(it.no) || 0, img: it.img, cream: (it.spec && it.spec.cream) || "", creamSub: (it.spec && it.spec.creamSub) || "", decoration: (it.spec && it.spec.decoration) || "", size: (String((it.spec && it.spec.size) || "").split("(")[0] || ((String(it.desc || "").match(/^【[^】]*?([3-7]号)[^】]*】/) || [])[1] || "")) }));
   } catch (e) { refCakes = []; }
   updateRefImage();
 })();
@@ -3624,7 +3645,7 @@ function updateRefImage() {
     const checked = document.querySelector('input[name="reserveCreamType"]:checked');
     const cream = checked ? checked.value : "";
     const deco = (document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "";
-    list = refCandidates(cream, deco);
+    list = refCandidates(tartKindFor(cream), deco); // タルトは「タルトBOX＋いちご」→ストロベリータルトの写真（2026-10-26：まとめた後に写真が出なくなっていたのを修正）
     label = "参考イメージ" + (cream ? "（" + cream + "）" : "");
   }
   if (!list.length) { box.style.display = "none"; return; }
