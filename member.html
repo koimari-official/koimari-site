@@ -174,6 +174,18 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .pre-notes__item p{margin:0;font-size:13px;line-height:1.75;color:#4a3a2a}
 .pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
 
+/* 番号付きの1ページ（2026-10-26・標準） */
+.scroll-ui [data-step="0"]{display:none!important}
+.rsec{margin:0 0 28px}
+.rsec + .rsec{border-top:1px dashed #e3d6c3;padding-top:24px}
+.rsec__head{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.rsec__num{flex:0 0 auto;font-size:30px;line-height:1;font-weight:700;color:#a88a52;font-family:var(--font-sans)}
+.rsec.is-done .rsec__num{color:#3aa76d}
+.rsec__title{font-size:20px;font-weight:700;color:#2e2118;line-height:1.35}
+.rsec__done{display:none;margin-left:auto;flex:0 0 auto;font-size:12.5px;font-weight:700;color:#0b7a37;border:1px solid #9ad9b0;border-radius:999px;padding:2px 10px;background:#f2faf4}
+.rsec.is-done .rsec__done{display:inline-block}
+.rsec__next{display:block;width:100%;margin:10px 0 0;min-height:52px;border:0;border-radius:12px;background:#ede3d4;color:#6b4a2a;font-size:17px;font-weight:700;cursor:pointer;font-family:inherit}
+.rsec__next.is-ready{background:#c8373f;color:#fff;animation:stepReady 1.8s ease-in-out infinite}
 /* 予約フォームの段階表示（2026-10-26 試作・?ui=step のときだけ） */
 .step-ui .step-off{display:none!important}
 .step-ui #reserveSubmitBtn{display:none!important}
@@ -738,25 +750,27 @@ const LIFF_ID = "2011059940-hMTBZaUz";
 const PHONE_MODE = new URLSearchParams(location.search).get("phone") === "1";
 // ===== 予約フォームの段階表示（2026-10-26 試作・第1段階）=====
 // 手順書：company/operations/product/koimari-reserve-form-redesign-procedure_20261026.md。
-// 2026-10-26から標準（オーナー指示）。?ui=classic で元の1ページ表示（スタッフの電話受付モードは元の表示が標準、?ui=step で段階表示）。
+// ?ui=step のとき（標準は下の「番号付きの1ページ」）。
 // 今の入力欄・判定・計算・自動保存はそのまま使い、各部品に「何番目のステップか」（data-step）を付けて、今のステップの部品だけを見せる。
-const STEP_UI = (() => {
+// 2026-10-26オーナー決定：標準は「番号付きの1ページ（下へスクロール）」。?ui=step でステップ式（1画面ずつ）、?ui=classic で元の1ページ。
+// スタッフの電話受付モードは元の1ページが標準。
+const FORM_UI = (() => {
   try {
     const q = new URLSearchParams(location.search);
     let v = q.get("ui");
-    const st = q.get("liff.state"); // LINEから開いたとき、最初はここに「?ui=step#reserve」が入って届く
+    const st = q.get("liff.state"); // LINEから開いたとき、最初はここに「?ui=…#reserve」が入って届く
     if (!v && st) v = new URLSearchParams((st.split("?")[1] || "").split("#")[0]).get("ui");
-    if (v === "step") sessionStorage.setItem("koimari_ui", "step");
-    if (v === "classic") sessionStorage.setItem("koimari_ui", "classic");
+    if (["step", "scroll", "classic"].includes(v)) sessionStorage.setItem("koimari_ui", v);
     const saved = sessionStorage.getItem("koimari_ui");
-    if (saved) return saved === "step";
-    return !PHONE_MODE; // 2026-10-26オーナー指示で段階表示を標準に。スタッフの電話受付モードは従来の1ページ表示
-  } catch (e) { return false; }
+    if (["step", "scroll", "classic"].includes(saved)) return saved;
+    return PHONE_MODE ? "classic" : "scroll";
+  } catch (e) { return PHONE_MODE ? "classic" : "scroll"; }
 })();
+const STEP_UI = FORM_UI === "step", SCROLL_UI = FORM_UI === "scroll";
 const STEPS = [["種類", "ご注文の種類"], ["サイズ", "段数とサイズ"], ["中身", "ケーキの中身"], ["飾り", "飾りとオプション"], ["日時", "お受け取りの日時"], ["お客様", "お客様の情報"], ["確認", "ご確認"]];
 // ":id"＝その入力欄を含む項目（.field）、"=name"＝そのラジオを含む項目、".class"＝フォーム内の要素、それ以外は id
 const STEP_PARTS = [
-  ["draftBanner", "resumeBanner", "lastOrderBanner", "pastOrders", "reserveCategoryField", "=reserveType"],
+  ["=reserveType", "reserveCategoryField", "lastOrderBanner", "resumeBanner", "pastOrders", "draftBanner"],
   ["reserveTiersField", "reserveTierDiagram", "reserveSizeField", "reserveTierNoticeField", "reserveOnsiteField"],
   ["reserveFlavorField", "reserveShopField", "refImageBox", "reserveCreamTypeField", "reserveColorCreamField", "reserveSpecialNotice", "kidsManagerFieldsWrap"],
   ["reserveTopCutField", "reserveStrawberryAddField", "reserveDecorationField", "reserveCreamToppingField", "reserveToppingsField", "reserveOccasionField", "reserveCandleField", "reserveChocoField", "reserveAddOnsField", "reserveOmakaseField", "liveTotalBar"],
@@ -1456,6 +1470,7 @@ function createReserveFloat() {
   document.body.appendChild(el);
 }
 function updateReserveFloat() {
+  if (SCROLL_UI) { try { updateScrollUI(); } catch (e) { console.error("番号の表示", e); } }
   const el = document.getElementById("reserveFloat");
   if (!el) return;
   const wrap = document.getElementById("reserveFormWrap");
@@ -1494,6 +1509,17 @@ function initStepUI() {
   const wrap = document.getElementById("reserveFormWrap");
   if (!wrap) return;
   wrap.classList.add("step-ui");
+  prepareSteps();
+  const head = document.createElement("div");
+  head.id = "stepHead"; head.className = "stephead";
+  wrap.insertBefore(head, wrap.firstChild);
+  const al = document.createElement("div");
+  al.id = "stepAlert"; al.className = "stepalert";
+  head.after(al);
+  showStep(1, 1, true);
+}
+// 項目の並べ替えと、各項目に「何番目か」（data-step）を付ける（ステップ式・番号付きの1ページで共通）
+function prepareSteps() {
   // 並べ替え（2026-10-26オーナー決定：ご利用シーンはろうそく・プレートのすぐ上／おまかせデコレーションは飾りとオプションの中）
   const occ = document.getElementById("reserveOccasionField"), candle = document.getElementById("reserveCandleField");
   if (occ && candle) candle.parentNode.insertBefore(occ, candle);
@@ -1507,14 +1533,134 @@ function initStepUI() {
   // 選択肢が1つしかない「ご予約の種類」は出さない（data-step=0＝どのステップでも隠す）
   const cat = document.getElementById("reserveCategoryField");
   if (cat && Array.from(cat.querySelectorAll("input[name=\"reserveCategory\"]")).filter((r) => r.closest("label") && r.closest("label").getClientRects().length).length <= 1) cat.dataset.step = "0";
+}
+// まだ選んでいない必須の項目（番号ごと）。今の送信前の確認をそのまま使い、画面のエラー表示は元に戻す
+function pendingByStep() {
+  const by = {};
+  if (PHONE_MODE || !reserveDataBuilder) return by;
+  const errEls = Array.from(document.querySelectorAll("#reserveFormWrap .error"));
+  const saved = errEls.map((e) => e.textContent);
+  try {
+    validateReserve(reserveDataBuilder());
+    errEls.forEach((e) => { const t = e.textContent.trim(), n = stepOf(e); if (t && n) (by[n] = by[n] || []).push(t); });
+  } catch (e) { console.error("未選択の確認", e); }
+  errEls.forEach((e, i) => { if (e.textContent !== saved[i]) e.textContent = saved[i]; });
+  return by;
+}
+// ===== 番号付きの1ページ（2026-10-26オーナー決定・標準）=====
+// 全部の項目を番号ごとのまとまり（.rsec）に入れて縦に並べる。番号の終わりの「▼次へ」は、選び終わると赤く点滅し、押すと次の番号へスクロール。
+// 種類によって中身が無い番号（ロールケーキの段数とサイズ等）は出さず、番号を詰める。上には今見ている番号と進み具合。
+const CIRCLED = ["①", "②", "③", "④", "⑤", "⑥", "⑦"];
+let secPending = {}, scrollTick = false;
+function initScrollUI() {
+  if (!SCROLL_UI || document.getElementById("stepHead")) return;
+  const wrap = document.getElementById("reserveFormWrap"), cake = document.getElementById("cakeFieldsWrap");
+  if (!wrap || !cake) return;
+  wrap.classList.add("scroll-ui");
+  prepareSteps();
   const head = document.createElement("div");
   head.id = "stepHead"; head.className = "stephead";
   wrap.insertBefore(head, wrap.firstChild);
-  const al = document.createElement("div");
-  al.id = "stepAlert"; al.className = "stepalert";
-  head.after(al);
-  showStep(1, 1, true);
+  STEPS.forEach((st, i) => {
+    const n = i + 1, sec = document.createElement("div");
+    sec.className = "rsec"; sec.dataset.sec = String(n);
+    sec.innerHTML = '<div class="rsec__head"><span class="rsec__num"></span><span class="rsec__title">' + st[1] + '</span><span class="rsec__done">選択済み</span></div><div class="rsec__body"></div>' +
+      (n < 7 ? '<button type="button" class="rsec__next" data-secnext="' + n + '"></button>' : "");
+    // ①〜⑤はケーキの欄の中に置く（種類ごとの出し分けの決まり #cakeFieldsWrap[data-shop] をそのまま使うため）
+    (n <= 5 ? cake : wrap).appendChild(sec);
+  });
+  STEP_PARTS.forEach((keys, i) => {
+    const body = document.querySelector('.rsec[data-sec="' + (i + 1) + '"] .rsec__body');
+    keys.forEach((k) => { if (k === "kidsManagerFieldsWrap") return; const e = stepPartEl(k); if (e && e.dataset.step === String(i + 1)) body.appendChild(e); });
+  });
+  const badge = document.getElementById("autosaveBadge");
+  if (badge) document.querySelector('.rsec[data-sec="6"] .rsec__body').appendChild(badge);
+  // 送信で足りない項目があったら、その項目まで戻す
+  document.getElementById("reserveSubmitBtn").addEventListener("click", () => setTimeout(() => {
+    const conf = document.getElementById("reserveConfirmWrap");
+    if (conf && conf.style.display === "block") return;
+    const first = Array.from(document.querySelectorAll("#reserveFormWrap .error")).find((e) => e.textContent.trim() && stepOf(e) > 0 && stepOf(e) < 7);
+    if (first) first.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 60));
+  window.addEventListener("scroll", () => { if (!scrollTick) { scrollTick = true; requestAnimationFrame(() => { scrollTick = false; renderScrollHead(); }); } }, { passive: true });
+  updateScrollUI();
 }
+function secHasContent(sec) {
+  const prev = sec.style.display;
+  sec.style.display = "";
+  const v = Array.from(sec.querySelector(".rsec__body").children).some((e) => e.getClientRects().length > 0);
+  sec.style.display = prev;
+  return v;
+}
+function visibleSecs() { return Array.from(document.querySelectorAll(".rsec")).filter((s) => s.style.display !== "none"); }
+function updateScrollUI() {
+  if (!SCROLL_UI || !document.getElementById("stepHead")) return;
+  secPending = pendingByStep();
+  const vis = Array.from(document.querySelectorAll(".rsec")).filter((sec) => {
+    const v = sec.dataset.sec === "7" || secHasContent(sec);
+    sec.style.display = v ? "" : "none";
+    return v;
+  });
+  vis.forEach((sec, i) => {
+    const n = Number(sec.dataset.sec), done = !secPending[n];
+    sec.querySelector(".rsec__num").textContent = CIRCLED[i];
+    const nx = sec.querySelector(".rsec__next");
+    if (!nx) return;
+    const to = vis[i + 1];
+    nx.style.display = to ? "" : "none";
+    if (to) {
+      const label = "▼ " + CIRCLED[i + 1] + STEPS[Number(to.dataset.sec) - 1][1] + "へ";
+      if (nx.textContent !== label) nx.textContent = label;
+      nx.dataset.to = to.dataset.sec;
+    }
+    nx.classList.toggle("is-ready", done);
+  });
+  renderScrollHead();
+}
+function renderScrollHead() {
+  const head = document.getElementById("stepHead");
+  if (!head || !SCROLL_UI) return;
+  const vis = visibleSecs();
+  if (!vis.length) return;
+  const off = head.getBoundingClientRect().height + 48;
+  let cur = vis[0];
+  vis.forEach((sec) => { if (sec.getBoundingClientRect().top <= off) cur = sec; });
+  const idx = vis.indexOf(cur), n = Number(cur.dataset.sec);
+  // 「選択済み」は、お客様がその番号で選んだか、その番号を通り過ぎたときだけ（最初から入っている値だけでは付けない）
+  const doneOf = (sec, i) => { const k = Number(sec.dataset.sec); return k < 7 && !secPending[k] && (sec.dataset.touched === "1" || i < idx); };
+  vis.forEach((sec, i) => sec.classList.toggle("is-done", doneOf(sec, i)));
+  const html = '<div class="stephead__row"><span class="stephead__badge">' + CIRCLED[idx] + "<small> / " + vis.length + "</small></span>" +
+    '<span class="stephead__name">' + STEPS[n - 1][1] + "</span></div>" +
+    '<div class="stephead__bar" style="grid-template-columns:repeat(' + vis.length + ',1fr)">' + vis.map((sec) => {
+      const k = Number(sec.dataset.sec);
+      return '<button type="button" class="stephead__seg' + (sec === cur ? " is-cur" : doneOf(sec, vis.indexOf(sec)) ? " is-done" : "") + '" data-secgo="' + k + '" aria-label="' + STEPS[k - 1][1] + 'へ"></button>';
+    }).join("") + "</div>";
+  if (head.__html !== html) { head.innerHTML = html; head.__html = html; }
+}
+function scrollToSec(n) {
+  const sec = document.querySelector('.rsec[data-sec="' + n + '"]');
+  if (!sec) return;
+  const head = document.getElementById("stepHead");
+  window.scrollTo({ top: sec.getBoundingClientRect().top + window.scrollY - ((head ? head.getBoundingClientRect().height : 0) + 10), behavior: "smooth" });
+}
+// 「▼次へ」：その番号までに足りないものがあれば、そこを示す。無ければ次の番号へ
+function secNext(n) {
+  try { if (reserveDataBuilder) validateReserve(reserveDataBuilder()); } catch (e) { console.error("次への確認", e); }
+  const errs = Array.from(document.querySelectorAll("#reserveFormWrap .error")).filter((e) => e.textContent.trim() && stepOf(e) > 0);
+  errs.filter((e) => stepOf(e) > n).forEach((e) => { e.textContent = ""; }); // まだ進んでいない番号の「未入力」は出さない
+  const bad = errs.filter((e) => stepOf(e) <= n);
+  if (bad.length) { bad[0].scrollIntoView({ behavior: "smooth", block: "center" }); return; }
+  const nx = document.querySelector('.rsec[data-sec="' + n + '"] .rsec__next');
+  if (nx && nx.dataset.to) scrollToSec(nx.dataset.to);
+}
+["change", "input"].forEach((t) => document.addEventListener(t, (e) => { const sec = SCROLL_UI && e.target && e.target.closest && e.target.closest(".rsec"); if (sec) sec.dataset.touched = "1"; }));
+document.addEventListener("click", (e) => {
+  if (!SCROLL_UI || !e.target || !e.target.closest) return;
+  const go = e.target.closest("[data-secgo]");
+  if (go) { scrollToSec(go.dataset.secgo); return; }
+  const nx = e.target.closest("[data-secnext]");
+  if (nx) secNext(Number(nx.dataset.secnext));
+});
 function renderStepHead() {
   const head = document.getElementById("stepHead");
   if (!head) return;
@@ -1544,12 +1690,8 @@ function showStepAlert(errs) {
 }
 function stepReady() {
   if (PHONE_MODE || !reserveDataBuilder) return false;
-  const errEls = Array.from(document.querySelectorAll("#reserveFormWrap .error"));
-  const saved = errEls.map((e) => e.textContent);
-  let ok = false;
-  try { validateReserve(reserveDataBuilder()); ok = !errEls.some((e) => e.textContent.trim() && stepOf(e) > 0 && stepOf(e) <= curStep); } catch (e) { ok = false; }
-  errEls.forEach((e, i) => { if (e.textContent !== saved[i]) e.textContent = saved[i]; });
-  return ok;
+  const by = pendingByStep();
+  return !Object.keys(by).some((n) => Number(n) <= curStep);
 }
 // 「次へ」：今の送信前の確認（validateReserve）をそのまま使い、このステップまでの項目だけを見る
 function stepNext() {
@@ -1648,6 +1790,7 @@ function initLastOrderBanner() {
   document.getElementById("lastOrderGo").addEventListener("click", () => {
     applyFormSpec(Object.assign({}, s, { date: "", time: "" })); el.style.display = "none"; updateReserveFloat();
     if (STEP_UI && document.getElementById("stepHead")) setTimeout(() => showStep(5, 1), 300); // 段階表示では、そのまま日時を選ぶステップへ
+    if (SCROLL_UI && document.getElementById("stepHead")) setTimeout(() => { updateScrollUI(); scrollToSec(5); }, 300); // 番号付きでは日時の番号へ
   });
 }
 document.addEventListener("input", (e) => { if (e.target && e.target.closest && e.target.closest("#reserveFormWrap")) { updateChocoPreview(); updateReserveFloat(); } });
@@ -2903,6 +3046,7 @@ function updateReserveFieldVisibility() {
   if (isCake) populateFlavorSelect(currentCakeFlavors);
   else if (isRoll) populateFlavorSelect(currentRollFlavors);
   if (STEP_UI && document.getElementById("stepHead")) setTimeout(renderStepHead, 0);
+  if (SCROLL_UI && document.getElementById("stepHead")) setTimeout(updateScrollUI, 0);
   if (!isCake) ["reserveColorCreamField", "reserveColorChocoNote", "reserveColorCreamNote", "reserveStrawberryAddField", "reserveTopCutField", "reserveCutPickerField", "reserveOnsiteField", "tier3Notice", "reserveSpecialNotice", "reserveSmallDecoTip", "reserveChristmasNotice"].forEach(id => { const e = document.getElementById(id); if (e) e.style.display = "none"; });
   updateCakeOptionUI();
   updateLivePriceDisplay();
@@ -3823,7 +3967,7 @@ async function mainPhone() {
   const sec = document.getElementById("reserveSection");
   sec.parentNode.insertBefore(bar, sec);
   setupReserveForm("", "");
-  initStepUI();
+  initStepUI(); initScrollUI();
   // お客様向けの確認チェックは、電話ではスタッフが口頭で確認するため自動でチェックして隠す
   ["reserveStoreConfirm", "reserveLeadConfirm", "reserveConsent"].forEach((id) => { const c = document.getElementById(id); if (c) { c.checked = true; c.dispatchEvent(new Event("change", { bubbles: true })); const f = c.closest(".field") || c.closest("label"); if (f) f.style.display = "none"; } });
   sec.scrollIntoView({ block: "start" });
@@ -3899,7 +4043,7 @@ async function main() {
     });
 
     setupReserveForm(uid, profile.displayName || "");
-    initStepUI();
+    initStepUI(); initScrollUI();
     checkFriendship();
     if (location.hash === "#reserve") {
       document.getElementById("reserveSection").scrollIntoView({ block: "start" });
