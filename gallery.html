@@ -202,6 +202,8 @@ main{padding-top:26px!important}
 .cat-tile__name{display:block;margin-top:8px;font-size:14.5px;font-weight:700;line-height:1.4;letter-spacing:.04em}
 .cat-tile__count{display:block;font-family:var(--font-sans);font-size:12px;color:var(--color-text-soft);font-weight:600}
 .cat-tile.active .cat-tile__name{color:var(--color-accent-dark)}
+/* 名前を2行に分けたタイル（デコレーション／ケーキ（定番）等）は、行の途中で折り返さないよう文字に合わせて幅を広げる（2026-10-26） */
+.cat-tile--2l{width:auto;min-width:112px}.cat-tile--2l .cat-tile__img{margin:0 auto}.cat-tile--2l .cat-tile__name{white-space:nowrap}
 @media(max-width:700px){.cat-tile{width:88px}.cat-tile__img{width:88px;height:88px}.cat-tile__name{font-size:13px}}
 .gal-card__desc{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px!important;margin-bottom:10px!important}
 .gal-card__price{font-size:20px;font-weight:700;color:#8a3a2a;margin-bottom:8px;font-family:var(--font-sans)}
@@ -368,7 +370,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 // 「誕生日ケーキ」はデコレーションケーキに集約されたためタブなし（オーナー指示）。
 const CATEGORIES = [
   { key: "all", name: "すべて" },
-  { key: "cake", name: "デコレーションケーキ" },
+  { key: "cake", name: "デコレーションケーキ（定番）", tile: "デコレーション\nケーキ（定番）" },
+  { key: "order", name: "オーダーメイドケーキ", tile: "オーダーメイド\nケーキ" }, // 管理画面「ギャラリー」の作品（1点物・作品No.付き）。定番と分けて表示（2026-10-26オーナー指示）
   { key: "cutcake", name: "カットケーキ" },
   { key: "roll", name: "ロールケーキ" },
   { key: "baked", name: "焼き菓子" },
@@ -497,7 +500,7 @@ function buildGallery(){
     .map((c, idx) => ({ c, idx }))
     .filter(({c}) => c && c.visible !== false && c.img)
     .map(({c, idx}) => menuItemToCard(c, "gift", idx, "gift"));
-  gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img).map(g => Object.assign({}, g, { title: isPlaceholderTitle(g.title) ? "" : g.title })), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
+  gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img).map(g => Object.assign({}, g, { title: isPlaceholderTitle(g.title) ? "" : g.title, category: g.category === "cake" || !g.category ? "order" : g.category })), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
   // 砂糖菓子・ゼリー菓子は専用タブだけに出す（「すべて」には入れない。写真が小さめのため）
   gallery = gallery.concat(menuAddOns.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img && c.name && c.name !== "新しい商品").map(({ c, idx }) => menuItemToCard(c, "addon", idx, "addOn")));
 }
@@ -527,9 +530,9 @@ function renderTabs(){
     if (menuSynced && count === 0 && c.key !== currentCat) return;
     const btn = document.createElement("button");
     btn.type = "button";
-    btn.className = "cat-tile" + (c.key === currentCat ? " active" : "");
+    btn.className = "cat-tile" + (c.tile ? " cat-tile--2l" : "") + (c.key === currentCat ? " active" : "");
     const cover = coverOf(c.key);
-    btn.innerHTML = `<span class="cat-tile__img">${cover ? `<img src="${escape(cover)}" alt="">` : ""}</span><span class="cat-tile__name">${escape(c.name)}</span><span class="cat-tile__count">${count}品</span>`;
+    btn.innerHTML = `<span class="cat-tile__img">${cover ? `<img src="${escape(cover)}" alt="">` : ""}</span><span class="cat-tile__name">${escape(c.tile || c.name).replace(/\n/g, "<br>")}</span><span class="cat-tile__count">${count}品</span>`;
     btn.addEventListener("click", () => selectCategory(c.key));
     wrap.appendChild(btn);
   });
