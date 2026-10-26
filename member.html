@@ -220,6 +220,8 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .cutrow__img{flex:0 0 48px;width:48px;height:48px;border-radius:8px;object-fit:cover;background:#f7efe3;display:block}
 .cutrow__name{flex:1;min-width:0}
 .cutrow__qty{flex:0 0 78px;width:78px}
+.candle-del{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid #d8baa4;background:#fff;color:#8a6a4a;font-size:18px;line-height:1;cursor:pointer;font-family:inherit}
+.candle-add{display:block;width:100%;margin-top:2px;padding:11px;border:1px dashed #d8baa4;border-radius:10px;background:#fffaf3;color:#6b4a2a;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
 .cutrow__del{flex:0 0 36px;width:36px;height:36px;border-radius:50%;border:1px solid #d8baa4;background:#fff;color:#8a6a4a;font-size:18px;line-height:1;cursor:pointer;font-family:inherit}
 .cutrow__add{display:block;width:100%;margin-top:2px;padding:11px;border:1px dashed #d8baa4;border-radius:10px;background:#fffaf3;color:#6b4a2a;font-weight:700;font-size:15px;cursor:pointer;font-family:inherit}
 /* クリスマスケーキ特設ページへの案内（2026-10-25） */
@@ -509,17 +511,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <span>ろうそくが必要</span>
           </label>
           <div id="reserveCandleDetail" style="display:none;margin-top:10px;">
-            <div class="radio-list" style="margin-bottom:10px;">
-              <label class="radio-list__opt"><input type="radio" name="reserveCandleType" value="ナンバーろうそく" checked> ナンバーろうそく</label>
-              <label class="radio-list__opt"><input type="radio" name="reserveCandleType" value="普通のろうそく"> 普通のろうそく</label>
+            <div id="candleNumberBlock">
+              <div class="field__label" style="font-size:14px;">ナンバーろうそく（0〜9の数字）</div>
+              <div class="field__hint" id="candleNumberHint" style="margin-bottom:6px;"></div>
+              <div id="candleNumRows"></div>
             </div>
-            <label class="field__label" for="reserveCandleBags" id="reserveCandleBagsLabel" style="font-size:12px;">袋数（1袋5本入）</label>
-            <select id="reserveCandleBags" class="input select">
-              <option value="1">1袋</option>
-              <option value="2">2袋</option>
-              <option value="3">3袋</option>
-            </select>
-            <div class="field__hint" id="reserveCandleHint"></div>
+            <div id="candlePlainBlock" style="margin-top:14px;">
+              <label class="field__label" for="reserveCandleBags" style="font-size:14px;">普通のろうそく（1袋5本入）</label>
+              <select id="reserveCandleBags" class="input select">
+                <option value="0">なし</option>
+                <option value="1">1袋（無料）</option>
+                <option value="2">2袋</option>
+                <option value="3">3袋</option>
+              </select>
+              <div class="field__hint" id="reserveCandleHint"></div>
+            </div>
           </div>
           <div class="error" id="reserveCandleError"></div>
         </div>
@@ -739,7 +745,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js?v=20261026"></script>
+<script src="cake-pricing.js?v=20261026b"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
@@ -907,6 +913,10 @@ function occasionCategoryName(baseCategory, occasion, occasionOther) {
 // ろうそくの数量表示。ナンバーろうそくは1文字180円なので単位は「文字」、普通のろうそくは「袋」（2026-09-29）。
 function candleQtyText(data, forStaff) {
   if (!data.candleNeeded) return "なし";
+  if (data.candleNumbers || data.candlePlainBags != null) { // 2026-10-26からの形（番号ごとの本数＋普通のろうそくの袋数）
+    const t = CakePricing.candleText ? CakePricing.candleText(data) : (data.candleText || "");
+    return t + (Number(data.candlePlainBags) > 1 ? (forStaff ? "（普通のろうそくは2袋目から有料）" : "（普通のろうそくは2袋目から追加料金）") : "");
+  }
   const n = Number(data.candleBags) || 1;
   if (data.candleType === "ナンバーろうそく") return data.candleType + " " + n + "文字";
   return data.candleType + " " + n + "袋" + (n > 1 ? (forStaff ? "（2袋目以降有料）" : "（2袋目以降は追加料金）") : "");
@@ -918,30 +928,54 @@ let currentCandleBagPriceNumber = 0; // 実際の金額は管理画面の設定�
 let currentCandleBagPricePlain = DEFAULT_CANDLE_BAG_PRICE_PLAIN;
 let currentMessagePlatePrice = 0;
 onValue(ref(db, "koimariContent/cakeCandleBagPriceNumber"), (snap) => { currentCandleBagPriceNumber = snap.val() != null ? snap.val() : 0; if (typeof updateCandleBagsUI === "function") { updateCandleBagsUI(); updateLivePriceDisplay(); } });
-onValue(ref(db, "koimariContent/cakeCandleBagPricePlain"), (snap) => { currentCandleBagPricePlain = snap.val() || DEFAULT_CANDLE_BAG_PRICE_PLAIN; });
+onValue(ref(db, "koimariContent/cakeCandleBagPricePlain"), (snap) => { currentCandleBagPricePlain = snap.val() || DEFAULT_CANDLE_BAG_PRICE_PLAIN; if (typeof updateCandleBagsUI === "function") updateCandleBagsUI(); });
 function candleCostFor(candleType, bags) {
   if (!bags) return 0;
   if (candleType === "ナンバーろうそく") return bags * currentCandleBagPriceNumber;
   return Math.max(0, bags - 1) * currentCandleBagPricePlain;
 }
-// ろうそくの種類によって「1袋目が無料かどうか」が違うため、選択肢の表示・注意書きを都度切り替える。
+// ろうそくの金額の案内と、普通のろうそくの袋数の選択肢（2026-10-26：ナンバーろうそくは番号ごとの行、普通のろうそくは袋数。両方選べる）
 function updateCandleBagsUI() {
-  const isNumber = ((document.querySelector('input[name="reserveCandleType"]:checked') || {}).value) === "ナンバーろうそく";
-  const bagsSelect = document.getElementById("reserveCandleBags");
-  const bagsLabel = document.getElementById("reserveCandleBagsLabel");
-  const opt1 = bagsSelect.querySelector('option[value="1"]');
+  const nh = document.getElementById("candleNumberHint");
+  if (nh) nh.textContent = "1本 ¥" + currentCandleBagPriceNumber.toLocaleString() + "（税込）。例：25歳なら「2」を1本と「5」を1本";
+  const sel = document.getElementById("reserveCandleBags");
+  if (sel) sel.querySelectorAll("option").forEach((o) => { const v = Number(o.value); o.textContent = v === 0 ? "なし" : v === 1 ? "1袋（無料）" : v + "袋（+¥" + ((v - 1) * currentCandleBagPricePlain).toLocaleString() + "）"; });
   const hint = document.getElementById("reserveCandleHint");
-  if (isNumber) {
-    bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "文字（+¥" + (Number(o.value) * currentCandleBagPriceNumber).toLocaleString() + "）"; });
-    if (bagsLabel) bagsLabel.textContent = "文字数（例：8歳なら1文字、25歳なら2文字）";
-    hint.textContent = `ナンバーろうそくは1文字${currentCandleBagPriceNumber.toLocaleString()}円（税込）です。`;
-  } else {
-    bagsSelect.querySelectorAll("option").forEach(o => { o.textContent = o.value + "袋"; });
-    if (bagsLabel) bagsLabel.textContent = "袋数（1袋5本入）";
-    opt1.textContent = "1袋（無料）";
-    hint.textContent = `普通のろうそくは1袋目無料、2袋目以降は1袋${currentCandleBagPricePlain.toLocaleString()}円（税込）かかります。`;
-  }
+  if (hint) hint.textContent = "1袋目は無料、2袋目からは1袋 ¥" + currentCandleBagPricePlain.toLocaleString() + "（税込）です。";
+  renderCandleRows();
 }
+// ===== ナンバーろうそく：番号（0〜9）と本数を1行ずつ。「＋ 別の番号を追加」で複数 =====
+let candleRows = [{ num: "", qty: 1 }];
+function candleNumbersNow() { return candleRows.filter((r) => r.num !== "" && r.qty > 0).map((r) => ({ num: r.num, qty: r.qty })); }
+function candlePlainNow() { return Number((document.getElementById("reserveCandleBags") || {}).value) || 0; }
+function renderCandleRows() {
+  const box = document.getElementById("candleNumRows");
+  if (!box) return;
+  const used = (i) => candleRows.filter((r, j) => j !== i).map((r) => r.num);
+  let html = candleRows.map((r, i) => '<div class="cutrow">' +
+    '<select class="input select cutrow__name candle-num" data-row="' + i + '" aria-label="ろうそくの番号"><option value="">番号を選ぶ</option>' +
+    "0123456789".split("").filter((d) => d === r.num || !used(i).includes(d)).map((d) => '<option value="' + d + '"' + (d === r.num ? " selected" : "") + ">「" + d + "」</option>").join("") + "</select>" +
+    '<select class="input select cutrow__qty candle-qty" data-row="' + i + '" aria-label="本数">' + [1, 2, 3, 4, 5].map((q) => '<option value="' + q + '"' + (q === r.qty ? " selected" : "") + ">" + q + "本</option>").join("") + "</select>" +
+    (candleRows.length > 1 ? '<button type="button" class="candle-del" data-row="' + i + '" aria-label="この行を消す">×</button>' : "") + "</div>").join("");
+  if (candleRows.every((r) => r.num !== "") && candleRows.length < 10) html += '<button type="button" class="candle-add" id="candleAddRow">＋ 別の番号を追加</button>';
+  if (box.__html !== html) { box.innerHTML = html; box.__html = html; } // 変わらないときは作り直さない
+}
+function candleAfterChange() { renderCandleRows(); updateLivePriceDisplay(); try { updateOptionSummaries(); } catch (e) {} try { scheduleAutosave(); } catch (e) {} }
+document.addEventListener("change", (e) => {
+  const t = e.target;
+  if (!t || !t.closest || !t.closest("#candleNumRows")) return;
+  const r = candleRows[Number(t.dataset.row)];
+  if (!r) return;
+  if (t.classList.contains("candle-num")) r.num = t.value; else if (t.classList.contains("candle-qty")) r.qty = Number(t.value) || 1;
+  candleAfterChange();
+});
+document.addEventListener("click", (e) => {
+  const t = e.target && e.target.closest ? e.target.closest(".candle-del, #candleAddRow") : null;
+  if (!t) return;
+  if (t.id === "candleAddRow") candleRows.push({ num: "", qty: 1 }); else candleRows.splice(Number(t.dataset.row), 1);
+  if (!candleRows.length) candleRows = [{ num: "", qty: 1 }];
+  candleAfterChange();
+});
 onValue(ref(db, "koimariContent/cakeMessagePlatePrice"), (snap) => { currentMessagePlatePrice = snap.val() || 0; });
 
 // 2026-09-24：概算見積もりは cake-pricing.js（オーナー提供の仕様）で計算する。入力の集約と表示だけここで行う。
@@ -1306,7 +1340,7 @@ function collectFormSpec() {
     topCut: !!(g("reserveTopCut") || {}).checked, topCutNote: (g("reserveTopCutNote") || {}).value || "",
     cutQty: Object.assign({}, cutQty), cutOtherNote: (g("reserveCutOtherNote") || {}).value || "",
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
-    candle: !!(g("reserveCandleNeeded") || {}).checked, candleType: cv("reserveCandleType"), candleBags: (g("reserveCandleBags") || {}).value || "1",
+    candle: !!(g("reserveCandleNeeded") || {}).checked, candleNums: candleNumbersNow(), candleBags: (g("reserveCandleBags") || {}).value || "0",
     msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
     toppings: selectedToppings(), later: laterList(), omakase: selectedOmakase(), fruitExtra: !!(g("reserveFruitExtra") || {}).checked,
     addOns: Object.keys(addOnQty).filter(k => addOnQty[k] > 0).map(k => [k, addOnQty[k]]),
@@ -1385,7 +1419,11 @@ function applyFormSpec(s) {
     Object.keys(cutQty).forEach(k => delete cutQty[k]); Object.assign(cutQty, s.cutQty || {}); cutRowOrder = []; setVal("reserveCutOtherNote", s.cutOtherNote || ""); renderCutPicker();
     setTimeout(convertTartTopCut, 0); // 以前の形（1段のタルト＋カットケーキを載せる）は2段に読み替える
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
-    setChk("reserveCandleNeeded", s.candle); setRadio("reserveCandleType", s.candleType); setVal("reserveCandleBags", s.candleBags || "1");
+    setChk("reserveCandleNeeded", s.candle);
+    // 以前の形（種類＋数）の途中保存も読む：普通のろうそくは袋数に、ナンバーろうそくは番号を選び直してもらう
+    candleRows = (s.candleNums && s.candleNums.length) ? s.candleNums.map((c) => ({ num: String(c.num), qty: Number(c.qty) || 1 })) : [{ num: "", qty: 1 }];
+    setVal("reserveCandleBags", s.candleNums ? (s.candleBags || "0") : (s.candleType === "普通のろうそく" ? (s.candleBags || "1") : "0"));
+    renderCandleRows();
     setVal("reserveMessageCount", s.msgCount || "0"); setVal("reserveChocoText", s.msgText || "");
     LATER_ITEMS.forEach(([id, label]) => { const e = document.getElementById(id); if (e) e.checked = (s.later || []).includes(label); });
     document.querySelectorAll(".reserve-topping").forEach(e => { e.checked = (s.toppings || []).includes(e.value); });
@@ -2083,7 +2121,7 @@ onValue(ref(db, "koimariContent/christmas"), (snap) => {
 function buildShopReservation(base) {
   const m = shopMode();
   const d = { ...base };
-  ["occasion", "occasionOther", "creamType", "creamTypeSub", "decoration", "creamTopping", "candleNeeded", "candleType", "candleBags", "messageCount", "priceNeedsConsult", "estimateLines", "estimateNotes", "colorCream", "tierSpecs", "strawberryAdd", "addOns", "topCut", "cutCakes", "onsiteAssembly", "toppings", "decideLater", "specialReasons", "christmasOrder", "specialSpec", "galleryPick", "quoteSeparately", "includedDecoration", "customBase"].forEach(k => delete d[k]);
+  ["occasion", "occasionOther", "creamType", "creamTypeSub", "decoration", "creamTopping", "candleNeeded", "candleType", "candleBags", "candleNumbers", "candlePlainBags", "candleText", "messageCount", "priceNeedsConsult", "estimateLines", "estimateNotes", "colorCream", "tierSpecs", "strawberryAdd", "addOns", "topCut", "cutCakes", "onsiteAssembly", "toppings", "decideLater", "specialReasons", "christmasOrder", "specialSpec", "galleryPick", "quoteSeparately", "includedDecoration", "customBase"].forEach(k => delete d[k]);
   const t = shopTotal();
   d.priceNeedsConsult = false;
   d.estimateLines = []; d.estimateNotes = [];
@@ -2143,8 +2181,8 @@ function gatherEstimateInput() {
     strawberryAdd: g("reserveStrawberryAdd") ? g("reserveStrawberryAdd").checked : false,
     strawberryKind: (document.querySelector('input[name="reserveStrawberryKind"]:checked') || {}).value || "いちご",
     candleNeeded: candleNeeded,
-    candleType: candleNeeded ? checkedVal("reserveCandleType") : "",
-    candleBags: candleNeeded ? (Number(g("reserveCandleBags").value) || 1) : 0,
+    candleNumbers: candleNeeded ? candleNumbersNow() : [],
+    candlePlainBags: candleNeeded ? candlePlainNow() : 0,
     messageCount: g("reserveMessageCount") ? (Number(g("reserveMessageCount").value) || 0) : 0,
     addOns: selectedAddOns(),
     toppings: selectedToppings(),
@@ -2843,7 +2881,7 @@ document.addEventListener("change", (e) => { if (e.target && e.target.id === "re
 // 見出しを押すと開く。閉じていても選んだ内容を見出しの横に出す。写真は管理画面で登録したもの（koimariContent/reserveOptionPhotos）だけ
 let OPT_PHOTOS = {};
 const OPT_SECTIONS = [
-  { id: "reserveCandleField", title: "ろうそく", sum: () => { const c = document.getElementById("reserveCandleNeeded"); if (!c || !c.checked) return "なし"; const t = (document.querySelector('input[name="reserveCandleType"]:checked') || {}).value || ""; return t; } },
+  { id: "reserveCandleField", title: "ろうそく", sum: () => { const c = document.getElementById("reserveCandleNeeded"); if (!c || !c.checked) return "なし"; return CakePricing.candleText ? CakePricing.candleText({ candleNeeded: true, candleNumbers: candleNumbersNow(), candlePlainBags: candlePlainNow() }).replace(/^なし$/, "選択中") : "あり"; } },
   { id: "reserveChocoField", title: "メッセージプレート（名入れチョコ）", sum: () => { const n = Number((document.getElementById("reserveMessageCount") || {}).value || 0); const t = (document.getElementById("reserveChocoText") || {}).value || ""; return n > 0 ? n + "枚" + (t ? "「" + t + "」" : "") : "なし"; } },
   { id: "reserveToppingsField", title: "トッピング（金粉・金箔・アラザン）", sum: () => { const v = Array.from(document.querySelectorAll(".reserve-topping:checked")).map((e) => e.value); return v.length ? v.join("・") : "なし"; } },
   { id: "reserveOmakaseField", title: "おまかせデコレーション（松・竹・梅）", sum: () => { const v = (document.querySelector('input[name="reserveOmakase"]:checked') || {}).value || ""; return v ? v : "なし"; } },
@@ -2876,8 +2914,8 @@ function applyOptionPhotos() {
     img.src = OPT_PHOTOS[key];
   };
   const lab = (sel) => { const i = document.querySelector(sel); return i ? i.closest("label") : null; };
-  put(lab('input[name="reserveCandleType"][value="普通のろうそく"]'), "candlePlain");
-  put(lab('input[name="reserveCandleType"][value="ナンバーろうそく"]'), "candleNumber");
+  put(document.getElementById("candlePlainBlock"), "candlePlain");
+  put(document.getElementById("candleNumberBlock"), "candleNumber");
   { const f = document.getElementById("reserveChocoField"); put(f && f.querySelector(".opt-collapse__body"), "messagePlate", "opt-photo--wide"); }
   put(lab('.reserve-topping[value="金粉"]'), "kinpun");
   put(lab('.reserve-topping[value="金箔"]'), "kinpaku");
@@ -3139,7 +3177,7 @@ function validateReserve(data) {
     else if (data.occasion === "その他" && !data.occasionOther.trim()) { setReserveError("reserveOccasionError", "ご利用シーンをご記入ください"); ok = false; }
     if (!isBaked && !isRoll && !data.creamType) { setReserveError("reserveCreamTypeError", "クリームの種類をお選びください"); ok = false; }
     if (!isBaked && !isRoll && !data.decoration) { setReserveError("reserveDecorationError", "飾り付けをお選びください"); ok = false; }
-    if (!isBaked && data.candleNeeded && !data.candleType) { setReserveError("reserveCandleError", "ろうそくの種類をお選びください"); ok = false; }
+    if (!isBaked && data.candleNeeded && !(data.candleNumbers || []).length && !(Number(data.candlePlainBags) > 0)) { setReserveError("reserveCandleError", "ろうそくの番号か、普通のろうそくの袋数をお選びください"); ok = false; }
     if (data.type === "焼き菓子予約" && !data.note.trim()) { setReserveError("reserveNoteError", "ご希望の商品をご記入ください"); ok = false; }
     if (!data.pickupDate) { setReserveError("reserveDateError", "引き取り希望日をご入力ください"); ok = false; }
     else {
@@ -3770,8 +3808,12 @@ function setupReserveForm(uid, displayName) {
       const decoration = isCake ? ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "") : "";
       const creamTopping = isCake && !isXmasOrder && currentTierCount() === 1 && document.getElementById("reserveCreamTopping").checked; // 2段・3段は段ごと（tierSpecs）
       const candleNeeded = ((isBaked || isXmasOrder) ? false : document.getElementById("reserveCandleNeeded").checked);
-      const candleType = candleNeeded ? ((document.querySelector('input[name="reserveCandleType"]:checked') || {}).value || "") : "";
-      const candleBags = candleNeeded ? (Number(document.getElementById("reserveCandleBags").value) || 1) : 0;
+      const candleNumbers = candleNeeded ? candleNumbersNow() : [];
+      const candlePlainBags = candleNeeded ? candlePlainNow() : 0;
+      // 以前の形の欄（candleType・candleBags）も入れておく（表示は candleText を優先）
+      const candleType = !candleNeeded ? "" : candleNumbers.length && candlePlainBags ? "ナンバーろうそく＋普通のろうそく" : candleNumbers.length ? "ナンバーろうそく" : candlePlainBags ? "普通のろうそく" : "";
+      const candleBags = candleNumbers.length ? candleNumbers.reduce((n, c) => n + c.qty, 0) : candlePlainBags;
+      const candleText = candleNeeded && CakePricing.candleText ? CakePricing.candleText({ candleNeeded, candleNumbers, candlePlainBags }) : "";
 
       const specsNow = isCake ? activeSpecs() : [];
       const canColor = isCake && specsNow.some(s => s.cream === "生クリーム");
@@ -3805,7 +3847,7 @@ function setupReserveForm(uid, displayName) {
         pickupDate: document.getElementById("reserveDate").value || "",
         pickupTime: document.getElementById("reserveTime").value || "",
         items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
-        candleNeeded, candleType, candleBags, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
+        candleNeeded, candleType, candleBags, candleNumbers, candlePlainBags, candleText, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [], priceIsFixed: !!priceResult.priceIsFixed,
         ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: specsNow.reduce((a, s) => a.concat(s.colors), []), note: colorCreamNote } } : {}),

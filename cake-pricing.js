@@ -77,6 +77,39 @@
     var keys = (tiers || []).filter(Boolean).map(tierKey);
     return keys.length === 2 && keys[1] === "カットケーキ" && SPEC.tartTypes.indexOf(bottomCream || "") >= 0;
   }
+  // ===== ろうそく（2026-10-26オーナー指示）=====
+  // ナンバーろうそくは0〜9の番号ごとに本数（candleNumbers=[{num,qty}]）、普通のろうそくは袋数（candlePlainBags）。両方選べる。
+  // 以前の形（candleType＋candleBags。ナンバーは文字数だけで番号の指定なし）の予約も読めるようにする。
+  function candleParts(d) {
+    if (!d || !d.candleNeeded) return { numbers: [], plainBags: 0, legacy: "" };
+    if (d.candleNumbers || d.candlePlainBags != null) {
+      return { numbers: (d.candleNumbers || []).filter(function (c) { return c && String(c.num) !== "" && Number(c.qty) > 0; }).map(function (c) { return { num: String(c.num), qty: Number(c.qty) }; }), plainBags: Number(d.candlePlainBags) || 0, legacy: "" };
+    }
+    var n = Number(d.candleBags) || 1;
+    if (d.candleType === "ナンバーろうそく") return { numbers: [], plainBags: 0, legacy: "ナンバーろうそく " + n + "文字", legacyCount: n };
+    return { numbers: [], plainBags: n, legacy: "" };
+  }
+  function candleText(d) {
+    var c = candleParts(d), parts = [];
+    if (c.legacy) return c.legacy;
+    if (c.numbers.length) parts.push("ナンバーろうそく " + c.numbers.map(function (x) { return "「" + x.num + "」" + x.qty + "本"; }).join("・"));
+    if (c.plainBags > 0) parts.push("普通のろうそく " + c.plainBags + "袋");
+    return parts.length ? parts.join("／") : "なし";
+  }
+  function formatCandleNumbers(list) { return (list || []).map(function (c) { return c.num + "×" + c.qty; }).join(" "); }
+  // 「2×1 5×1」「25」（＝「2」と「5」を1本ずつ）「2,5」などを [{num,qty}] に（スタッフの予約変更画面用）
+  function parseCandleNumbers(str) {
+    var map = {}, order = [];
+    function add(d, q) { if (!(d in map)) { map[d] = 0; order.push(d); } map[d] += q; }
+    String(str || "").replace(/[０-９]/g, function (ch) { return String.fromCharCode(ch.charCodeAt(0) - 0xFEE0); }).replace(/[xX＊*✕]/g, "×")
+      .split(/[\s、,，・\/／]+/).forEach(function (tok) {
+        if (!tok) return;
+        var m = /^(\d)×(\d+)$/.exec(tok);
+        if (m) add(m[1], Number(m[2]));
+        else if (/^\d+$/.test(tok)) tok.split("").forEach(function (d) { add(d, 1); });
+      });
+    return order.map(function (d) { return { num: d, qty: map[d] }; });
+  }
   function yen(n) { return "¥" + Number(n).toLocaleString(); }
   function fromYen(n) { return yen(n) + "〜"; }
 
@@ -160,7 +193,12 @@
       }
     }
 
-    if (!isXmas && input.candleNeeded) {
+    if (!isXmas && input.candleNeeded && (input.candleNumbers || input.candlePlainBags != null)) {
+      // 新しい形：ナンバーろうそくは1本あたり、普通のろうそくは1袋目無料・2袋目から1袋あたり
+      var cps = candleParts(input), pieces = cps.numbers.reduce(function (n, x) { return n + x.qty; }, 0);
+      if (pieces && base.candleNumber) lines.push({ label: "ナンバーろうそく（" + pieces + "本）", amount: pieces * base.candleNumber });
+      if (cps.plainBags > 1 && base.candlePlain) lines.push({ label: "普通のろうそく（2袋目から " + (cps.plainBags - 1) + "袋）", amount: (cps.plainBags - 1) * base.candlePlain });
+    } else if (!isXmas && input.candleNeeded) {
       var bags = Number(input.candleBags) || 1;
       // ナンバーろうそくは1文字あたりの単価（2026-09-29、旧: 1袋あたり）。bagsは文字数として渡ってくる。
       var candle = input.candleType === "ナンバーろうそく" ? bags * (base.candleNumber || 0) : Math.max(0, bags - 1) * (base.candlePlain || 0);
@@ -262,7 +300,7 @@
   }
 
   function lineYen(l) { return yen(l && l.amount) + (l && l.range ? "〜" : ""); }
-  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, candleParts: candleParts, candleText: candleText, formatCandleNumbers: formatCandleNumbers, parseCandleNumbers: parseCandleNumbers, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);

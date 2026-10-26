@@ -90,6 +90,22 @@
     return pick || null;
   }
 
+  // ろうそく（2026-10-26：ナンバーろうそくは番号×本数、普通のろうそくは袋数。両方選べる）。以前の形（種類＋数）の記録も読む
+  function candleSnapData(s) {
+    var CP = window.CakePricing || {};
+    var nums = CP.parseCandleNumbers ? CP.parseCandleNumbers(s.candleNums) : [];
+    var plain = Number(s.candlePlain) || 0;
+    if (!nums.length && !plain && s.candleLegacy) return { candleNeeded: true, candleType: "ナンバーろうそく", candleBags: s.candleLegacy, candleNumbers: null, candlePlainBags: null, candleText: null };
+    if (!nums.length && !plain) return { candleNeeded: false, candleType: null, candleBags: 0, candleNumbers: null, candlePlainBags: null, candleText: null };
+    var pieces = nums.reduce(function (n, c) { return n + c.qty; }, 0);
+    var d = { candleNeeded: true, candleNumbers: nums.length ? nums : null, candlePlainBags: plain, candleType: nums.length && plain ? "ナンバーろうそく＋普通のろうそく" : nums.length ? "ナンバーろうそく" : "普通のろうそく", candleBags: nums.length ? pieces : plain };
+    d.candleText = CP.candleText ? CP.candleText(d) : null;
+    return d;
+  }
+  function candleLabelSnap(s) {
+    if (s.candleNums !== undefined || s.candlePlain !== undefined) { var d = candleSnapData(s); return !d.candleNeeded ? "なし" : (d.candleText || (window.CakePricing && window.CakePricing.candleText ? window.CakePricing.candleText(d) : d.candleType + " " + d.candleBags)); }
+    return s.candleType ? s.candleType + " " + s.candleCount + (s.candleType === "ナンバーろうそく" ? "文字" : "袋") : "なし"; // 以前の記録
+  }
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (m) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]; }); }
   function yen(n) { return "¥" + Number(n || 0).toLocaleString(); }
   function plainSize(v) { v = String(v || ""); if (v.indexOf("カットケーキ") === 0) return "カットケーキ"; return v.split("(")[0]; }
@@ -114,8 +130,9 @@
       decoration: r.decoration || "",
       occasion: r.occasion || "",
       occasionOther: r.occasionOther || "",
-      candleType: r.candleNeeded ? (r.candleType || "普通のろうそく") : "",
-      candleCount: r.candleNeeded ? (Number(r.candleBags) || 1) : 0,
+      candleNums: r.candleNeeded && r.candleNumbers && window.CakePricing && window.CakePricing.formatCandleNumbers ? window.CakePricing.formatCandleNumbers(r.candleNumbers) : "",
+      candlePlain: !r.candleNeeded ? 0 : (r.candleNumbers || r.candlePlainBags != null) ? (Number(r.candlePlainBags) || 0) : (r.candleType === "普通のろうそく" ? (Number(r.candleBags) || 1) : 0),
+      candleLegacy: r.candleNeeded && !r.candleNumbers && r.candlePlainBags == null && r.candleType === "ナンバーろうそく" ? (Number(r.candleBags) || 1) : 0,
       messageCount: Number(r.messageCount) || 0,
       message: (items[0] || {}).message || "",
       creamTopping: !!r.creamTopping,
@@ -161,7 +178,7 @@
     }
     if (s.decoration) rows.push(["飾り付け", s.decoration]);
     if (s.occasion) rows.push(["ご利用シーン", s.occasion === "その他" && s.occasionOther ? s.occasionOther : s.occasion]);
-    if (!simple) rows.push(["ろうそく", s.candleType ? s.candleType + " " + s.candleCount + (s.candleType === "ナンバーろうそく" ? "文字" : "袋") : "なし"]);
+    if (!simple) rows.push(["ろうそく", candleLabelSnap(s)]);
     if (!simple) rows.push(["メッセージプレート", s.messageCount ? s.messageCount + "枚" + (s.message ? "「" + s.message + "」" : "") : "なし"]);
     var opts = [];
     if (s.creamTopping) opts.push("生クリームたっぷり乗せ");
@@ -194,18 +211,17 @@
   function estimateOfBase(s, r) {
     if (s.cuts) return cutEstimate(s);
     if (!window.CakePricing || !priceBase || !s.tiers.length) return null;
-    return window.CakePricing.estimate({
+    return window.CakePricing.estimate(Object.assign({
       tiers: s.tiers.map(function (t) { return t.size; }),
       creamType: (s.tiers[0] || {}).cream || "",
       tierSpecs: s.tiers.map(function (t) { return { cream: t.cream }; }),
       decoration: s.decoration, occasion: s.occasion, includedDecoration: r.includedDecoration || "",
       creamTopping: s.creamTopping, strawberryAdd: s.strawberryAdd, onsiteAssembly: s.onsiteAssembly,
       colorCreamCount: s.tiers.filter(function (t) { return t.color; }).length,
-      candleNeeded: !!s.candleType, candleType: s.candleType, candleBags: s.candleCount,
       messageCount: s.messageCount,
       addOns: r.addOns || [], toppings: r.toppings || [], topCut: !!r.topCut, cutCakes: r.cutCakes || [],
       omakase: s.omakase || "", fruitExtra: !!s.fruitExtra
-    }, priceBase);
+    }, candleSnapData(s)), priceBase);
   }
   // 電話で受けた追加のご注文（選択肢にないもの）の金額を、料金表の計算結果に足す（2026-10-06）
   function withExtra(est, s) {
@@ -234,7 +250,6 @@
       occasion: s.occasion || null,
       occasionOther: s.occasion === "その他" ? (s.occasionOther || null) : null,
       christmasOrder: s.occasion === "クリスマス" ? true : null,
-      candleNeeded: !!s.candleType, candleType: s.candleType || null, candleBags: s.candleType ? s.candleCount : 0,
       messageCount: s.messageCount,
       creamTopping: !!s.creamTopping, strawberryAdd: s.strawberryAdd || null, onsiteAssembly: s.onsiteAssembly || null,
       omakaseDeco: s.omakase || null,
@@ -247,6 +262,7 @@
     p.colorCream = colors.length ? { count: colors.length, colors: colors, note: "" } : null;
     p.extraCharge = Number(s.extraAmount) > 0 ? Number(s.extraAmount) : null;
     p.extraChargeNote = s.extraNote || null;
+    Object.assign(p, candleSnapData(s));
     if (est && !est.needsConsult) { p.subtotal = est.subtotal; p.estimateLines = est.lines; p.estimateNotes = est.notes; }
     return p;
   }
@@ -450,7 +466,8 @@
       });
       html += field("飾り付け", sel("reDeco", [""].concat(DECORATIONS), e.decoration, function (o) { return o || "指定なし"; }));
       html += field("ご利用シーン", sel("reOcc", OCCASIONS, e.occasion, function (o) { return o || "指定なし"; }) + (e.occasion === "その他" ? '<input class="input re-in" id="reOccOther" value="' + esc(e.occasionOther) + '" placeholder="例：結婚記念日">' : ""));
-      html += field("ろうそく", sel("reCandle", ["", "普通のろうそく", "ナンバーろうそく"], e.candleType) + (e.candleType ? sel("reCandleN", [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], e.candleCount || 1, function (o) { return o + (e.candleType === "ナンバーろうそく" ? "文字" : "袋"); }) : ""));
+      html += field("ナンバーろうそく（番号×本数）", '<input class="input re-in" id="reCandleNums" value="' + esc(e.candleNums || "") + '" placeholder="例：2×1 5×1（「25」と書いても同じ）">' + (e.candleLegacy && !e.candleNums ? '<div style="font-size:12.5px;color:#8a6a4a;margin-top:4px;">以前のご予約：ナンバーろうそく ' + e.candleLegacy + "文字（番号を入れると置き換わります）</div>" : ""));
+      html += field("普通のろうそく", sel("reCandlePlain", [0, 1, 2, 3], e.candlePlain || 0, function (o) { return o ? o + "袋" + (o === 1 ? "（無料）" : "") : "なし"; }));
       html += field("メッセージプレート", sel("reMsgN", [0, 1, 2, 3], e.messageCount, function (o) { return o ? o + "枚" : "なし"; }) + (e.messageCount ? '<input class="input re-in" id="reMsg" value="' + esc(e.message) + '" placeholder="プレートの文字">' : ""));
       html += field("オプション", '<label class="re-check"><input type="checkbox" id="reTopping"' + (e.creamTopping ? " checked" : "") + "> 生クリームたっぷり乗せ</label>" +
         '<label class="re-check"><input type="checkbox" id="reStraw"' + (e.strawberryAdd ? " checked" : "") + "> いちごトッピング</label>" +
@@ -539,7 +556,7 @@
       e.tiers = e.tiers.slice(0, n);
       e.creamSub = g("reCreamSub") ? g("reCreamSub").value : "";
       e.decoration = g("reDeco").value; e.occasion = g("reOcc").value; e.occasionOther = g("reOccOther") ? g("reOccOther").value : e.occasionOther;
-      e.candleType = g("reCandle").value; e.candleCount = g("reCandleN") ? Number(g("reCandleN").value) : (e.candleType ? 1 : 0);
+      e.candleNums = g("reCandleNums") ? g("reCandleNums").value : (e.candleNums || ""); e.candlePlain = g("reCandlePlain") ? Number(g("reCandlePlain").value) || 0 : (e.candlePlain || 0);
       e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;
       e.creamTopping = g("reTopping").checked; e.strawberryAdd = g("reStraw").checked; e.onsiteAssembly = g("reOnsite") ? g("reOnsite").checked : false;
       e.omakase = g("reOmakase") ? g("reOmakase").value : (e.omakase || "");

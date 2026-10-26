@@ -302,12 +302,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .man .msg{border:1px solid #cdbfae;border-radius:8px;background:#fff;padding:10px 14px;font-size:13.5px;line-height:1.7;margin:6px 0 10px}
 .man .qr{text-align:center;font-size:13px;line-height:1.6;margin:8px 0 14px}.man .qr img{display:block;width:160px;margin:0 auto 4px}
 </style>
-<script src="cake-pricing.js?v=20261026"></script>
+<script src="cake-pricing.js?v=20261026b"></script>
 <script src="photo-adjust.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261025a"></script>
+<script src="reservation-editor.js?v=20261026a"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -5684,7 +5684,7 @@ function resExtrasLine(r) {
     if (it.message) out.push("プレート「" + it.message + "」" + (n > 1 ? "ほか計" + n + "枚" : ""));
     else if (n) out.push("プレート " + n + "枚（文字未入力）");
   }
-  if (r.candleNeeded) out.push("ろうそく：" + (r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
+  if (r.candleNeeded) out.push("ろうそく：" + candleLabelOf(r));
   if (r.extraChargeNote || r.extraCharge) out.push("追加のご注文：" + (r.extraChargeNote || "") + (r.extraCharge ? " ¥" + Number(r.extraCharge).toLocaleString() : ""));
   if (Array.isArray(r.decideLater) && r.decideLater.length) out.push("あとで相談：" + r.decideLater.join("・"));
   if (r.specialSpec) out.push("特殊仕様：" + r.specialSpec);
@@ -7673,7 +7673,7 @@ function renderKitchen() {
     if (Array.isArray(r.cutCakes) && r.cutCakes.length) extra.push("<b>上に載せるカットケーキ：" + r.cutCakes.map(c => kEsc(c.name) + "×" + c.qty).join("、") + "</b>");
     if (r.onsiteAssembly) extra.push("⚠ 出張組み立て希望");
     if (r.creamTopping) extra.push("生クリームたっぷり乗せ");
-    if (r.candleNeeded) extra.push("ろうそく：" + kEsc(r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋"));
+    if (r.candleNeeded) extra.push("ろうそく：" + kEsc(candleLabelOf(r)));
     if (r.christmasOrder) extra.push("クリスマス（メリークリスマスプレート）");
     if (r.extraChargeNote || r.extraCharge) extra.push("<b>追加のご注文：" + kEsc(r.extraChargeNote || "") + (r.extraCharge ? " ¥" + Number(r.extraCharge).toLocaleString() : "") + "</b>");
     if (r.fruitExtra) extra.push("<b>フルーツ増量</b>");
@@ -8837,6 +8837,11 @@ function initQuoteBuilder() {
   recomputeQuote();
 }
 
+// ろうそくの表示（2026-10-26からの形＝番号ごとの本数＋普通のろうそくの袋数。以前の形も読む）
+function candleLabelOf(r) {
+  if (window.CakePricing && window.CakePricing.candleText) return window.CakePricing.candleText(r);
+  return (r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋");
+}
 const STORE_ACCOUNTS = ["sankyu00002@gmail.com"];
 function applyStoreMode() {
   document.body.classList.add("store-mode");

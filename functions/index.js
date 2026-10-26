@@ -1013,6 +1013,20 @@ async function pendingPickFor(userId) {
 // ◇項目の1行を作る。LINEのトーク画面は1行あたり全角18文字前後で折り返され、箇条書きが長いと
 // 折り返し行の頭がそろわず読みにくくなる。短ければ「◇項目：内容」の1行、長ければ「◇項目」の次の行に
 // 全角スペース付きで内容を置く（2026-09-28オーナー指示：長文の箇条書きは折り返しで見づらい）。
+// ろうそくの表示（2026-10-26からの形＝番号ごとの本数＋普通のろうそくの袋数。以前の形も読む。cake-pricing.js の candleText と同じ）
+function candleTextOf(d) {
+  if (!d || !d.candleNeeded) return "なし";
+  if (d.candleText) return d.candleText;
+  if (d.candleNumbers || d.candlePlainBags != null) {
+    const parts = [];
+    const nums = (d.candleNumbers || []).filter((c) => c && Number(c.qty) > 0);
+    if (nums.length) parts.push("ナンバーろうそく " + nums.map((c) => "「" + c.num + "」" + c.qty + "本").join("・"));
+    if (Number(d.candlePlainBags) > 0) parts.push("普通のろうそく " + d.candlePlainBags + "袋");
+    return parts.join("／") || "なし";
+  }
+  const n = Number(d.candleBags) || 1;
+  return (d.candleType || "ろうそく") + " " + n + (d.candleType === "ナンバーろうそく" ? "文字" : "袋");
+}
 function diamondLine(label, value) {
   const v = String(value == null ? "" : value).trim();
   if (!v) return "◇" + label;
@@ -1042,7 +1056,7 @@ function orderDetailLines(data) {
   }
   if (data.decoration) lines.push(diamondLine("飾り付け", ({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration)));
   if (isCakeLike) {
-    lines.push(diamondLine("ろうそく", data.christmasOrder ? "無料でお付けします" : (data.candleNeeded ? data.candleType + " " + data.candleBags + "袋" : "なし")));
+    lines.push(diamondLine("ろうそく", data.christmasOrder ? "無料でお付けします" : candleTextOf(data)));
     if (data.christmasOrder) lines.push(diamondLine("プレート", "「メリークリスマス」"));
     else if (it.message) lines.push(diamondLine("プレート", "「" + it.message + "」"));
     else lines.push(diamondLine("プレート", data.messageCount > 0 ? data.messageCount + "枚（文字はご相談）" : "なし"));
