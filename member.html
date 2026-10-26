@@ -65,7 +65,10 @@ main{max-width:640px;margin:0 auto;padding:50px 24px 100px}
 .ref-image__thumbs button{flex:0 0 auto;padding:0;border:2px solid transparent;border-radius:8px;background:none;cursor:pointer;line-height:0;}
 .ref-image__thumbs button.is-active{border-color:#c9a96e;}
 .ref-image__thumbs img{width:56px;height:56px;object-fit:cover;border-radius:6px;}
-.gallery-teaser{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.gallery-teaser{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;padding-bottom:4px;margin-bottom:4px;}
+.gallery-teaser img{flex:0 0 30%;scroll-snap-align:start;}
+.top-gallery__title{font-size:15px;font-weight:700;color:#6b4a2a;margin:0 0 8px}
+.phone-mode .top-gallery{display:none!important}
 .gallery-teaser img{width:100%;aspect-ratio:1/1;object-fit:cover;border:1px solid var(--color-line);}
 .link-more{font-size:14px;color:var(--color-accent-dark);text-decoration:underline;}
 .req-mark{display:inline-block;font-size:11px;font-weight:700;color:#fff;background:var(--color-error);padding:2px 8px;border-radius:2px;margin-left:6px;vertical-align:middle;}
@@ -328,8 +331,13 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="section" id="reserveSection">
       <div class="section__title">ご予約</div>
       <a id="xmasLinkBar" class="xmas-link" href="christmas.html" style="display:none;">クリスマスケーキのご予約はこちら<span class="xmas-link__arrow" aria-hidden="true">›</span></a>
-      <div style="text-align:center;margin-bottom:20px;">
-        <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
+      <!-- 写真付きの過去の作品ギャラリー（2026-10-26オーナー指示：一番下だと誰も見ないため、予約欄の一番上にボタンと一緒に） -->
+      <div class="top-gallery">
+        <div class="top-gallery__title">過去の作品ギャラリー</div>
+        <div class="gallery-teaser" id="galleryTeaser"></div>
+        <div style="text-align:center;margin:10px 0 20px;">
+          <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">ギャラリーをすべて見る（新しいウィンドウで開きます）</a>
+        </div>
       </div>
 
       <button type="button" id="openInBrowserBtn" class="browser-open-btn" style="display:none;">ブラウザで開く<small>LINEで相談しながら入力できます（選んだ内容は引き継がれます）</small></button>
@@ -450,7 +458,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
           <label class="field__label">カラークリーム（1段につき1色）</label>
-          <label class="field__check"><input type="checkbox" id="reserveColorWant"><span>カラークリームに変更する（1色 +¥500〜）</span></label>
+          <label class="field__check"><input type="checkbox" id="reserveColorWant"><span>カラークリームを追加・変更する（1色追加 +¥500）</span></label>
           <div id="reserveColorBody" style="display:none;margin-top:10px;">
           <div class="field__hint" style="margin:0 0 8px;">色だけが変わります（味は生クリームのままです）</div>
           <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。1つの段は1色までです（段ごとに違う色をお選びいただけます）。色をタップしてお選びください。</div>
@@ -469,6 +477,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <div class="field__hint" style="margin-top:6px;">いちご・ミックスフルーツは同じお値段です。</div>
           <label class="field__check" id="reserveFruitExtraWrap" style="margin-top:10px;"><input type="checkbox" id="reserveFruitExtra"><span>フルーツを増量する<span id="fruitExtraPrice"></span></span></label>
+          <div class="field__hint" id="fruitExtraTable" style="margin:2px 0 0 28px;"></div>
           <div class="error" id="reserveDecorationError"></div>
         </div>
         <div class="field" id="reserveOccasionField" style="display:none;">
@@ -511,11 +520,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="field" id="reserveToppingsField">
           <label class="field__label">トッピング（オプション）</label>
           <div id="reserveCutToppingNote" style="margin-bottom:8px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:8px 12px;font-size:13.5px;color:#6b4a12;line-height:1.7;">カットケーキへのトッピングは、トッピング費用が追加になります（確定のお見積もりは、お電話の際またはその後にご案内します）</div>
-          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金粉・アラザンを選んだ場合は、数量によって金額が異なる場合がございます。別途お見積もりさせていただきます。</div>
-          <div class="field__hint" style="margin-top:6px;">※金箔は取り寄せとなるため、お渡しまでお日にちをいただきます。</div>
-          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
-          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔※<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
-          <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）<small style="color:#8a5a12;">（お日にちをいただく場合があります）</small></span></label>
+          <div class="field__hint" style="margin-bottom:8px;">ご希望の飾りにチェックしてください。金額は、スタッフより別途ご案内します。</div>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金粉"><span>金粉<small style="color:#8a5a12;">（数量により金額が異なります）</small></span></label>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="金箔"><span>金箔<small style="color:#8a5a12;">（お日にちをいただきます・数量により金額が異なります）</small></span></label>
+          <label class="field__check"><input type="checkbox" class="reserve-topping" value="アラザン"><span>アラザン（銀の粒）<small style="color:#8a5a12;">（数量により金額が異なります）</small></span></label>
         </div>
         <div class="field" id="reserveOnsiteField" style="display:none;">
           <div class="field__hint" style="margin-bottom:8px;">日程はパティシエの予定を確認のうえ、スタッフよりご連絡します（日程によりお受けできない場合があります）。</div>
@@ -739,11 +747,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <button class="btn" id="saveBirthdayBtn">保存する</button>
     </div>
 
-    <div class="section">
-      <div class="section__title">過去のデコケーキギャラリー</div>
-      <div class="gallery-teaser" id="galleryTeaser"></div>
-      <a href="gallery.html" class="link-more">ギャラリー全体を見る →</a>
-    </div>
   </div>
 
   <div id="errorBox" class="notice-box" style="display:none;">
@@ -834,7 +837,7 @@ async function renderGalleryTeaser() {
   const gallery = snap.val() || [];
   const el = document.getElementById("galleryTeaser");
   el.innerHTML = "";
-  gallery.slice(0, 3).forEach(g => {
+  (Array.isArray(gallery) ? gallery : Object.values(gallery)).filter((g) => g && g.img && g.visible !== false).slice(0, 12).forEach(g => { // 横にスクロールして見られるよう12枚まで
     const img = document.createElement("img");
     img.src = g.img; img.alt = escape(g.title || "");
     el.appendChild(img);
@@ -2723,14 +2726,15 @@ function updateCakeOptionUI() {
   const fruit = g("decoFruitPrice");
   if (fruit) {
     let text = "";
+    // フルーツ増量は号数で金額が違う（2026-10-26オーナー指示）。選んだ号数の金額と、号数ごとの一覧を出す
+    const FT = CakePricing.SPEC.fruitTopping || {};
     if (tierCount === 1 && tiers[0]) {
-      const fp = CakePricing.SPEC.fruitTopping[CakePricing.tierKey(tiers[0])];
-      text = fp ? `（+¥${fp.toLocaleString()}）` : "（料金は別途ご案内）";
-    } else if (tierCount > 1) {
-      text = "（料金は別途ご案内）";
+      const k = CakePricing.tierKey(tiers[0]), fp = FT[k];
+      text = fp ? `（${k} +¥${fp.toLocaleString()}）` : "";
     }
     fruit.textContent = "";
     const fx = g("fruitExtraPrice"); if (fx) fx.textContent = text;
+    const tb = g("fruitExtraTable"); if (tb) tb.textContent = "号数により金額が異なります：" + ["4号", "5号", "6号", "7号"].filter((k) => FT[k]).map((k) => k + " +¥" + FT[k].toLocaleString()).join("／");
   }
 }
 

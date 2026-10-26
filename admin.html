@@ -5665,6 +5665,11 @@ function resCakeSpecLine(r, opts) {
   if (r.decoration) parts.push("飾り：" + (DECO_LABEL[r.decoration] || r.decoration));
   return parts.join("・");
 }
+// ろうそくの表示（予約カード・製造シートで共通。module の中に置くと予約カードから見えずに止まったため、通常のscriptに置く。2026-10-26からの形＝番号ごとの本数＋普通のろうそくの袋数。以前の形も読む）
+function candleLabelOf(r) {
+  if (window.CakePricing && window.CakePricing.candleText) return window.CakePricing.candleText(r).replace(/／/g, " ＋ "); // 「／」「、」「全角スペース」は予約カードで行の区切りになるため、半角スペースと＋でつなぐ
+  return (r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋");
+}
 function resExtrasLine(r) {
   const out = [];
   const it = (Array.isArray(r.items) && r.items[0]) || {};
@@ -8838,11 +8843,6 @@ function initQuoteBuilder() {
   recomputeQuote();
 }
 
-// ろうそくの表示（2026-10-26からの形＝番号ごとの本数＋普通のろうそくの袋数。以前の形も読む）
-function candleLabelOf(r) {
-  if (window.CakePricing && window.CakePricing.candleText) return window.CakePricing.candleText(r);
-  return (r.candleType || "") + " " + (r.candleBags || 1) + (r.candleType === "ナンバーろうそく" ? "文字" : "袋");
-}
 const STORE_ACCOUNTS = ["sankyu00002@gmail.com"];
 function applyStoreMode() {
   document.body.classList.add("store-mode");
