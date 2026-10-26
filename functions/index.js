@@ -1214,7 +1214,8 @@ function buildRevisionMessage(data, rev) {
 // （例：0142 0641）を送ると、その予約にLINEをつなぎ、控えを返す。以後、前日・当日のお知らせ、クリスマスは支払い期限の
 // お知らせ、スタッフの確定・変更の連絡が届く。当てずっぽうで他人の予約を呼び出せないよう、合わない入力は1日5回まで。
 function parseLinkCode(text) {
-  const t = String(text || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).trim();
+  const t = String(text || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/(下|末尾|最後の)\s*[4四]\s*(桁|ケタ|けた)/g, " ").trim(); // 「電話番号下4桁6770」の「4」を番号と数えない（2026-10-26オーナーの実機確認で判明）
   let groups = t.match(/\d+/g) || [];
   // 区切らずに続けて送った場合（例：00076770）も読み取る（2026-10-26オーナーの実機確認で判明）。8桁＝予約番号4桁＋下4桁、9桁＝予約番号5桁＋下4桁
   if (groups.length === 1 && (groups[0].length === 8 || groups[0].length === 9)) groups = [groups[0].slice(0, -4), groups[0].slice(-4)];
