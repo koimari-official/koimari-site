@@ -826,7 +826,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <label style="display:flex; align-items:center; gap:6px; font-size:13px; cursor:pointer;">
             <input type="checkbox" id="resUnpaidOnly" onchange="renderReservations()"> 未払いのみ表示
           </label>
-          <a class="btn btn--small" href="member.html?phone=1" target="_blank" rel="noopener">＋ 電話予約を登録</a>
+          <a class="btn btn--small" href="member.html?phone=1" target="_blank" rel="noopener">＋ 電話・店頭予約登録</a>
           <button class="btn btn--small btn--ghost" type="button" onclick="openPhoneReservation()" title="従来の簡易入力">簡易入力</button>
           <button class="btn btn--small btn--ghost" id="exportRes">CSV出力</button>
           <button class="btn btn--small btn--ghost" id="trashToggleRes">ゴミ箱</button>
@@ -929,7 +929,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
 <h3>6．電話・店頭でご予約を受けるとき（電話受付モード）</h3>
 <ol>
-<li>予約一覧の<b>「＋ 電話予約を登録」</b>を押します（新しい画面が開きます）。</li>
+<li>予約一覧の<b>「＋ 電話・店頭予約登録」</b>を押します（新しい画面が開きます）。メールアドレスは伺わなくて大丈夫です。受付方法（電話・店頭）と受付担当は、最後に一番下で選びます。</li>
 <li>いちばん上の<b>「受付担当」</b>で、自分の名前を選びます。</li>
 <li>お客様に伺いながら、上から順に選びます。段数・サイズ・段ごとのクリームと色・オプションを選ぶと、<b>金額がその場で出ます</b>。</li>
 <li>お名前・電話番号を入れ、「内容を確認する」→「確定」を押します。</li>
@@ -5796,7 +5796,7 @@ function resCardHtml(r, idx, byTel) {
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
         (r.shortLead ? '<span class="rc-tag" style="background:#b03b48;color:#fff;">短納期</span>' : "") +
         (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : "") +
-        (r.channel === "電話" ? '<span class="rc-tag rc-tag--tel">電話' + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
+        (r.channel === "電話" || r.channel === "店頭" ? '<span class="rc-tag rc-tag--tel">' + r.channel + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
         '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
       '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
@@ -8842,11 +8842,11 @@ function applyStoreMode() {
   document.body.classList.add("store-mode");
   if (!document.getElementById("storeModeCss")) {
     const st = document.createElement("style"); st.id = "storeModeCss";
-    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=quoteBuilder]):not([data-panel=notify]):not([data-panel=manual]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
+    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=notify]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
     document.head.appendChild(st);
   }
   const active = document.querySelector(".tab.active");
-  if (!active || !["reservations", "kitchen", "calendar", "quoteBuilder", "notify", "manual"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
+  if (!active || !["reservations", "kitchen", "calendar", "notify"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
 }
 // ログイン後の準備で失敗した処理を、管理画面の上部に表示する（スクリーンショットを送ってもらえば原因が分かるように）
 function showStartupWarning(list) {

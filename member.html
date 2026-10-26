@@ -1508,6 +1508,8 @@ function stepWouldShow(e) {
 }
 function stepHasContent(n) { return Array.from(document.querySelectorAll('#reserveFormWrap [data-step="' + n + '"]')).some(stepWouldShow); }
 function stepOf(el) { const p = el && el.closest("[data-step]"); return p ? Number(p.dataset.step) : 0; }
+// 電話・店頭予約の受付方法（2026-10-26）
+function phoneChannelNow() { return (document.querySelector('input[name="phoneChannel"]:checked') || {}).value || "電話"; }
 function initStepUI() {
   if (!STEP_UI || document.getElementById("stepHead")) return;
   const wrap = document.getElementById("reserveFormWrap");
@@ -2968,7 +2970,7 @@ async function sendReserveToFormspree(data) {
         種別: data.type,
         お子様のお名前: data.childName, 学年・年齢: data.grade, お菓子作り経験: data.bakingExperience,
         参加希望日: data.pickupDate, 参加人数: `${data.participantCount}名`,
-        備考: data.note, 受信日時: data.submittedAt, チャネル: PHONE_MODE ? "電話（受付：" + ((document.getElementById("phoneTakenBy") || {}).value || "") + "）" : "LINE公式アカウント"
+        備考: data.note, 受信日時: data.submittedAt, チャネル: PHONE_MODE ? phoneChannelNow() + "（受付：" + ((document.getElementById("phoneTakenBy") || {}).value || "") + "）" : "LINE公式アカウント"
       };
     } else {
       const item = data.items[0];
@@ -2993,7 +2995,7 @@ async function sendReserveToFormspree(data) {
         お見積もり: data.priceNeedsConsult ? "要電話案内（組み合わせにより個別にご案内）" : (data.subtotal ? estimateHeadline(data) + (estimateIsFixed(data) ? "（確定金額として案内済み）" : "（最低金額の目安）") : ""),
         ...((data.estimateLines || []).length ? { お見積もりの内訳: data.estimateLines.map(l => l.label + " " + CakePricing.lineYen(l)).join("\n") } : {}),
         領収書: data.receiptNeeded ? `必要（宛名: ${data.receiptName}）` : "不要",
-        備考: data.note, 受信日時: data.submittedAt, チャネル: PHONE_MODE ? "電話（受付：" + ((document.getElementById("phoneTakenBy") || {}).value || "") + "）" : "LINE公式アカウント"
+        備考: data.note, 受信日時: data.submittedAt, チャネル: PHONE_MODE ? phoneChannelNow() + "（受付：" + ((document.getElementById("phoneTakenBy") || {}).value || "") + "）" : "LINE公式アカウント"
       };
     }
     const res = await fetch(FORMSPREE_ENDPOINT, {
@@ -3131,7 +3133,8 @@ function validateReserve(data) {
     if (!isBaked && !isRoll && cutPickerNeeded() && cutCatalog.length && !(data.cutCakes || []).length) { setReserveError("reserveCutError", "上に載せるカットケーキを1個以上お選びください"); ok = false; }
     else if (!isBaked && !isRoll && cutPickerNeeded() && (cutQty[CUT_OTHER] || 0) > 0 && !cutOtherNoteVal()) { setReserveError("reserveCutError", "「その他」を選んだ場合は、ご希望のカットケーキをご記入ください"); ok = false; }
     if (isRoll && !data.items[0].flavor) { setReserveError("reserveFlavorError", "ケーキの種類をお選びください"); ok = false; }
-    if (PHONE_MODE && !(document.getElementById("phoneTakenBy") || {}).value) { alert("受付担当を選んでください（画面の一番上）"); ok = false; }
+    if (PHONE_MODE) setReserveError("phoneTakenByError", "");
+    if (PHONE_MODE && !(document.getElementById("phoneTakenBy") || {}).value) { setReserveError("phoneTakenByError", "受付担当を選んでください"); ok = false; }
     if (!isBaked && !data.occasion) { setReserveError("reserveOccasionError", "ご利用シーンをお選びください"); ok = false; }
     else if (data.occasion === "その他" && !data.occasionOther.trim()) { setReserveError("reserveOccasionError", "ご利用シーンをご記入ください"); ok = false; }
     if (!isBaked && !isRoll && !data.creamType) { setReserveError("reserveCreamTypeError", "クリームの種類をお選びください"); ok = false; }
@@ -3159,7 +3162,7 @@ function validateReserve(data) {
   else if (!NAME_INPUT_RE.test(data.name.trim())) { setReserveError("reserveNameError", "お名前はひらがな・カタカナ・漢字でご入力ください"); ok = false; }
   if (!data.tel.trim()) { setReserveError("reserveTelError", "電話番号をご入力ください"); ok = false; }
   else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setReserveError("reserveTelError", "正しい電話番号をご入力ください"); ok = false; }
-  if (!data.email.trim()) { setReserveError("reserveEmailError", "メールアドレスをご入力ください"); ok = false; }
+  if (!data.email.trim()) { if (!PHONE_MODE) { setReserveError("reserveEmailError", "メールアドレスをご入力ください"); ok = false; } } // 電話・店頭は任意
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { setReserveError("reserveEmailError", "正しいメールアドレスをご入力ください"); ok = false; }
   if (data.receiptNeeded && !data.receiptName.trim()) { setReserveError("reserveReceiptNameError", "領収書の宛名をご入力ください"); ok = false; }
   if (!data.privacyConsent) { setReserveError("reserveConsentError", "プライバシーポリシーへの同意が必要です"); ok = false; }
@@ -3731,7 +3734,7 @@ function setupReserveForm(uid, displayName) {
       noshi: "", noshiTitle: "", noshiName: "", messageCard: "", wrapping: "",
       status: "受付済", notes: "",
       submittedAt: new Date().toISOString(),
-      ...(PHONE_MODE ? { channel: "電話", phoneTakenBy: (document.getElementById("phoneTakenBy") || {}).value || "", createdByStaff: phoneStaffUid } : { channel: "LINE", lineUserId: uid })
+      ...(PHONE_MODE ? { channel: phoneChannelNow(), phoneTakenBy: (document.getElementById("phoneTakenBy") || {}).value || "", createdByStaff: phoneStaffUid } : { channel: "LINE", lineUserId: uid })
     };
 
     let data;
@@ -3967,9 +3970,22 @@ async function mainPhone() {
   try { const v = (await get(ref(db, "reservationStaff"))).val(); staff = Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {}); } catch (e) {}
   const bar = document.createElement("div");
   bar.className = "phone-mode-bar";
-  bar.innerHTML = '<div class="phone-mode-bar__title">電話受付モード（スタッフ用）</div><label>受付担当 <select id="phoneTakenBy" class="input select"><option value="">選んでください</option>' + staff.map((n) => '<option>' + String(n).replace(/[<>&"]/g, "") + "</option>").join("") + '</select></label><div class="phone-mode-bar__hint">お電話で伺いながら、上から順に選んでください。お客様のLINEには何も送られません。</div>';
+  bar.innerHTML = '<div class="phone-mode-bar__title">電話・店頭予約の登録（スタッフ用）</div><div class="phone-mode-bar__hint">お客様に伺いながら、上から順に選んでください。最後に受付方法と受付担当を選びます。メールアドレスは伺わなくて大丈夫です。お客様のLINEには何も送られません。</div>';
   const sec = document.getElementById("reserveSection");
   sec.parentNode.insertBefore(bar, sec);
+  // 受付方法（電話・店頭）と受付担当は、聞き取りの最後に選ぶ（2026-10-26オーナー指示：一番下に）
+  const staffBox = document.createElement("div");
+  staffBox.className = "field"; staffBox.id = "phoneStaffField";
+  staffBox.innerHTML = '<label class="field__label">受付方法<span class="req-mark">必須</span></label>' +
+    '<div class="radio-list" style="display:flex;gap:8px;"><label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="phoneChannel" value="電話" checked> 電話</label><label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="phoneChannel" value="店頭"> 店頭</label></div>' +
+    '<label class="field__label" for="phoneTakenBy" style="margin-top:14px;">受付担当<span class="req-mark">必須</span></label>' +
+    '<select id="phoneTakenBy" class="input select"><option value="">選んでください</option>' + staff.map((n) => "<option>" + String(n).replace(/[<>&"]/g, "") + "</option>").join("") + "</select>" +
+    '<div class="error" id="phoneTakenByError"></div>';
+  const submitBtn = document.getElementById("reserveSubmitBtn");
+  submitBtn.parentNode.insertBefore(staffBox, document.getElementById("reserveFormErrorBanner") || submitBtn);
+  // メールアドレスは任意（電話・店頭では伺わない）
+  { const em = document.getElementById("reserveEmail"), f = em && em.closest(".field"), mk = f && f.querySelector(".req-mark");
+    if (mk) { mk.textContent = "任意"; mk.style.background = "#9a8f82"; } if (em) em.placeholder = "電話・店頭では空欄で大丈夫です"; }
   setupReserveForm("", "");
   initStepUI(); initScrollUI();
   // お客様向けの確認チェックは、電話ではスタッフが口頭で確認するため自動でチェックして隠す
