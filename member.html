@@ -1456,10 +1456,12 @@ function updateReserveFloat() {
   const wrap = document.getElementById("reserveFormWrap");
   const cakeOn = currentReserveCategory() === "cake";
   if (!wrap || wrap.style.display === "none" || !cakeOn) { el.style.display = "none"; return; }
-  const miss = remainingItems();
+  let miss = [];
+  try { miss = remainingItems(); } catch (e) { console.error("remainingItems", e); }
   const TOTAL = 8;
   const pct = Math.round(((TOTAL - Math.min(TOTAL, miss.length)) / TOTAL) * 100);
-  const r = computeCakeSubtotal();
+  let r = { applicable: false };
+  try { r = computeCakeSubtotal(); } catch (e) { console.error("お見積もり", e); } // 金額が出せなくても、下のバー（戻る／次へ）は必ず出す
   const price = !r.applicable || r.incomplete ? "" : quoteSeparatelyNow() ? "お見積もりは別途ご回答" : r.priceNeedsConsult ? "特殊仕様（お電話で確認）" : (r.priceIsFixed ? yenFixed(r.subtotal) : CakePricing.fromYen(r.subtotal)) + "（税込）";
   if (STEP_UI && document.getElementById("stepHead")) { el.style.display = "block"; syncStepNav(el, price); return; }
   el.style.display = "block";
@@ -1990,7 +1992,7 @@ function computeCakeSubtotal() {
   });
   // 金額を「確定」で出せるのは、①個別案内が不要 ②「別途ご案内」の注記が無い ③1段（多段は組み合わせ次第で変動しうる）の3つを満たす場合のみ。
   const noteFilled = hasMeaningfulNote((document.getElementById("reserveNote") || {}).value);
-  const oneTier = input.tiers.length === 1 || CakePricing.isTartCut(input.tiers, bottomCream()); // タルトの2段（上がカットケーキ）は1段のタルトと同じ扱い
+  const oneTier = input.tiers.length === 1 || !!(CakePricing.isTartCut && CakePricing.isTartCut(input.tiers, bottomCream())); // タルトの2段（上がカットケーキ）は1段のタルトと同じ扱い
   const fixed = !r.needsConsult && (r.notes || []).length === 0 && oneTier && !noteFilled && !quoteSeparatelyNow();
   return { subtotal: r.subtotal, priceNeedsConsult: r.needsConsult, priceIsFixed: fixed, applicable: true, lines: r.lines, notes: r.notes };
 }
@@ -2319,11 +2321,11 @@ function applyCreamTierRules() {
       r.disabled = !ok;
       const lab = r.closest("label");
       if (lab) {
-        lab.style.display = !ok && cercleCtx ? "none" : ""; // セルクルまわりは、選べる2種類だけを見せる
+        lab.style.display = !ok && (cercleCtx || CakePricing.SPEC.tartTypes.includes(r.value)) ? "none" : ""; // セルクルまわりは選べる2種類だけ。タルトは選べない段では出さない（理由も不要。2026-10-26）
         lab.style.opacity = ok ? "" : ".45";
         let note = lab.querySelector(".cream-tier-note");
         if (!ok && !note) { note = document.createElement("span"); note.className = "cream-tier-note"; note.style.cssText = "display:block;font-size:12px;color:#8a6a4a;"; lab.appendChild(note); }
-        if (note) note.textContent = ok ? "" : CakePricing.SPEC.tartTypes.includes(r.value) ? "（2段の一番下の段だけ選べます。上にはカットケーキを載せます）" : ((CakePricing.SPEC.tierOnlyTop || []).includes(r.value) ? "（2段・3段では、一番上が" + ((CakePricing.SPEC.baseSizes || {})[r.value] || []).join("・") + "の段だけ選べます）" : "（5号の段だけ選べます）");
+        if (note) note.textContent = ok ? "" : CakePricing.SPEC.tartTypes.includes(r.value) ? "" : ((CakePricing.SPEC.tierOnlyTop || []).includes(r.value) ? "（2段・3段では、一番上が" + ((CakePricing.SPEC.baseSizes || {})[r.value] || []).join("・") + "の段だけ選べます）" : "（5号の段だけ選べます）");
       }
     });
     { // セルクルまわりの案内（クリームの選択肢の上）
