@@ -989,7 +989,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <h3>11．お引き渡しとお会計</h3>
 <ol>
 <li><b>お名前</b>でご予約を確認します。同じ日に同じお名前があるときは、<b>予約番号</b>も合わせます。</li>
-<li>お支払いは、基本的に<b>受け取り当日に店頭</b>です。お会計が済んだら「支払い」にチェックを入れます。</li>
+<li>お支払いは、基本的に<b>受け取り当日に店頭</b>です。お会計が済んだら「支払済み」にチェックを入れます。</li>
 <li>お渡ししたら、<b>「お渡し済み」</b>にチェックを入れます（ステータスも自動で「完了」になります）。受け取り日を過ぎてもチェックが無い予約は、赤く表示されます。</li>
 </ol>
 
@@ -997,7 +997,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <ul>
 <li>ご予約は、ホームページの<b>クリスマス特設ページからだけ</b>受けます。</li>
 <li><b>オプションはお受けできません</b>（ろうそくは無料、メッセージは「メリークリスマス」のプレートで固定）。</li>
-<li>お支払いは<b>12月20日までに店頭で事前精算</b>です。受け取り当日のお会計はありません。精算したら「支払い」にチェックを入れます。</li>
+<li>お支払いは<b>12月20日までに店頭で事前精算</b>です。受け取り当日のお会計はありません。精算したら「支払済み」にチェックを入れます。</li>
 </ul>
 
 <h3>13．お客様に自動で届くLINE（ネット予約）</h3>
@@ -5078,7 +5078,7 @@ async function updateResHanded(idx, checked) {
   const list = loadList(RES_KEY);
   const r = list[idx];
   if (!r) return;
-  if (checked && !r.paymentDone && !confirm("「支払い」にチェックが入っていません。\nお支払いを受けてから、お渡し済みにしてください。\n\nこのまま「お渡し済み」にしますか？")) { renderReservations(); return; }
+  if (checked && !r.paymentDone && !confirm("「支払済み」にチェックが入っていません。\nお支払いを受けてから、お渡し済みにしてください。\n\nこのまま「お渡し済み」にしますか？")) { renderReservations(); return; }
   const actor = await askActor(checked ? "お渡しした人" : "「お渡し済み」を外す人");
   if (!actor) { renderReservations(); return; }
   const now = new Date().toISOString();
@@ -5817,7 +5817,7 @@ function resCardHtml(r, idx, byTel) {
       '<div class="rc-checks">' +
         '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（未・3時間経過）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>" +
         '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">内容確定" + (r.reservationConfirmedBy ? byText(r.reservationConfirmedBy, r.reservationConfirmedAt) : (r.channel === "LINE" ? "（電話済みでLINE自動連絡）" : "")) + "</label>" +
-        '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払い" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + byText(r.paymentDoneBy, r.paymentDoneAt) + "</label>" +
+        '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払済み" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + byText(r.paymentDoneBy, r.paymentDoneAt) + "</label>" +
         '<label class="' + (handed ? "on" : handOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResHanded(' + idx + ',this.checked)"' + (handed ? " checked" : "") + ">お渡し済み" + (handOverdue ? "（受け取り日を過ぎています）" : "") + byText(r.handedOverBy, r.handedOverAt) + "</label>" +
         '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
         '<button type="button" class="rc-del" onclick="deleteOneReservation(' + idx + ')">削除</button>' +
@@ -5959,7 +5959,7 @@ function renderReservationsTable() {
   // 絞り込みは表示するかどうかだけを切り替え、配列そのものは詰め直さない。
   const list = fullList;
   let html = '<div style="overflow-x:auto;"><table class="res-table"><thead><tr>';
-  html += '<th>予約番号</th><th>ステータス</th><th>電話済み</th><th>内容確定</th><th>支払い</th><th>お渡し済み</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
+  html += '<th>予約番号</th><th>ステータス</th><th>電話済み</th><th>内容確定</th><th>支払済み</th><th>お渡し済み</th><th>受信日時</th><th>種別</th><th>お名前</th><th>連絡先/生年月日</th><th>引取日時</th><th>商品</th><th>アレルギー/備考</th><th>メモ</th><th>操作</th>';
   html += '</tr></thead><tbody>';
   let shown = 0;
   list.forEach((r, idx) => {

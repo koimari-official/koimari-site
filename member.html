@@ -4105,7 +4105,7 @@ function setupReserveForm(uid, displayName) {
         '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに<u>予約番号</u>と、<u>ご予約時にお伝えいただいた電話番号の下4桁</u>を送ってください。ご予約内容の詳細がLINEに届き、お引き取りの前にはリマインドもお届けします。」</div>' +
         '<div class="staff-thanks__send" id="staffThanksSend"></div></div>' + // 友だち追加のQRコードは出さない（2026-10-26オーナー指示）
         '<div class="staff-thanks__back"><button type="button" class="staff-back-btn" data-staff-back>予約一覧に戻る</button>' +
-        '<div class="staff-thanks__backhint">すぐにお会計する場合は、予約一覧でこの予約の「支払い」にチェックを入れてください。</div></div></div>';
+        '<div class="staff-thanks__backhint">すぐにお会計する場合は、予約一覧でこの予約の「支払済み」にチェックを入れてください。</div></div></div>';
       setTimeout(() => { try { thanksDesc.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) {} }, 300); // 完了画面の一番上を見せる
     }
     if (data.shortLead && thanksDesc && !PHONE_MODE) {
