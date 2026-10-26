@@ -266,6 +266,13 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .phone-mode-bar label{display:block;font-size:14px}
 .phone-mode-bar select{margin-top:4px;font-size:17px;color:#222}
 .phone-mode-bar__hint{font-size:12.5px;opacity:.9;margin-top:6px;line-height:1.6}
+.phone-mode-bar__top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.phone-mode-bar__top .phone-mode-bar__title{margin-bottom:0}
+.phone-mode-bar__back{flex-shrink:0;border:1px solid #fff;background:transparent;color:#fff;border-radius:999px;padding:7px 14px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font-sans)}
+/* 登録のあと、すぐお会計できるよう予約一覧へ戻るボタン（2026-10-26オーナー指示） */
+.staff-thanks__back{padding:14px 16px 16px;border-top:2px dashed #9fd0b4}
+.staff-back-btn{display:block;width:100%;border:none;border-radius:999px;background:#2e8b57;color:#fff;font-size:19px;font-weight:700;padding:15px;cursor:pointer;font-family:var(--font-sans)}
+.staff-thanks__backhint{font-size:14.5px;margin-top:8px;line-height:1.7}
 .phone-mode #reserveSubmitBtn{width:100%;font-size:18px;padding:16px}
 .phone-mode .radio-list__opt{min-height:48px}
 
@@ -2304,7 +2311,7 @@ async function pollReservationNo(pushKey, attempt) {
       const el = document.getElementById("reserveThanksNo");
       if (el) { el.textContent = "予約番号：" + formatReservationNo(no); el.style.display = "block"; }
       const st = document.getElementById("staffThanksNo");
-      if (st) { st.textContent = formatReservationNo(no); const sd = document.getElementById("staffThanksSend"); if (sd) sd.innerHTML = "お客様がLINEで送る内容：<br><b>" + String(no).padStart(4, "0") + " " + (staffThanksTel4 || "（電話番号の下4桁）") + "</b>"; }
+      if (st) { st.style.fontSize = ""; st.style.padding = ""; st.textContent = formatReservationNo(no); const sd = document.getElementById("staffThanksSend"); if (sd) sd.innerHTML = "お客様がLINEで送る内容：<br><b>" + String(no).padStart(4, "0") + " " + (staffThanksTel4 || "（電話番号の下4桁）") + "</b>"; }
       return;
     }
   } catch (e) { console.warn("予約番号の取得に失敗:", e); return; }
@@ -4093,10 +4100,12 @@ function setupReserveForm(uid, displayName) {
       staffThanksTel4 = String(data.tel || "").replace(/\D/g, "").slice(-4);
       thanksDesc.innerHTML = '<div class="staff-thanks"><div class="staff-thanks__done">ご予約完了です</div>' +
         '<div class="staff-thanks__step"><div class="staff-thanks__lead">① お客様に、予約番号をお伝えください</div>' +
-        '<div class="staff-thanks__no" id="staffThanksNo">番号を確認しています…</div></div>' +
+        '<div class="staff-thanks__no" id="staffThanksNo" style="font-size:18px;padding:14px 0;">番号を確認しています…</div></div>' + // 番号が届いたら特大の文字に切り替える
         '<div class="staff-thanks__step"><div class="staff-thanks__lead">② お客様へ、次のようにご案内してください</div>' +
         '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに<u>予約番号</u>と、<u>ご予約時にお伝えいただいた電話番号の下4桁</u>を送ってください。ご予約内容の詳細がLINEに届き、お引き取りの前にはリマインドもお届けします。」</div>' +
-        '<div class="staff-thanks__send" id="staffThanksSend"></div></div></div>'; // 友だち追加のQRコードは出さない（2026-10-26オーナー指示）
+        '<div class="staff-thanks__send" id="staffThanksSend"></div></div>' + // 友だち追加のQRコードは出さない（2026-10-26オーナー指示）
+        '<div class="staff-thanks__back"><button type="button" class="staff-back-btn" data-staff-back>予約一覧に戻る</button>' +
+        '<div class="staff-thanks__backhint">すぐにお会計する場合は、予約一覧でこの予約の「支払い」にチェックを入れてください。</div></div></div>';
       setTimeout(() => { try { thanksDesc.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) {} }, 300); // 完了画面の一番上を見せる
     }
     if (data.shortLead && thanksDesc && !PHONE_MODE) {
@@ -4113,6 +4122,24 @@ function setupReserveForm(uid, displayName) {
     document.getElementById("reserveSection").scrollIntoView({ behavior: "smooth", block: "start" });
   });
 }
+
+// 電話・店頭予約の画面は管理画面から別のタブで開くため、「予約一覧に戻る」でこのタブを閉じて元の予約一覧へ戻す
+// （新しい予約は一覧に自動で出る）。閉じられないとき（直接開いた・ブラウザの制限）は予約一覧を開き直す（2026-10-26オーナー指示）
+document.addEventListener("click", (e) => {
+  const btn = PHONE_MODE && e.target && e.target.closest ? e.target.closest("[data-staff-back]") : null;
+  if (!btn) return;
+  // 登録の途中（完了画面が出る前）は、うっかり押して入力が消えないよう、2回押したときだけ戻る
+  const thanks = document.getElementById("reserveThanksWrap");
+  const done = thanks && getComputedStyle(thanks).display !== "none";
+  if (!done && !btn.dataset.armed) {
+    btn.dataset.armed = "1"; btn.dataset.label = btn.textContent;
+    btn.textContent = "もう一度押すと戻ります（入力中の内容は消えます）";
+    setTimeout(() => { delete btn.dataset.armed; btn.textContent = btn.dataset.label; }, 4000);
+    return;
+  }
+  try { window.close(); } catch (err) {}
+  setTimeout(() => { location.href = "admin.html#reservations"; }, 400);
+});
 
 async function mainPhone() {
   const box = document.getElementById("loadingBox");
@@ -4135,7 +4162,7 @@ async function mainPhone() {
   try { const v = (await get(ref(db, "reservationStaff"))).val(); staff = Array.isArray(v) ? v.filter(Boolean) : Object.values(v || {}); } catch (e) {}
   const bar = document.createElement("div");
   bar.className = "phone-mode-bar";
-  bar.innerHTML = '<div class="phone-mode-bar__title">電話・店頭予約の登録（スタッフ用）</div><div class="phone-mode-bar__hint">お客様に伺いながら、上から順に選んでください。最後に受付方法と受付担当を選びます。メールアドレスは伺わなくて大丈夫です。お客様のLINEには何も送られません。</div>';
+  bar.innerHTML = '<div class="phone-mode-bar__top"><div class="phone-mode-bar__title">電話・店頭予約の登録（スタッフ用）</div><button type="button" class="phone-mode-bar__back" data-staff-back>予約一覧に戻る</button></div><div class="phone-mode-bar__hint">お客様に伺いながら、上から順に選んでください。最後に受付方法と受付担当を選びます。メールアドレスは伺わなくて大丈夫です。お客様のLINEには何も送られません。</div>';
   const sec = document.getElementById("reserveSection");
   sec.parentNode.insertBefore(bar, sec);
   // 受付方法（電話・店頭）と受付担当は、聞き取りの最後に選ぶ（2026-10-26オーナー指示：一番下に）
