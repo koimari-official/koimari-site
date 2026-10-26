@@ -812,17 +812,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="hero__dots" id="heroDots"></div>
 </div>
 
-<!-- ===== 季節イベントバナー (管理画面から設定可能な汎用テンプレ) ===== -->
-<div class="event-banner" id="eventBanner">
-  <div class="event-banner__inner">
-    <span class="event-banner__label" id="eventBannerLabel"></span>
-    <span class="event-banner__text" id="eventBannerText"></span>
-    <a href="#" class="event-banner__link" id="eventBannerLink">詳しく見る →</a>
-  </div>
-  <button class="event-banner__close" id="eventBannerClose" aria-label="閉じる">×</button>
-</div>
-<!-- イベントフェアの帯：テーマ付きで公開中のお知らせがあるときだけ出る（2026-10-19） -->
-<a class="event-fair" id="eventFair" href="#" hidden></a>
 
 <header class="site-header" id="siteHeader">
   <div class="relative z-[1] px-6 py-[10px] flex items-center justify-between gap-6 max-[900px]:px-[14px] max-[900px]:py-2 max-[900px]:gap-2 max-[900px]:flex-wrap">
@@ -845,6 +834,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <button class="hidden max-[900px]:flex max-[900px]:order-3 bg-transparent border-0 cursor-pointer text-[28px] text-[var(--color-accent)] p-[6px] flex-shrink-0" id="menuToggle" aria-label="メニュー">☰</button>
   </div>
 </header>
+<!-- 季節イベントバナー・イベントフェアの帯は、見出し帯（site-header）の後ろに置く。見出し帯はヒーロー画像の下端に重ねる作り（margin-top:-ヘッダーの高さ）のため、
+     前に置くと最後の帯の下部が見出し帯に隠れていた（2026-10-26オーナー指摘：ハロウィンの帯の下部が隠れる） -->
+<!-- ===== 季節イベントバナー (管理画面から設定可能な汎用テンプレ) ===== -->
+<div class="event-banner" id="eventBanner">
+  <div class="event-banner__inner">
+    <span class="event-banner__label" id="eventBannerLabel"></span>
+    <span class="event-banner__text" id="eventBannerText"></span>
+    <a href="#" class="event-banner__link" id="eventBannerLink">詳しく見る →</a>
+  </div>
+  <button class="event-banner__close" id="eventBannerClose" aria-label="閉じる">×</button>
+</div>
+<!-- イベントフェアの帯：テーマ付きで公開中のお知らせがあるときだけ出る（2026-10-19） -->
+<a class="event-fair" id="eventFair" href="#" hidden></a>
 <script>
 // ヘッダーの高さを測ってmargin-top(--header-h)に反映しつつ、position:stickyで
 // 上端に固定されるタイミングに合わせて予約FABも表示する
