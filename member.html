@@ -3254,7 +3254,7 @@ function validateReserve(data) {
       else if (!isBaked && (reserveHolidays.cakeFullDates || []).includes(dateKeyLocal(pick))) { setReserveError("reserveDateError", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください"); ok = false; }
       else if (isPhoneOnlyDate(pick)) { setReserveError("reserveDateError", PHONE_ONLY_TEXT + "。"); ok = false; }
       else if (!isBaked && data.onsiteAssembly && onsiteTooLate(data.pickupDate)) { setReserveError("reserveDateError", "出張での組み立ては、お受け取りの" + CakePricing.SPEC.onsiteLeadDays + "日前までのご予約が必要です。日付を変えるか、出張なしをお選びください。"); ok = false; }
-      else if (today > computeOrderDeadline(pick)) { data.shortLead = true; } // 電話受付モード・クリスマスで3営業日前を切る：送信は受け付け、未確定（対応可否を確認）
+      else if (today > computeOrderDeadline(pick)) { data.shortLead = true; if (PHONE_MODE) data.shortLeadChecked = true; } // 電話受付モード・クリスマスで3営業日前を切る：送信は受け付け、未確定（対応可否を確認）
       else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date(), bottomCream()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
       else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
     }
@@ -3768,6 +3768,13 @@ function updateReservePhoneNotice() {
       '</div>';
     return;
   }
+  if (PHONE_MODE) { // 電話・店頭予約：入力している店員さん向け（2026-10-26オーナー指示）
+    el.style.display = "block";
+    el.innerHTML = '<div style="margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:14px 16px;font-size:14px;line-height:1.8;">' +
+      '<div style="font-weight:700;color:#b03b48;margin-bottom:6px;">3営業日前を切ってのご予約です</div>' +
+      '<div style="color:#2e2118;">パティシエに、納期の対応可否を確認してください。<br>そのうえで、「この内容でご予約を確定する」を押してください。</div></div>';
+    return;
+  }
   const typeVal = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
   const productLine = currentDraft ? currentDraft.name + (currentDraft.size ? "（" + currentDraft.size + "）" : "") : typeVal;
   const price = computeCakeSubtotal();
@@ -3957,7 +3964,7 @@ function setupReserveForm(uid, displayName) {
     }
     banner.style.display = "none";
     pendingData = data;
-    setTimeout(() => { const sm = document.getElementById("reserveConfirmSummary"); if (sm && data.shortLead && !sm.querySelector(".short-lead-note")) sm.insertAdjacentHTML("afterbegin", '<div class="short-lead-note" style="background:#fdeeea;border:1px solid #e6a698;border-radius:10px;padding:12px 14px;margin-bottom:14px;color:#8a2a1a;font-size:14px;line-height:1.8;"><b>3営業日前を切ってのご予約です。</b><br>ご予約を確定するものではありませんのでご了承ください。送信後、必ず店舗（070-9158-0641）へお電話をお願いいたします。</div>'); }, 0);
+    setTimeout(() => { const sm = document.getElementById("reserveConfirmSummary"); if (sm && data.shortLead && !sm.querySelector(".short-lead-note")) sm.insertAdjacentHTML("afterbegin", '<div class="short-lead-note" style="background:#fdeeea;border:1px solid #e6a698;border-radius:10px;padding:12px 14px;margin-bottom:14px;color:#8a2a1a;font-size:14px;line-height:1.8;"><b>3営業日前を切ってのご予約です。</b><br>' + (PHONE_MODE ? 'パティシエに、納期の対応可否を確認してください。<br>そのうえで、「この内容でご予約を確定する」を押してください。' : 'ご予約を確定するものではありませんのでご了承ください。送信後、必ず店舗（070-9158-0641）へお電話をお願いいたします。') + '</div>'); }, 0);
     renderReserveConfirm(data);
     renderConfirmUpsell(data);
     document.getElementById("reserveFormWrap").style.display = "none";
@@ -4056,7 +4063,7 @@ function setupReserveForm(uid, displayName) {
         '<div class="staff-thanks__qr"><div id="staffThanksQr"></div><div>店頭のお客様は、このQRコードを読み取ると友だち追加できます。</div></div></div>';
       renderFriendQr("staffThanksQr");
     }
-    if (data.shortLead && thanksDesc) {
+    if (data.shortLead && thanksDesc && !PHONE_MODE) {
       thanksDesc.innerHTML = '<div style="background:#fdeeea;border:1px solid #e6a698;border-radius:12px;padding:14px 16px;color:#8a2a1a;line-height:1.8;"><b style="font-size:16px;">ご予約はまだ確定しておりません</b><br>3営業日前を切ってのご予約のため、対応できるかを確認させていただきます。<b>必ず店舗へお電話をお願いいたします。</b><a href="tel:07091580641" style="display:block;text-align:center;background:#b03b48;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:14px;font-size:16px;margin-top:10px;">店舗へ電話する（070-9158-0641）</a></div>';
     }
     renderReserveConfirm(data, "reserveThanksSummary");

@@ -736,7 +736,8 @@ function buildStaffNotifyText(data) {
   const product = productLabel(data);
   const channel = data.channel === "LINE" ? "LINE公式アカウント" : "こいまりHP";
   const lines = [
-    ...(data.shortLead ? ["⚠⚠ 短納期依頼が届いております（3営業日前を切るご予約・未確定）", "対応できるか確認し、お断り・お引き渡し日の変更・仕様の変更をお電話でご相談ください", ""] : []),
+    ...(data.shortLead && data.shortLeadChecked ? ["⚠ 短納期のご予約です（3営業日前を切るご予約・パティシエ確認済みで受付）", ""] : []),
+    ...(data.shortLead && !data.shortLeadChecked ? ["⚠⚠ 短納期依頼が届いております（3営業日前を切るご予約・未確定）", "対応できるか確認し、お断り・お引き渡し日の変更・仕様の変更をお電話でご相談ください", ""] : []),
     "📋 新しいご予約が入りました",
     ...(data.reservationNo ? [`予約番号: ${formatReservationNo(data.reservationNo)}`] : []),
     `受付経路: ${channel}`,
@@ -1959,8 +1960,8 @@ exports.pushNewReservation = onValueCreated(
     const no = data.reservationNo ? "No." + String(data.reservationNo).padStart(4, "0") + " " : "";
     const when = [data.pickupDate, data.pickupTime].filter(Boolean).join(" ");
     const sent = await pushToStaff({
-      title: (data.shortLead ? "⚠ 短納期依頼 " : "新しいご予約 ") + no,
-      body: (data.name || "お客様") + " 様　" + productLabel(data) + (when ? "　お引き取り " + when : "") + (data.shortLead ? "\n3営業日前を切るご予約です。対応できるか確認してください" : "\n確認電話をお願いします"),
+      title: (data.shortLead ? (data.shortLeadChecked ? "⚠ 短納期のご予約 " : "⚠ 短納期依頼 ") : "新しいご予約 ") + no,
+      body: (data.name || "お客様") + " 様　" + productLabel(data) + (when ? "　お引き取り " + when : "") + (data.shortLead ? (data.shortLeadChecked ? "\n3営業日前を切るご予約です（パティシエ確認済みで受付）" : "\n3営業日前を切るご予約です。対応できるか確認してください") : "\n確認電話をお願いします"),
       tag: "res-" + event.params.pushId, url: ADMIN_RES_URL, kind: "new"
     });
     if (sent.length) await admin.database().ref("pushLog/" + event.params.pushId).set({ paths: sent, at: Date.now() });

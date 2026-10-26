@@ -5793,14 +5793,14 @@ function resCardHtml(r, idx, byTel) {
   const nth = visits.indexOf(r) + 1;
   const allergy = (r.allergy || []).filter((a) => a && a !== "なし");
   const extras = resExtrasLine(r);
-  const alertHtml = (r.shortLead && status !== "キャンセル" && !r.reservationConfirmed ? '<div class="rc-short"><b>短納期依頼（3営業日前を切るご予約・未確定）</b><br>対応できるか確認し、お客様へお電話でご連絡ください。<div class="rc-short__btns"><button type="button" onclick="openReservationEditor(' + idx + ')">お引き渡し日・仕様を変更する</button><button type="button" onclick="declineShortLead(' + idx + ')">対応できないとお伝えした（キャンセルにする）</button></div></div>' : "") + customerAlertHtml(r, loadList(RES_KEY));
+  const alertHtml = (r.shortLead && !r.shortLeadChecked && status !== "キャンセル" && !r.reservationConfirmed ? '<div class="rc-short"><b>短納期依頼（3営業日前を切るご予約・未確定）</b><br>対応できるか確認し、お客様へお電話でご連絡ください。<div class="rc-short__btns"><button type="button" onclick="openReservationEditor(' + idx + ')">お引き渡し日・仕様を変更する</button><button type="button" onclick="declineShortLead(' + idx + ')">対応できないとお伝えした（キャンセルにする）</button></div></div>' : "") + customerAlertHtml(r, loadList(RES_KEY));
   return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + (customerFlagsFor(r).length ? " rc--flag" : "") + '">' +
     '<button type="button" class="rc-photo" onclick="openReservationEditor(' + idx + ')" title="詳細・変更">' + reservationThumbHtml(r) + "</button>" +
     '<div class="rc-body">' +
       '<div class="rc-top"><span class="rc-time">' + escapeHtml(resPickupTime(r) || "時間未定") + "</span>" +
         (r.reservationNo ? '<span class="rc-no">' + formatReservationNo(r.reservationNo) + '</span>' : '') +
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
-        (r.shortLead ? '<span class="rc-tag" style="background:#b03b48;color:#fff;">短納期</span>' : "") +
+        (r.shortLead ? '<span class="rc-tag" style="background:#b03b48;color:#fff;">短納期' + (r.shortLeadChecked ? "（パティシエ確認済み）" : "") + '</span>' : "") +
         (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : r.lineUserId ? '<span class="rc-tag rc-tag--line">LINE連携済み</span>' : "") +
         (r.channel === "電話" || r.channel === "店頭" ? '<span class="rc-tag rc-tag--tel">' + r.channel + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
