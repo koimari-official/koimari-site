@@ -1215,7 +1215,11 @@ function buildRevisionMessage(data, rev) {
 // お知らせ、スタッフの確定・変更の連絡が届く。当てずっぽうで他人の予約を呼び出せないよう、合わない入力は1日5回まで。
 function parseLinkCode(text) {
   const t = String(text || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).trim();
-  const groups = t.match(/\d+/g) || [];
+  let groups = t.match(/\d+/g) || [];
+  // 区切らずに続けて送った場合（例：00076770）も読み取る（2026-10-26オーナーの実機確認で判明）。8桁＝予約番号4桁＋下4桁、9桁＝予約番号5桁＋下4桁
+  if (groups.length === 1 && (groups[0].length === 8 || groups[0].length === 9)) groups = [groups[0].slice(0, -4), groups[0].slice(-4)];
+  // 下4桁ではなく電話番号をそのまま送った場合（例：0007 09012346770）は、末尾4桁を使う
+  if (groups.length === 2 && groups[0].length <= 5 && groups[1].length >= 10 && groups[1].length <= 11) groups = [groups[0], groups[1].slice(-4)];
   if (groups.length !== 2) return null;
   // 数字だけのメッセージか、「予約」「番号」「No」を含むときだけ扱う（会話の中の数字に反応しないように）
   if (!/^[\s\d\-ー－:：、,，.。#＃]*$/.test(t.replace(/No\.?|予約番号|番号|予約|電話|下4桁|下４桁/gi, "")) && !/予約|番号|No/i.test(t)) return null;
