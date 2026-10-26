@@ -174,6 +174,9 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .pre-notes__item p{margin:0;font-size:13px;line-height:1.75;color:#4a3a2a}
 .pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
 
+/* ブラウザで開く（2026-10-26） */
+.browser-open-btn{display:block;width:100%;margin:0 0 18px;padding:12px 14px;border:1.5px solid #06c755;border-radius:12px;background:#f1fbf4;color:#05893b;font-size:16px;font-weight:700;text-align:center;cursor:pointer;font-family:inherit;line-height:1.5}
+.browser-open-btn small{display:block;font-size:13px;font-weight:400;color:#3a4a3a}
 /* 番号付きの1ページ（2026-10-26・標準） */
 .scroll-ui [data-step="0"]{display:none!important}
 .rsec{margin:0 0 28px}
@@ -283,12 +286,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   </div>
 
   <div id="externalBrowserNotice" class="notice-box" style="display:none;">
-    <div class="notice-box__title">ご予約はLINEアプリからお願いします</div>
-    <div class="notice-box__desc" style="margin-bottom:20px;">
-      恐れ入りますが、ご予約フォームはLINE公式アカウントのトーク画面からのみご利用いただけます。<br>
-      スマートフォンのLINEアプリでこいまり公式アカウントを開き、トーク画面下部メニューの「ご予約」ボタンからお進みください。<br>
+    <div class="notice-box__title">ご予約には、LINEでのログインが必要です</div>
+    <div class="notice-box__desc" style="margin-bottom:16px;">
+      ご予約の確認やお受け取り前のご案内を、LINEでお届けするためです。<br>
       LINEをお持ちでない場合は、お電話（070-9158-0641）にてご予約を承ります。
     </div>
+    <button type="button" id="externalLoginBtn" class="btn btn--line" style="display:block;width:100%;text-align:center;padding:14px 16px;margin-bottom:18px;font-size:16px;">LINEでログインして予約する</button>
     <div id="externalDraftBox" style="display:none;margin:0 0 18px;background:#fff7ea;border:1px solid #e0b872;border-radius:12px;padding:14px 16px;">
       <div style="font-weight:700;margin-bottom:6px;">お選びいただいたケーキを、LINEで引き継げます</div>
       <a id="externalDraftOpen" href="#" class="btn btn--line" style="display:block;text-align:center;padding:14px 16px;margin-bottom:10px;">LINEアプリで続きを開く</a>
@@ -314,6 +317,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
       </div>
 
+      <button type="button" id="openInBrowserBtn" class="browser-open-btn" style="display:none;">ブラウザで開く<small>ご家族とLINEで相談しながら入力できます（選んだ内容は引き継がれます）</small></button>
       <div id="reserveFormWrap">
         <div id="draftBanner" style="display:none;"></div>
         <div class="field">
@@ -3912,7 +3916,7 @@ function setupReserveForm(uid, displayName) {
     // 外部ブラウザから開かれた場合はsendMessagesが使えないため、失敗しても予約自体は成立させる。
     try {
       if (data.category === "kidsManager" && liff.isInClient()) {
-        await liff.sendMessages([{ type: "text", text: buildReserveSummaryText(data) }]);
+        if (liff.isInClient()) await liff.sendMessages([{ type: "text", text: buildReserveSummaryText(data) }]);
       }
     } catch (err) {
       console.warn("LINEチャットへの投稿に失敗:", err);
@@ -3977,12 +3981,14 @@ async function main() {
   try {
     await liff.init({ liffId: LIFF_ID });
 
-    // ご予約はLINE公式アカウントのトーク画面（リッチメニュー）からのみ受け付ける方針のため、
-    // LINEアプリ内ブラウザ以外（PCブラウザ・スマホの外部ブラウザ等）からのアクセスはここで止める
-    // （2026-09-06オーナー指示。liff.login()はブラウザ単体でも完了できてしまうため、
-    // isLoggedIn()ではなくisInClient()で判定する必要がある）。
-    if (!liff.isInClient()) {
+    // LINEアプリ以外のブラウザ（Safari・Chrome等）：2026-10-26オーナー指示で、LINEでログインすれば予約できるように変更
+    // （以前は 2026-09-06 の方針でLINEアプリ内だけに限っていた）。ご家族とLINEで相談しながら入力できるようにするため。
+    // ログインすれば同じLINEのアカウントになるので、予約後のLINEの連絡・途中保存はそのまま使える。
+    if (!liff.isInClient() && !liff.isLoggedIn()) {
+      const loginHere = () => liff.login({ redirectUri: location.href.split("#")[0] });
+      if (new URLSearchParams(location.search).get("ext") === "1") { loginHere(); return; } // 予約画面の「ブラウザで開く」から来た：そのままログインへ
       document.getElementById("loadingBox").style.display = "none";
+      { const lb = document.getElementById("externalLoginBtn"); if (lb) lb.addEventListener("click", loginHere); }
       document.getElementById("externalBrowserNotice").style.display = "block";
       // ギャラリーで選んで来た場合（QRをカメラで読んでSafariで開いた等）は、コードを持ったままLINEアプリへ移れるようにする（2026-10-22）
       try {
@@ -3997,6 +4003,19 @@ async function main() {
     }
 
     if (!liff.isLoggedIn()) { liff.login(); return; }
+    // LINEの中で開いたとき：「ブラウザで開く」。その場で途中保存し、続きのコードを付けて外部ブラウザで開く
+    if (liff.isInClient()) {
+      const ob = document.getElementById("openInBrowserBtn");
+      if (ob) {
+        ob.style.display = "block";
+        ob.addEventListener("click", async () => {
+          try { await autosaveNow(true); } catch (e) {}
+          let code = "";
+          try { code = (JSON.parse(localStorage.getItem(AUTOSAVE_LS_KEY) || "null") || {}).code || ""; } catch (e) {}
+          liff.openWindow({ url: location.origin + location.pathname + "?ext=1" + (code ? "&draft=" + code : "") + "#reserve", external: true });
+        });
+      }
+    }
 
     // LINE内ブラウザ(LIFF)ではtarget="_blank"が新しいタブを開かず、予約フォームの入力途中の画面が
     // そのまま消えてしまうことがあるため、liff.openWindow()で別ウィンドウとして確実に開く
