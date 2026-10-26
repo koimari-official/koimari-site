@@ -179,13 +179,18 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
 
 /* 電話・店頭予約の登録完了（スタッフ用。2026-10-26） */
-.staff-thanks{background:#f2faf4;border:2px solid #3aa76d;border-radius:14px;padding:16px;color:#1f3a2a;line-height:1.8}
-.staff-thanks__lead{font-weight:700;font-size:17px}
-.staff-thanks__no{font-size:42px;font-weight:700;letter-spacing:.06em;text-align:center;margin:6px 0;font-family:var(--font-sans);color:#0b5a2b}
-.staff-thanks__send{text-align:center;font-size:15px;margin:0 0 10px}
-.staff-thanks__send b{font-size:22px;letter-spacing:.08em;font-family:var(--font-sans)}
-.staff-thanks__how{font-size:14.5px;background:#fff;border-radius:10px;padding:10px 12px;margin:6px 0 12px}
-.staff-thanks__qr{display:flex;align-items:center;gap:12px;font-size:13.5px}
+/* 電話・店頭予約の完了画面（店員さん用）。見落とさないよう大きく・はっきり（2026-10-26オーナー指示） */
+.staff-thanks{background:#f2faf4;border:3px solid #2e8b57;border-radius:14px;overflow:hidden;color:#1f3a2a;line-height:1.8;font-family:var(--font-sans)}
+.staff-thanks__done{background:#2e8b57;color:#fff;font-size:26px;font-weight:700;text-align:center;padding:12px 10px;letter-spacing:.04em}
+.staff-thanks__step{padding:14px 16px 4px}
+.staff-thanks__step + .staff-thanks__step{border-top:2px dashed #9fd0b4}
+.staff-thanks__lead{font-weight:700;font-size:19px;color:#0b5a2b}
+.staff-thanks__no{font-size:52px;font-weight:700;letter-spacing:.06em;text-align:center;margin:4px 0 8px;font-family:var(--font-sans);color:#0b5a2b;background:#fff;border-radius:12px}
+.staff-thanks__how{font-size:18px;font-weight:700;color:#2e2118;background:#fff8d6;border:3px solid #e0a020;border-radius:12px;padding:12px 14px;margin:8px 0 10px;line-height:1.85}
+.staff-thanks__send{text-align:center;font-size:15px;margin:0 0 12px}
+.staff-thanks__send b{font-size:26px;letter-spacing:.08em;font-family:var(--font-sans)}
+.phone-mode #reserveThanksWrap > .notice-box__title,.phone-mode #reserveThanksNo{display:none!important}
+.staff-thanks__qr{display:flex;align-items:center;gap:12px;font-size:14.5px;padding:0 16px 16px}
 .staff-thanks__qr #staffThanksQr{flex:0 0 120px;width:120px;height:120px;background:#fff;padding:4px;border-radius:6px}
 .staff-thanks__qr #staffThanksQr img,.staff-thanks__qr #staffThanksQr canvas{width:112px!important;height:112px!important}
 /* ケーキの種類：タルトはフルーツ／ストロベリーを「タルトBOX」1つにまとめる（いちご／ミックスフルーツは飾り付けで選ぶ。2026-10-26） */
@@ -4056,12 +4061,15 @@ function setupReserveForm(uid, displayName) {
     // 電話・店頭予約（スタッフ用）：お客様にお伝えする予約番号を大きく出し、LINEで控えが届く方法を案内する（2026-10-26オーナー指示）
     if (PHONE_MODE && thanksDesc) {
       staffThanksTel4 = String(data.tel || "").replace(/\D/g, "").slice(-4);
-      thanksDesc.innerHTML = '<div class="staff-thanks"><div class="staff-thanks__lead">お客様に、次の予約番号を必ずお伝えください</div>' +
-        '<div class="staff-thanks__no" id="staffThanksNo">番号を確認しています…</div>' +
-        '<div class="staff-thanks__send" id="staffThanksSend"></div>' +
-        '<div class="staff-thanks__how">お客様へのご案内：<br>「こいまりのLINEを友だち追加して、<b>予約番号と、ご予約時にご登録いただいた電話番号の下4桁</b>を送ってください。ご予約の控えと、お引き取りの前日・当日のお知らせがLINEに届きます。」</div>' +
+      thanksDesc.innerHTML = '<div class="staff-thanks"><div class="staff-thanks__done">ご予約完了です</div>' +
+        '<div class="staff-thanks__step"><div class="staff-thanks__lead">① お客様に、予約番号をお伝えください</div>' +
+        '<div class="staff-thanks__no" id="staffThanksNo">番号を確認しています…</div></div>' +
+        '<div class="staff-thanks__step"><div class="staff-thanks__lead">② お客様へ、次のようにご案内してください</div>' +
+        '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに<u>予約番号</u>と、<u>ご予約時にお伝えいただいた電話番号の下4桁</u>を送ってください。ご予約内容の詳細がLINEに届き、お引き取りの前にはリマインドもお届けします。」</div>' +
+        '<div class="staff-thanks__send" id="staffThanksSend"></div></div>' +
         '<div class="staff-thanks__qr"><div id="staffThanksQr"></div><div>店頭のお客様は、このQRコードを読み取ると友だち追加できます。</div></div></div>';
       renderFriendQr("staffThanksQr");
+      setTimeout(() => { try { thanksDesc.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) {} }, 300); // 完了画面の一番上を見せる
     }
     if (data.shortLead && thanksDesc && !PHONE_MODE) {
       thanksDesc.innerHTML = '<div style="background:#fdeeea;border:1px solid #e6a698;border-radius:12px;padding:14px 16px;color:#8a2a1a;line-height:1.8;"><b style="font-size:16px;">ご予約はまだ確定しておりません</b><br>3営業日前を切ってのご予約のため、対応できるかを確認させていただきます。<b>必ず店舗へお電話をお願いいたします。</b><a href="tel:07091580641" style="display:block;text-align:center;background:#b03b48;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:14px;font-size:16px;margin-top:10px;">店舗へ電話する（070-9158-0641）</a></div>';
