@@ -198,9 +198,6 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .staff-thanks__send{text-align:center;font-size:15px;margin:0 0 12px}
 .staff-thanks__send b{font-size:26px;letter-spacing:.08em;font-family:var(--font-sans)}
 .phone-mode #reserveThanksWrap > .notice-box__title,.phone-mode #reserveThanksNo{display:none!important}
-.staff-thanks__qr{display:flex;align-items:center;gap:12px;font-size:14.5px;padding:0 16px 16px}
-.staff-thanks__qr #staffThanksQr{flex:0 0 120px;width:120px;height:120px;background:#fff;padding:4px;border-radius:6px}
-.staff-thanks__qr #staffThanksQr img,.staff-thanks__qr #staffThanksQr canvas{width:112px!important;height:112px!important}
 /* ケーキの種類：タルトはフルーツ／ストロベリーを「タルトBOX」1つにまとめる（いちご／ミックスフルーツは飾り付けで選ぶ。2026-10-26） */
 .radio-list__opt.opt-merged{display:none!important}
 /* ブラウザで開く（2026-10-26） */
@@ -2292,18 +2289,6 @@ function formatReservationNo(n) { return n ? "No." + String(n).padStart(4, "0") 
 // 予約保存の直後は、まだCloud Functions側の採番（assignReservationNo）が終わっていないことがあるため、
 // 数秒おきに数回だけ確認する。見つかれば完了画面に表示、見つからなくても静かに諦める。
 let staffThanksTel4 = "";
-// LINE公式アカウントの友だち追加のQRコード（電話・店頭予約の登録完了画面で、店頭のお客様に読み取っていただく）
-const FRIEND_ADD_URL = "https://lin.ee/tgXqHoK";
-function renderFriendQr(id) {
-  const el = document.getElementById(id);
-  if (!el) return;
-  const draw = () => { try { el.innerHTML = ""; new window.QRCode(el, { text: FRIEND_ADD_URL, width: 112, height: 112 }); } catch (e) { el.textContent = FRIEND_ADD_URL; } };
-  if (window.QRCode) return draw();
-  const sc = document.createElement("script");
-  sc.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
-  sc.onload = draw; sc.onerror = () => { el.textContent = FRIEND_ADD_URL; };
-  document.head.appendChild(sc);
-}
 async function pollReservationNo(pushKey, attempt) {
   attempt = attempt || 0;
   try {
@@ -4089,9 +4074,7 @@ function setupReserveForm(uid, displayName) {
         '<div class="staff-thanks__no" id="staffThanksNo">番号を確認しています…</div></div>' +
         '<div class="staff-thanks__step"><div class="staff-thanks__lead">② お客様へ、次のようにご案内してください</div>' +
         '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに<u>予約番号</u>と、<u>ご予約時にお伝えいただいた電話番号の下4桁</u>を送ってください。ご予約内容の詳細がLINEに届き、お引き取りの前にはリマインドもお届けします。」</div>' +
-        '<div class="staff-thanks__send" id="staffThanksSend"></div></div>' +
-        '<div class="staff-thanks__qr"><div id="staffThanksQr"></div><div>店頭のお客様は、このQRコードを読み取ると友だち追加できます。</div></div></div>';
-      renderFriendQr("staffThanksQr");
+        '<div class="staff-thanks__send" id="staffThanksSend"></div></div></div>'; // 友だち追加のQRコードは出さない（2026-10-26オーナー指示）
       setTimeout(() => { try { thanksDesc.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) {} }, 300); // 完了画面の一番上を見せる
     }
     if (data.shortLead && thanksDesc && !PHONE_MODE) {
