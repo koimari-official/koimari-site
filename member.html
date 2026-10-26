@@ -198,6 +198,11 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .staff-thanks__send{text-align:center;font-size:15px;margin:0 0 12px}
 .staff-thanks__send b{font-size:26px;letter-spacing:.08em;font-family:var(--font-sans)}
 .phone-mode #reserveThanksWrap > .notice-box__title,.phone-mode #reserveThanksNo{display:none!important}
+/* 完了画面の「ご予約のケーキ」の写真（お客様・店員さん共通。2026-10-26オーナー指示）。切り取らずに全体を大きく */
+.thanks-photo{margin:18px 0 0}
+.thanks-photo__title{font-size:16px;font-weight:700;color:#6b4a2a;margin:0 0 8px}
+.thanks-photo__img{display:block;width:100%;max-width:520px;aspect-ratio:1/1;object-fit:contain;background:#fff;border:1px solid #ecd9c4;border-radius:14px;margin:0 auto}
+.thanks-photo__cap{margin-top:8px;text-align:center;font-size:15px;font-weight:700;color:#2e2118;line-height:1.6}
 /* ケーキの種類：タルトはフルーツ／ストロベリーを「タルトBOX」1つにまとめる（いちご／ミックスフルーツは飾り付けで選ぶ。2026-10-26） */
 .radio-list__opt.opt-merged{display:none!important}
 /* ブラウザで開く（2026-10-26） */
@@ -746,6 +751,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <div class="notice-box__title">ご予約ありがとうございました</div>
         <div id="reserveThanksNo" style="display:none;font-size:14px;font-weight:700;color:#a88a52;margin-bottom:8px;"></div>
         <div class="notice-box__desc" id="reserveThanksDesc">ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。</div>
+        <div class="thanks-photo" id="reserveThanksPhoto" style="display:none;"></div>
         <div class="confirm-box" id="reserveThanksSummary" style="margin-top:20px;"></div>
       </div>
     </div>
@@ -2326,6 +2332,22 @@ function draftGuideNow() { try { return currentDraft && currentDraft.orderMode =
 function quoteSeparatelyNow() { try { return !!customBaseNow() || !!(currentDraft && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
 // 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ）
 function isPhotoChristmas(data) { return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img); }
+// 完了画面に「ご予約のケーキ」の写真を出す（お客様・店員さん共通。2026-10-26オーナー指示）。
+// 受付LINEの写真カードと同じ条件：ギャラリーで選んだ定番のデコレーションケーキ・オーダーメイド・写真で選ぶクリスマスケーキ。名前の付け方もLINEと同じ（No.D01 など）
+const THANKS_PHOTO_TYPES = ["decorationCake", "custom", "christmasCake"];
+function renderThanksPhoto(data) {
+  const box = document.getElementById("reserveThanksPhoto");
+  if (!box) return;
+  const p = (data && data.galleryPick) || {};
+  const img = String(p.img || "");
+  if (!/^(https:\/\/|data:image\/)/.test(img) || !(THANKS_PHOTO_TYPES.includes(p.productType) || isPhotoChristmas(data))) { box.style.display = "none"; box.innerHTML = ""; return; }
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  const label = (Number(p.no) > 0 ? "No.D" + String(p.no).padStart(2, "0") + " " : "") + (p.name || "") + (p.size ? "（" + p.size + "）" : "");
+  box.innerHTML = '<div class="thanks-photo__title">ご予約のケーキ</div>' +
+    '<img class="ns-img thanks-photo__img" src="' + esc(img) + '" alt="' + esc(p.name || "ご予約のケーキ") + '" draggable="false">' +
+    (label ? '<div class="thanks-photo__cap">' + esc(label) + "</div>" : "");
+  box.style.display = "";
+}
 function estimateIsFixed(data) {
   if (data.quoteSeparately) return false;
   if (data.priceNeedsConsult) return false;
@@ -4080,6 +4102,7 @@ function setupReserveForm(uid, displayName) {
     if (data.shortLead && thanksDesc && !PHONE_MODE) {
       thanksDesc.innerHTML = '<div style="background:#fdeeea;border:1px solid #e6a698;border-radius:12px;padding:14px 16px;color:#8a2a1a;line-height:1.8;"><b style="font-size:16px;">ご予約はまだ確定しておりません</b><br>3営業日前を切ってのご予約のため、対応できるかを確認させていただきます。<b>必ず店舗へお電話をお願いいたします。</b><a href="tel:07091580641" style="display:block;text-align:center;background:#b03b48;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:14px;font-size:16px;margin-top:10px;">店舗へ電話する（070-9158-0641）</a></div>';
     }
+    renderThanksPhoto(data);
     renderReserveConfirm(data, "reserveThanksSummary");
     // 予約番号はCloud Functions側で予約保存の直後に採番されるため、この時点ではまだ付いていないことがある。
     // 数秒おきに数回だけ様子を見て、取得できたら完了画面の上部に表示する（取得できなくてもエラーにはしない。
