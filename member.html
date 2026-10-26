@@ -2295,11 +2295,11 @@ const XMAS_PAYMENT_DEADLINE = "12月20日";
 // お支払い方法の案内文。クリスマスケーキだけ「当日会計なし・12月20日までに店頭払い」になる。
 function paymentNoticeText(data) {
   if (data && data.christmasOrder) {
-    return "クリスマスケーキのお支払いは、" + XMAS_PAYMENT_DEADLINE + "までに店頭でお願いいたします。お支払いの時点でご予約確定となります。お引き渡し日当日は大変混雑するため、当日のお会計は承っておりません。";
+    return "クリスマスケーキは、" + XMAS_PAYMENT_DEADLINE + "までに店頭へお支払いにお越しください。お支払いの時点でご予約確定となります。お引き渡し日当日は大変混雑するため、当日のお会計は承っておりません。";
   }
   const n = new Date(), m = n.getMonth() + 1, day = n.getDate();
   const xmasNote = (m === 10 || m === 11 || (m === 12 && day <= 20)) ? "※クリスマスのご予約は、" + XMAS_PAYMENT_DEADLINE + "までに店舗での事前精算が必要です。" : "";
-  return "お支払いは、お引き取り日当日、お受け取りの際に店頭でお願いいたします。" + xmasNote;
+  return "お支払いは、お引き渡しの際に店頭でお願いいたします。" + xmasNote;
 }
 function estimateDisclaimer(data) {
   const pay = paymentNoticeText(data);

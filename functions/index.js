@@ -857,17 +857,20 @@ function xmasPrepayNoticeActive(now) {
 // stage: "received"（予約直後）/ "confirmed"（確定連絡）/ "reminder"（リマインド）
 function paymentLines(data, stage) {
   const lines = ["", "◆お支払い"];
+  // 管理画面の「支払い」にチェックが入っていれば、済んでいることをお伝えする（2026-10-26オーナー指示）
+  if (data && data.paymentDone) {
+    lines.push("◇お支払い済みです", "　ありがとうございます");
+    return lines;
+  }
   if (data && data.christmasOrder) {
-    lines.push("◇" + XMAS_PAYMENT_DEADLINE + "までに店頭で", "　お願いしております");
+    lines.push("◇" + XMAS_PAYMENT_DEADLINE + "までに店頭へ", "　お支払いにお越しください"); // 2026-10-26オーナー指示の文言
     // 2026-10-02オーナー確認：LINEで予約 → 12/20までに店頭で前払い。お支払いの時点でご予約確定
     lines.push("◇お支払いの時点で", "　ご予約確定となります");
     if (stage === "received") lines.push("◇ご予約が埋まり次第、", "　受付を終了します");
-    if (stage === "reminder") lines.push("◇お済みでない場合は、", "　お早めにご来店ください");
     lines.push("◇お引き渡し当日はお会計を", "　承っておりません");
     return lines;
   }
-  if (stage === "reminder") lines.push("◇お支払いは当日、", "　お受け取りの際に", "　店頭でお願いいたします");
-  else lines.push("◇お支払いは、お引き取り日", "　当日のお受け取りの際に", "　店頭でお願いいたします");
+  lines.push("◇お支払いは、お引き渡しの際に", "　店頭でお願いいたします"); // 未払い（2026-10-26オーナー指示：お引き渡し時）
   if (xmasPrepayNoticeActive()) lines.push("※クリスマスのご予約は、", "　" + XMAS_PAYMENT_DEADLINE + "までに店舗での", "　事前精算が必要です");
   return lines;
 }
@@ -962,7 +965,8 @@ function buildFollowMessage(pick, coupons) {
     "　ご登録いただいた電話番号の",
     "　下4桁を送ってください",
     "　（例：0142 0641）",
-    "◇控えとお知らせが届きます",
+    "◇お引き取り日時の",
+    "　リマインドが届きます",
     "",
     "◆ご予約の流れ",
     "◇予約フォームで日時・お名前を入力",
@@ -1227,7 +1231,7 @@ function buildLinkedCopyMessage(data) {
   else if (data.subtotal && !data.priceNeedsConsult) lines.push("", "◆お支払い金額", "◇¥" + Number(data.subtotal).toLocaleString() + (data.priceIsFixed ? "" : "〜") + "（税込）");
   lines.push(...paymentLines(data, "confirmed"));
   lines.push("", "◆これからのご案内", "◇お引き取りの前日と当日に", "　LINEでお知らせします");
-  if (data.christmasOrder) lines.push("◇お支払いの期限（" + XMAS_PAYMENT_DEADLINE + "）", "　の前にもお知らせします");
+  if (data.christmasOrder && !data.paymentDone) lines.push("◇お支払いの期限（" + XMAS_PAYMENT_DEADLINE + "）", "　の前にもお知らせします");
   lines.push("", "◆ご変更・ご相談", "◇お電話（070-9158-0641）へ");
   return lines.join("\n");
 }
@@ -1276,8 +1280,8 @@ function buildXmasPayMessage(data, key) {
     today ? "お支払いの期限です🎄" : "ありがとうございます🎄",
     "",
     "◆お支払いの期限",
-    "◇" + XMAS_PAYMENT_DEADLINE + "までに店頭で",
-    "　お支払いをお願いいたします",
+    "◇" + XMAS_PAYMENT_DEADLINE + "までに店頭へ",
+    "　お支払いにお越しください",
     "◇お支払いの時点で",
     "　ご予約確定となります",
     ...(data.reservationNo ? ["", "◆予約番号", "◇" + formatReservationNo(data.reservationNo)] : []),
