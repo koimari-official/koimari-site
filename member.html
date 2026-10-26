@@ -174,6 +174,16 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .pre-notes__item p{margin:0;font-size:13px;line-height:1.75;color:#4a3a2a}
 .pre-notes__item p.pre-notes__sub{font-size:12.5px;color:#7a6a58;margin-top:2px}
 
+/* 電話・店頭予約の登録完了（スタッフ用。2026-10-26） */
+.staff-thanks{background:#f2faf4;border:2px solid #3aa76d;border-radius:14px;padding:16px;color:#1f3a2a;line-height:1.8}
+.staff-thanks__lead{font-weight:700;font-size:17px}
+.staff-thanks__no{font-size:42px;font-weight:700;letter-spacing:.06em;text-align:center;margin:6px 0;font-family:var(--font-sans);color:#0b5a2b}
+.staff-thanks__send{text-align:center;font-size:15px;margin:0 0 10px}
+.staff-thanks__send b{font-size:22px;letter-spacing:.08em;font-family:var(--font-sans)}
+.staff-thanks__how{font-size:14.5px;background:#fff;border-radius:10px;padding:10px 12px;margin:6px 0 12px}
+.staff-thanks__qr{display:flex;align-items:center;gap:12px;font-size:13.5px}
+.staff-thanks__qr #staffThanksQr{flex:0 0 120px;width:120px;height:120px;background:#fff;padding:4px;border-radius:6px}
+.staff-thanks__qr #staffThanksQr img,.staff-thanks__qr #staffThanksQr canvas{width:112px!important;height:112px!important}
 /* ブラウザで開く（2026-10-26） */
 .browser-open-btn{display:block;width:100%;margin:0 0 18px;padding:12px 14px;border:1.5px solid #06c755;border-radius:12px;background:#f1fbf4;color:#05893b;font-size:16px;font-weight:700;text-align:center;cursor:pointer;font-family:inherit;line-height:1.5}
 .browser-open-btn small{display:block;font-size:13px;font-weight:400;color:#3a4a3a}
@@ -2217,6 +2227,19 @@ function yenFixed(n) { return "¥" + Number(n || 0).toLocaleString(); }
 function formatReservationNo(n) { return n ? "No." + String(n).padStart(4, "0") : ""; }
 // 予約保存の直後は、まだCloud Functions側の採番（assignReservationNo）が終わっていないことがあるため、
 // 数秒おきに数回だけ確認する。見つかれば完了画面に表示、見つからなくても静かに諦める。
+let staffThanksTel4 = "";
+// LINE公式アカウントの友だち追加のQRコード（電話・店頭予約の登録完了画面で、店頭のお客様に読み取っていただく）
+const FRIEND_ADD_URL = "https://lin.ee/tgXqHoK";
+function renderFriendQr(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const draw = () => { try { el.innerHTML = ""; new window.QRCode(el, { text: FRIEND_ADD_URL, width: 112, height: 112 }); } catch (e) { el.textContent = FRIEND_ADD_URL; } };
+  if (window.QRCode) return draw();
+  const sc = document.createElement("script");
+  sc.src = "https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js";
+  sc.onload = draw; sc.onerror = () => { el.textContent = FRIEND_ADD_URL; };
+  document.head.appendChild(sc);
+}
 async function pollReservationNo(pushKey, attempt) {
   attempt = attempt || 0;
   try {
@@ -2225,10 +2248,13 @@ async function pollReservationNo(pushKey, attempt) {
     if (no) {
       const el = document.getElementById("reserveThanksNo");
       if (el) { el.textContent = "予約番号：" + formatReservationNo(no); el.style.display = "block"; }
+      const st = document.getElementById("staffThanksNo");
+      if (st) { st.textContent = formatReservationNo(no); const sd = document.getElementById("staffThanksSend"); if (sd) sd.innerHTML = "お客様がLINEで送る内容：<br><b>" + String(no).padStart(4, "0") + " " + (staffThanksTel4 || "（電話番号の下4桁）") + "</b>"; }
       return;
     }
   } catch (e) { console.warn("予約番号の取得に失敗:", e); return; }
-  if (attempt < 4) setTimeout(() => pollReservationNo(pushKey, attempt + 1), 1500);
+  if (attempt < (PHONE_MODE ? 20 : 4)) setTimeout(() => pollReservationNo(pushKey, attempt + 1), 1500); // 電話・店頭は番号を必ず伝えるため長めに待つ
+  else { const st = document.getElementById("staffThanksNo"); if (st) { st.style.fontSize = "16px"; st.textContent = "番号をまだ確認できません。管理画面の予約一覧で番号をご確認ください。"; } }
 }
 // ギャラリーで選んだ商品の写真の仕様を、予約フォームの選択肢だけでは表せない場合（管理画面で「予約フォームの自動選択」が
 // 未設定の商品）は、お見積もり・納期をパティシエが別途ご回答する。写真と同じ仕様をプルダウンで再現できる商品は通常どおり確定。
@@ -3976,6 +4002,16 @@ function setupReserveForm(uid, displayName) {
             : "ご予約内容の控えを、この後LINEのトークにお送りしますのでご確認ください。内容確認のため、担当より改めてお電話を差し上げます。")
         + paymentNoticeText(data)
         + "ご不明な点はお電話（070-9158-0641）でもお問合せいただけます。";
+    }
+    // 電話・店頭予約（スタッフ用）：お客様にお伝えする予約番号を大きく出し、LINEで控えが届く方法を案内する（2026-10-26オーナー指示）
+    if (PHONE_MODE && thanksDesc) {
+      staffThanksTel4 = String(data.tel || "").replace(/\D/g, "").slice(-4);
+      thanksDesc.innerHTML = '<div class="staff-thanks"><div class="staff-thanks__lead">お客様に、次の予約番号を必ずお伝えください</div>' +
+        '<div class="staff-thanks__no" id="staffThanksNo">番号を確認しています…</div>' +
+        '<div class="staff-thanks__send" id="staffThanksSend"></div>' +
+        '<div class="staff-thanks__how">お客様へのご案内：<br>「こいまりのLINEを友だち追加して、<b>予約番号と、お電話番号の下4桁</b>を送ってください。ご予約の控えと、お引き取りの前日・当日のお知らせがLINEに届きます。」</div>' +
+        '<div class="staff-thanks__qr"><div id="staffThanksQr"></div><div>店頭のお客様は、このQRコードを読み取ると友だち追加できます。</div></div></div>';
+      renderFriendQr("staffThanksQr");
     }
     if (data.shortLead && thanksDesc) {
       thanksDesc.innerHTML = '<div style="background:#fdeeea;border:1px solid #e6a698;border-radius:12px;padding:14px 16px;color:#8a2a1a;line-height:1.8;"><b style="font-size:16px;">ご予約はまだ確定しておりません</b><br>3営業日前を切ってのご予約のため、対応できるかを確認させていただきます。<b>必ず店舗へお電話をお願いいたします。</b><a href="tel:07091580641" style="display:block;text-align:center;background:#b03b48;color:#fff;font-weight:700;text-decoration:none;border-radius:999px;padding:14px;font-size:16px;margin-top:10px;">店舗へ電話する（070-9158-0641）</a></div>';

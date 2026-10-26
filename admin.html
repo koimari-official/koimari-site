@@ -5175,7 +5175,7 @@ async function updateResConfirmCall(idx, checked) {
   try {
     if (key && window.ReservationEditor && window.ReservationEditor.logPhoneConfirm) window.ReservationEditor.logPhoneConfirm(key, cur, { actor, price, date, time }).catch((e) => { console.error("履歴の記録に失敗", e); resSaveBar("error", "「電話済み」は保存しましたが、変更履歴を残せませんでした：" + (e && e.message ? e.message : e)); });
   } catch (e) { console.error("履歴の記録に失敗", e); }
-  if (cur.channel === "LINE" && cur.lineUserId) showToast("お客様のLINEに確定のお見積もり・お引き取り日時を自動で連絡し、「内容確定」にします");
+  if (cur.lineUserId) showToast("お客様のLINEに確定のお見積もり・お引き取り日時を自動で連絡し、「内容確定」にします");
 }
 // ===== 予約への保存（2026-10-24オーナー指示「仕様の変更の未登録や保存不良、納期の変更などの抜け漏れは死活問題」）=====
 // ・保存先は一覧の番号ではなく予約のキーで決める。一覧は受付の新しい順なので、担当者を選んでいる間に新しい予約が入ると
@@ -5795,7 +5795,7 @@ function resCardHtml(r, idx, byTel) {
         (r.reservationNo ? '<span class="rc-no">' + formatReservationNo(r.reservationNo) + '</span>' : '') +
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
         (r.shortLead ? '<span class="rc-tag" style="background:#b03b48;color:#fff;">短納期</span>' : "") +
-        (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : "") +
+        (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : r.lineUserId ? '<span class="rc-tag rc-tag--line">LINE連携済み</span>' : "") +
         (r.channel === "電話" || r.channel === "店頭" ? '<span class="rc-tag rc-tag--tel">' + r.channel + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
         '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +

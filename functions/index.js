@@ -465,7 +465,7 @@ ${faqKnowledgeText}
 exports._internal = { reserveCardReplyText,
   buildConfirmMessage, buildReceivedMessage, isPushRecipient: (...a) => isPushRecipient(...a), pushContext: () => pushContext(),
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
-  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage, dueReminderStages, orderPhotoCard,
+  getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage, dueReminderStages, orderPhotoCard, parseLinkCode, buildLinkedCopyMessage, dueXmasPayReminder, buildXmasPayMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
   buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
   assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost, customerFlagLines, birthdayReminderText, birthdayReminderTargets,
@@ -518,6 +518,10 @@ exports.lineWebhook = onRequest(
 
       try {
         // カード②「ご予約について教えてください」はAIの生成に任せず、確実にLIFF予約フォームへ案内する。
+        { // 電話・店頭のご予約を、予約番号＋電話番号の下4桁でこのLINEとつなぐ（2026-10-26）
+          const linkReply = await tryLinkReservation(event.source.userId, event.message.text);
+          if (linkReply) { await replyToLine(event.replyToken, linkReply, LINE_CHANNEL_ACCESS_TOKEN.value()); continue; }
+        }
         if (event.message.text.trim() === RESERVE_CARD_TRIGGER_TEXT) {
           await replyToLine(event.replyToken, await reserveCardReplyText(), LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
           continue;
@@ -616,7 +620,7 @@ const REMINDER_STAGES = [
 // お引き取り日時が変わったら、新しい日時に向けて送り直す（以前は true だけで、日時を変えた後の案内が届かなかった）。
 // true は以前の形式で「いまの日時に向けて送った」扱い。お渡し済み・引取りなし・キャンセルの予約には送らない。
 function dueReminderStages(data, now) {
-  if (!data || data.channel !== "LINE" || !data.lineUserId) return [];
+  if (!data || !data.lineUserId) return []; // 電話・店頭のご予約も、予約番号でLINEとつながれば送る（2026-10-26）
   if (data.handedOver || ["キャンセル", "完了", "引取りなし"].includes(data.status)) return [];
   const pickupAt = computePickupDateTime(data);
   if (!pickupAt) return [];
@@ -699,6 +703,10 @@ exports.sendPickupReminders = onSchedule(
     const now = new Date();
 
     for (const [key, data] of Object.entries(all)) {
+      const xp = dueXmasPayReminder(data, now);
+      if (xp && await pushLineMessage(data.lineUserId, buildXmasPayMessage(data, xp), accessToken)) {
+        await admin.database().ref(`reservations/${key}/reminderSent/${xp}`).set(now.toISOString());
+      }
       const stages = dueReminderStages(data, now);
       if (!stages.length) continue;
       const target = computePickupDateTime(data).toISOString();
@@ -949,6 +957,11 @@ function buildFollowMessage(pick, coupons) {
   }
   lines.push(
     "",
+    "◆お電話・店頭でご予約の方",
+    "◇予約番号と電話番号の下4桁を",
+    "　送ってください（例：0142 0641）",
+    "◇控えとお知らせが届きます",
+    "",
     "◆ご予約の流れ",
     "◇予約フォームで日時・お名前を入力",
     "◇送信後、スタッフより",
@@ -1187,6 +1200,94 @@ function buildRevisionMessage(data, rev) {
 }
 
 // ② パティシエの確認電話のあと、管理画面で「予約確定」にした時に送る文面。確定のお引き取り日時・税込確定金額を載せる。
+// ===== 電話・店頭のご予約をLINEとつなぐ（2026-10-26オーナー指示）=====
+// 電話・店頭のご予約は、登録完了画面の予約番号をスタッフがお伝えする。お客様がLINEで「予約番号＋電話番号の下4桁」
+// （例：0142 0641）を送ると、その予約にLINEをつなぎ、控えを返す。以後、前日・当日のお知らせ、クリスマスは支払い期限の
+// お知らせ、スタッフの確定・変更の連絡が届く。当てずっぽうで他人の予約を呼び出せないよう、合わない入力は1日5回まで。
+function parseLinkCode(text) {
+  const t = String(text || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).trim();
+  const groups = t.match(/\d+/g) || [];
+  if (groups.length !== 2) return null;
+  // 数字だけのメッセージか、「予約」「番号」「No」を含むときだけ扱う（会話の中の数字に反応しないように）
+  if (!/^[\s\d\-ー－:：、,，.。#＃]*$/.test(t.replace(/No\.?|予約番号|番号|予約|電話|下4桁|下４桁/gi, "")) && !/予約|番号|No/i.test(t)) return null;
+  const [a, b] = groups;
+  if (a.length <= 5 && b.length === 4) return { no: Number(a), tel4: b, alt: a.length === 4 ? { no: Number(b), tel4: a } : null };
+  if (b.length <= 5 && a.length === 4) return { no: Number(b), tel4: a, alt: null }; // 電話番号の下4桁を先に送った場合
+  return null;
+}
+function buildLinkedCopyMessage(data) {
+  const pd = data.finalPickupDate || data.pickupDate, pt = data.finalPickupTime || data.pickupTime;
+  const lines = [(data.name || "お客様") + "様", "ご予約の控えをお送りします🎂"];
+  if (data.reservationNo) lines.push("", "◆予約番号", "◇" + formatReservationNo(data.reservationNo));
+  lines.push("", "◆ご注文内容", ...orderDetailLines(data));
+  lines.push("", "◆お引き取り", "◇" + formatPickupDateTimeJp(pd, pt));
+  if (data.finalPrice) lines.push("", "◆お支払い金額", "◇¥" + Number(data.finalPrice).toLocaleString() + "（税込）");
+  else if (data.subtotal && !data.priceNeedsConsult) lines.push("", "◆お支払い金額", "◇¥" + Number(data.subtotal).toLocaleString() + (data.priceIsFixed ? "" : "〜") + "（税込）");
+  lines.push(...paymentLines(data, "confirmed"));
+  lines.push("", "◆これからのご案内", "◇お引き取りの前日と当日に", "　LINEでお知らせします");
+  if (data.christmasOrder) lines.push("◇お支払いの期限（" + XMAS_PAYMENT_DEADLINE + "）", "　の前にもお知らせします");
+  lines.push("", "◆ご変更・ご相談", "◇お電話（070-9158-0641）へ");
+  return lines.join("\n");
+}
+async function tryLinkReservation(userId, text) {
+  const code = parseLinkCode(text);
+  if (!code || !userId) return null;
+  const db = admin.database();
+  const attRef = db.ref("koimariOps/linkAttempts/" + userId + "/" + todayDateKeyJST(new Date()));
+  const tries = (await attRef.once("value")).val() || 0;
+  if (tries >= 5) return "本日は確認の回数が上限に達しました。\nお手数ですが、お電話\n（070-9158-0641）で\nお問い合わせください。";
+  const all = (await db.ref("reservations").once("value")).val() || {};
+  const find = (c) => c && Object.entries(all).find(([, d]) => d && Number(d.reservationNo) === c.no && String(d.tel || "").replace(/\D/g, "").slice(-4) === c.tel4);
+  const hit = find(code) || find(code.alt);
+  if (!hit) {
+    await attRef.set(tries + 1);
+    return "ご予約が見つかりませんでした。\n予約番号と、お電話番号の\n下4桁をご確認のうえ、\nもう一度お送りください。\n（例：0142 0641）";
+  }
+  const [key, d] = hit;
+  if (d.status === "キャンセル") return "このご予約はキャンセル済みです。\nご不明な点はお電話\n（070-9158-0641）へどうぞ。";
+  const pd = d.finalPickupDate || d.pickupDate;
+  if (d.handedOver || (pd && pd < todayDateKeyJST(new Date()))) return "このご予約は、お引き取りの日を\n過ぎています。\nご来店ありがとうございました🎂";
+  if (d.lineUserId && d.lineUserId !== userId) return "このご予約は、すでに別のLINEと\nつながっています。\nお手数ですが、お電話\n（070-9158-0641）で\nお問い合わせください。";
+  if (!d.lineUserId) await db.ref("reservations/" + key).update({ lineUserId: userId, lineLinkedAt: new Date().toISOString() });
+  return buildLinkedCopyMessage(d);
+}
+
+// ===== クリスマスケーキの支払い期限のお知らせ（2026-10-26オーナー指示）=====
+// 未払いのクリスマスのご予約（LINEとつながっているもの）に、12/17と期限当日（12/20）の10時台に1回ずつ送る。
+const XMAS_PAY_REMIND_DAYS = ["12-17", "12-20"];
+function dueXmasPayReminder(data, now) {
+  if (!data || !data.lineUserId || !data.christmasOrder || data.paymentDone || data.handedOver) return "";
+  if (["キャンセル", "完了", "引取りなし"].includes(data.status)) return "";
+  const jst = new Date(now.getTime() + 9 * 3600000);
+  if (jst.getUTCHours() !== 10 || jst.getUTCMinutes() >= 15) return "";
+  const md = jst.toISOString().slice(5, 10);
+  if (!XMAS_PAY_REMIND_DAYS.includes(md)) return "";
+  const key = "xmasPay" + md.replace("-", "");
+  return (data.reminderSent || {})[key] ? "" : key;
+}
+function buildXmasPayMessage(data, key) {
+  const pd = data.finalPickupDate || data.pickupDate, pt = data.finalPickupTime || data.pickupTime;
+  const today = key === "xmasPay1220";
+  return [
+    (data.name || "お客様") + "様",
+    today ? "本日がクリスマスケーキの" : "クリスマスケーキのご予約、",
+    today ? "お支払いの期限です🎄" : "ありがとうございます🎄",
+    "",
+    "◆お支払いの期限",
+    "◇" + XMAS_PAYMENT_DEADLINE + "までに店頭で",
+    "　お支払いをお願いいたします",
+    "◇お支払いの時点で",
+    "　ご予約確定となります",
+    ...(data.reservationNo ? ["", "◆予約番号", "◇" + formatReservationNo(data.reservationNo)] : []),
+    "",
+    "◆お引き取り",
+    "◇" + formatPickupDateTimeJp(pd, pt),
+    "",
+    "◆ご相談",
+    "◇お電話（070-9158-0641）へ",
+  ].join("\n");
+}
+
 function buildConfirmMessage(data) {
   const name = data.name || "お客様";
   const pd = data.finalPickupDate || data.pickupDate, pt = data.finalPickupTime || data.pickupTime;
@@ -1300,7 +1401,7 @@ exports.sendReservationRevisionMessage = onValueCreated(
     if (rev.noNotify) return; // 「電話で確定」の記録：お客様には確定連絡が別に届くので送らない（2026-10-21）
     const snap = await admin.database().ref(`reservations/${event.params.pushId}`).once("value");
     const data = snap.val();
-    if (!data || data.channel !== "LINE" || !data.lineUserId || data.status === "キャンセル") return;
+    if (!data || !data.lineUserId || data.status === "キャンセル") return; // 電話・店頭のご予約も、LINEとつながっていれば送る（2026-10-26）
     const ok = await pushLineMessage(data.lineUserId, buildRevisionMessage(data, rev), LINE_CHANNEL_ACCESS_TOKEN.value());
     if (ok) await admin.database().ref(`reservations/${event.params.pushId}/revisions/${n}/notified`).set(true);
   }
@@ -1458,7 +1559,7 @@ exports.sendReservationConfirmedMessage = onValueUpdated(
     if (!callNow && !confirmNow) return;
     if (after.status === "キャンセル" || after.confirmMessageSentAt) return;
     const ref = admin.database().ref(`reservations/${event.params.pushId}`);
-    const isLine = after.channel === "LINE" && after.lineUserId && !isPhotoChristmas(after);
+    const isLine = !!after.lineUserId && !isPhotoChristmas(after); // 電話・店頭のご予約も、LINEとつながっていれば送る（2026-10-26）
     if (!isLine) {
       // LINEで連絡できないお客様は、電話で確定した時点で内容確定にする
       if (callNow && !after.reservationConfirmed) await ref.update({ reservationConfirmed: true, reservationConfirmedAt: new Date().toISOString(), reservationConfirmedBy: "自動（LINE未連携・電話で確定）" });
