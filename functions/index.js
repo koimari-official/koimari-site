@@ -1070,6 +1070,7 @@ function orderDetailLines(data) {
   } else {
     if (it.size && it.size !== "ホール") lines.push(diamondLine("サイズ", sizeWithDiameter(it.size)));
     if (data.creamType) lines.push(diamondLine("クリーム", data.creamType + (data.creamTypeSub ? "（" + data.creamTypeSub + "）" : "")));
+    if (data.mousseFlavor) lines.push(diamondLine("ムース", data.mousseFlavor)); // グランマニエ（ムース）のいちご／チョコ（2026-10-26）
     if (data.colorCream && data.colorCream.count) {
       lines.push(diamondLine("カラークリーム", data.colorCream.count + "色" + ((data.colorCream.colors || []).length ? "（" + data.colorCream.colors.join("・") + "）" : "")));
     }

@@ -766,12 +766,12 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 .event-fair__body{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
 .event-fair__en{font-family:var(--ef-en);font-size:15px;color:var(--ef-accent);letter-spacing:.06em;line-height:1.1}
 .event-fair__title{font-family:var(--ef-font);font-size:clamp(20px,2.6vw,28px);font-weight:900;color:var(--ef-accent);line-height:1.3;letter-spacing:.04em;text-shadow:0 2px 0 rgba(0,0,0,.25)}
-.event-fair__lead{font-size:14px;font-weight:600;margin-top:3px;color:var(--ef-ink)}
+.event-fair__lead{font-size:14px;font-weight:600;margin-top:3px;color:var(--ef-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%} /* 1行で出す（2026-10-26オーナー指示） */
 .event-fair__btn{flex-shrink:0;padding:10px 20px;border-radius:999px;background:var(--ef-accent);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .event-fair__deco{width:64px;height:64px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));animation:ef-bob 3.6s ease-in-out infinite}
 .event-fair__deco:last-child{animation-delay:1.2s}
 @keyframes ef-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
-@media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:12.5px}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
+@media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:min(12.5px,calc((100vw - 28px) / 31))}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
 @media (prefers-reduced-motion: reduce){.event-fair__deco{animation:none}}
 /* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}.pay-xmas{display:block;margin-top:4px;font-weight:700;color:#a8362f}.pay-xmas[hidden]{display:none}
 /* 今月の主役：特設ページへの大きなボタン（2026-10-21） */

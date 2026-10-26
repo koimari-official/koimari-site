@@ -127,6 +127,7 @@
       flavor: (items[0] || {}).flavor || "",
       tiers: tiers,
       creamSub: r.creamTypeSub || "",
+      mousseFlavor: r.mousseFlavor || "",
       decoration: r.decoration || "",
       occasion: r.occasion || "",
       occasionOther: r.occasionOther || "",
@@ -178,6 +179,7 @@
     }
     if (s.decoration) rows.push(["飾り付け", s.decoration]);
     if (s.occasion) rows.push(["ご利用シーン", s.occasion === "その他" && s.occasionOther ? s.occasionOther : s.occasion]);
+    if (!simple && s.mousseFlavor) rows.push(["ムースの種類", s.mousseFlavor]);
     if (!simple) rows.push(["ろうそく", candleLabelSnap(s)]);
     if (!simple) rows.push(["メッセージプレート", s.messageCount ? s.messageCount + "枚" + (s.message ? "「" + s.message + "」" : "") : "なし"]);
     var opts = [];
@@ -263,6 +265,7 @@
     p.extraCharge = Number(s.extraAmount) > 0 ? Number(s.extraAmount) : null;
     p.extraChargeNote = s.extraNote || null;
     Object.assign(p, candleSnapData(s));
+    p.mousseFlavor = s.tiers.some(function (t) { return t.cream === "ムース"; }) ? (s.mousseFlavor || "いちごムース") : null; // グランマニエ（ムース）のいちご／チョコ
     if (est && !est.needsConsult) { p.subtotal = est.subtotal; p.estimateLines = est.lines; p.estimateNotes = est.notes; }
     return p;
   }
@@ -464,6 +467,7 @@
           (t.cream === "生クリーム" || !t.cream ? field("カラー（1段1色）", sel("reColor" + i, [""].concat(COLORS), t.color)) : "") +
           (i === 0 && TARTS.indexOf(t.cream) >= 0 ? field("タルトの生クリーム", sel("reCreamSub", ["生クリームあり", "生クリームなし"], e.creamSub || "生クリームあり", function (o) { return o; })) : "")) + "</div>";
       });
+      if (e.tiers.some(function (t) { return t.cream === "ムース"; })) html += field("ムースの種類", sel("reMousse", ["いちごムース", "チョコムース"], e.mousseFlavor || "いちごムース"));
       html += field("飾り付け", sel("reDeco", [""].concat(DECORATIONS), e.decoration, function (o) { return o || "指定なし"; }));
       html += field("ご利用シーン", sel("reOcc", OCCASIONS, e.occasion, function (o) { return o || "指定なし"; }) + (e.occasion === "その他" ? '<input class="input re-in" id="reOccOther" value="' + esc(e.occasionOther) + '" placeholder="例：結婚記念日">' : ""));
       html += field("ナンバーろうそく（番号×本数）", '<input class="input re-in" id="reCandleNums" value="' + esc(e.candleNums || "") + '" placeholder="例：2×1 5×1（「25」と書いても同じ）">' + (e.candleLegacy && !e.candleNums ? '<div style="font-size:12.5px;color:#8a6a4a;margin-top:4px;">以前のご予約：ナンバーろうそく ' + e.candleLegacy + "文字（番号を入れると置き換わります）</div>" : ""));
@@ -555,6 +559,7 @@
       while (e.tiers.length < n) e.tiers.push({ size: UPPER_SIZES[0], cream: "生クリーム", color: "" });
       e.tiers = e.tiers.slice(0, n);
       e.creamSub = g("reCreamSub") ? g("reCreamSub").value : "";
+      e.mousseFlavor = g("reMousse") ? g("reMousse").value : (e.mousseFlavor || "");
       e.decoration = g("reDeco").value; e.occasion = g("reOcc").value; e.occasionOther = g("reOccOther") ? g("reOccOther").value : e.occasionOther;
       e.candleNums = g("reCandleNums") ? g("reCandleNums").value : (e.candleNums || ""); e.candlePlain = g("reCandlePlain") ? Number(g("reCandlePlain").value) || 0 : (e.candlePlain || 0);
       e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;

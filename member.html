@@ -184,6 +184,8 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .staff-thanks__qr{display:flex;align-items:center;gap:12px;font-size:13.5px}
 .staff-thanks__qr #staffThanksQr{flex:0 0 120px;width:120px;height:120px;background:#fff;padding:4px;border-radius:6px}
 .staff-thanks__qr #staffThanksQr img,.staff-thanks__qr #staffThanksQr canvas{width:112px!important;height:112px!important}
+/* ケーキの種類：タルトはフルーツ／ストロベリーを「タルトBOX」1つにまとめる（いちご／ミックスフルーツは飾り付けで選ぶ。2026-10-26） */
+.radio-list__opt.opt-merged{display:none!important}
 /* ブラウザで開く（2026-10-26） */
 .browser-open-btn{display:block;width:100%;margin:0 0 18px;padding:12px 14px;border:1.5px solid #06c755;border-radius:12px;background:#f1fbf4;color:#05893b;font-size:16px;font-weight:700;text-align:center;cursor:pointer;font-family:inherit;line-height:1.5}
 .browser-open-btn small{display:block;font-size:13px;font-weight:400;color:#3a4a3a}
@@ -329,7 +331,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         <a href="gallery.html" target="_blank" rel="noopener" id="galleryLinkBtn" class="btn--ghost btn" style="font-size:13.5px;padding:11px 22px;">過去の作品ギャラリーを見る（新しいウィンドウで開きます）</a>
       </div>
 
-      <button type="button" id="openInBrowserBtn" class="browser-open-btn" style="display:none;">ブラウザで開く<small>ご家族とLINEで相談しながら入力できます（選んだ内容は引き継がれます）</small></button>
+      <button type="button" id="openInBrowserBtn" class="browser-open-btn" style="display:none;">ブラウザで開く<small>LINEで相談しながら入力できます（選んだ内容は引き継がれます）</small></button>
       <div id="reserveFormWrap">
         <div id="draftBanner" style="display:none;"></div>
         <div class="field">
@@ -397,17 +399,24 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div id="refImageBox" class="ref-image" style="display:none;"></div>
         <div class="field" id="reserveCreamTypeField" style="display:none;">
-          <label class="field__label"><span id="reserveActiveTierLabel"></span>ケーキ・クリームの種類<span class="req-mark">必須</span></label>
+          <label class="field__label"><span id="reserveActiveTierLabel"></span>ケーキの種類<span class="req-mark">必須</span></label>
           <div class="radio-list">
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生クリーム" checked> 生クリームBOX（いちご・ミックスフルーツ）</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリーム<span id="reserveChocoCreamPriceLabel"></span></label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生クリーム" checked> 生クリームBOX</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリームBOX<span id="reserveChocoCreamPriceLabel"></span></label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> タルトBOX</label>
+            <label class="radio-list__opt opt-merged"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> グランマニエBOX（ムース・4号）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ミッシェルBOX"> ミッシェルBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> フルーツタルトBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> ムース（4号のみ）</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="モンブラン"> モンブラン（フルオーダー・お見積もり）</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーケーキ（お日にちをいただく場合があります）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="モンブラン"> モンブランBOX（フルオーダー・要お見積もり）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーBOX（フルオーダー・要お見積もり）</label>
+          </div>
+          <div id="reserveMousseFlavorWrap" style="display:none;margin-top:10px;">
+            <label class="field__label" style="font-size:12px;">ムースの種類</label>
+            <div class="radio-list" style="flex-direction:row;">
+              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="いちごムース" checked> いちごムース</label>
+              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="チョコムース"> チョコムース</label>
+            </div>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
             <label class="field__label" style="font-size:12px;">生クリームの有無（同一価格）</label>
@@ -440,13 +449,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
         <div class="field" id="reserveColorCreamField" style="display:none;">
           <label class="field__label">カラークリーム（1段につき1色）</label>
-          <div class="field__hint" style="margin:-4px 0 8px;">色だけが変わります（味は生クリームのままです）</div>
+          <label class="field__check"><input type="checkbox" id="reserveColorWant"><span>カラークリームに変更する（1色 +¥500〜）</span></label>
+          <div id="reserveColorBody" style="display:none;margin-top:10px;">
+          <div class="field__hint" style="margin:0 0 8px;">色だけが変わります（味は生クリームのままです）</div>
           <div class="field__hint" style="margin-bottom:8px;">1色 +¥500／2色 +¥1,000／3色 +¥1,500（税込）。1つの段は1色までです（段ごとに違う色をお選びいただけます）。色をタップしてお選びください。</div>
           <div id="reserveColorChips"></div>
           <div id="reserveColorSummary" class="field__hint">色を選ぶと、色数に応じた金額が加算されます</div>
           <div id="reserveColorWarn" style="display:none;margin-top:8px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.8;color:#6b4a12;">原色に近い色（濃い赤・黄色・青など）の色付き生クリームは、食用色素で着色するため、味に多少影響する場合がございます。また、衣服へ色移りする場合がございます。衣服などへの付着には十分お気をつけください。</div>
           <select id="reserveColorCream" style="display:none;"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select>
           <input type="text" id="reserveColorCreamNote" class="input" style="display:none;margin-top:10px;" maxlength="40" placeholder="「その他」の色・ご希望のイメージ（例: くすみピンク、ミントグリーン）">
+          </div>
         </div>
         <div class="field" id="reserveDecorationField" style="display:none;">
           <label class="field__label">飾り付け<span class="req-mark">必須</span></label>
@@ -755,7 +767,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js?v=20261026b"></script>
+<script src="cake-pricing.js?v=20261026c"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
@@ -787,7 +799,7 @@ const FORM_UI = (() => {
   } catch (e) { return PHONE_MODE ? "classic" : "scroll"; }
 })();
 const STEP_UI = FORM_UI === "step", SCROLL_UI = FORM_UI === "scroll";
-const STEPS = [["種類", "ご注文の種類"], ["サイズ", "段数とサイズ"], ["中身", "ケーキの中身"], ["飾り", "飾りとオプション"], ["日時", "お受け取りの日時"], ["お客様", "お客様の情報"], ["確認", "ご確認"]];
+const STEPS = [["種類", "ご注文の種類"], ["サイズ", "段数とサイズ"], ["ケーキ", "ケーキの種類"], ["飾り", "飾りとオプション"], ["日時", "お受け取りの日時"], ["お客様", "お客様の情報"], ["確認", "ご確認"]];
 // ":id"＝その入力欄を含む項目（.field）、"=name"＝そのラジオを含む項目、".class"＝フォーム内の要素、それ以外は id
 const STEP_PARTS = [
   ["=reserveType", "reserveCategoryField", "lastOrderBanner", "resumeBanner", "pastOrders", "draftBanner"],
@@ -1087,7 +1099,7 @@ document.addEventListener("click", (e) => {
 // 色数（1〜3色）が金額に直結するため、色のチップを最大3色まで選ぶ形にする。選んだ数が隠しselect(#reserveColorCream)の値になり、
 // 従来の概算計算・確認画面の仕組みをそのまま使う。色の追加・変更はこの配列だけを直せばよい。
 const CREAM_COLORS = [
-  { name: "黒", label: "ノワールカラー", css: "#2b2b2b" }, { name: "グレー", label: "シルバーミストカラー", css: "#9a9a9a" }, { name: "赤", label: "ルージュカラー", css: "#d62839" }, { name: "青", label: "ロイヤルブルーカラー", css: "#2f6fd6" }, { name: "紺", label: "ミッドナイトカラー", css: "#1c2f6b" },
+{ name: "グレー", label: "シルバーミストカラー", css: "#9a9a9a" }, { name: "赤", label: "ルージュカラー", css: "#d62839" }, { name: "青", label: "ロイヤルブルーカラー", css: "#2f6fd6" }, { name: "紺", label: "ミッドナイトカラー", css: "#1c2f6b" },
   { name: "黄色", label: "レモンムースカラー", css: "#f6d21f" }, { name: "ピンク", label: "ロゼカラー", css: "#f7a6c1" }, { name: "緑", label: "フォレストカラー", css: "#2e9b52" }, { name: "黄緑", label: "ピスタチオカラー", css: "#9bd13f" },
   { name: "茶色", label: "ショコラカラー", css: "#7a4a2a" }, { name: "水色", label: "スカイソーダカラー", css: "#8fd3f4" },
   { name: "その他（下に記入）", label: "あなただけの色", css: "conic-gradient(#f7a6c1,#f6d21f,#9bd13f,#8fd3f4,#8a5bd0,#f7a6c1)" }
@@ -1103,6 +1115,36 @@ function updateColorWarn() {
   let all = selectedCreamColors.slice();
   try { if (typeof activeSpecs === "function") activeSpecs().forEach(s => (s.colors || []).forEach(c => all.push(c))); } catch (e) {}
   el.style.display = all.some(c => STRONG_COLORS.includes(c)) ? "" : "none";
+}
+// 「カラークリームに変更する」：チェックした段だけ色の選択を出す（2026-10-26オーナー指示）。色を選んである段は最初からチェック済み
+let colorWantByTier = {};
+function syncColorWantUI() {
+  const want = selectedCreamColors.length > 0 || !!colorWantByTier[activeTier];
+  const cb = document.getElementById("reserveColorWant"), body = document.getElementById("reserveColorBody");
+  if (cb) cb.checked = want;
+  if (body) body.style.display = want ? "" : "none";
+}
+document.addEventListener("change", (e) => {
+  if (!e.target || e.target.id !== "reserveColorWant") return;
+  colorWantByTier[activeTier] = e.target.checked;
+  if (!e.target.checked && selectedCreamColors.length) { selectedCreamColors = []; saveActiveSpec(); renderColorChips(); syncColorSelect(); }
+  syncColorWantUI();
+});
+// タルトBOX：画面では1つ。予約データでは飾り付け（いちご／ミックス）でストロベリー／フルーツに振り分ける（2つは同じ金額）
+function tartKindFor(cream) {
+  if (!CakePricing.SPEC.tartTypes.includes(cream)) return cream;
+  return ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "") === "いちごのみ" ? "ストロベリータルトBOX" : "フルーツタルトBOX";
+}
+// 以前の形（ストロベリータルトBOX）で入ってきた選択は「タルトBOX＋いちご」に読み替える（途中保存・ギャラリー・段の切り替え）
+function normalizeTartRadio() {
+  const st = document.querySelector('input[name="reserveCreamType"][value="ストロベリータルトBOX"]');
+  if (st && st.checked) {
+    const fr = document.querySelector('input[name="reserveCreamType"][value="フルーツタルトBOX"]');
+    const ich = document.querySelector('input[name="reserveDecoration"][value="いちごのみ"]');
+    if (ich && !ich.checked) { ich.checked = true; ich.dispatchEvent(new Event("change", { bubbles: true })); }
+    if (fr) { fr.checked = true; fr.dispatchEvent(new Event("change", { bubbles: true })); }
+  }
+  (tierSpecs || []).forEach((t) => { if (t && t.cream === "ストロベリータルトBOX") t.cream = "フルーツタルトBOX"; });
 }
 function renderColorChips() {
   const wrap = document.getElementById("reserveColorChips");
@@ -1129,6 +1171,7 @@ function renderColorChips() {
     hint.textContent = (selectedCreamColors.length ? "この段の色：" + selectedCreamColors.map(colorLabelOf).join("・") : "この段の色：未選択（白のままです）") + (tot > 0 ? "　／　ケーキ全体で" + tot + "色 → カラークリーム代 +¥" + price.toLocaleString() + "（税込）" : "　／　色を選ぶと、色数に応じた金額が加算されます");
   }
   updateColorWarn();
+  syncColorWantUI();
 }
 function showColorLimitHint() {
   const hint = document.getElementById("reserveColorSummary");
@@ -1350,7 +1393,7 @@ function collectFormSpec() {
     topCut: !!(g("reserveTopCut") || {}).checked, topCutNote: (g("reserveTopCutNote") || {}).value || "",
     cutQty: Object.assign({}, cutQty), cutOtherNote: (g("reserveCutOtherNote") || {}).value || "",
     onsite: !!(g("reserveOnsite") || {}).checked, colorNote: (g("reserveColorCreamNote") || {}).value || "",
-    candle: !!(g("reserveCandleNeeded") || {}).checked, candleNums: candleNumbersNow(), candleBags: (g("reserveCandleBags") || {}).value || "0",
+    mousseFlavor: cv("reserveMousseFlavor"), candle: !!(g("reserveCandleNeeded") || {}).checked, candleNums: candleNumbersNow(), candleBags: (g("reserveCandleBags") || {}).value || "0",
     msgCount: (g("reserveMessageCount") || {}).value || "0", msgText: (g("reserveChocoText") || {}).value || "",
     toppings: selectedToppings(), later: laterList(), omakase: selectedOmakase(), fruitExtra: !!(g("reserveFruitExtra") || {}).checked,
     addOns: Object.keys(addOnQty).filter(k => addOnQty[k] > 0).map(k => [k, addOnQty[k]]),
@@ -1429,7 +1472,7 @@ function applyFormSpec(s) {
     Object.keys(cutQty).forEach(k => delete cutQty[k]); Object.assign(cutQty, s.cutQty || {}); cutRowOrder = []; setVal("reserveCutOtherNote", s.cutOtherNote || ""); renderCutPicker();
     setTimeout(convertTartTopCut, 0); // 以前の形（1段のタルト＋カットケーキを載せる）は2段に読み替える
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
-    setChk("reserveCandleNeeded", s.candle);
+    setChk("reserveCandleNeeded", s.candle); if (s.mousseFlavor) setRadio("reserveMousseFlavor", s.mousseFlavor);
     // 以前の形（種類＋数）の途中保存も読む：普通のろうそくは袋数に、ナンバーろうそくは番号を選び直してもらう
     candleRows = (s.candleNums && s.candleNums.length) ? s.candleNums.map((c) => ({ num: String(c.num), qty: Number(c.qty) || 1 })) : [{ num: "", qty: 1 }];
     setVal("reserveCandleBags", s.candleNums ? (s.candleBags || "0") : (s.candleType === "普通のろうそく" ? (s.candleBags || "1") : "0"));
@@ -2611,6 +2654,7 @@ function applyCreamTierRules() {
   } finally { _creamRuleBusy = false; }
 }
 function updateCakeOptionUI() {
+  try { normalizeTartRadio(); } catch (e) { console.error(e); }
   try { applyCreamTierRules(); } catch (e) { console.error(e); }
   { // 一番下をタルトにした／やめたとき、上の段（カットケーキに固定かどうか）を描き直す
     const top = document.querySelector('.tier-size-select[data-tier="1"]');
@@ -2666,6 +2710,7 @@ function updateCakeOptionUI() {
     else sn.style.display = "none";
   }
   const activeCream = checkedCream();
+  { const mw = g("reserveMousseFlavorWrap"); if (mw) mw.style.display = activeCream === "ムース" ? "" : "none"; } // ムースの種類（段を切り替えたときも）
   const colorOk = activeCream === "生クリーム"; // 生チョコクリームはチョコの色と混ざるためカラークリーム不可（オーナー判断 2026-09-26）
   { const th = g("reserveTierTypeHint"); if (th) th.style.display = tierCount > 1 ? "" : "none"; }
   { const cn = g("reserveColorChocoNote"); if (cn) cn.style.display = activeCream === "生チョコクリーム" ? "" : "none"; }
@@ -3152,6 +3197,7 @@ document.addEventListener("change", (e) => {
   if (e.target && e.target.name === "reserveCreamType") {
     const needsSub = e.target.value === "フルーツタルトBOX" || e.target.value === "ストロベリータルトBOX";
     document.getElementById("reserveCreamTypeSubWrap").style.display = needsSub ? "" : "none";
+    document.getElementById("reserveMousseFlavorWrap").style.display = e.target.value === "ムース" ? "" : "none";
   }
   if (e.target && e.target.id === "reserveMessageCount") {
     document.getElementById("reserveChocoTextWrap").style.display = Number(e.target.value) > 0 ? "" : "none";
@@ -3306,6 +3352,7 @@ function renderReserveConfirm(data, targetId) {
     <dt>商品</dt><dd>${escape(productName)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
     ${isCake ? `<dt>クリームの種類</dt><dd>${escape(data.creamType)}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${escape(data.creamTypeSub)}）` : ""}</dd>` : ""}
+    ${data.mousseFlavor ? `<dt>ムースの種類</dt><dd>${escape(data.mousseFlavor)}</dd>` : ""}
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration))}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine).replace(/\n/g, "<br>")}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
@@ -3376,6 +3423,7 @@ function buildReserveSummaryText(data) {
   if (data.galleryPick) lines.push(`ギャラリーで選んだ商品: ${data.galleryPick.name}${data.galleryPick.size ? `（${data.galleryPick.size}）` : ""}`);
   if (item.flavor) lines.push(`ケーキの種類: ${item.flavor}`);
   if (isCake) lines.push(`クリームの種類: ${data.creamType}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`);
+  if (data.mousseFlavor) lines.push(`ムースの種類: ${data.mousseFlavor}`);
   if (isCake) lines.push(`飾り付け: ${({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration)}`);
   if (sizesLine) { if (data.items.length > 1) lines.push("サイズ:", ...sizesLine.split("\n").map(x => "　" + x)); else lines.push(`サイズ: ${sizesLine}`); }
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
@@ -3828,7 +3876,7 @@ function setupReserveForm(uid, displayName) {
       const chocoText = messageCount > 0 ? (document.getElementById("reserveChocoText").value || "") : "";
       const occasion = (isBaked ? "" : (document.querySelector('input[name="reserveOccasion"]:checked') || {}).value) || "";
       const occasionOther = occasion === "その他" ? (document.getElementById("reserveOccasionOther").value || "") : "";
-      const creamType = isCake ? bottomCream() : "";
+      const creamType = isCake ? tartKindFor(bottomCream()) : ""; // タルトBOXは、飾り付け（いちご／ミックス）でストロベリー／フルーツに振り分ける
       const creamTypeNeedsSub = creamType === "フルーツタルトBOX" || creamType === "ストロベリータルトBOX";
       const creamTypeSub = creamTypeNeedsSub ? ((document.querySelector('input[name="reserveCreamTypeSub"]:checked') || {}).value || "") : "";
       const decoration = isCake ? ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "") : "";
@@ -3873,11 +3921,12 @@ function setupReserveForm(uid, displayName) {
         pickupDate: document.getElementById("reserveDate").value || "",
         pickupTime: document.getElementById("reserveTime").value || "",
         items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
+        ...(isCake && specsNow.some((s) => s.cream === "ムース") ? { mousseFlavor: (document.querySelector('input[name="reserveMousseFlavor"]:checked') || {}).value || "いちごムース" } : {}),
         candleNeeded, candleType, candleBags, candleNumbers, candlePlainBags, candleText, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [], priceIsFixed: !!priceResult.priceIsFixed,
         ...(colorCreamCount > 0 ? { colorCream: { count: colorCreamCount, colors: specsNow.reduce((a, s) => a.concat(s.colors), []), note: colorCreamNote } } : {}),
-        ...(isCake && specsNow.length > 1 ? { tierSpecs: specsNow.map((s, i) => ({ tier: tierName(i, specsNow.length), size: (items[i] || {}).size || "", cream: s.cream, colors: s.colors, ...(s.fx ? { fruitExtra: true } : {}), ...(s.ct ? { creamTopping: true } : {}) })).reverse() } : {}),
+        ...(isCake && specsNow.length > 1 ? { tierSpecs: specsNow.map((s, i) => ({ tier: tierName(i, specsNow.length), size: (items[i] || {}).size || "", cream: tartKindFor(s.cream), colors: s.colors, ...(s.fx ? { fruitExtra: true } : {}), ...(s.ct ? { creamTopping: true } : {}) })).reverse() } : {}),
         ...(strawberryAdd ? { strawberryAdd: true, strawberryKind: (document.querySelector('input[name="reserveStrawberryKind"]:checked') || {}).value || "いちご" } : {}),
         ...(addOnsPicked.length ? { addOns: addOnsPicked } : {}),
         ...(topCutOn ? { topCut: { note: topCutNote } } : {}),

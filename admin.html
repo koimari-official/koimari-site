@@ -302,12 +302,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .man .msg{border:1px solid #cdbfae;border-radius:8px;background:#fff;padding:10px 14px;font-size:13.5px;line-height:1.7;margin:6px 0 10px}
 .man .qr{text-align:center;font-size:13px;line-height:1.6;margin:8px 0 14px}.man .qr img{display:block;width:160px;margin:0 auto 4px}
 </style>
-<script src="cake-pricing.js?v=20261026b"></script>
+<script src="cake-pricing.js?v=20261026c"></script>
 <script src="photo-adjust.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261026a"></script>
+<script src="reservation-editor.js?v=20261026b"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -5660,6 +5660,7 @@ function resCakeSpecLine(r, opts) {
     const sizes = items.map((x) => resSizeKey(x.size)).filter(Boolean);
     if (sizes.length) parts.push(sizes.length > 1 ? sizes.length + "段（" + sizes.join("＋") + "）" : sizes[0]);
     if (r.creamType) parts.push(r.creamType + (r.creamTypeSub ? "（" + r.creamTypeSub + "）" : ""));
+    if (r.mousseFlavor) parts.push(r.mousseFlavor);
   }
   if (r.decoration) parts.push("飾り：" + (DECO_LABEL[r.decoration] || r.decoration));
   return parts.join("・");
@@ -7662,7 +7663,7 @@ function renderKitchen() {
     const spec = [];
     if (Array.isArray(r.tierSpecs) && r.tierSpecs.length) r.tierSpecs.forEach(t => spec.push("<b>" + kEsc(t.tier) + "</b>　" + kEsc(String(t.size || "").replace(/\(.*$/, "")) + "　" + kEsc(t.cream) + ((t.colors || []).length ? "　🎨" + t.colors.map(kEsc).join("・") : "")));
     else {
-      spec.push(kEsc(String(it.size || "").replace(/\(.*$/, "")) + "　" + kEsc(r.creamType || "") + (r.creamTypeSub ? "（" + kEsc(r.creamTypeSub) + "）" : ""));
+      spec.push(kEsc(String(it.size || "").replace(/\(.*$/, "")) + "　" + kEsc(r.creamType || "") + (r.creamTypeSub ? "（" + kEsc(r.creamTypeSub) + "）" : "") + (r.mousseFlavor ? "　" + kEsc(r.mousseFlavor) : ""));
       if (r.colorCream && r.colorCream.count) spec.push("🎨 カラークリーム " + r.colorCream.count + "色：" + (r.colorCream.colors || []).map(kEsc).join("・") + (r.colorCream.note ? "（" + kEsc(r.colorCream.note) + "）" : ""));
     }
     const extra = [];
