@@ -203,6 +203,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .thanks-photo__title{font-size:16px;font-weight:700;color:#6b4a2a;margin:0 0 8px}
 .thanks-photo__img{display:block;width:100%;max-width:520px;aspect-ratio:1/1;object-fit:contain;background:#fff;border:1px solid #ecd9c4;border-radius:14px;margin:0 auto}
 .thanks-photo__cap{margin-top:8px;text-align:center;font-size:15px;font-weight:700;color:#2e2118;line-height:1.6}
+.tier-lead-note{margin:4px 0 12px;padding:10px 12px;background:#fdeeea;border:1px solid #e6a698;border-radius:8px;font-size:14px;font-weight:700;color:#8a2a1a;line-height:1.7}
 .tier-photo-note{margin:-4px 0 12px;padding:8px 12px;background:#fff7ea;border:1px solid #e0b872;border-radius:8px;font-size:13.5px;font-weight:700;color:#6b4a12;line-height:1.6}
 .thanks-photo__note{margin-top:2px;text-align:center;font-size:13px;color:#7a6a58}
 /* ケーキの種類：タルトはフルーツ／ストロベリーを「タルトBOX」1つにまとめる（いちご／ミックスフルーツは飾り付けで選ぶ。2026-10-26） */
@@ -2627,6 +2628,8 @@ function renderTierSizeSelects(tierCount) {
     const suffix = bKey === "7号" ? "（3号またはカットケーキからお選びください）" : bKey === "6号" ? "（セルクルまたはカットケーキからお選びください）" : "";
     html += tierFieldHtml(2, 3, suffix, editableSizeSelectHtml(2, topOpts, topVal, 0));
   }
+  // 2段は入れ物の在庫・取り寄せ納期の確認が要る（2026-10-28オーナー指示）。タルト＋カットケーキの2段は通常の納期なので出さない
+  if (tierCount === 2 && !CakePricing.SPEC.tartTypes.includes(bottomCream())) html += '<div class="tier-lead-note">2段のケーキは、入れ物の在庫と取り寄せの納期を確認する必要があるため、お渡しまで15日ほどかかる場合があります。具体的な納期は、スタッフよりお電話でご案内します。</div>';
   wrap.innerHTML = html;
   const bottomEl = wrap.querySelector('[data-tier="0"]');
   // 再描画で元のselectが差し替わるため、document側の変更ハンドラ(e.target.closest)が効かない。

@@ -348,6 +348,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-memo-item__check{font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
 .rc-memo-add{display:flex;gap:8px;align-items:flex-end}
 .rc-memo-add .rc-memo{flex:1;margin:0}
+.rc-memo-add{flex-wrap:wrap}
+.rc-memo-by{width:auto;min-width:130px;font-size:14px;padding:8px 10px;margin:0}
 .rc-mini{border:1px solid var(--color-line,#e5d9c6);border-radius:10px;background:#fff;margin:0 0 6px}
 .rc-mini > summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 14px;cursor:pointer;font-size:15px;list-style:none}
 .rc-mini > summary::-webkit-details-marker{display:none}
@@ -4457,13 +4459,28 @@ function resMemoHtml(r, idx) {
       '<div class="rc-memo-item__text">' + escapeHtml(m.text) + "</div>" +
       '<label class="rc-memo-item__check"><input type="checkbox" onchange="checkResMemo(' + idx + ",'" + id + "',this.checked)\"" + (m.checkedAt ? " checked" : "") + "> 確認済み" +
       (m.checkedAt ? "（" + escapeHtml(m.checkedBy || "") + "・" + escapeHtml(fmtDate(m.checkedAt)) + "）" : "") + "</label></div>").join("") +
-    '<div class="rc-memo-add"><textarea rows="2" class="rc-memo" id="rcMemoIn' + idx + '" placeholder="スタッフメモを入力して「追加」"></textarea>' +
+    '<div class="rc-memo-add">' + resMemoBySelectHtml(idx) + '<textarea rows="2" class="rc-memo" id="rcMemoIn' + idx + '" placeholder="スタッフメモを入力して「追加」"></textarea>' +
     '<button type="button" class="btn btn--small" onclick="addResMemo(' + idx + ')">追加</button></div></div>';
+}
+// 店舗の共用アカウントは、入力した人を入力欄の横のプルダウンで選ぶ（個人のアカウントは自動でその人の名前）
+let resStaffList = null;
+function resMemoBySelectHtml(idx) {
+  if (!(window.__actor && window.__actor.shared)) return "";
+  if (resStaffList === null && window.fbResEditorApi && window.fbResEditorApi.getStaff) {
+    resStaffList = [];
+    window.fbResEditorApi.getStaff().then((v) => { resStaffList = (Array.isArray(v) ? v : Object.values(v || {})).filter(Boolean); renderReservations(); }).catch(() => {});
+  }
+  let last = ""; try { last = sessionStorage.getItem("koimari_last_actor") || ""; } catch (e) {}
+  return '<select class="input rc-memo-by" id="rcMemoBy' + idx + '" aria-label="入力した人"><option value="">入力した人</option>' +
+    (resStaffList || []).map((n) => "<option" + (n === last ? " selected" : "") + ">" + escapeHtml(n) + "</option>").join("") + "</select>";
 }
 async function addResMemo(idx) {
   const el = document.getElementById("rcMemoIn" + idx), text = ((el && el.value) || "").trim();
   if (!text) { showToast("メモを入力してください", "error"); return; }
-  const by = await askActor("メモを入力した人"); if (!by) return;
+  const sel = document.getElementById("rcMemoBy" + idx);
+  let by;
+  if (sel) { by = sel.value; if (!by) { showToast("入力した人を選んでください", "error"); sel.focus(); return; } try { sessionStorage.setItem("koimari_last_actor", by); } catch (e) {} }
+  else { by = await askActor("メモを入力した人"); if (!by) return; }
   const id = "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   await saveResPatch(resKeyNow(idx), { ["staffMemos/" + id]: { text, by, at: new Date().toISOString() } }, "メモ");
 }
