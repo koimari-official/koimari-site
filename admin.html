@@ -336,6 +336,18 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-day{margin:0 0 22px}
 .res-viewbar .seg--toggle button.on{background:#8a6a3a}
 @media(max-width:600px){.res-viewbar .seg button{padding:8px 11px;font-size:13px}.res-viewbar .seg--sub button{padding:7px 10px;font-size:12.5px}}
+.rc-tag--memo{background:#b03b48!important;color:#fff!important}
+.rc-memos{margin:10px 0 6px;padding:10px 12px;background:#fffaf2;border:1px solid #ecd9c4;border-radius:10px}
+.rc-memos__head{font-weight:700;font-size:14px;margin-bottom:6px}
+.rc-memos__un{color:#b03b48}
+.rc-memo-item{padding:8px 10px;margin:0 0 6px;background:#fff;border:1px solid #ecd9c4;border-radius:8px}
+.rc-memo-item.is-new{border-color:#b03b48;box-shadow:inset 3px 0 0 #b03b48}
+.rc-memo-item.is-checked{opacity:.75}
+.rc-memo-item__meta{font-size:12px;color:#8a7a68}
+.rc-memo-item__text{font-size:14.5px;white-space:pre-wrap;margin:2px 0 4px}
+.rc-memo-item__check{font-size:13px;font-weight:700;display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.rc-memo-add{display:flex;gap:8px;align-items:flex-end}
+.rc-memo-add .rc-memo{flex:1;margin:0}
 .rc-mini{border:1px solid var(--color-line,#e5d9c6);border-radius:10px;background:#fff;margin:0 0 6px}
 .rc-mini > summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 14px;cursor:pointer;font-size:15px;list-style:none}
 .rc-mini > summary::-webkit-details-marker{display:none}
@@ -4431,6 +4443,35 @@ async function deleteOneReservation(idx) {
   try { await window.fbTrashOne("reservations", key, actor); showToast("削除しました（ゴミ箱に移動）"); }
   catch (e) { showToast("削除できませんでした（この画面では削除の権限がありません）", "error"); }
 }
+// ===== スタッフメモ（2026-10-28オーナー指示）=====
+// reservations/{key}/staffMemos/{id} = { text, by, at, checkedBy, checkedAt }。1件ずつ、入力した人・日時と、確認チェック（確認した人・日時）を残す。
+// 以前の1つだけのメモ（notes）は「以前のメモ」として表示だけする。
+function resMemoList(r) { return Object.entries((r && r.staffMemos) || {}).filter(([, m]) => m && m.text).sort((a, b) => String(a[1].at || "").localeCompare(String(b[1].at || ""))); }
+function resMemoUnchecked(r) { return resMemoList(r).filter(([, m]) => !m.checkedAt).length; }
+function resMemoHtml(r, idx) {
+  const list = resMemoList(r), un = resMemoUnchecked(r);
+  return '<div class="rc-memos"><div class="rc-memos__head">スタッフメモ' + (list.length ? "（" + list.length + "件" + (un ? '・<b class="rc-memos__un">未確認 ' + un + "件</b>" : "・すべて確認済み") + "）" : "") + "</div>" +
+    (r.notes ? '<div class="rc-memo-item"><div class="rc-memo-item__meta">以前のメモ</div><div class="rc-memo-item__text">' + escapeHtml(r.notes) + "</div></div>" : "") +
+    list.map(([id, m]) => '<div class="rc-memo-item' + (m.checkedAt ? " is-checked" : " is-new") + '">' +
+      '<div class="rc-memo-item__meta">' + escapeHtml(fmtDate(m.at)) + "　入力：" + escapeHtml(m.by || "") + "</div>" +
+      '<div class="rc-memo-item__text">' + escapeHtml(m.text) + "</div>" +
+      '<label class="rc-memo-item__check"><input type="checkbox" onchange="checkResMemo(' + idx + ",'" + id + "',this.checked)\"" + (m.checkedAt ? " checked" : "") + "> 確認済み" +
+      (m.checkedAt ? "（" + escapeHtml(m.checkedBy || "") + "・" + escapeHtml(fmtDate(m.checkedAt)) + "）" : "") + "</label></div>").join("") +
+    '<div class="rc-memo-add"><textarea rows="2" class="rc-memo" id="rcMemoIn' + idx + '" placeholder="スタッフメモを入力して「追加」"></textarea>' +
+    '<button type="button" class="btn btn--small" onclick="addResMemo(' + idx + ')">追加</button></div></div>';
+}
+async function addResMemo(idx) {
+  const el = document.getElementById("rcMemoIn" + idx), text = ((el && el.value) || "").trim();
+  if (!text) { showToast("メモを入力してください", "error"); return; }
+  const by = await askActor("メモを入力した人"); if (!by) return;
+  const id = "m" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  await saveResPatch(resKeyNow(idx), { ["staffMemos/" + id]: { text, by, at: new Date().toISOString() } }, "メモ");
+}
+async function checkResMemo(idx, id, checked) {
+  const by = checked ? await askActor("メモを確認した人") : null;
+  if (checked && !by) { renderReservations(); return; }
+  await saveResPatch(resKeyNow(idx), { ["staffMemos/" + id + "/checkedAt"]: checked ? new Date().toISOString() : null, ["staffMemos/" + id + "/checkedBy"]: checked ? by : null }, checked ? "メモの確認" : "メモの確認を外す");
+}
 function updateResNotes(idx, notes) {
   if (!loadList(RES_KEY)[idx]) return;
   saveResPatch(resKeyNow(idx), { notes }, "メモ", { render: false }); // 入力中の他のメモ欄を描き直さない
@@ -5671,6 +5712,7 @@ function resMiniHtml(r, idx, byTel, withDate) {
     (r.reservationNo ? '<span class="rc-mini__no">' + formatReservationNo(r.reservationNo) + "</span>" : "") +
     '<span class="rc-mini__name">' + escapeHtml(r.name || "") + " 様</span>" +
     '<span class="rc-mini__cake">' + escapeHtml(resCakeTitle(r)) + "</span>" +
+    (resMemoUnchecked(r) ? '<span class="rc-tag rc-tag--memo">未確認メモ ' + resMemoUnchecked(r) + "件</span>" : "") +
     '<span class="rc-mini__st" style="color:' + (STATUS_COLORS[st] || "#999") + '">' + escapeHtml(st) + (r.paymentDone ? "・支払済" : "") + "</span>" +
     "</summary>" + resCardHtml(r, idx, byTel) + "</details>";
 }
@@ -5856,6 +5898,7 @@ function resCardHtml(r, idx, byTel) {
       '<div class="rc-top"><span class="rc-time">' + escapeHtml(resPickupTime(r) || "時間未定") + "</span>" +
         (r.reservationNo ? '<span class="rc-no">' + formatReservationNo(r.reservationNo) + '</span>' : '') +
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
+        (resMemoUnchecked(r) ? '<span class="rc-tag rc-tag--memo">未確認メモ ' + resMemoUnchecked(r) + "件</span>" : "") +
         (r.shortLead ? '<span class="rc-tag" style="background:#b03b48;color:#fff;">短納期' + (r.shortLeadChecked ? "（パティシエ確認済み）" : "") + '</span>' : "") +
         (r.channel === "LINE" ? '<span class="rc-tag rc-tag--line">LINE</span>' : r.lineUserId ? '<span class="rc-tag rc-tag--line">LINE連携済み</span>' : "") +
         (r.channel === "電話" || r.channel === "店頭" ? '<span class="rc-tag rc-tag--tel">' + r.channel + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
@@ -5873,11 +5916,11 @@ function resCardHtml(r, idx, byTel) {
         '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
         '<button type="button" class="rc-del" onclick="deleteOneReservation(' + idx + ')">削除</button>' +
       "</div>" +
-      '<details class="rc-more"><summary>メモ・連絡文・受付日時</summary>' +
+      resMemoHtml(r, idx) +
+      '<details class="rc-more"><summary>連絡文・受付日時</summary>' +
         '<div class="small">受付：' + fmtDate(r.submittedAt) + (r.email ? "　" + escapeHtml(r.email) : "") + (r.birthday ? "　生年月日：" + escapeHtml(r.birthday) : "") + "</div>" +
         reservationPriceHtml(r) +
         '<button type="button" class="rc-flagbtn" onclick="openCustomerFlagForm(' + idx + ')">要注意のお客様に登録</button>' +
-        '<textarea rows="2" class="rc-memo" placeholder="スタッフメモ" onchange="updateResNotes(' + idx + ',this.value)">' + escapeHtml(r.notes || "") + "</textarea>" +
         "<div class=\"rc-tpl\"><button class=\"btn btn--small\" onclick=\"copyTemplateAt('confirm'," + idx + ")\">確認文</button>" +
         "<button class=\"btn btn--small btn--ghost\" onclick=\"copyTemplateAt('complete'," + idx + ")\">完了文</button>" +
         "<button class=\"btn btn--small btn--danger\" onclick=\"copyTemplateAt('cancel'," + idx + ")\">キャンセル文</button></div>" +
