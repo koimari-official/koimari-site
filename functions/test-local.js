@@ -85,6 +85,13 @@ assertEqual(
   "月曜祝日19:30=閉店後（19時閉店）"
 );
 
+// 火曜の祝日は、ふだんの火曜と同じ20時閉店（2026-11-03 文化の日・火曜。2026-10-28オーナー指示）
+assertEqual(
+  computeTodayStatus({ weeklyClosed: [1], extraClosed: [] }, new Date(2026, 10, 3, 19, 30)),
+  "本日はただいま営業中です。",
+  "火曜祝日19:30=営業中（20時閉店）"
+);
+
 // --- verifyLineSignature ---
 
 const secret = "test-channel-secret";

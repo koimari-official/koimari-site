@@ -15,7 +15,7 @@ const KOIMARI_I18N_EN = {
   'nav.bcal':      'Business Hours',
 
   // Header
-  'header.hours': 'Tue–Sat&nbsp; 10:00–20:00<br>Sundays and holidays&nbsp; 10:00–19:00&nbsp; /&nbsp; Closed Mon (the next weekday when Mon is a holiday)',
+  'header.hours': 'Tue–Sat&nbsp; 10:00–20:00<br>Sun &amp; Monday holidays&nbsp; 10:00–19:00&nbsp; /&nbsp; Closed Mon (the next weekday when Mon is a holiday)',
 
   // Status pill (JS will use these)
   'status.checking':   'Checking…',
@@ -86,7 +86,7 @@ const KOIMARI_I18N_EN = {
   'shop.address.val':   '1F Ivy Mansion, 2-13-15 Naruiku, Joto-ku, Osaka 536-0007',
   'shop.tel.label':     'Phone',
   'shop.hours.label':   'Hours',
-  'shop.hours.val':     'Tue – Sat&nbsp; 10:00 – 20:00<br>Sundays and holidays&nbsp; 10:00 – 19:00',
+  'shop.hours.val':     'Tue – Sat&nbsp; 10:00 – 20:00<br>Sun &amp; Monday holidays&nbsp; 10:00 – 19:00',
   'shop.closed.label':  'Closed',
   'shop.closed.val':    'Mondays (following day on public holidays)',
   'shop.parking.label': 'Parking',
@@ -163,7 +163,7 @@ const KOIMARI_I18N_PHRASES = [
   ['ご希望を選んで送信', 'Choose and<br>send'],
   ['またはお電話で', 'Or call us'],
   ['またはお電話で予約', 'Or call us to reserve'],
-  ['受付時間：火曜～土曜 10:00～20:00 ／ 日曜・祝日10:00～19:00（月曜定休・祝日の場合は翌平日）', 'Hours: Tue–Sat 10:00–20:00 / Sun 10:00–19:00 (closed Mon; open on national holidays)'],
+  ['受付時間：火曜～土曜 10:00～20:00 ／ 日曜・月曜祝日 10:00～19:00（月曜定休・祝日の場合は翌平日）', 'Hours: Tue–Sat 10:00–20:00 / Sun &amp; Monday holidays 10:00–19:00 (closed Mon; open on national holidays)'],
   ['パソコンでご覧の方は、ボタンを押した先の画面のQRコードを、スマートフォンのカメラで読み取ってください。', 'On a computer? Scan the QR code shown after pressing the button with your smartphone camera.'],
   // 物語・ギャラリー
   ['作品ギャラリー・お客様の声', 'Gallery & Customer Voices'],
@@ -193,7 +193,7 @@ const KOIMARI_I18N_PHRASES = [
   ['定休日・臨時休業', 'Closed / special closure'],
   ['イベント', 'Event'],
   ['ハロウィン', 'Halloween'],
-  ['基本定休日: 月曜日（祝日の場合は翌平日）　/　火曜～土曜 10:00～20:00、日曜・祝日10:00～19:00　/　臨時休業や営業時間変更がある場合は上記をご確認ください', 'Regular closing day: Monday (if a national holiday, the next weekday) / Tue–Sat 10:00–20:00, Sun 10:00–19:00 / Please check the calendar above for special closures or changed hours'],
+  ['基本定休日: 月曜日（祝日の場合は翌平日）　/　火曜～土曜 10:00～20:00、日曜・月曜祝日 10:00～19:00　/　臨時休業や営業時間変更がある場合は上記をご確認ください', 'Regular closing day: Monday (if a national holiday, the next weekday) / Tue–Sat 10:00–20:00, Sun 10:00–19:00 / Please check the calendar above for special closures or changed hours'],
   // 店舗情報
   ['店名', 'Shop'],
   ['住所', 'Address'],
@@ -204,8 +204,8 @@ const KOIMARI_I18N_PHRASES = [
   ['火曜〜土曜 10:00 〜 20:00', 'Tue–Sat 10:00–20:00'],
   ['日曜 10:00 〜 19:00', 'Sun 10:00–19:00'],
   ['火曜～土曜 10:00～20:00', 'Tue–Sat 10:00–20:00'],
-  ['日曜・祝日10:00～19:00', 'Sundays and holidays 10:00–19:00'],
-  ['火曜～土曜 10:00～20:00 / 日曜・祝日10:00～19:00 / 月曜定休（祝日の場合は翌平日）', 'Tue–Sat 10:00–20:00<br>Sundays and holidays 10:00–19:00 / Closed Mon (next weekday if a holiday)'],
+  ['日曜・月曜祝日 10:00～19:00', 'Sun & Monday holidays 10:00–19:00'],
+  ['火曜～土曜 10:00～20:00 / 日曜・月曜祝日 10:00～19:00 / 月曜定休（祝日の場合は翌平日）', 'Tue–Sat 10:00–20:00<br>Sun &amp; Monday holidays 10:00–19:00 / Closed Mon (next weekday if a holiday)'],
   ['定休日', 'Closed'],
   ['月曜日（祝日の場合は翌平日）', 'Mondays (if a national holiday, the next weekday)'],
   ['目印', 'Landmark'],

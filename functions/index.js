@@ -86,7 +86,7 @@ const STORE_INFO = `
 店名: こいまり（ケーキ屋）
 住所: 大阪府大阪市城東区成育2丁目13-15 アイビーマンション1階
 電話番号: 070-9158-0641
-基本営業時間: 火曜～土曜 10:00～20:00 ／ 日曜・祝日10:00～19:00 ／ 月曜定休（祝日の場合は翌平日）
+基本営業時間: 火曜～土曜 10:00～20:00（祝日も同じ）／ 日曜・月曜祝日 10:00～19:00 ／ 月曜定休（祝日の場合は翌平日）
 定休日: 月曜日（月曜が祝日の場合はその月曜は営業） ※臨時休業がある場合は上記と異なることがあります
 `.trim();
 
@@ -111,13 +111,13 @@ function computeTodayStatus(holidays, now) {
   const dow = now.getDay();
   const key = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const h = holidays || { weeklyClosed: [1], extraClosed: [] };
-  // サイトの koimari-hours.js と同じ順番：臨時休業 → 特別営業時間 → 定休日 → 通常（日曜・祝日19時／火〜土20時）
+  // サイトの koimari-hours.js と同じ順番：臨時休業 → 特別営業時間 → 定休日 → 通常（日曜・月曜祝日19時／火〜土20時。火〜土の祝日は20時のまま。2026-10-28）
   const extraClosed = h.extraClosed || [];
   const sp = h.specialHours && h.specialHours[key];
   const isClosed = extraClosed.includes(key) || (!(sp && sp.open && sp.close) && isWeeklyClosedDay(h, dow, key));
   const toMin = (t) => { const m = String(t || "").match(/^(\d{1,2}):(\d{2})$/); return m ? Number(m[1]) * 60 + Number(m[2]) : null; };
   const openStr = sp && sp.open && sp.close ? sp.open : "10:00";
-  const closeStr = sp && sp.open && sp.close ? sp.close : (dow === 0 || JP_HOLIDAYS.has(key) ? "19:00" : "20:00");
+  const closeStr = sp && sp.open && sp.close ? sp.close : (dow === 0 || (dow === 1 && JP_HOLIDAYS.has(key)) ? "19:00" : "20:00");
   const mins = now.getHours() * 60 + now.getMinutes();
   const inHours = mins >= toMin(openStr) && mins < toMin(closeStr);
 
