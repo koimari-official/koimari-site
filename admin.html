@@ -8853,11 +8853,24 @@ function applyStoreMode() {
   document.body.classList.add("store-mode");
   if (!document.getElementById("storeModeCss")) {
     const st = document.createElement("style"); st.id = "storeModeCss";
-    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=notify]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}";
+    // 営業日設定はあまり使わないため、「その他の設定」を開いたときだけ出す（2026-10-27オーナー指示）
+    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=notify]):not([data-panel=holidays]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}" +
+      ".store-mode:not(.store-more-open) .tab[data-panel=holidays]{display:none!important}" +
+      "#storeMoreToggle{border:1px dashed var(--color-line);background:transparent;border-radius:999px;padding:6px 14px;margin:4px 6px;font-size:13px;color:var(--color-text-soft);cursor:pointer}";
     document.head.appendChild(st);
   }
+  const notifyTab = document.querySelector('.tab[data-panel="notify"]'), holTab = document.querySelector('.tab[data-panel="holidays"]');
+  if (notifyTab && holTab && !document.getElementById("storeMoreToggle")) {
+    const btn = document.createElement("button"); btn.type = "button"; btn.id = "storeMoreToggle";
+    const label = () => { btn.textContent = document.body.classList.contains("store-more-open") ? "▾ その他の設定をたたむ" : "▸ その他の設定"; };
+    btn.addEventListener("click", () => { document.body.classList.toggle("store-more-open"); label(); });
+    label();
+    holTab.parentNode.appendChild(btn); // タブの並びの一番後ろに「その他の設定」→ 開くと営業日設定のタブが出る
+    holTab.parentNode.appendChild(holTab);
+  }
   const active = document.querySelector(".tab.active");
-  if (!active || !["reservations", "kitchen", "calendar", "notify"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
+  if (!active || !["reservations", "kitchen", "calendar", "notify", "holidays"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
+  else if (active.dataset.panel === "holidays" && !document.body.classList.contains("store-more-open")) { const mb = document.getElementById("storeMoreToggle"); if (mb) mb.click(); }
 }
 // ログイン後の準備で失敗した処理を、管理画面の上部に表示する（スクリーンショットを送ってもらえば原因が分かるように）
 function showStartupWarning(list) {
