@@ -203,6 +203,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .thanks-photo__title{font-size:16px;font-weight:700;color:#6b4a2a;margin:0 0 8px}
 .thanks-photo__img{display:block;width:100%;max-width:520px;aspect-ratio:1/1;object-fit:contain;background:#fff;border:1px solid #ecd9c4;border-radius:14px;margin:0 auto}
 .thanks-photo__cap{margin-top:8px;text-align:center;font-size:15px;font-weight:700;color:#2e2118;line-height:1.6}
+.tier-photo-note{margin:-4px 0 12px;padding:8px 12px;background:#fff7ea;border:1px solid #e0b872;border-radius:8px;font-size:13.5px;font-weight:700;color:#6b4a12;line-height:1.6}
 .thanks-photo__note{margin-top:2px;text-align:center;font-size:13px;color:#7a6a58}
 /* ケーキの種類：タルトはフルーツ／ストロベリーを「タルトBOX」1つにまとめる（いちご／ミックスフルーツは飾り付けで選ぶ。2026-10-26） */
 .radio-list__opt.opt-merged{display:none!important}
@@ -787,7 +788,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js?v=20261026c"></script>
+<script src="cake-pricing.js?v=20261028a"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
@@ -2604,9 +2605,16 @@ function renderTierSizeSelects(tierCount) {
     } else if (TIER_PARTNER_2[bKey]) {
       // 5〜7号：一番上はホールケーキ（組み合わせで決まる号数）かカットケーキを選べる（2026-09-30）
       const partner = SIZE_OPTIONS.concat([SIZE_3]).find(o => o.value === TIER_PARTNER_2[bKey]) || { value: TIER_PARTNER_2[bKey], label: TIER_PARTNER_2[bKey] };
-      const opts = [partner, SPECIAL_TOP_OPTIONS[2]];
-      const topVal = opts.some(o => o.value === prevSizes[1]) ? prevSizes[1] : partner.value;
-      html += tierFieldHtml(1, 2, "（" + partner.label.replace(/（.*$/, "") + "のホールケーキ、またはカットケーキ）", editableSizeSelectHtml(1, opts, topVal, 0));
+      // 下が6号なら、上は4号か3号を選べる（2026-10-28オーナー指示）
+      const wholeTops = bKey === "6号" ? [partner, SIZE_3] : [partner];
+      const opts = wholeTops.concat([SPECIAL_TOP_OPTIONS[2]]);
+      // 写真の段の組み合わせ（オーダーケーキ「６号＋３号」など）から来たら、その上の段を最初から選んでおく
+      const photo = draftTierCombo();
+      const photoTop = photo && photo[0] === bKey && photo[1] ? wholeTops.find(o => sizeKeyOf(o.value) === photo[1]) : null;
+      const topVal = opts.some(o => o.value === prevSizes[1]) ? prevSizes[1] : (photoTop ? photoTop.value : partner.value);
+      const names = wholeTops.map(o => o.label.replace(/（.*$/, "").replace(/\(.*$/, "")).join("または");
+      const photoNote = photo && photo[0] === bKey && photo[1] ? '<div class="tier-photo-note">写真のケーキは「下' + photo[0] + "＋上" + photo[1] + "」です。" + (wholeTops.length > 1 ? "上の段はほかの号数も選べます（選んだ号数で作ります）。" : "") + "</div>" : "";
+      html += tierFieldHtml(1, 2, "（" + names + "のホールケーキ、またはカットケーキ）", editableSizeSelectHtml(1, opts, topVal, 0)) + photoNote;
     } else {
       html += tierFieldHtml(1, 2, "", lockedSizeSelectHtml(1, ""));
     }
@@ -3561,9 +3569,23 @@ function applyDraft(d) {
   // （2026-09-29）。お客様は内容をそのまま変更できる。不正な値は各選択肢に一致しないため無視される。
   currentDraftSpecApplied = false;
   if (d.spec) { try { applyFormSpec(JSON.parse(d.spec)); currentDraftSpecApplied = true; } catch (e) {} }
+  else if (d.productType === "decorationCake") {
+    // 写真の段の組み合わせ（例：６号＋３号）を段数・号数として最初から選ぶ（2026-10-28オーナー指示）。お客様はそのまま変更できる
+    const combo = draftTierCombo();
+    const full = (k) => (SIZE_OPTIONS.concat([SIZE_3]).find((o) => sizeKeyOf(o.value) === k) || {}).value || "";
+    if (combo && combo.length === 2) { try { applyFormSpec({ tiers: 2, sizes: [full(combo[0]), full(combo[1])] }); } catch (e) {} }
+    else if (combo && combo.length === 1) { try { applyFormSpec({ tiers: 1, sizes: [full(combo[0])] }); } catch (e) {} }
+  }
   renderDraftBanner();
 }
 let currentDraftSpecApplied = false;
+// ギャラリーで選んだケーキのサイズ欄から段の組み合わせを読む（例：「６号＋３号」→ ["6号","3号"]、「5号」→ ["5号"]）。読めなければ null
+function draftTierCombo() {
+  if (!currentDraft || !currentDraft.size) return null;
+  const t = String(currentDraft.size).replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).split("(")[0];
+  const m = t.match(/[3-7]号/g);
+  return m && m.length >= 1 && m.length <= 3 ? m : null;
+}
 // 前回のご予約の連絡先を入れる（2026-10-02オーナー指示：LINE友だち登録済みの方は入力を省けるように）。
 // 電話番号等は誰でも読める場所には置かず、LIFFのアクセストークンでLINEに本人確認したうえで、本人の直近の予約から返す
 // （functions/index.js の lookupMyContact）。空欄の項目だけ埋め、すでに入力されている内容は上書きしない。
@@ -3670,6 +3692,15 @@ function refSizeNote(photoSize, chosenSize) {
   if (!photoSize) return "";
   const S = (window.CakePricing && CakePricing.SPEC && CakePricing.SPEC.sizes) || {};
   const cm = S[photoSize] && S[photoSize].cm ? "（直径" + S[photoSize].cm + "）" : "";
+  // 2段・3段の写真（例：６号＋３号）は、選んでいる段の組み合わせと比べる（2026-10-28：下の段だけと比べて誤った案内が出ていた）
+  const half = (v) => String(v || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  const photoTiers = half(photoSize).match(/[3-7]号/g) || [];
+  if (photoTiers.length > 1) {
+    const chosen = Array.from(document.querySelectorAll(".tier-size-select")).map((s) => sizeKeyOf(s.value)).filter((v) => /号$/.test(v));
+    const label = (a) => a.join("＋");
+    const d2 = chosen.length && label(chosen) !== label(photoTiers) ? "ご選択の" + label(chosen) + "とは大きさが異なります。" : "";
+    return '<div class="ref-image__size">写真は' + escape(label(photoTiers)) + "のケーキです。" + escape(d2) + "</div>";
+  }
   const diff = chosenSize && /号$/.test(chosenSize) && chosenSize !== photoSize ? "ご選択の" + chosenSize + "とは大きさが異なります。" : "";
   return '<div class="ref-image__size">写真は' + escape(photoSize) + cm + "のケーキです。" + escape(diff) + "</div>";
 }
