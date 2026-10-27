@@ -332,6 +332,20 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .res-viewbar .seg button.on{background:#4a3a2a;color:#fff}
 .res-viewbar .seg--sub button{padding:7px 14px;font-size:13px}
 .rc-day{margin:0 0 22px}
+.res-viewbar .seg--toggle button.on{background:#8a6a3a}
+.rc-mini{border:1px solid var(--color-line,#e5d9c6);border-radius:10px;background:#fff;margin:0 0 6px}
+.rc-mini > summary{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px;padding:10px 14px;cursor:pointer;font-size:15px;list-style:none}
+.rc-mini > summary::-webkit-details-marker{display:none}
+.rc-mini > summary::before{content:"▸";color:#a88a52}
+.rc-mini[open] > summary::before{content:"▾"}
+.rc-mini[open] > summary{border-bottom:1px dashed var(--color-line,#e5d9c6)}
+.rc-mini > .rc{margin:8px}
+.rc-mini.is-cancel{opacity:.55}
+.rc-mini__time{font-weight:800}
+.rc-mini__no{color:#a88a52;font-weight:700}
+.rc-mini__name{font-weight:700}
+.rc-mini__cake{color:#4a3a2a}
+.rc-mini__st{margin-left:auto;font-size:13px;font-weight:700}
 .rc-day__head{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;font-size:19px;margin:0 0 10px;padding:8px 14px;background:#f3ece1;border-radius:10px;font-family:var(--font-sans,sans-serif)}
 .rc-day__head b{font-size:17px;color:#8a3a2a}
 .rc-day__head small{font-size:13px;color:#6b5a48;font-weight:500}
@@ -5058,7 +5072,7 @@ function updateConfirmCallWarning() {
   const warningText = document.getElementById("confirmCallWarningText");
   if (warning && warningText) {
     if (overdueCount) {
-      warningText.textContent = `電話での確認がまだのまま、受付から${CONFIRM_CALL_OVERDUE_HOURS}時間以上たったご予約が${overdueCount}件あります`;
+      warningText.textContent = `要電話のご予約が${overdueCount}件あります（電話での内容確認がまだです）`;
       warning.classList.add("show");
     } else {
       warning.classList.remove("show");
@@ -5623,6 +5637,24 @@ let resCalDay = "";        // カレンダーで選んだ日 "2026-12-24"
 const RES_WEEK = ["日", "月", "火", "水", "木", "金", "土"];
 function setResView(v) { resView = v; try { localStorage.setItem("koimari_res_view", v); } catch (e) {} renderReservations(); }
 function setResRange(v) { resRange = v; renderReservations(); }
+// カードの並び順（pickup＝予約日順／new＝新着順）と、詳細をたたむか（2026-10-27オーナー指示）。端末ごとに覚える
+let resSort = (() => { try { return localStorage.getItem("koimari_res_sort") || "pickup"; } catch (e) { return "pickup"; } })();
+let resCompact = (() => { try { return localStorage.getItem("koimari_res_compact") === "1"; } catch (e) { return false; } })();
+function setResSort(v) { resSort = v; try { localStorage.setItem("koimari_res_sort", v); } catch (e) {} renderReservations(); }
+function toggleResCompact() { resCompact = !resCompact; try { localStorage.setItem("koimari_res_compact", resCompact ? "1" : "0"); } catch (e) {} renderReservations(); }
+// たたんだ表示の1行：時刻（新着順は日付も）・予約番号・お名前・ケーキ・状態。押すと、いつものカードが開く
+function resMiniHtml(r, idx, byTel, withDate) {
+  const st = r.status || "受付済";
+  const when = (withDate ? resDateLabel(resPickupDate(r)) + " " : "") + (resPickupTime(r) || "時間未定");
+  const k = (typeof window.resKeyAt === "function" && window.resKeyAt(idx)) || "i" + idx;
+  return '<details class="rc-mini' + (st === "キャンセル" ? " is-cancel" : "") + '" data-k="' + escapeHtml(k) + '"><summary>' +
+    '<span class="rc-mini__time">' + escapeHtml(when) + "</span>" +
+    (r.reservationNo ? '<span class="rc-mini__no">' + formatReservationNo(r.reservationNo) + "</span>" : "") +
+    '<span class="rc-mini__name">' + escapeHtml(r.name || "") + " 様</span>" +
+    '<span class="rc-mini__cake">' + escapeHtml(resCakeTitle(r)) + "</span>" +
+    '<span class="rc-mini__st" style="color:' + (STATUS_COLORS[st] || "#999") + '">' + escapeHtml(st) + (r.paymentDone ? "・支払済" : "") + "</span>" +
+    "</summary>" + resCardHtml(r, idx, byTel) + "</details>";
+}
 function resPickupDate(r) { return String(r.finalPickupDate || r.pickupDate || ""); }
 function resPickupTime(r) { return String(r.finalPickupTime || r.pickupTime || ""); }
 function resTodayStr() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
@@ -5815,7 +5847,7 @@ function resCardHtml(r, idx, byTel) {
       '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "</div>" +
       // アレルギー・備考・領収書は上の項目チップに表示（2026-10-21）
       '<div class="rc-checks">' +
-        '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（未・3時間経過）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>" +
+        '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（要電話）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>" +
         '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">内容確定" + (r.reservationConfirmedBy ? byText(r.reservationConfirmedBy, r.reservationConfirmedAt) : (r.channel === "LINE" ? "（電話済みでLINE自動連絡）" : "")) + "</label>" +
         '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払済み" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + byText(r.paymentDoneBy, r.paymentDoneAt) + "</label>" +
         '<label class="' + (handed ? "on" : handOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResHanded(' + idx + ',this.checked)"' + (handed ? " checked" : "") + ">お渡し済み" + (handOverdue ? "（受け取り日を過ぎています）" : "") + byText(r.handedOverBy, r.handedOverAt) + "</label>" +
@@ -5856,6 +5888,17 @@ function renderReservationCards(area, fullList) {
   const rows = resFiltered(fullList);
   const byTel = resVisitCounts(fullList);
   const today = resTodayStr();
+  const one = (r, idx) => resCompact ? resMiniHtml(r, idx, byTel, resSort === "new") : resCardHtml(r, idx, byTel);
+  // 描き直しても、開いていた行は開いたままにする（チェックを入れるたびに閉じないように）
+  const wasOpen = new Set([...area.querySelectorAll("details.rc-mini[open]")].map((d) => d.dataset.k));
+  const reopen = () => { if (wasOpen.size) area.querySelectorAll("details.rc-mini").forEach((d) => { if (wasOpen.has(d.dataset.k)) d.open = true; }); };
+  if (resSort === "new") {
+    // 新着順：受付の新しい順に1列で並べる（受け取り日の見出しは付けない）
+    rows.sort((a, b) => String(b.r.submittedAt || "").localeCompare(String(a.r.submittedAt || "")));
+    area.innerHTML = rows.length ? '<section class="rc-day">' + rows.map(({ r, idx }) => one(r, idx)).join("") + "</section>" : '<div class="empty">該当するご予約はありません</div>';
+    reopen();
+    return rows.length;
+  }
   rows.sort((a, b) => {
     const da = resPickupDate(a.r) || "9999", db = resPickupDate(b.r) || "9999";
     if (da !== db) return resRange === "past" ? db.localeCompare(da) : da.localeCompare(db);
@@ -5868,9 +5911,10 @@ function renderReservationCards(area, fullList) {
   groups.forEach((g) => {
     const live = g.rows.filter((x) => x.r.status !== "キャンセル").length;
     html += '<section class="rc-day"><h3 class="rc-day__head' + (g.d === today ? " is-today" : "") + '"><span>' + (g.d === today ? "今日　" : "") + resDateLabel(g.d) + "</span><b>" + live + "件</b><small>" + escapeHtml(resDaySummary(g.rows).join("　")) + "</small></h3>" +
-      g.rows.map(({ r, idx }) => resCardHtml(r, idx, byTel)).join("") + "</section>";
+      g.rows.map(({ r, idx }) => one(r, idx)).join("") + "</section>";
   });
   area.innerHTML = html;
+  reopen();
   return rows.length;
 }
 function resCalShift(n) {
@@ -5932,7 +5976,9 @@ function renderResViewBar() {
   const b = (v, t) => '<button type="button" class="' + (resView === v ? "on" : "") + '" onclick="setResView(\'' + v + '\')">' + t + "</button>";
   const r = (v, t) => '<button type="button" class="' + (resRange === v ? "on" : "") + '" onclick="setResRange(\'' + v + '\')">' + t + "</button>";
   bar.innerHTML = '<div class="seg">' + b("card", "カード") + b("calendar", "カレンダー") + b("table", "表") + "</div>" +
-    (resView === "card" ? '<div class="seg seg--sub">' + r("upcoming", "今日以降") + r("past", "過去") + r("all", "すべて") + "</div>" : "");
+    (resView === "card" ? '<div class="seg seg--sub">' + r("upcoming", "今日以降") + r("past", "過去") + r("all", "すべて") + "</div>" +
+      '<div class="seg seg--sub">' + ["pickup", "new"].map((v) => '<button type="button" class="' + (resSort === v ? "on" : "") + '" onclick="setResSort(\'' + v + '\')">' + (v === "pickup" ? "予約日順" : "新着順") + "</button>").join("") + "</div>" +
+      '<div class="seg seg--sub seg--toggle"><button type="button" class="' + (resCompact ? "on" : "") + '" onclick="toggleResCompact()">' + (resCompact ? "詳細をたたむ：オン" : "詳細をたたむ") + "</button></div>" : "");
 }
 function renderReservations() {
   renderResViewBar();
