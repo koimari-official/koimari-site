@@ -3152,7 +3152,7 @@ function renderHero() {
     });
     const mainLabel = document.createElement("div");
     mainLabel.style.cssText = "font-size:12px;font-weight:600;color:var(--color-text-soft);margin-bottom:8px;";
-    mainLabel.textContent = "💻 PC・スマホ横向き専用の画像";
+    mainLabel.textContent = "💻 横向き用の画像（PC・スマホやタブレットの横向き）";
     item.insertBefore(mainLabel, item.firstChild);
     appendImageHistoryUI(item, s, "src", () => { renderHero(); updateSaveBar(); });
     // 2026-09-23オーナー指示：スマホ縦画面とPC/横画面で最も伝わる構図が異なるため
@@ -3163,7 +3163,7 @@ function renderHero() {
     mobileWrap.style.cssText = "margin-top:14px;padding-top:14px;border-top:1px dashed var(--color-line);";
     const mobileLabel = document.createElement("div");
     mobileLabel.style.cssText = "font-size:12px;font-weight:600;color:var(--color-text-soft);margin-bottom:8px;";
-    mobileLabel.textContent = "📱 スマホ縦画面用の画像（任意・未設定ならPC/横画面用の画像がそのまま使われます）";
+    mobileLabel.textContent = "📱 縦向き用の画像（スマホ・タブレットの縦向き。任意・未設定なら横向き用の画像がそのまま使われます）"; // 2026-10-27：タブレットの縦向きも縦用に
     mobileWrap.appendChild(mobileLabel);
     const mobileItem = makeImageItem({
       preview: s.srcMobile,

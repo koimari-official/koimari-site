@@ -1312,9 +1312,11 @@ function renderHeroSlides(){
     // 2026-09-23オーナー指示：スマホ縦画面とPC/横画面で最も伝わる構図が異なるため、
     // スライドごとにスマホ縦画面専用の写真（srcMobile）が設定されていれば<picture>で
     // 出し分ける。未設定の場合は従来通り単一の<img>のみ（後方互換、余計なDOM変更をしない）。
+    // 2026-10-27オーナー指示：iPadの縦向きで横長の写真の左右が切れていたため、幅に関係なく「縦向きなら縦用」にする
+    // （スマホ・タブレットの縦向き＝縦用 srcMobile／PC・スマホやタブレットの横向き＝横用 src）。
     const imgTag=`<img src="${escape(slide.src)}" alt="${heroAlt}"${focusStyle}>`;
     const mediaTag=slide.srcMobile
-      ? `<picture><source media="(max-width:767px) and (orientation:portrait)" srcset="${escape(slide.srcMobile)}">${imgTag}</picture>`
+      ? `<picture><source media="(orientation:portrait)" srcset="${escape(slide.srcMobile)}">${imgTag}</picture>`
       : imgTag;
     div.innerHTML=`${mediaTag}${captionHtml}`;
     heroEl.insertBefore(div,dotsEl);

@@ -766,12 +766,12 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 .event-fair__body{display:flex;flex-direction:column;align-items:center;text-align:center;min-width:0}
 .event-fair__en{font-family:var(--ef-en);font-size:15px;color:var(--ef-accent);letter-spacing:.06em;line-height:1.1}
 .event-fair__title{font-family:var(--ef-font);font-size:clamp(20px,2.6vw,28px);font-weight:900;color:var(--ef-accent);line-height:1.3;letter-spacing:.04em;text-shadow:0 2px 0 rgba(0,0,0,.25)}
-.event-fair__lead{font-size:14px;font-weight:600;margin-top:3px;color:var(--ef-ink)}
+.event-fair__lead{font-size:14px;font-weight:600;margin-top:3px;color:var(--ef-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%} /* 1行で出す（2026-10-26オーナー指示） */
 .event-fair__btn{flex-shrink:0;padding:10px 20px;border-radius:999px;background:var(--ef-accent);color:#fff;font-weight:800;font-size:15px;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.25)}
 .event-fair__deco{width:64px;height:64px;object-fit:contain;flex-shrink:0;filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));animation:ef-bob 3.6s ease-in-out infinite}
 .event-fair__deco:last-child{animation-delay:1.2s}
 @keyframes ef-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
-@media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:12.5px}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
+@media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:min(12.5px,calc((100vw - 28px) / 31))}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
 @media (prefers-reduced-motion: reduce){.event-fair__deco{animation:none}}
 /* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}.pay-xmas{display:block;margin-top:4px;font-weight:700;color:#a8362f}.pay-xmas[hidden]{display:none}
 /* 今月の主役：特設ページへの大きなボタン（2026-10-21） */
@@ -828,17 +828,6 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="hero__dots" id="heroDots"></div>
 </div>
 
-<!-- ===== 季節イベントバナー (管理画面から設定可能な汎用テンプレ) ===== -->
-<div class="event-banner" id="eventBanner">
-  <div class="event-banner__inner">
-    <span class="event-banner__label" id="eventBannerLabel"></span>
-    <span class="event-banner__text" id="eventBannerText"></span>
-    <a href="#" class="event-banner__link" id="eventBannerLink">詳しく見る →</a>
-  </div>
-  <button class="event-banner__close" id="eventBannerClose" aria-label="閉じる">×</button>
-</div>
-<!-- イベントフェアの帯：テーマ付きで公開中のお知らせがあるときだけ出る（2026-10-19） -->
-<a class="event-fair" id="eventFair" href="#" hidden></a>
 
 <header class="site-header" id="siteHeader">
   <div class="relative z-[1] px-6 py-[10px] flex items-center justify-between gap-6 max-[900px]:px-[14px] max-[900px]:py-2 max-[900px]:gap-2 max-[900px]:flex-wrap">
@@ -861,6 +850,19 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <button class="hidden max-[900px]:flex max-[900px]:order-3 bg-transparent border-0 cursor-pointer text-[28px] text-[var(--color-accent)] p-[6px] flex-shrink-0" id="menuToggle" aria-label="メニュー">☰</button>
   </div>
 </header>
+<!-- 季節イベントバナー・イベントフェアの帯は、見出し帯（site-header）の後ろに置く。見出し帯はヒーロー画像の下端に重ねる作り（margin-top:-ヘッダーの高さ）のため、
+     前に置くと最後の帯の下部が見出し帯に隠れていた（2026-10-26オーナー指摘：ハロウィンの帯の下部が隠れる） -->
+<!-- ===== 季節イベントバナー (管理画面から設定可能な汎用テンプレ) ===== -->
+<div class="event-banner" id="eventBanner">
+  <div class="event-banner__inner">
+    <span class="event-banner__label" id="eventBannerLabel"></span>
+    <span class="event-banner__text" id="eventBannerText"></span>
+    <a href="#" class="event-banner__link" id="eventBannerLink">詳しく見る →</a>
+  </div>
+  <button class="event-banner__close" id="eventBannerClose" aria-label="閉じる">×</button>
+</div>
+<!-- イベントフェアの帯：テーマ付きで公開中のお知らせがあるときだけ出る（2026-10-19） -->
+<a class="event-fair" id="eventFair" href="#" hidden></a>
 <script>
 // ヘッダーの高さを測ってmargin-top(--header-h)に反映しつつ、position:stickyで
 // 上端に固定されるタイミングに合わせて予約FABも表示する
@@ -1425,9 +1427,11 @@ function renderHeroSlides(){
     // 2026-09-23オーナー指示：スマホ縦画面とPC/横画面で最も伝わる構図が異なるため、
     // スライドごとにスマホ縦画面専用の写真（srcMobile）が設定されていれば<picture>で
     // 出し分ける。未設定の場合は従来通り単一の<img>のみ（後方互換、余計なDOM変更をしない）。
+    // 2026-10-27オーナー指示：iPadの縦向きで横長の写真の左右が切れていたため、幅に関係なく「縦向きなら縦用」にする
+    // （スマホ・タブレットの縦向き＝縦用 srcMobile／PC・スマホやタブレットの横向き＝横用 src）。
     const imgTag=`<img src="${escape(slide.src)}" alt="${heroAlt}"${focusStyle}>`;
     const mediaTag=slide.srcMobile
-      ? `<picture><source media="(max-width:767px) and (orientation:portrait)" srcset="${escape(slide.srcMobile)}">${imgTag}</picture>`
+      ? `<picture><source media="(orientation:portrait)" srcset="${escape(slide.srcMobile)}">${imgTag}</picture>`
       : imgTag;
     div.innerHTML=`${mediaTag}${captionHtml}`;
     heroEl.insertBefore(div,dotsEl);
