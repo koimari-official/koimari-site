@@ -716,5 +716,14 @@
   "page": "https://lottiefiles.com/animations/christmas-bauble-gKmcoXtPgr",
   "original": "https://assets-v2.lottiefiles.com/a/94e98b88-1167-11ee-8399-eb83b575c23f/0Q8NpyR9eX.json",
   "note": "トップのついてくるボタン用。1コマを背景透明で書き出し（2026-10-28）"
+ },
+ "christmas/snowflake-white.png": {
+  "title": "Blue-snowflake-33-1",
+  "creator": "Piotr Siedlecki",
+  "license": "cc0",
+  "source": "wikimedia",
+  "page": "https://commons.wikimedia.org/w/index.php?curid=145937872",
+  "original": "https://upload.wikimedia.org/wikipedia/commons/c/ce/Blue-snowflake-33-1.png",
+  "note": "snowflake.png（CC0）の形のまま色を白にし、ふちに白い光を足したもの（2026-10-28）"
  }
 }

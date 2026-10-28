@@ -24,7 +24,7 @@
       enFont: { family: '"Mountains of Christmas",cursive', css: "Mountains+of+Christmas:wght@700" },
       deco: ["tree", "wreath", "bells", "gingerbread", "candy-canes", "snowman", "star", "gingerbread2", "santa"],
       flyer: { lottie: "christmas/lab/sleigh-a.json", count: 1, every: 13000, trail: "color", size: [150, 230] },
-      fall: { img: "snowflake", count: 16 },
+      fall: { img: "snowflake-white", count: 16 },
       lights: true, stripe: true,
     },
     newyear: {
@@ -119,7 +119,7 @@
 .ev-flyer{position:absolute;left:0;will-change:transform}
 .ev-spark{position:absolute;width:18px;height:18px;pointer-events:none;animation:ev-spark 1.3s ease-out forwards}
 @keyframes ev-spark{0%{opacity:1;transform:translate(0,0) scale(1) rotate(0)}100%{opacity:0;transform:translate(var(--sx,0),var(--sy,30px)) scale(.3) rotate(160deg)}}
-.ev-christmas .ev-fall{filter:brightness(0) invert(1) drop-shadow(0 0 3px rgba(255,255,255,.6))}
+/* 雪は白い絵そのものを使う（以前は水色の絵を画面効果で白くしていたため、端末によって黒く見えた・2026-10-28オーナー指摘） */.ev-christmas .ev-fall{filter:none;opacity:.92}
 .ev-gold{filter:sepia(1) saturate(4) hue-rotate(5deg) brightness(1.15) drop-shadow(0 0 6px rgba(255,210,90,.8))}
 .ev-flyer--lottie{top:0;visibility:hidden}
 .ev-flyer--lottie svg{display:block;width:100%;height:auto}
