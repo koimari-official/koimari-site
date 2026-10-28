@@ -1,0 +1,210 @@
+{
+ "christmas/lab/sleigh-a.json": {
+  "title": "santa and reindeer",
+  "creator": "mawah",
+  "license": "lottie-simple-license",
+  "source": "lottiefiles",
+  "page": "https://lottiefiles.com/animations/santa-and-reindeer-UQJYuDtch6",
+  "note": "そり（サンタ＋プレゼント＋トナカイ1頭）。家・電飾・煙突に落とすプレゼントの層を外し、そりの動きは真ん中のコマで止めた"
+ },
+ "christmas/lab/sleigh-b.json": {
+  "title": "no_zoom_sleigh",
+  "creator": "am7uut2drpwmud6v",
+  "license": "lottie-simple-license",
+  "source": "lottiefiles",
+  "page": "https://lottiefiles.com/animations/no-zoom-sleigh-ItzxMZydPq",
+  "note": "そり（サンタ＋トナカイ3頭）"
+ },
+ "christmas/lab/sleigh-c.json": {
+  "title": "Santa Claus Sleigh Ride",
+  "creator": "MatJ",
+  "license": "lottie-simple-license",
+  "source": "lottiefiles",
+  "page": "https://lottiefiles.com/animations/santa-claus-sleigh-ride-i7jdZYVSCd",
+  "note": "そり（ピンクのそり＋トナカイ5頭）"
+ },
+ "christmas/lab/reindeer-wave.json": {
+  "title": "Reeny Waving",
+  "creator": "xs2089wpr1j3ysh7",
+  "license": "lottie-simple-license",
+  "source": "lottiefiles",
+  "page": "https://lottiefiles.com/animations/reeny-waving-OAAwA1HAz0",
+  "note": "手を振るトナカイ（サンタ帽）"
+ },
+ "christmas/lab/santa-walk.json": {
+  "title": "Santa Claus Animation | Festive Christmas Cheer",
+  "creator": "lottieanimationsbymalaika",
+  "license": "lottie-simple-license",
+  "source": "lottiefiles",
+  "page": "https://lottiefiles.com/animations/santa-claus-animation-festive-christmas-cheer-3SyQovEGb8",
+  "note": "プレゼントを持って歩くサンタ"
+ },
+ "christmas/lab/santa-gift.json": {
+  "title": "Merry Christmas - Santa Claus",
+  "creator": "animoarts",
+  "license": "lottie-simple-license",
+  "source": "lottiefiles",
+  "page": "https://lottiefiles.com/animations/merry-christmas-santa-claus-vz3nMO8APV",
+  "note": "プレゼントを持つサンタ"
+ },
+ "christmas/lab/reindeer-face.json": {
+  "title": "Cute reindeer",
+  "creator": "hoishanpoon",
+  "license": "lottie-simple-license",
+  "source": "lottiefiles",
+  "page": "https://lottiefiles.com/animations/cute-reindeer-OjOExekWaJ",
+  "note": "丸いトナカイの顔"
+ },
+ "christmas/lab/fluent/christmas_tree.png": {
+  "title": "Christmas tree (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Christmas%20tree/3D/christmas_tree_3d.png"
+ },
+ "christmas/lab/fluent/wrapped_gift.png": {
+  "title": "Wrapped gift (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Wrapped%20gift/3D/wrapped_gift_3d.png"
+ },
+ "christmas/lab/fluent/bell.png": {
+  "title": "Bell (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Bell/3D/bell_3d.png"
+ },
+ "christmas/lab/fluent/star.png": {
+  "title": "Star (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Star/3D/star_3d.png"
+ },
+ "christmas/lab/fluent/glowing_star.png": {
+  "title": "Glowing star (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Glowing%20star/3D/glowing_star_3d.png"
+ },
+ "christmas/lab/fluent/sparkles.png": {
+  "title": "Sparkles (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sparkles/3D/sparkles_3d.png"
+ },
+ "christmas/lab/fluent/snowman.png": {
+  "title": "Snowman (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Snowman/3D/snowman_3d.png"
+ },
+ "christmas/lab/fluent/snowflake.png": {
+  "title": "Snowflake (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Snowflake/3D/snowflake_3d.png"
+ },
+ "christmas/lab/fluent/candy.png": {
+  "title": "Candy (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Candy/3D/candy_3d.png"
+ },
+ "christmas/lab/fluent/ribbon.png": {
+  "title": "Ribbon (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Ribbon/3D/ribbon_3d.png"
+ },
+ "christmas/lab/fluent/shortcake.png": {
+  "title": "Shortcake (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Shortcake/3D/shortcake_3d.png"
+ },
+ "christmas/lab/fluent/dizzy.png": {
+  "title": "Dizzy (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Dizzy/3D/dizzy_3d.png"
+ },
+ "christmas/lab/fluent/deer.png": {
+  "title": "Deer (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Deer/3D/deer_3d.png"
+ },
+ "christmas/lab/fluent/sled.png": {
+  "title": "Sled (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Sled/3D/sled_3d.png"
+ },
+ "christmas/lab/fluent/santa_claus.png": {
+  "title": "Santa claus (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Santa%20claus/Default/3D/santa_claus_3d_default.png"
+ },
+ "christmas/lab/fluent/mrs_claus.png": {
+  "title": "Mrs claus (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Mrs%20claus/Default/3D/mrs_claus_3d_default.png"
+ },
+ "christmas/lab/fluent/shooting_star.png": {
+  "title": "Shooting star (Fluent Emoji 3D)",
+  "creator": "Microsoft",
+  "license": "mit",
+  "source": "fluentui-emoji",
+  "page": "https://github.com/microsoft/fluentui-emoji",
+  "original": "https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Shooting%20star/3D/shooting_star_3d.png"
+ },
+ "christmas/lab/irasutoya-sori1.png": {
+  "title": "ソリに乗ったサンタとトナカイ",
+  "creator": "みふねたかし（いらすとや）",
+  "license": "irasutoya-terms",
+  "source": "irasutoya",
+  "page": "https://www.irasutoya.com/2012/10/blog-post_24.html",
+  "original": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjT4CSYsFIafAj71y2n-VtaHHAznCqbat0IF-8hy_JD5nZMYwYDOi9gk35Fj28UDQ_xPqZUr1TWaXB1Kr4AfZa2_YuQ2JZ3C0gWl2Ap6Nmbo5Weli_Xz80ZLE7UmXAmR6LOEXKsnJl7NBA/s0/christmas_santa_sori.png"
+ },
+ "christmas/lab/irasutoya-sori2.png": {
+  "title": "トナカイのソリに乗って走るサンタ",
+  "creator": "みふねたかし（いらすとや）",
+  "license": "irasutoya-terms",
+  "source": "irasutoya",
+  "page": "https://www.irasutoya.com/2015/12/blog-post_63.html",
+  "original": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEhasFqsrJOCngyIX122yMSzNNK4ZI_Gbdi8UbnvVdq7AZDP3Y0vYexcccWClwgkeOtueMdseelbtZmJQxG-0Xvu11GA0ilprAs3QtZWWMEqT2gE-p8KoHzs2ooaSR6v4ObCHPgCh6gaskE/s0/santa_tonakai_sori.png"
+ }
+}

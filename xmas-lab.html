@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>クリスマス素材の見本（社内確認用）</title>
+<!-- 2026-10-28：クリスマス特設ページの作り込み前に、オーナーに素材・キラキラ・配色を選んでいただくための見本ページ。どこからもリンクしない -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kaisei+Decol:wght@500;700&family=Mountains+of+Christmas:wght@700&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.12.2/lottie.min.js"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f7f2ea;color:#2e2118;font-family:"Noto Sans JP",sans-serif;line-height:1.7}
+.wrap{max-width:880px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:6px 0 4px}
+h2{font-size:18px;margin:28px 0 6px;padding-left:10px;border-left:6px solid #c8102e}
+.lead{font-size:14px;color:#5a4636;margin:0 0 10px}
+.cand{background:#fff;border-radius:14px;padding:10px;margin:0 0 14px;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.cand__label{font-weight:700;font-size:15px;margin:2px 4px 8px}
+.cand__label small{font-weight:400;color:#7a6a58;font-size:12.5px;display:block}
+.lane{position:relative;height:190px;border-radius:10px;overflow:hidden}
+.lane--tall{height:230px}
+.rider{position:absolute;left:0;top:0;will-change:transform;z-index:2}
+.rider img{display:block;width:100%;height:auto}
+.spark{position:absolute;pointer-events:none;z-index:1}
+.star4{clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+/* 背景（配色案） */
+.bg-classic{background:radial-gradient(ellipse at 50% 120%,#1f8a4c 0%,rgba(31,138,76,0) 55%),linear-gradient(180deg,#0b5d33 0%,#0a4a2a 100%)}
+.bg-night{background:radial-gradient(circle at 80% 20%,rgba(255,224,130,.35),rgba(255,224,130,0) 30%),linear-gradient(180deg,#0d1b3e 0%,#16295a 100%)}
+.bg-candy{background:linear-gradient(180deg,#fff6f6 0%,#ffe9ec 100%)}
+.bg-red{background:radial-gradient(ellipse at 50% 0%,#e8384f 0%,rgba(232,56,79,0) 60%),linear-gradient(180deg,#b3122a 0%,#8e0d20 100%)}
+.snow{position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(2px 2px at 20px 30px,#fff,transparent),radial-gradient(2px 2px at 80px 120px,#fff,transparent),radial-gradient(1.5px 1.5px at 160px 60px,#fff,transparent),radial-gradient(2px 2px at 240px 150px,#fff,transparent),radial-gradient(1.5px 1.5px at 300px 40px,#fff,transparent);background-size:340px 190px;opacity:.7;animation:snow 9s linear infinite}
+@keyframes snow{from{background-position:0 0}to{background-position:40px 190px}}
+/* 電飾のガーランド */
+.lights{position:absolute;left:0;right:0;top:0;height:26px;z-index:3;display:flex;justify-content:space-around;align-items:flex-start;pointer-events:none}
+.lights::before{content:"";position:absolute;left:-5%;right:-5%;top:-10px;height:24px;border-bottom:2px solid #2a3b2f;border-radius:0 0 50% 50%/0 0 100% 100%}
+.lights i{width:9px;height:14px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;margin-top:10px;animation:twinkle 1.6s ease-in-out infinite}
+.lights i:nth-child(5n+1){background:#ff3b4e;box-shadow:0 0 8px #ff3b4e}
+.lights i:nth-child(5n+2){background:#ffd54a;box-shadow:0 0 8px #ffd54a;animation-delay:.3s}
+.lights i:nth-child(5n+3){background:#36d07a;box-shadow:0 0 8px #36d07a;animation-delay:.6s}
+.lights i:nth-child(5n+4){background:#4fc3ff;box-shadow:0 0 8px #4fc3ff;animation-delay:.9s}
+.lights i:nth-child(5n+5){background:#ff8fd0;box-shadow:0 0 8px #ff8fd0;animation-delay:1.2s}
+@keyframes twinkle{0%,100%{opacity:1}50%{opacity:.35}}
+/* 配色案のミニ見本 */
+.pal{border-radius:12px;overflow:hidden;margin:0 0 14px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.pal__hero{position:relative;padding:34px 16px 22px;text-align:center}
+.pal__en{font-family:"Mountains of Christmas",cursive;font-size:30px;line-height:1.1}
+.pal__jp{font-family:"Kaisei Decol",serif;font-size:21px;font-weight:700;margin-top:4px}
+.pal__btn{display:inline-block;margin-top:12px;padding:10px 22px;border-radius:999px;font-weight:700;font-size:15px}
+.pal__card{margin:0;padding:12px 16px 16px;display:flex;gap:10px;align-items:center}
+.pal__card .c{flex:1;border-radius:10px;padding:10px 12px;font-size:13.5px}
+.pal__chips{display:flex;gap:6px;padding:0 16px 14px}
+.pal__chips span{flex:1;height:22px;border-radius:6px;border:1px solid rgba(0,0,0,.08)}
+.candy-stripe{height:14px;background:repeating-linear-gradient(-45deg,#d7263d 0 12px,#fff 12px 24px)}
+.deco-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.deco-grid .cand{margin:0}
+.lot{height:160px}
+.emoji-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;background:#fff;border-radius:14px;padding:10px}
+.emoji-grid figure{margin:0;text-align:center;font-size:11.5px;color:#5a4636}
+.emoji-grid img{width:100%;max-width:90px;height:auto;display:block;margin:0 auto}
+.credits{font-size:12px;color:#5a4636;background:#fff;border-radius:12px;padding:12px 14px}
+.credits li{margin:0 0 4px}
+@media(min-width:700px){.deco-grid{grid-template-columns:repeat(4,1fr)}.emoji-grid{grid-template-columns:repeat(6,1fr)}}
+@media(prefers-reduced-motion:reduce){.snow,.lights i{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>クリスマス素材の見本（社内確認用）</h1>
+  <p class="lead">クリスマス特設ページで使う素材・キラキラ・配色の候補です。気に入ったものの記号（例：そりA・キラキラ2・配色①）を教えてください。この見本ページはどこからもリンクしていません。</p>
+
+  <h2>1. 画面を横切るそり</h2>
+  <p class="lead">どれも「カラフルなキラキラ」を付けて、同じ背景で横切らせています（Fは今のシルエット・比べる用）。</p>
+  <div class="cand"><div class="cand__label">そりA：サンタとプレゼントとトナカイ（動くアニメーション）<small>LottieFiles「santa and reindeer」を加工（家の部分を外した）／商用可・表記不要</small></div><div class="lane bg-classic" data-rider="lottie:event-assets/christmas/lab/sleigh-a.json" data-trail="color" data-w="230"><div class="snow"></div></div></div>
+  <div class="cand"><div class="cand__label">そりB：赤いそり＋トナカイ3頭（動くアニメーション）<small>LottieFiles「no_zoom_sleigh」／商用可・表記不要</small></div><div class="lane bg-classic" data-rider="lottie:event-assets/christmas/lab/sleigh-b.json" data-trail="color" data-w="260"><div class="snow"></div></div></div>
+  <div class="cand"><div class="cand__label">そりC：ピンクのそり＋トナカイ5頭（動くアニメーション）<small>LottieFiles「Santa Claus Sleigh Ride」／商用可・表記不要</small></div><div class="lane bg-classic" data-rider="lottie:event-assets/christmas/lab/sleigh-c.json" data-trail="color" data-w="280"><div class="snow"></div></div></div>
+  <div class="cand"><div class="cand__label">そりD：いらすとや「ソリに乗ったサンタとトナカイ」（静止画）<small>いらすとや／商用可・1つの制作物で20点まで無料</small></div><div class="lane bg-classic" data-rider="img:event-assets/christmas/lab/irasutoya-sori1.png" data-trail="color" data-w="250"><div class="snow"></div></div></div>
+  <div class="cand"><div class="cand__label">そりE：いらすとや「トナカイのソリに乗って走るサンタ」（静止画）<small>いらすとや／商用可・1つの制作物で20点まで無料</small></div><div class="lane bg-classic" data-rider="img:event-assets/christmas/lab/irasutoya-sori2.png" data-trail="color" data-w="230"><div class="snow"></div></div></div>
+  <div class="cand"><div class="cand__label">そりF：今のシルエット（比べる用）<small>今の特設ページと同じ素材・同じ金色のキラキラ</small></div><div class="lane bg-classic" data-rider="img:event-assets/christmas/sleigh.png" data-gold="1" data-trail="gold" data-w="230"><div class="snow"></div></div></div>
+
+  <h2>2. そりの後ろのキラキラ（軌跡）</h2>
+  <p class="lead">同じそり（A）で、キラキラだけを変えています。</p>
+  <div class="cand"><div class="cand__label">キラキラ1：今と同じ（金色の星だけ）</div><div class="lane bg-classic" data-rider="lottie:event-assets/christmas/lab/sleigh-a.json" data-trail="gold" data-w="230"><div class="snow"></div></div></div>
+  <div class="cand"><div class="cand__label">キラキラ2：カラフル（赤・緑・金・白・ピンクの星と光の粒が、瞬きながら舞い落ちる）</div><div class="lane bg-classic" data-rider="lottie:event-assets/christmas/lab/sleigh-a.json" data-trail="color" data-w="230"><div class="snow"></div></div></div>
+  <div class="cand"><div class="cand__label">キラキラ3：立体のキラキラ（立体の星・キラキラの絵＋金の粒）<small>Microsoft Fluent Emoji（MIT）</small></div><div class="lane bg-classic" data-rider="lottie:event-assets/christmas/lab/sleigh-a.json" data-trail="fluent" data-w="230"><div class="snow"></div></div></div>
+
+  <h2>3. クリスマスカラーの配色</h2>
+  <p class="lead">見出し・ボタン・カードの色の組み合わせの見本です（そりはA・キラキラ2）。</p>
+  <div class="pal">
+    <div class="pal__hero bg-classic lane lane--tall" data-rider="lottie:event-assets/christmas/lab/sleigh-a.json" data-trail="color" data-w="170" style="height:auto;min-height:230px;border-radius:0">
+      <div class="lights"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="snow"></div>
+      <div style="position:relative;z-index:3;color:#fffaf0"><div class="pal__en" style="color:#ffd54a">Merry Christmas</div><div class="pal__jp">こいまりのクリスマスケーキ</div><span class="pal__btn" style="background:#c8102e;color:#fff;box-shadow:0 3px 0 #8e0d20">LINEで予約する</span></div>
+    </div>
+    <div class="candy-stripe"></div>
+    <div class="pal__card" style="background:#fffaf0"><div class="c" style="background:#fff;border:2px solid #0b5d33;color:#2e2118"><b style="color:#c8102e">6号</b>　ご家族5〜6人に</div><div class="c" style="background:#0b5d33;color:#fff"><b style="color:#ffd54a">人気</b>　クリスマススペシャル</div></div>
+    <div class="pal__chips"><span style="background:#c8102e"></span><span style="background:#0b5d33"></span><span style="background:#ffd54a"></span><span style="background:#fffaf0"></span></div>
+    <div class="cand__label" style="padding:0 16px 12px">配色①　王道（赤・緑・金）＋電飾＋キャンディのしま模様</div>
+  </div>
+  <div class="pal">
+    <div class="pal__hero bg-night lane lane--tall" data-rider="lottie:event-assets/christmas/lab/sleigh-a.json" data-trail="color" data-w="170" style="height:auto;min-height:230px;border-radius:0">
+      <div class="snow"></div>
+      <div style="position:relative;z-index:3;color:#fff"><div class="pal__en" style="color:#ffd54a">Merry Christmas</div><div class="pal__jp">こいまりのクリスマスケーキ</div><span class="pal__btn" style="background:#ffd54a;color:#0d1b3e">LINEで予約する</span></div>
+    </div>
+    <div class="pal__card" style="background:#f4f1ff"><div class="c" style="background:#fff;border:2px solid #16295a"><b style="color:#c8102e">6号</b>　ご家族5〜6人に</div><div class="c" style="background:#c8102e;color:#fff"><b style="color:#ffd54a">人気</b>　クリスマススペシャル</div></div>
+    <div class="pal__chips"><span style="background:#0d1b3e"></span><span style="background:#ffd54a"></span><span style="background:#c8102e"></span><span style="background:#fff"></span></div>
+    <div class="cand__label" style="padding:0 16px 12px">配色②　聖夜（夜空の紺・金・赤）</div>
+  </div>
+  <div class="pal">
+    <div class="pal__hero bg-candy lane lane--tall" data-rider="lottie:event-assets/christmas/lab/sleigh-a.json" data-trail="color" data-w="170" style="height:auto;min-height:230px;border-radius:0">
+      <div class="lights"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div style="position:relative;z-index:3;color:#8e0d20"><div class="pal__en" style="color:#c8102e">Merry Christmas</div><div class="pal__jp" style="color:#0b5d33">こいまりのクリスマスケーキ</div><span class="pal__btn" style="background:#0b5d33;color:#fff;box-shadow:0 3px 0 #073d22">LINEで予約する</span></div>
+    </div>
+    <div class="candy-stripe"></div>
+    <div class="pal__card" style="background:#fff"><div class="c" style="background:#ffe9ec;color:#2e2118"><b style="color:#c8102e">6号</b>　ご家族5〜6人に</div><div class="c" style="background:#e3f5ea;color:#2e2118"><b style="color:#0b5d33">人気</b>　クリスマススペシャル</div></div>
+    <div class="pal__chips"><span style="background:#c8102e"></span><span style="background:#ffe9ec"></span><span style="background:#0b5d33"></span><span style="background:#fff"></span></div>
+    <div class="cand__label" style="padding:0 16px 12px">配色③　キャンディ（明るい白地に赤と緑）＋電飾</div>
+  </div>
+
+  <h2>4. 飾りのキャラクター（動くアニメーション）</h2>
+  <p class="lead">ケーキの一覧や見出しの横に、小さく添える用です。LottieFiles／商用可・表記不要。</p>
+  <div class="deco-grid">
+    <div class="cand"><div class="cand__label">飾りア：手を振るトナカイ</div><div class="lot" data-lottie="event-assets/christmas/lab/reindeer-wave.json"></div></div>
+    <div class="cand"><div class="cand__label">飾りイ：歩くサンタ</div><div class="lot" data-lottie="event-assets/christmas/lab/santa-walk.json"></div></div>
+    <div class="cand"><div class="cand__label">飾りウ：プレゼントのサンタ</div><div class="lot" data-lottie="event-assets/christmas/lab/santa-gift.json"></div></div>
+    <div class="cand"><div class="cand__label">飾りエ：トナカイの顔</div><div class="lot" data-lottie="event-assets/christmas/lab/reindeer-face.json"></div></div>
+  </div>
+
+  <h2>5. 立体の絵文字（飾り・アイコン用）</h2>
+  <p class="lead">Microsoft Fluent Emoji（MIT／商用可・表記不要）。見出しの飾りや、箇条書きの印に使えます。</p>
+  <div class="emoji-grid" id="emojiGrid"></div>
+
+  <h2>素材の出典・ライセンス</h2>
+  <div class="credits"><ul id="creditList"><li>読み込み中…</li></ul></div>
+</div>
+<script>
+// ===== 動くそり・飾り・キラキラ（見本） =====
+const RM = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+// Lottie は中身の余白が大きいので、何コマか描いて実際に絵がある範囲だけを見せる
+function cropLottie(anim, svg) {
+  try {
+    const g = svg.querySelector("g"); let box = null;
+    const n = Math.max(1, Math.floor(anim.totalFrames));
+    for (let i = 0; i < 8; i++) {
+      anim.goToAndStop(Math.floor(n * i / 8), true);
+      const b = g.getBBox();
+      if (!b.width) continue;
+      box = box ? { x1: Math.min(box.x1, b.x), y1: Math.min(box.y1, b.y), x2: Math.max(box.x2, b.x + b.width), y2: Math.max(box.y2, b.y + b.height) } : { x1: b.x, y1: b.y, x2: b.x + b.width, y2: b.y + b.height };
+    }
+    if (box) { const pad = 6; svg.setAttribute("viewBox", (box.x1 - pad) + " " + (box.y1 - pad) + " " + (box.x2 - box.x1 + pad * 2) + " " + (box.y2 - box.y1 + pad * 2)); svg.removeAttribute("width"); svg.removeAttribute("height"); svg.style.width = "100%"; svg.style.height = "auto"; }
+  } catch (e) {}
+}
+function loadLottie(box, path, done) {
+  fetch(path).then((r) => r.json()).then((data) => {
+    const anim = lottie.loadAnimation({ container: box, renderer: "svg", loop: true, autoplay: false, animationData: data });
+    anim.addEventListener("DOMLoaded", () => { cropLottie(anim, box.querySelector("svg")); if (!RM) anim.play(); else anim.goToAndStop(0, true); if (done) done(); });
+  });
+}
+document.querySelectorAll("[data-lottie]").forEach((el) => loadLottie(el, el.dataset.lottie));
+
+const COLORS = ["#ff3b4e", "#36d07a", "#ffd54a", "#ffffff", "#ff8fd0"];
+function spawnSpark(lane, x, y, kind) {
+  const s = document.createElement(kind === "fluent" && Math.random() < 0.55 ? "img" : "span");
+  let size;
+  if (s.tagName === "IMG") {
+    s.src = Math.random() < 0.5 ? "event-assets/christmas/lab/fluent/sparkles.png" : "event-assets/christmas/lab/fluent/glowing_star.png";
+    size = 14 + Math.random() * 14; s.className = "spark";
+  } else if (kind === "gold") {
+    const im = document.createElement("img"); im.src = "event-assets/common/sparkle.png"; im.className = "spark"; im.style.filter = "sepia(1) saturate(4) hue-rotate(5deg) brightness(1.1)"; size = 10 + Math.random() * 10;
+    im.style.width = im.style.height = size + "px"; im.style.left = x + "px"; im.style.top = y + "px"; lane.appendChild(im);
+    im.animate([{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.3) translateY(14px)" }], { duration: 900, easing: "ease-out" }).onfinish = () => im.remove();
+    return;
+  } else {
+    const c = kind === "fluent" ? "#ffd54a" : COLORS[Math.floor(Math.random() * COLORS.length)];
+    const dot = Math.random() < 0.4;
+    size = dot ? 3 + Math.random() * 4 : 7 + Math.random() * 11;
+    s.className = "spark" + (dot ? "" : " star4");
+    s.style.background = c; s.style.borderRadius = dot ? "50%" : "0"; s.style.boxShadow = "0 0 " + (dot ? 6 : 10) + "px " + c;
+    if (!dot) s.style.filter = "drop-shadow(0 0 4px " + c + ")";
+  }
+  s.style.width = s.style.height = size + "px"; s.style.left = x + "px"; s.style.top = y + "px";
+  lane.appendChild(s);
+  const dx = (Math.random() - 0.5) * 30, dy = 18 + Math.random() * 40, rot = (Math.random() - 0.5) * 180;
+  s.animate([
+    { opacity: 0, transform: "translate(0,0) scale(.2) rotate(0deg)" },
+    { opacity: 1, transform: "translate(" + dx * 0.3 + "px," + dy * 0.2 + "px) scale(1.15) rotate(" + rot * 0.4 + "deg)", offset: 0.25 },
+    { opacity: 0.85, transform: "translate(" + dx * 0.6 + "px," + dy * 0.6 + "px) scale(.75) rotate(" + rot * 0.8 + "deg)", offset: 0.6 },
+    { opacity: 0, transform: "translate(" + dx + "px," + dy + "px) scale(.3) rotate(" + rot + "deg)" },
+  ], { duration: 1300 + Math.random() * 700, easing: "ease-out" }).onfinish = () => s.remove();
+}
+function startLane(lane) {
+  const [type, src] = lane.dataset.rider.split(":"); const w = Number(lane.dataset.w || 230);
+  const rider = document.createElement("div"); rider.className = "rider"; rider.style.width = w + "px";
+  lane.appendChild(rider);
+  const go = () => {
+    if (RM) { rider.style.transform = "translate(" + Math.max(0, (lane.clientWidth - w) / 2) + "px,40px)"; return; }
+    const dur = 7200; let t0 = null, last = 0;
+    const H = lane.clientHeight, W = lane.clientWidth;
+    const step = (now) => {
+      if (t0 === null) t0 = now;
+      const p = (now - t0) / dur;
+      const x = -w - 20 + (W + w + 60) * p;
+      const y = H * 0.42 - (rider.offsetHeight || 80) / 2 - H * 0.16 * Math.sin(p * Math.PI) + Math.sin(now / 260) * 4;
+      rider.style.transform = "translate(" + x + "px," + y + "px) rotate(" + (-4 + Math.cos(p * Math.PI) * 4) + "deg)";
+      if (lane.dataset.trail && now - last > 45 && x > -w * 0.6 && x < W) {
+        last = now;
+        const h = rider.offsetHeight || 80;
+        spawnSpark(lane, x + w * 0.12, y + h * 0.55 + (Math.random() - 0.5) * h * 0.3, lane.dataset.trail);
+        if (lane.dataset.trail !== "gold") spawnSpark(lane, x + w * 0.05, y + h * 0.6 + (Math.random() - 0.5) * h * 0.4, lane.dataset.trail);
+      }
+      if (p < 1) requestAnimationFrame(step); else setTimeout(go, 1500);
+    };
+    requestAnimationFrame(step);
+  };
+  if (type === "lottie") loadLottie(rider, src, go);
+  else { const im = document.createElement("img"); im.src = src; im.alt = ""; if (lane.dataset.gold) im.style.filter = "brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(5deg)"; im.onload = go; rider.appendChild(im); }
+}
+// 見えている間だけ動かす（電池の節約）
+const io = "IntersectionObserver" in window ? new IntersectionObserver((es) => es.forEach((e) => { if (e.isIntersecting && !e.target.__started) { e.target.__started = true; startLane(e.target); } }), { rootMargin: "100px" }) : null;
+document.querySelectorAll("[data-rider]").forEach((el) => io ? io.observe(el) : startLane(el));
+
+// 立体の絵文字と、出典の一覧
+fetch("event-assets/christmas/lab/credits.json").then((r) => r.json()).then((c) => {
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  const LIC = { "lottie-simple-license": "Lottie Simple License（商用可・表記不要・加工可）", mit: "MITライセンス（商用可）", "irasutoya-terms": "いらすとや利用規約（商用可・1制作物20点まで無料）" };
+  document.getElementById("emojiGrid").innerHTML = Object.keys(c).filter((k) => k.indexOf("/fluent/") > 0).map((k) => '<figure><img src="event-assets/' + esc(k) + '" alt="" loading="lazy"><figcaption>' + esc(c[k].title.replace(" (Fluent Emoji 3D)", "")) + "</figcaption></figure>").join("");
+  document.getElementById("creditList").innerHTML = Object.keys(c).map((k) => "<li>" + esc(k.split("/").pop()) + "：" + esc(c[k].title) + (c[k].creator ? "（" + esc(c[k].creator) + "）" : "") + "／" + esc(LIC[c[k].license] || c[k].license) + '／<a href="' + esc(c[k].page) + '" target="_blank" rel="noopener">出典</a></li>').join("");
+});
+</script>
+</body>
+</html>
