@@ -449,9 +449,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div id="reserveMousseFlavorWrap" style="display:none;margin-top:10px;">
             <label class="field__label" style="font-size:12px;">グランマニエの種類</label>
             <div class="radio-list" style="flex-direction:row;">
-              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="イチゴBOX" checked> イチゴBOX</label>
+              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="イチゴBOX"> イチゴBOX</label>
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="チョコBOX"> チョコBOX</label>
             </div>
+            <div class="error" id="reserveMousseFlavorError"></div>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
             <label class="field__label" style="font-size:12px;">生クリームの有無（同一価格）</label>
@@ -3327,6 +3328,7 @@ function validateReserve(data) {
     if (!isBaked && !data.occasion) { setReserveError("reserveOccasionError", "ご利用シーンをお選びください"); ok = false; }
     else if (data.occasion === "その他" && !data.occasionOther.trim()) { setReserveError("reserveOccasionError", "ご利用シーンをご記入ください"); ok = false; }
     if (!isBaked && !isRoll && !data.creamType) { setReserveError("reserveCreamTypeError", "クリームの種類をお選びください"); ok = false; }
+    { const mw = document.getElementById("reserveMousseFlavorWrap"); setReserveError("reserveMousseFlavorError", ""); if (!isBaked && !isRoll && mw && mw.style.display !== "none" && !document.querySelector('input[name="reserveMousseFlavor"]:checked')) { setReserveError("reserveMousseFlavorError", "グランマニエの種類（イチゴBOX・チョコBOX）をお選びください"); ok = false; } }
     if (!isBaked && !isRoll && !data.decoration) { setReserveError("reserveDecorationError", "飾り付けをお選びください"); ok = false; }
     if (!isBaked && data.candleNeeded && !(data.candleNumbers || []).length && !(Number(data.candlePlainBags) > 0)) { setReserveError("reserveCandleError", "ろうそくの番号か、普通のろうそくの袋数をお選びください"); ok = false; }
     if (data.type === "焼き菓子予約" && !data.note.trim()) { setReserveError("reserveNoteError", "ご希望の商品をご記入ください"); ok = false; }
@@ -3590,6 +3592,8 @@ function applyDraft(d) {
     if (combo && combo.length === 2) { try { applyFormSpec({ tiers: 2, sizes: [full(combo[0]), full(combo[1])] }); } catch (e) {} }
     else if (combo && combo.length === 1) { try { applyFormSpec({ tiers: 1, sizes: [full(combo[0])] }); } catch (e) {} }
   }
+  // グランマニエ：ギャラリーで選んだ商品の名前から種類を選んでおく。分からなければ未選択のまま（選んでいない種類を入れない・2026-10-28）
+  { const nm = String(d.name || ""), fl = /チョコBOX/.test(nm) ? "チョコBOX" : /イチゴBOX/.test(nm) ? "イチゴBOX" : ""; const r = fl && document.querySelector('input[name="reserveMousseFlavor"][value="' + fl + '"]'); if (r) r.checked = true; }
   renderDraftBanner();
 }
 let currentDraftSpecApplied = false;
@@ -4030,7 +4034,7 @@ function setupReserveForm(uid, displayName) {
         pickupDate: document.getElementById("reserveDate").value || "",
         pickupTime: document.getElementById("reserveTime").value || "",
         items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
-        ...(isCake && specsNow.some((s) => s.cream === "ムース") ? { mousseFlavor: (document.querySelector('input[name="reserveMousseFlavor"]:checked') || {}).value || "イチゴBOX" } : {}),
+        ...(isCake && specsNow.some((s) => s.cream === "ムース") ? { mousseFlavor: (document.querySelector('input[name="reserveMousseFlavor"]:checked') || {}).value || "" } : {}),
         candleNeeded, candleType, candleBags, candleNumbers, candlePlainBags, candleText, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [], priceIsFixed: !!priceResult.priceIsFixed,
