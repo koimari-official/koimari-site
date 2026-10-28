@@ -10,6 +10,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
+<script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>ご予約・お問合せ｜こいまり</title>
@@ -913,7 +914,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <span class="page-head__en">Reservation &amp; Inquiry</span>
     <h1 class="page-head__title">ご予約・会員登録</h1>
     <p class="page-head__lead">
-      こいまり公式LINEアカウントの「友だち追加」が、そのまま会員登録になります。<br>
+      <span data-reserve-ui>こいまり公式LINEアカウントの「友だち追加」が、そのまま会員登録になります。<br></span>
       ご予約は3営業日前までにご連絡ください。それ以降～当日のご注文は、お電話にて承ります。<br>
       <span id="leadDateInfo" class="lead-date"></span>
       <span style="font-size:14px;">※本ページは「ケーキ屋さんこいまり 城東店」のご予約についてのご案内です。</span>
@@ -932,14 +933,24 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="same-day__body">
         <span class="same-day__label">当日予約はお電話にて承ります</span>
-        <span class="same-day__sub">ネット予約は3営業日前までです。3営業日前を切る場合は、ギャラリーで選んだ仕様をお伝えのうえ、お電話でお願いいたします。<br><span id="xmasCakeNote" style="display:none;">（クリスマスケーキは、お渡し日前に店頭にて代金のお支払いをお願い致します。お支払いをもってご予約完了とさせて頂きます。ご予約が埋まり次第、受付を終了します。）<br></span>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
+        <span class="same-day__sub prelaunch-only">ご予約は3営業日前までに、お電話・店頭で承ります。3営業日前を切る場合も、お電話で対応できるかを確認いたします。</span>
+        <span class="same-day__sub" data-reserve-ui>ネット予約は3営業日前までです。3営業日前を切る場合は、ギャラリーで選んだ仕様をお伝えのうえ、お電話でお願いいたします。<br><span id="xmasCakeNote" style="display:none;">（クリスマスケーキは、お渡し日前に店頭にて代金のお支払いをお願い致します。お支払いをもってご予約完了とさせて頂きます。ご予約が埋まり次第、受付を終了します。）<br></span>お急ぎの場合・当日のご予約はお電話で直接お問合せください。</span>
       </div>
       <a href="tel:07091580641" class="same-day__tel">
         <span>070-9158-0641<small>火曜～土曜 10:00～20:00 / 日曜・月曜祝日 10:00～19:00（月曜定休・祝日の場合は翌平日）</small></span>
       </a>
     </div>
 
-    <div class="form-section">
+    <div class="form-section prelaunch-only">
+      <h2 class="form-section__title">ご予約はお電話・店頭で <span class="form-section__num">01</span></h2>
+      <p style="margin-bottom:20px;">
+        こいまりのご予約・ご相談は、お電話または店頭で承っております。インターネットでのご予約は、近日公開予定です。<br>
+        <span style="font-size:14px;color:var(--color-text-mute);">※お引き取りは閉店時間までとさせていただいております。</span><br>
+        <strong>お支払いは、お引き取り日当日、お受け取りの際に店頭でお願いいたします。</strong>
+      </p>
+      <div style="text-align:center;margin:32px 0;"><a href="tel:07091580641" class="btn" style="display:inline-block;padding:18px 48px;font-size:16px;">お電話でご予約（070-9158-0641）</a></div>
+    </div>
+    <div class="form-section" data-reserve-ui>
       <h2 class="form-section__title">ご予約はLINE公式アカウントから <span class="form-section__num">01</span></h2>
       <p style="margin-bottom:20px;">
         こいまりのご予約は、LINE公式アカウントの専用フォームから承っております。<br>

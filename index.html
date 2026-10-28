@@ -10,6 +10,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
+<script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>こいまり｜手作りケーキ・焼き菓子のお店｜大阪市城東区・京橋</title>
 <meta name="description" content="大阪市城東区（京橋・蒲生四丁目エリア）の手作りケーキ・焼き菓子のお店こいまり。誕生日や記念日のオーダーケーキ、ギフト用焼き菓子をご用意。お気軽にご予約・ご相談ください。">
@@ -963,7 +964,14 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </ul>
     </div>
 
-    <div class="quick-reserve__line">
+    <!-- 先行公開中（site-mode.js）だけ出す：ご予約はお電話・店頭で -->
+    <div class="quick-reserve__line prelaunch-only">
+      <h3><span class="nb">ご予約は</span><span class="nb">お電話・店頭で</span></h3>
+      <p>ご予約・ご相談は、<strong>お電話または店頭</strong>で承ります。<br>インターネットでのご予約は、近日公開予定です。</p>
+      <a class="quick-reserve__tel quick-reserve__tel--lg" href="tel:07091580641">070-9158-0641</a>
+      <p class="quick-reserve__telnote">受付時間：火曜～土曜 10:00～20:00 ／ 日曜・月曜祝日 10:00～19:00（月曜定休・祝日の場合は翌平日）</p>
+    </div>
+    <div class="quick-reserve__line" data-reserve-ui>
       <h3><span class="nb">ご予約は</span><span class="nb">LINEまたはお電話で</span></h3>
       <p>LINEなら、スマートフォンから<strong>ご希望を選んでご予約</strong>いただけます。<br><strong>お電話でも同じようにご予約を承ります。</strong></p>
       <ol class="quick-reserve__steps">

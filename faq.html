@@ -10,6 +10,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
+<script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>よくあるご質問｜こいまり</title>
@@ -205,12 +206,19 @@ function renderFaqPage(){
     container.innerHTML = '<div class="empty">よくあるご質問は現在準備中です。</div>';
     return;
   }
+  // 先行公開中（site-mode.js）は、LINE・ネット予約での予約のしかたを説明する質問を出さず、
+  // 「ご予約について」の先頭に、お電話・店頭でのご予約の案内を1件出す（2026-10-28オーナー指示）
+  const prelaunch = window.KOIMARI_RESERVE_PUBLIC === false;
+  const RESERVE_HOW = /友だち追加|『ご予約』|「ご予約」|ネット予約|予約フォーム|LINE公式アカウントから承り/;
   data.forEach(cat => {
     if (!cat.items || !cat.items.length) return;
+    let items = prelaunch ? cat.items.filter(it => !RESERVE_HOW.test(String(it.q || "") + String(it.a || ""))) : cat.items;
+    if (prelaunch && cat.category === "ご予約について") items = [{ q: "ご予約はどのようにすればよいですか？", a: "ご予約・ご相談は、お電話（070-9158-0641）または店頭で承ります。\nインターネットでのご予約は、近日公開予定です。" }].concat(items);
+    if (!items.length) return;
     const section = document.createElement("section");
     section.className = "faq-cat";
     let html = `<h2 class="faq-cat__title">${escape(cat.category)}</h2>`;
-    cat.items.forEach(it => {
+    items.forEach(it => {
       html += `<div class="faq-item"><div class="faq-item__q">${escape(it.q)}</div><div class="faq-item__a">${escape(String(it.a||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>").replace("営業日カレンダー", '<a href="calendar.html" target="_blank" rel="noopener" class="faq-cal-link">営業日カレンダー（新しい画面で開きます）</a>')}</div></div>`;
     });
     section.innerHTML = html;

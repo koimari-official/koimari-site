@@ -440,17 +440,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="生チョコクリーム"> 生チョコクリームBOX<span id="reserveChocoCreamPriceLabel"></span></label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="フルーツタルトBOX"> タルトBOX</label>
             <label class="radio-list__opt opt-merged"><input type="radio" name="reserveCreamType" value="ストロベリータルトBOX"> ストロベリータルトBOX</label>
-            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> グランマニエBOX（ムース・4号）</label>
+            <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ムース"> グランマニエBOX（ムース・3号相当）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ミッシェルBOX"> ミッシェルBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ガトーショコラBOX"> ガトーショコラBOX</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="モンブラン"> モンブランBOX（フルオーダー・要お見積もり）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーBOX（フルオーダー・要お見積もり）</label>
           </div>
           <div id="reserveMousseFlavorWrap" style="display:none;margin-top:10px;">
-            <label class="field__label" style="font-size:12px;">ムースの種類</label>
+            <label class="field__label" style="font-size:12px;">グランマニエの種類</label>
             <div class="radio-list" style="flex-direction:row;">
-              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="いちごムース" checked> いちごムース</label>
-              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="チョコムース"> チョコムース</label>
+              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="イチゴBOX" checked> イチゴBOX</label>
+              <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="チョコBOX"> チョコBOX</label>
             </div>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
@@ -790,7 +790,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js?v=20261028a"></script>
+<script src="cake-pricing.js?v=20261028c"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
@@ -1507,7 +1507,7 @@ function applyFormSpec(s) {
     Object.keys(cutQty).forEach(k => delete cutQty[k]); Object.assign(cutQty, s.cutQty || {}); cutRowOrder = []; setVal("reserveCutOtherNote", s.cutOtherNote || ""); renderCutPicker();
     setTimeout(convertTartTopCut, 0); // 以前の形（1段のタルト＋カットケーキを載せる）は2段に読み替える
     setChk("reserveOnsite", s.onsite); setVal("reserveColorCreamNote", s.colorNote || "");
-    setChk("reserveCandleNeeded", s.candle); if (s.mousseFlavor) setRadio("reserveMousseFlavor", s.mousseFlavor);
+    setChk("reserveCandleNeeded", s.candle); if (s.mousseFlavor) setRadio("reserveMousseFlavor", mousseFlavorName(s.mousseFlavor));
     // 以前の形（種類＋数）の途中保存も読む：普通のろうそくは袋数に、ナンバーろうそくは番号を選び直してもらう
     candleRows = (s.candleNums && s.candleNums.length) ? s.candleNums.map((c) => ({ num: String(c.num), qty: Number(c.qty) || 1 })) : [{ num: "", qty: 1 }];
     setVal("reserveCandleBags", s.candleNums ? (s.candleBags || "0") : (s.candleType === "普通のろうそく" ? (s.candleBags || "1") : "0"));
@@ -2095,7 +2095,17 @@ function shopCutCatalog() {
   }));
 }
 function shopCutSelected() { return shopCutCatalog().filter(c => shopCutQty[c.name] > 0).map(c => ({ name: c.name, img: c.img, price: c.price, qty: shopCutQty[c.name] })); }
+// グランマニエの種類の名前（2026-10-28：いちごムース／チョコムース → イチゴBOX／チョコBOX。以前の名前で保存されたものも読み替える）
+function mousseFlavorName(v) { return v === "いちごムース" ? "イチゴBOX" : v === "チョコムース" ? "チョコBOX" : v; }
 function xmasOpen() { return !!(xmasConf && xmasConf.status === "open"); }
+// クリスマスケーキの締切の受付方法（2026-10-28：Web・お電話は12/18、店頭は12/20）。電話・店頭予約の登録では、選んだ受付方法で決める
+function xmasChannel() { return PHONE_MODE ? phoneChannelNow() : "Web"; }
+function xmasClosedText() {
+  const ch = xmasChannel();
+  if (ch === "店頭") return "クリスマスケーキのご予約は、12月20日で受付を終了しました";
+  if (ch === "電話") return "お電話でのクリスマスケーキのご予約は12月18日までです（店頭では12月20日まで承れます）";
+  return "Webでのクリスマスケーキのご予約は12月18日までです。12月20日までは、店頭でご予約を承ります";
+}
 // フォームの上の「クリスマスケーキのご予約はこちら」（2026-10-25オーナー指示）。ご利用シーンからクリスマスを外したため、特設ページへご案内する。
 // 11月1日〜受付締切（12月20日）の日本時間で、管理画面「クリスマス」が受付中のときだけ。電話受付モード・クリスマスケーキを選んでいる間は出さない。
 function updateXmasLinkBar() {
@@ -2103,7 +2113,7 @@ function updateXmasLinkBar() {
   if (!bar) return;
   const jst = new Date(Date.now() + 9 * 3600 * 1000);
   const md = (jst.getUTCMonth() + 1) * 100 + jst.getUTCDate();
-  const end = CakePricing.SPEC.christmas.deadlineMonth * 100 + CakePricing.SPEC.christmas.deadlineDay;
+  const end = CakePricing.SPEC.christmas.deadlineMonth * 100 + (CakePricing.SPEC.christmas.webDeadlineDay || CakePricing.SPEC.christmas.deadlineDay);
   bar.style.display = !PHONE_MODE && md >= 1101 && md <= end && xmasOpen() && shopMode() !== "xmas" ? "" : "none";
 }
 function xmasSizes(c) { return (Array.isArray(c && c.sizes) ? c.sizes : []).filter(s => s && s.size); }
@@ -2583,7 +2593,7 @@ function renderTierSizeSelects(tierCount) {
   const prevSizes = Array.from(wrap.querySelectorAll(".tier-size-select")).map(s => s.value);
 
   if (tierCount === 1) {
-    // ベースによって作れる号数が決まっている場合（ムース＝4号のみ）は、その号数だけを出す（2026-10-03）
+    // ベースによって作れる号数が決まっている場合（ムース＝3号相当のみ・2026-10-28）は、その号数だけを出す（2026-10-03）
     const allowed = (CakePricing.SPEC.baseSizes || {})[bottomCream()];
     const opts = allowed ? [SIZE_OPTIONS[0], SIZE_3].concat(SIZE_OPTIONS.slice(1)).filter((o, i) => i === 0 || allowed.includes(sizeKeyOf(o.value))) : SIZE_OPTIONS;
     let val = prevSizes[0];
@@ -2641,7 +2651,7 @@ function renderTierSizeSelects(tierCount) {
 // 2026-09-24：オーダー仕様に応じた選択項目の出し分け（クリスマス規約・いちご追加・カラークリーム・
 // フルーツトッピングの金額表示）。価格に影響する変更のたびに呼ばれる。
 // 2段・3段のとき、いま選んでいる段に入れられないクリームの種類を選べなくする（2026-10-21オーナー指示）。
-//  ・ムース（グランマニエBOX）：一番上の段だけ（大きさは4号）
+//  ・ムース（グランマニエBOX）：一番上の段だけ（大きさは3号相当。2026-10-28）
 //  ・ミッシェルBOX・ガトーショコラBOX：5号になる段だけ（3段の一番上には入れられない）
 // 段の大きさが後から変わって条件に合わなくなった段は、生クリームに戻してお知らせする。
 function creamAllowedOnTier(cream, i, n) {
@@ -2700,7 +2710,7 @@ function applyCreamTierRules() {
           else tierSpecs[i] = { cream: "生クリーム", colors: [] };
         }
       }
-      if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ミッシェル・ガトーショコラは5号の段だけ、ムースは一番上が4号の段だけ、タルトは2段の一番下の段だけ選べます）");
+      if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ミッシェル・ガトーショコラは5号の段だけ、ムースは一番上が3号の段だけ、タルトは2段の一番下の段だけ選べます）");
       if (fixedCercle.length) alert(fixedCercle.join("・") + "は、セルクルを乗せる段では作れないため、生クリームに戻しました。\n（セルクルとそのすぐ下の段は、生クリームか生チョコクリームの同じクリームになります）");
       // セルクルとすぐ下の段を同じクリームにそろえる。いま選んでいる段がどちらかなら、その段で選んだクリームに合わせる
       if (ci >= 1) {
@@ -2833,7 +2843,7 @@ function updateReserveDateNotices() {
   if (sl.level === "soft") html += box("#6b4a12", "#fff7ea", "#e0b872", `${creamNow}は特殊仕様のため、お受取日まで${sl.soft}日を切る場合はお受けできないことがあります。ご予約後、スタッフよりご連絡します。`);
   if (occasion === "バースデー") { const bb = birthdayBlockFor(v); if (bb) html += box("#8a2a1a", "#fdeeea", "#e6a698", birthdayBlockText(bb)); }
   { const dk = dateKeyLocal(new Date(v)); if ((reserveHolidays.cakeFullDates || []).includes(dk)) html += box("#8a2a1a", "#fdeeea", "#e6a698", "その日はご注文が集中しており、ネット予約を承れません。別の日をお選びいただくか、お電話（070-9158-0641）でご相談ください。"); }
-  if (occasion === "クリスマス" && CakePricing.christmasClosed(v, new Date())) html += box("#8a2a1a", "#fdeeea", "#e6a698", "クリスマスケーキのご予約は12月20日までです（ご予約が満員になり次第、受付を終了します）。恐れ入りますが、お電話（070-9158-0641）でご相談ください。");
+  if (occasion === "クリスマス" && CakePricing.christmasClosed(v, new Date())) html += box("#8a2a1a", "#fdeeea", "#e6a698", "クリスマスケーキのご予約は、Web・お電話は12月18日まで、店頭は12月20日までです（ご予約が満員になり次第、受付を終了します）。恐れ入りますが、お電話（070-9158-0641）でご相談ください。");
   el.style.display = html ? "block" : "none";
   el.innerHTML = html;
 }
@@ -3305,7 +3315,7 @@ function validateReserve(data) {
     if (isShopXmas && !xmasOpen()) { setReserveError("reserveShopError", "クリスマスケーキのご予約は、ただいま受付期間外です"); ok = false; }
     else if (isShopXmas && !(data.xmasCake && data.xmasCake.name && data.xmasCake.size)) { setReserveError("reserveShopError", "ケーキとサイズをお選びください"); ok = false; }
     if (isShopXmas && data.pickupDate && xmasConf && xmasConf.pickupFrom && (data.pickupDate < xmasConf.pickupFrom || data.pickupDate > (xmasConf.pickupTo || xmasConf.pickupFrom))) { setReserveError("reserveDateError", "クリスマスケーキのお渡しは" + xmasRangeText() + "です"); ok = false; }
-    else if (isShopXmas && data.pickupDate && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
+    else if (isShopXmas && data.pickupDate && CakePricing.christmasClosed(data.pickupDate, new Date(), xmasChannel())) { setReserveError("reserveDateError", xmasClosedText()); ok = false; }
     if (!isBaked && !isRoll && data.items.some(it => !it.size)) { setReserveError("reserveSizeError", "サイズをお選びください"); ok = false; }
     setReserveError("reserveCutError", "");
     if (!isBaked && !isRoll && cutPickerNeeded() && (data.cutCakes || []).reduce((s, c) => s + (Number(c.qty) || 0), 0) > cutMax()) { setReserveError("reserveCutError", cutBaseSize() + "に載せられるカットケーキは" + cutMax() + "個までです。個数を減らしてください"); ok = false; }
@@ -3331,7 +3341,7 @@ function validateReserve(data) {
       else if (!isBaked && data.onsiteAssembly && onsiteTooLate(data.pickupDate)) { setReserveError("reserveDateError", "出張での組み立ては、お受け取りの" + CakePricing.SPEC.onsiteLeadDays + "日前までのご予約が必要です。日付を変えるか、出張なしをお選びください。"); ok = false; }
       else if (today > computeOrderDeadline(pick)) { data.shortLead = true; if (PHONE_MODE) data.shortLeadChecked = true; } // 電話受付モード・クリスマスで3営業日前を切る：送信は受け付け、未確定（対応可否を確認）
       else if (!isBaked && !isRoll && CakePricing.checkLead(data.items.map(it => it.size), data.pickupDate, new Date(), bottomCream()).level === "block") { setReserveError("reserveDateError", "この段数・サイズは箱・資材の手配のため、お受取日の7〜14日前までのご予約が必要です（お電話でご相談ください）"); ok = false; }
-      else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date())) { setReserveError("reserveDateError", "クリスマスケーキのご予約は12月20日までです（お電話でご相談ください）"); ok = false; }
+      else if (!isBaked && !isRoll && data.occasion === "クリスマス" && CakePricing.christmasClosed(data.pickupDate, new Date(), xmasChannel())) { setReserveError("reserveDateError", xmasClosedText()); ok = false; }
     }
     if (!data.pickupTime) { setReserveError("reserveTimeError", "引き取り希望時間をご選択ください"); ok = false; }
   }
@@ -3421,7 +3431,7 @@ function renderReserveConfirm(data, targetId) {
     <dt>商品</dt><dd>${escape(productName)}${data.items.length > 1 ? `（${data.items.length}段）` : ""}</dd>
     ${item.flavor ? `<dt>ケーキの種類</dt><dd>${escape(item.flavor)}</dd>` : ""}
     ${isCake ? `<dt>クリームの種類</dt><dd>${escape(data.creamType)}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${escape(data.creamTypeSub)}）` : ""}</dd>` : ""}
-    ${data.mousseFlavor ? `<dt>ムースの種類</dt><dd>${escape(data.mousseFlavor)}</dd>` : ""}
+    ${data.mousseFlavor ? `<dt>グランマニエの種類</dt><dd>${escape(data.mousseFlavor)}</dd>` : ""}
     ${isCake ? `<dt>飾り付け</dt><dd>${escape(({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration))}</dd>` : ""}
     ${sizesLine ? `<dt>サイズ</dt><dd>${escape(sizesLine).replace(/\n/g, "<br>")}</dd>` : ""}
     ${data.creamTopping ? `<dt>オプション</dt><dd>生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）</dd>` : ""}
@@ -3492,7 +3502,7 @@ function buildReserveSummaryText(data) {
   if (data.galleryPick) lines.push(`ギャラリーで選んだ商品: ${data.galleryPick.name}${data.galleryPick.size ? `（${data.galleryPick.size}）` : ""}`);
   if (item.flavor) lines.push(`ケーキの種類: ${item.flavor}`);
   if (isCake) lines.push(`クリームの種類: ${data.creamType}${data.creamType === "生チョコクリーム" ? `（+¥${currentChocoCreamSurcharge.toLocaleString()}）` : ""}${data.creamTypeSub ? `（${data.creamTypeSub}）` : ""}`);
-  if (data.mousseFlavor) lines.push(`ムースの種類: ${data.mousseFlavor}`);
+  if (data.mousseFlavor) lines.push(`グランマニエの種類: ${data.mousseFlavor}`);
   if (isCake) lines.push(`飾り付け: ${({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration)}`);
   if (sizesLine) { if (data.items.length > 1) lines.push("サイズ:", ...sizesLine.split("\n").map(x => "　" + x)); else lines.push(`サイズ: ${sizesLine}`); }
   if (data.creamTopping) lines.push(`オプション: 生クリームたっぷり乗せ（+¥${currentCreamToppingPrice.toLocaleString()}）`);
@@ -4020,7 +4030,7 @@ function setupReserveForm(uid, displayName) {
         pickupDate: document.getElementById("reserveDate").value || "",
         pickupTime: document.getElementById("reserveTime").value || "",
         items, occasion, occasionOther, creamType, creamTypeSub, decoration, creamTopping,
-        ...(isCake && specsNow.some((s) => s.cream === "ムース") ? { mousseFlavor: (document.querySelector('input[name="reserveMousseFlavor"]:checked') || {}).value || "いちごムース" } : {}),
+        ...(isCake && specsNow.some((s) => s.cream === "ムース") ? { mousseFlavor: (document.querySelector('input[name="reserveMousseFlavor"]:checked') || {}).value || "イチゴBOX" } : {}),
         candleNeeded, candleType, candleBags, candleNumbers, candlePlainBags, candleText, messageCount, priceNeedsConsult: priceResult.priceNeedsConsult,
         subtotal: priceResult.subtotal,
         estimateLines: priceResult.lines || [], estimateNotes: priceResult.notes || [], priceIsFixed: !!priceResult.priceIsFixed,

@@ -10,6 +10,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
+<script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>商品紹介｜こいまり</title>
@@ -348,7 +349,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <section class="pd-block pd-lead" id="pdLead" style="display:none;"></section>
       <section class="pd-block pd-howto" id="pdHowto" style="display:none;">
         <h2 class="pd-block__h">ご予約方法</h2>
-        <div class="pd-howto__line">
+        <div class="pd-howto__line" data-reserve-ui>
           <div class="pd-howto__label">LINEでご予約の方</div>
           <div id="pdReserveSlot"></div>
         </div>
@@ -392,7 +393,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js?v=20261028a"></script>
+<script src="cake-pricing.js?v=20261028c"></script>
 <script src="photo-adjust.js"></script>
 <script src="price-hint.js"></script>
 <script src="price-format.js"></script>
@@ -773,8 +774,9 @@ function renderLeadAndTel(item, size) {
   });
   const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
   const say = no ? '「' + no + (size ? '・' + esc(size) : '') + '」' : '「' + esc(String(item.name || '').replace(/<[^>]*>/g, '')) + '」';
-  tel.innerHTML = '<div class="pd-howto__label">お電話でご予約の方（LINEをお持ちでない方）</div>' +
-    '<p>※LINEをお持ちでない方は、こちらの仕様をお控えの上、お電話にて内容をお伺いいたします。' + say + 'のようにお伝えいただくとスムーズです。</p>' +
+  const prelaunch = window.KOIMARI_RESERVE_PUBLIC === false; // 先行公開中は、ご予約はお電話・店頭だけ（site-mode.js）
+  tel.innerHTML = '<div class="pd-howto__label">' + (prelaunch ? 'ご予約はお電話・店頭で' : 'お電話でご予約の方（LINEをお持ちでない方）') + '</div>' +
+    '<p>' + (prelaunch ? 'こちらの仕様をお控えの上、お電話または店頭でお伝えください。' : '※LINEをお持ちでない方は、こちらの仕様をお控えの上、お電話にて内容をお伺いいたします。') + say + 'のようにお伝えいただくとスムーズです。</p>' +
     '<a class="pd-tel-btn" href="tel:07091580641"><span>お電話でのご予約・ご相談</span><b>070-9158-0641</b></a>';
 }
 function setupSticky(item) {

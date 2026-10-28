@@ -10,6 +10,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
+<script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>体験プログラム応募｜こいまり</title>
@@ -280,7 +281,11 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="form-wrap">
     <span class="corner-tr"></span><span class="corner-br"></span>
 
-    <div class="form-section">
+    <div class="form-section prelaunch-only">
+      <h2 class="form-section__title">ご応募はお電話・店頭で <span class="form-section__num">01</span></h2>
+      <p style="margin-bottom:20px;">体験プログラムへのご応募・お問合せは、お電話（<a href="tel:07091580641">070-9158-0641</a>）または店頭で承っております。<br>ご希望のプログラム・参加者情報をお知らせください。担当より内容確認のご連絡をいたします。</p>
+    </div>
+    <div class="form-section" data-reserve-ui>
       <h2 class="form-section__title">ご応募はLINE公式アカウントから <span class="form-section__num">01</span></h2>
       <p style="margin-bottom:20px;">
         体験プログラムへのご応募・お問合せは、LINE公式アカウントで承っております。<br>
@@ -315,7 +320,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="notice">
       <strong>ご応募に関するご注意</strong>
       <ul>
-        <li>LINEでのご応募後、内容確認のため当店よりご連絡を差し上げます。</li>
+        <li class="prelaunch-only">ご応募後、内容確認のため当店よりご連絡を差し上げます。</li>
+        <li data-reserve-ui>LINEでのご応募後、内容確認のため当店よりご連絡を差し上げます。</li>
         <li>定員・営業状況によりご希望日に添えない場合がございます。</li>
         <li>食材を扱うプログラムです。ご心配な点がございましたら、お電話（070-9158-0641）にてご相談ください。</li>
         <li>参加者のお名前・学年・保護者様のご連絡先も、チャットでお知らせいただく形になります。</li>

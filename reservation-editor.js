@@ -11,7 +11,7 @@
   var DB = "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app";
   var SIZE_FULL = { "3号": "3号(約9cm)", "4号": "4号(約12cm/3-4名)", "5号": "5号(約15cm/5-6名)", "6号": "6号(約18cm/7-8名)", "7号": "7号(約21cm/9-10名)" };
   var BOTTOM_SIZES = ["4号", "5号", "6号", "7号"];
-  var MOUSSE_SIZES = ["4号"]; // ムース（グランマニエBOX）は4号のみ（2026-10-25訂正。10/07の3号は誤り）
+  var MOUSSE_SIZES = ["3号"]; // ムース（グランマニエBOX）は3号相当のみ（2026-10-28オーナー指示。10/25の4号から戻した）
   var UPPER_SIZES = ["3号", "4号", "5号", "セルクル", "カットケーキ"];
   var CREAMS = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース", "モンブラン"];
   var COLORS = ["黒", "グレー", "赤", "青", "紺", "黄色", "ピンク", "緑", "黄緑", "茶色", "水色"];
@@ -127,7 +127,7 @@
       flavor: (items[0] || {}).flavor || "",
       tiers: tiers,
       creamSub: r.creamTypeSub || "",
-      mousseFlavor: r.mousseFlavor || "",
+      mousseFlavor: ({ "いちごムース": "イチゴBOX", "チョコムース": "チョコBOX" })[r.mousseFlavor] || r.mousseFlavor || "", // 2026-10-28：グランマニエはイチゴBOX／チョコBOX
       decoration: r.decoration || "",
       occasion: r.occasion || "",
       occasionOther: r.occasionOther || "",
@@ -179,7 +179,7 @@
     }
     if (s.decoration) rows.push(["飾り付け", s.decoration]);
     if (s.occasion) rows.push(["ご利用シーン", s.occasion === "その他" && s.occasionOther ? s.occasionOther : s.occasion]);
-    if (!simple && s.mousseFlavor) rows.push(["ムースの種類", s.mousseFlavor]);
+    if (!simple && s.mousseFlavor) rows.push(["グランマニエの種類", s.mousseFlavor]);
     if (!simple) rows.push(["ろうそく", candleLabelSnap(s)]);
     if (!simple) rows.push(["メッセージプレート", s.messageCount ? s.messageCount + "枚" + (s.message ? "「" + s.message + "」" : "") : "なし"]);
     var opts = [];
@@ -265,7 +265,7 @@
     p.extraCharge = Number(s.extraAmount) > 0 ? Number(s.extraAmount) : null;
     p.extraChargeNote = s.extraNote || null;
     Object.assign(p, candleSnapData(s));
-    p.mousseFlavor = s.tiers.some(function (t) { return t.cream === "ムース"; }) ? (s.mousseFlavor || "いちごムース") : null; // グランマニエ（ムース）のいちご／チョコ
+    p.mousseFlavor = s.tiers.some(function (t) { return t.cream === "ムース"; }) ? (s.mousseFlavor || "イチゴBOX") : null; // グランマニエ（ムース）のいちご／チョコ
     if (est && !est.needsConsult) { p.subtotal = est.subtotal; p.estimateLines = est.lines; p.estimateNotes = est.notes; }
     return p;
   }
@@ -467,7 +467,7 @@
           (t.cream === "生クリーム" || !t.cream ? field("カラー（1段1色）", sel("reColor" + i, [""].concat(COLORS), t.color)) : "") +
           (i === 0 && TARTS.indexOf(t.cream) >= 0 ? field("タルトの生クリーム", sel("reCreamSub", ["生クリームあり", "生クリームなし"], e.creamSub || "生クリームあり", function (o) { return o; })) : "")) + "</div>";
       });
-      if (e.tiers.some(function (t) { return t.cream === "ムース"; })) html += field("ムースの種類", sel("reMousse", ["いちごムース", "チョコムース"], e.mousseFlavor || "いちごムース"));
+      if (e.tiers.some(function (t) { return t.cream === "ムース"; })) html += field("グランマニエの種類", sel("reMousse", ["イチゴBOX", "チョコBOX"], e.mousseFlavor || "いちごムース"));
       html += field("飾り付け", sel("reDeco", [""].concat(DECORATIONS), e.decoration, function (o) { return o || "指定なし"; }));
       html += field("ご利用シーン", sel("reOcc", OCCASIONS, e.occasion, function (o) { return o || "指定なし"; }) + (e.occasion === "その他" ? '<input class="input re-in" id="reOccOther" value="' + esc(e.occasionOther) + '" placeholder="例：結婚記念日">' : ""));
       html += field("ナンバーろうそく（番号×本数）", '<input class="input re-in" id="reCandleNums" value="' + esc(e.candleNums || "") + '" placeholder="例：2×1 5×1（「25」と書いても同じ）">' + (e.candleLegacy && !e.candleNums ? '<div style="font-size:12.5px;color:#8a6a4a;margin-top:4px;">以前のご予約：ナンバーろうそく ' + e.candleLegacy + "文字（番号を入れると置き換わります）</div>" : ""));

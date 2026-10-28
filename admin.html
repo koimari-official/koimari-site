@@ -302,12 +302,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .man .msg{border:1px solid #cdbfae;border-radius:8px;background:#fff;padding:10px 14px;font-size:13.5px;line-height:1.7;margin:6px 0 10px}
 .man .qr{text-align:center;font-size:13px;line-height:1.6;margin:8px 0 14px}.man .qr img{display:block;width:160px;margin:0 auto 4px}
 </style>
-<script src="cake-pricing.js?v=20261028a"></script>
+<script src="cake-pricing.js?v=20261028c"></script>
 <script src="photo-adjust.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261026b"></script>
+<script src="reservation-editor.js?v=20261028b"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -8387,17 +8387,24 @@ function xmRender() {
   document.getElementById("xmFrom").value = xmData.pickupFrom || "";
   document.getElementById("xmTo").value = xmData.pickupTo || "";
   wrap.innerHTML = (xmData.items || []).map((c, i) => '<div class="xm-card" data-i="' + i + '">' +
-    '<div class="xm-photo">' + (c.img ? '<img src="' + xmEsc(c.img) + '" alt="">' : '<span>写真なし</span>') + '<label class="btn btn--small btn--ghost">写真を変える<input type="file" accept="image/*" class="xm-file" hidden></label></div>' +
+    '<div class="xm-photo img-item__preview">' + (c.img ? '<img src="' + xmEsc(c.img) + '" alt="">' : '<span>写真なし</span>') + '<label class="btn btn--small btn--ghost">写真を変える<input type="file" accept="image/*" class="xm-file" hidden></label></div>' +
     '<div class="xm-main">' +
       '<label class="xm-l">ケーキの名前</label><input class="input xm-name" value="' + xmEsc(c.name) + '">' +
       '<label class="xm-l">説明文（クリスマスページに表示）</label><textarea class="input xm-desc" rows="2">' + xmEsc(c.desc) + '</textarea>' +
+      '<label class="xm-l">写真の左上の目印（例：人気No.1・Web予約限定・5台。不要なら空欄）</label><input class="input xm-badge-in" value="' + xmEsc(c.badge || "") + '" placeholder="空欄なら出しません">' +
       '<label class="xm-l">サイズとお値段（税込・未定なら空欄）</label>' +
       '<div class="xm-sizes">' + (c.sizes || []).map((s, j) => '<div class="xm-size" data-j="' + j + '"><input class="input xm-sz" list="xmSizeList" value="' + xmEsc(s.size) + '" placeholder="例：5号"><span>¥</span><input class="input xm-pr" inputmode="numeric" value="' + xmEsc(s.price || "") + '" placeholder="未定"><button type="button" class="xm-del-size" title="このサイズを消す">×</button></div>').join("") + '</div>' +
       '<button type="button" class="btn btn--small btn--ghost xm-add-size">＋ サイズを追加</button>' +
       '<div class="xm-foot"><label><input type="checkbox" class="xm-vis"' + (c.visible !== false ? " checked" : "") + '> 表示する</label>' +
+      '<label><input type="checkbox" class="xm-feat"' + (c.featured ? " checked" : "") + '> ページの一番上に大きく出す</label>' +
       '<button type="button" class="btn btn--small btn--ghost xm-up"' + (i === 0 ? " disabled" : "") + '>↑</button><button type="button" class="btn btn--small btn--ghost xm-down"' + (i === xmData.items.length - 1 ? " disabled" : "") + '>↓</button>' +
       '<button type="button" class="btn btn--small btn--danger xm-del">このケーキを消す</button></div>' +
     '</div></div>').join("") + '<datalist id="xmSizeList">' + XM_SIZES.map((s) => '<option value="' + s + '">').join("") + '</datalist>';
+  // 写真の色・表示位置の調整（ギャラリーと同じ。2026-10-28オーナー指示）。調整値はケーキごとの photoAdjust に入り、「保存して反映」で公開される
+  wrap.querySelectorAll(".xm-card").forEach((card) => {
+    const c = xmData.items[Number(card.dataset.i)];
+    if (c && c.img && typeof appendPhotoAdjust === "function") appendPhotoAdjust(card.querySelector(".xm-photo"), c, "img", () => { wrap.dataset.dirty = "1"; });
+  });
 }
 // 画面の入力内容を xmData に取り込む（描き直す前に必ず呼ぶ）
 function xmCollect() {
@@ -8412,6 +8419,8 @@ function xmCollect() {
     c.name = card.querySelector(".xm-name").value.trim();
     c.desc = card.querySelector(".xm-desc").value.trim();
     c.visible = card.querySelector(".xm-vis").checked;
+    c.badge = card.querySelector(".xm-badge-in").value.trim();
+    c.featured = card.querySelector(".xm-feat").checked;
     c.sizes = Array.from(card.querySelectorAll(".xm-size")).map((row) => ({ size: row.querySelector(".xm-sz").value.trim(), price: Number(String(row.querySelector(".xm-pr").value).replace(/[^0-9]/g, "")) || "" })).filter((s) => s.size);
   });
 }
@@ -8749,7 +8758,8 @@ onValue(ref(fbDb, "koimariContent/costPublicPrices"), (snap) => { const v = snap
 const cakeCutContainerFeeRef = ref(fbDb, "koimariContent/cakeCutContainerFee");
 // member.htmlの種類別価格表（CakePricing.estimateのtypePrices）。種類名はフォームのクリームの種類の値と揃える。
 const CAKE_TYPE_PRICE_ROWS = ["フルーツタルトBOX","ストロベリータルトBOX","ミッシェルBOX","ガトーショコラBOX","ブルーベリーケーキ","ムース"]; // ムース：グランマニエBOX等（2026-10-03追加）
-const CAKE_TYPE_PRICE_SIZES = [4, 5, 6, 7]; // ムース（グランマニエBOX）は4号（2026-10-25訂正。1段の3号は作らない）
+const CAKE_TYPE_PRICE_SIZES = [3, 4, 5, 6, 7]; // ムース（グランマニエBOX）は3号相当だけ、ほかの種類は4〜7号（2026-10-28オーナー指示）
+const ctpNotSold = (name, n) => (n === 3) !== (name === "ムース"); // その種類で作らない号数（欄を「—」にする）
 const cakeCreamToppingPriceRef = ref(fbDb, "koimariContent/cakeCreamToppingPrice");
 const cakeChocoCreamSurchargeRef = ref(fbDb, "koimariContent/cakeChocoCreamSurcharge");
 const cakeCandleBagPriceNumberRef = ref(fbDb, "koimariContent/cakeCandleBagPriceNumber");
@@ -8774,7 +8784,7 @@ function buildPriceTable() {
   html += group("1段ケーキの基本料金（生クリームBOX：いちご・ミックスフルーツ同額）", "LINE予約フォームのサイズの横に表示される価格です。生チョコクリームはこの金額＋「生チョコクリームへの変更」です。",
     table(row("4号（直径12cm）", yenIn("cfPrice4")) + row("5号（直径15cm）", yenIn("cfPrice5")) + row("6号（直径18cm）", yenIn("cfPrice6")) + row("7号（直径21cm）", yenIn("cfPrice7"))));
   let mx = '<div style="overflow-x:auto;"><table class="pt-table pt-matrix"><thead><tr><th>種類</th>' + CAKE_TYPE_PRICE_SIZES.map(n => "<th>" + n + "号</th>").join("") + "</tr></thead><tbody>";
-  CAKE_TYPE_PRICE_ROWS.forEach((name, i) => { mx += '<tr><td class="pt-label">' + name + "</td>" + CAKE_TYPE_PRICE_SIZES.map(n => "<td>" + (n === 3 && name !== "ムース" ? '<span style="color:#b9a890;">—</span><input type="hidden" id="ctp_' + i + '_3" value="">' : yenIn("ctp_" + i + "_" + n, null, "取扱なし")) + "</td>").join("") + "</tr>"; });
+  CAKE_TYPE_PRICE_ROWS.forEach((name, i) => { mx += '<tr><td class="pt-label">' + name + "</td>" + CAKE_TYPE_PRICE_SIZES.map(n => "<td>" + (ctpNotSold(name, n) ? '<span style="color:#b9a890;">—</span><input type="hidden" id="ctp_' + i + '_' + n + '" value="">' : yenIn("ctp_" + i + "_" + n, null, "取扱なし")) + "</td>").join("") + "</tr>"; });
   mx += "</tbody></table></div>";
   html += group("種類ごとの1段の価格", "空欄のサイズは「取り扱いなし・お電話で個別にご案内」になり、予約フォームでは金額を出しません。", mx);
   let cream = row("生チョコクリームへの変更", yenIn("cfChocoCreamSurcharge"), "段数に関わらず一律");

@@ -10,6 +10,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
+<script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <title>作品ギャラリー｜こいまり</title>
@@ -284,7 +285,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <div class="page-head__inner">
     <span class="page-head__en">Gallery &amp; Voices</span>
     <h1 class="page-head__title">みんなの「美味しい！」を集めました</h1>
-    <p class="page-head__lead">写真から気になるケーキを選んで、そのままLINEでご予約いただけます。<br>仕様・お値段・お受け取り日は、ご予約後にスタッフがお電話で確定いたしますので、ご安心ください。</p>
+    <p class="page-head__lead prelaunch-only">写真から、気になるケーキをお選びください。<br>ご予約・ご相談は、お電話（070-9158-0641）または店頭で承ります。</p>
+    <p class="page-head__lead" data-reserve-ui>写真から気になるケーキを選んで、そのままLINEでご予約いただけます。<br>仕様・お値段・お受け取り日は、ご予約後にスタッフがお電話で確定いたしますので、ご安心ください。</p>
   </div>
 </div>
 <main>
@@ -299,7 +301,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- ご注文の前に（2026-10-02：ページ上部から移動。最初の画面でケーキの写真が見えるようにするため） -->
   <div class="gal-notes">
     <span class="safety-note">お酒はごく少量・焼き上げ時にしっかり加熱飛散済み、小さなお子様も安心</span>
-    <span class="safety-note">気になる商品をタップ →「この商品でご予約に進む」で、選んだ仕様のままLINE予約へ</span>
+    <span class="safety-note" data-reserve-ui>気になる商品をタップ →「この商品でご予約に進む」で、選んだ仕様のままLINE予約へ</span>
     <span class="safety-note">オーダーメイド・特殊な仕様は材料の仕入れに2週間程度かかる場合がございます</span>
   </div>
 
@@ -773,7 +775,7 @@ document.addEventListener("keydown", e => {
 });
 </script>
 
-<script src="cake-pricing.js?v=20261028a"></script>
+<script src="cake-pricing.js?v=20261028c"></script>
 <script src="photo-adjust.js"></script>
 <script src="reserve-draft.js"></script>
 <script src="price-format.js"></script>

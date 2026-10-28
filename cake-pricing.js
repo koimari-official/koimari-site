@@ -7,7 +7,7 @@
 (function (root) {
   var SPEC = {
     // ベースの種類ごとに作れる号数（2026-10-03オーナー確認：グランマニエ＝ムースは4号のみ）。ここに無いベースは4〜7号
-    baseSizes: { "ムース": ["4号"], "ミッシェルBOX": ["5号"], "ガトーショコラBOX": ["5号"] }, // 2026-10-25：グランマニエBOX（ムース）は4号相当（10/07の「3号相当」は誤り）／2026-10-21：ミッシェル・ガトーショコラは5号のみ
+    baseSizes: { "ムース": ["3号"], "ミッシェルBOX": ["5号"], "ガトーショコラBOX": ["5号"] }, // 2026-10-28オーナー指示：グランマニエBOX（ムース）は3号相当（10/25の「4号」から戻した）／2026-10-21：ミッシェル・ガトーショコラは5号のみ
     // 2段・3段で、その段に入れられる種類の条件（2026-10-21オーナー指示）
     //  ムース（グランマニエBOX）＝一番上の段だけ（4号＝2段の6号+4号の上）／ミッシェル・ガトーショコラ＝5号になる段だけ（3段の一番上は不可）
     tierOnlyTop: ["ムース"],
@@ -20,7 +20,7 @@
       "6号": { cm: "約18cm", serves: "7〜8人前" },
       "7号": { cm: "約21cm", serves: "9〜10人前" }
     },
-    christmas: { deadlineMonth: 12, deadlineDay: 20 },
+    christmas: { deadlineMonth: 12, deadlineDay: 20, webDeadlineDay: 18 }, // 締切：店頭は12/20、Web・お電話は12/18（2026-10-28オーナー指示・チラシどおり）
     fruitTopping: { "セルクル": 500, "3号": 600, "4号": 900, "5号": 1300, "6号": 1600, "7号": 1900 }, // 2026-10-22オーナー指示（ケーキ・タルト共通。多段は段ごと）
     chocoCream: 500,
     colorCream: { 1: 500, 2: 1000, 3: 1500 },
@@ -271,12 +271,14 @@
     return days < s.leadSoft ? { level: "soft", soft: s.leadSoft, days: days } : { level: "ok", soft: s.leadSoft, days: days };
   }
 
-  // クリスマスケーキの予約締切（12/20まで。満員になり次第終了）。お受取が12月の場合、その年の12/20を過ぎていたら受付終了。
-  function christmasClosed(pickup, today) {
+  // クリスマスケーキの予約締切（満員になり次第終了）。お受取が12月の場合、その年の締切日を過ぎていたら受付終了。
+  // 締切日は受付方法で変わる：店頭は12/20、Web・お電話は12/18（channel に "店頭" を渡したときだけ12/20）
+  function christmasClosed(pickup, today, channel) {
     if (!pickup) return false;
     var p = new Date(pickup);
     if (p.getMonth() + 1 !== 12) return false;
-    var deadline = new Date(p.getFullYear(), SPEC.christmas.deadlineMonth - 1, SPEC.christmas.deadlineDay, 23, 59, 59);
+    var day = channel === "店頭" ? SPEC.christmas.deadlineDay : (SPEC.christmas.webDeadlineDay || SPEC.christmas.deadlineDay);
+    var deadline = new Date(p.getFullYear(), SPEC.christmas.deadlineMonth - 1, day, 23, 59, 59);
     return new Date(today || new Date()) > deadline;
   }
 
