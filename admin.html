@@ -336,6 +336,13 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-day{margin:0 0 22px}
 .res-viewbar .seg--toggle button.on{background:#8a6a3a}
 @media(max-width:600px){.res-viewbar .seg button{padding:8px 11px;font-size:13px}.res-viewbar .seg--sub button{padding:7px 10px;font-size:12.5px}}
+.overdue-alert{position:fixed;left:0;right:0;top:0;z-index:1499;background:#c8661a;color:#fff;padding:10px 56px 10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.2);font-size:14.5px;line-height:1.6}
+.overdue-alert__in{max-width:1100px;margin:0 auto}
+.overdue-alert__title{display:block;font-size:16px;margin-bottom:6px}
+.overdue-alert__list{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center}
+.overdue-alert__list button{background:#fff;color:#a04c0c;border:none;border-radius:999px;padding:7px 14px;font-weight:700;font-size:14px;cursor:pointer}
+.overdue-alert__close{position:absolute;top:8px;right:10px;background:transparent;color:#fff;border:2px solid #fff;border-radius:50%;width:36px;height:36px;font-size:18px;font-weight:700;line-height:1;cursor:pointer}
+.rc--focus{outline:4px solid #c8661a;outline-offset:3px;transition:outline-color .3s}
 .rc-tag--memo{background:#b03b48!important;color:#fff!important}
 .staff-guide{background:#fff8e6;border:2px solid #e0b872;border-radius:12px;padding:14px 18px;margin:0 0 18px;font-size:15px;line-height:1.8;color:#3a2a1a;max-width:760px}
 .staff-guide p{margin:4px 0 10px}
@@ -1751,6 +1758,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
 <div class="toast" id="toast"></div>
 
+<div id="overdueResAlert" class="overdue-alert" style="display:none;"></div>
 <div id="pendingResAlert" style="display:none;position:fixed;left:0;right:0;top:0;z-index:1500;background:#b03b48;color:#fff;padding:12px 56px 12px 16px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-size:15px;line-height:1.6;">
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto;">
     <b id="pendingResTitle" style="font-size:17px;"></b>
@@ -2075,6 +2083,7 @@ let pendingChimeTimer = null;
 let pendingResClosed = null, pendingResLastKeys = [], pendingResLastEntries = null; // ✕で閉じたときの { at, keys }
 function updatePendingResAlert(entries) {
   pendingResLastEntries = entries;
+  updateOverdueResAlert(entries);
   const box = document.getElementById("pendingResAlert");
   if (!box) return;
   const now = Date.now();
@@ -2087,14 +2096,14 @@ function updatePendingResAlert(entries) {
     }
   } catch (e) {}
   if (!pending.length) {
-    box.style.display = "none"; document.body.style.paddingTop = "";
+    box.style.display = "none"; layoutTopAlerts();
     if (pendingChimeTimer) { clearInterval(pendingChimeTimer); pendingChimeTimer = null; }
     return;
   }
   // ✕で閉じたら、新しい未対応の予約が入るか60分たつまで出さない（見たい画面が隠れるため。2026-10-27オーナー指示）。音のお知らせは続ける
   const pendKeys = pending.map(([k]) => k);
   const hidden = pendingResClosed && Date.now() - pendingResClosed.at < 60 * 60000 && pendKeys.every((k) => pendingResClosed.keys.includes(k));
-  if (hidden) { box.style.display = "none"; document.body.style.paddingTop = ""; }
+  if (hidden) { box.style.display = "none"; layoutTopAlerts(); }
   else pendingResClosed = null;
   pendingResLastKeys = pendKeys;
   document.getElementById("pendingResTitle").textContent = "未対応のご予約 " + pending.length + "件（お電話で内容の確認をお願いします）";
@@ -2102,7 +2111,7 @@ function updatePendingResAlert(entries) {
   document.getElementById("pendingResSoundHint").style.display = notifyAudioUnlocked ? "none" : "block";
   if (!hidden) {
     box.style.display = "block";
-    document.body.style.paddingTop = box.offsetHeight + "px";
+    layoutTopAlerts();
   }
   if (!pendingChimeTimer) {
     if (notifyAudioUnlocked) notifyPlayChime();
@@ -2110,6 +2119,67 @@ function updatePendingResAlert(entries) {
   }
 }
 window.updatePendingResAlert = updatePendingResAlert;
+// ===== お渡し済みにチェックが無いまま、予約時間を過ぎた予約（2026-10-28オーナー指示）=====
+// 赤い「未対応のご予約」バナーの下に出す。予約を押すと、その予約のカードを開く。✕で閉じたら、新しい該当の予約が出るか60分たつまで出さない
+function isPickupPastDue(r) {
+  if (!r || isHandedOver(r) || ["キャンセル", "引取りなし"].includes(r.status)) return false;
+  const d = r.finalPickupDate || r.pickupDate; if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(d || "")) return false;
+  const tm = String(r.finalPickupTime || r.pickupTime || "").match(/([0-9]{1,2}):([0-9]{2})/);
+  const at = new Date(d + "T" + (tm ? String(tm[1]).padStart(2, "0") + ":" + tm[2] : "23:59") + ":00+09:00");
+  return Date.now() > at.getTime();
+}
+let overdueResClosed = null, overdueResKeys = [];
+function updateOverdueResAlert(entries) {
+  const box = document.getElementById("overdueResAlert");
+  if (!box) return;
+  const due = (entries || []).filter(([, r]) => isPickupPastDue(r)).sort((a, b) => String((a[1].finalPickupDate || a[1].pickupDate || "") + (a[1].finalPickupTime || a[1].pickupTime || "")).localeCompare(String((b[1].finalPickupDate || b[1].pickupDate || "") + (b[1].finalPickupTime || b[1].pickupTime || ""))));
+  overdueResKeys = due.map(([k]) => k);
+  const hidden = !due.length || (overdueResClosed && Date.now() - overdueResClosed.at < 60 * 60000 && overdueResKeys.every((k) => overdueResClosed.keys.includes(k)));
+  if (!hidden) overdueResClosed = null;
+  if (hidden) { box.style.display = "none"; layoutTopAlerts(); return; }
+  const md = (v) => String(v || "").slice(5).replace("-", "/");
+  box.innerHTML = '<div class="overdue-alert__in"><b class="overdue-alert__title">お渡しに✓が入っていない予約があります（' + due.length + '件・予約時間を過ぎています）</b>' +
+    '<div class="overdue-alert__list">' + due.slice(0, 6).map(([k, r]) => '<button type="button" onclick="focusReservationCard(\'' + escapeHtml(k) + '\')">' +
+      (r.reservationNo ? "予約番号" + formatReservationNo(r.reservationNo) + "　" : "") + escapeHtml(r.name || "お客様") + "様（" + md(r.finalPickupDate || r.pickupDate) + " " + escapeHtml(r.finalPickupTime || r.pickupTime || "") + "）</button>").join("") +
+      (due.length > 6 ? "<span>ほか" + (due.length - 6) + "件</span>" : "") + "</div></div>" +
+    '<button type="button" class="overdue-alert__close" aria-label="閉じる" title="閉じる（新しい該当の予約が出るか、60分たつとまた出ます）" onclick="closeOverdueResAlert()">✕</button>';
+  box.style.display = "block";
+  layoutTopAlerts();
+}
+function closeOverdueResAlert() {
+  overdueResClosed = { at: Date.now(), keys: overdueResKeys.slice() };
+  updateOverdueResAlert(pendingResLastEntries);
+}
+setInterval(() => { if (pendingResLastEntries) updateOverdueResAlert(pendingResLastEntries); }, 5 * 60000); // 時間が過ぎたら出す・60分で出し直す
+// 画面上部の2つのバナー（未対応のご予約・お渡し待ち）を重ならないように並べ、その分だけ本文を下げる
+function layoutTopAlerts() {
+  const a = document.getElementById("pendingResAlert"), b = document.getElementById("overdueResAlert");
+  const ha = a && a.style.display !== "none" ? a.offsetHeight : 0;
+  if (b) b.style.top = ha + "px";
+  const hb = b && b.style.display !== "none" ? b.offsetHeight : 0;
+  document.body.style.paddingTop = ha + hb ? ha + hb + "px" : "";
+}
+// 予約のカードを開く（バナー・ポータルの「admin.html#res=予約のキー」から）。その予約が見える表示に切り替えて、カードまで移動して光らせる
+window.focusReservationCard = function (key) {
+  const keys = typeof window.resKeys === "function" ? window.resKeys() : [];
+  const i = keys.indexOf(key), r = loadList(RES_KEY)[i];
+  if (i < 0 || !r) { showToast("予約が見つかりませんでした（削除された可能性があります）", "error"); return; }
+  const tab = document.querySelector('.tab[data-panel="reservations"]');
+  if (tab && !tab.classList.contains("active")) tab.click();
+  if (resView !== "card") { resView = "card"; try { localStorage.setItem("koimari_res_view", "card"); } catch (e) {} }
+  const d = resPickupDate(r); resRange = d && d < resTodayStr() ? "past" : "upcoming";
+  const q = document.getElementById("resSearch"); if (q && q.value) q.value = "";
+  const un = document.getElementById("resUnpaidOnly"); if (un && un.checked) un.checked = false;
+  renderReservations();
+  setTimeout(() => {
+    const el = Array.from(document.querySelectorAll("[data-k]")).find((e) => e.dataset.k === key);
+    if (!el) return;
+    if (el.tagName === "DETAILS") el.open = true;
+    const card = el.classList.contains("rc") ? el : (el.querySelector(".rc") || el);
+    window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - (parseInt(document.body.style.paddingTop, 10) || 0) - 12, behavior: "smooth" }); // 上のバナーに隠れないように
+    card.classList.add("rc--focus"); setTimeout(() => card.classList.remove("rc--focus"), 5000);
+  }, 450);
+};
 document.getElementById("pendingResClose").addEventListener("click", () => {
   pendingResClosed = { at: Date.now(), keys: pendingResLastKeys.slice() };
   updatePendingResAlert(pendingResLastEntries);
@@ -5937,7 +6007,8 @@ function resCardHtml(r, idx, byTel) {
   const allergy = (r.allergy || []).filter((a) => a && a !== "なし");
   const extras = resExtrasLine(r);
   const alertHtml = (r.shortLead && !r.shortLeadChecked && status !== "キャンセル" && !r.reservationConfirmed ? '<div class="rc-short"><b>短納期依頼（3営業日前を切るご予約・未確定）</b><br>対応できるか確認し、お客様へお電話でご連絡ください。<div class="rc-short__btns"><button type="button" onclick="openReservationEditor(' + idx + ')">お引き渡し日・仕様を変更する</button><button type="button" onclick="declineShortLead(' + idx + ')">対応できないとお伝えした（キャンセルにする）</button></div></div>' : "") + customerAlertHtml(r, loadList(RES_KEY));
-  return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + (customerFlagsFor(r).length ? " rc--flag" : "") + '">' +
+  const cardKey = (typeof window.resKeyAt === "function" && window.resKeyAt(idx)) || "";
+  return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + (customerFlagsFor(r).length ? " rc--flag" : "") + '" data-k="' + escapeHtml(cardKey) + '">' +
     '<button type="button" class="rc-photo" onclick="openReservationEditor(' + idx + ')" title="詳細・変更">' + reservationThumbHtml(r) + "</button>" +
     '<div class="rc-body">' +
       '<div class="rc-top"><span class="rc-time">' + escapeHtml(resPickupTime(r) || "時間未定") + "</span>" +
@@ -7906,6 +7977,7 @@ function applyReservationsSnapshot(snapshot) {
   if (typeof window.updatePendingResAlert === "function") window.updatePendingResAlert(entries);
   reservationKeys = entries.map(([k]) => k);
   const list = entries.map(([, data]) => data);
+  if (!window.__resHashDone && /^#res=/.test(location.hash)) { window.__resHashDone = true; const hk = decodeURIComponent(location.hash.slice(5)); setTimeout(() => window.focusReservationCard && window.focusReservationCard(hk), 800); }
   localStorage.setItem("koimari_reservations", JSON.stringify(list));
   if (typeof window.updateCounts === "function") window.updateCounts();
   const resPanel = document.getElementById("panel-reservations");

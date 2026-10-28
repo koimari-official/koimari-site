@@ -1477,7 +1477,7 @@ exports.sendReservationRevisionMessage = onValueCreated(
     if (rev.noNotify) return; // 「電話で確定」の記録：お客様には確定連絡が別に届くので送らない（2026-10-21）
     const snap = await admin.database().ref(`reservations/${event.params.pushId}`).once("value");
     const data = snap.val();
-    if (!data || !data.lineUserId || data.status === "キャンセル") return; // 電話・店頭のご予約も、LINEとつながっていれば送る（2026-10-26）
+    if (!data || !data.lineUserId || data.status === "キャンセル" || data.handedOver || data.status === "完了" || data.status === "引取りなし") return; // お引き取りが済んだ予約には送らない（2026-10-28） // 電話・店頭のご予約も、LINEとつながっていれば送る（2026-10-26）
     const ok = await pushLineMessage(data.lineUserId, buildRevisionMessage(data, rev), LINE_CHANNEL_ACCESS_TOKEN.value());
     if (ok) await admin.database().ref(`reservations/${event.params.pushId}/revisions/${n}/notified`).set(true);
   }
@@ -1633,7 +1633,7 @@ exports.sendReservationConfirmedMessage = onValueUpdated(
     const callNow = after.confirmCallDone && !before.confirmCallDone && after.finalPrice;
     const confirmNow = after.reservationConfirmed && !before.reservationConfirmed;
     if (!callNow && !confirmNow) return;
-    if (after.status === "キャンセル" || after.confirmMessageSentAt) return;
+    if (after.status === "キャンセル" || after.confirmMessageSentAt || after.handedOver || after.status === "完了" || after.status === "引取りなし") return; // お引き取りが済んだ予約には送らない（2026-10-28）
     const ref = admin.database().ref(`reservations/${event.params.pushId}`);
     const isLine = !!after.lineUserId && !isPhotoChristmas(after); // 電話・店頭のご予約も、LINEとつながっていれば送る（2026-10-26）
     if (!isLine) {
