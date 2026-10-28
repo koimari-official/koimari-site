@@ -195,6 +195,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .staff-thanks__lead{font-weight:700;font-size:19px;color:#0b5a2b}
 .staff-thanks__no{font-size:52px;font-weight:700;letter-spacing:.06em;text-align:center;margin:4px 0 8px;font-family:var(--font-sans);color:#0b5a2b;background:#fff;border-radius:12px}
 .staff-thanks__how{font-size:18px;font-weight:700;color:#2e2118;background:#fff8d6;border:3px solid #e0a020;border-radius:12px;padding:12px 14px;margin:8px 0 10px;line-height:1.85}
+.staff-thanks__noref{padding:0 16px 14px;font-size:14px;color:#3a5a46}
 .staff-thanks__send{text-align:center;font-size:15px;margin:0 0 12px}
 .staff-thanks__send b{font-size:26px;letter-spacing:.08em;font-family:var(--font-sans)}
 .phone-mode #reserveThanksWrap > .notice-box__title,.phone-mode #reserveThanksNo{display:none!important}
@@ -2314,12 +2315,12 @@ async function pollReservationNo(pushKey, attempt) {
       const el = document.getElementById("reserveThanksNo");
       if (el) { el.textContent = "予約番号：" + formatReservationNo(no); el.style.display = "block"; }
       const st = document.getElementById("staffThanksNo");
-      if (st) { st.style.fontSize = ""; st.style.padding = ""; st.textContent = formatReservationNo(no); const sd = document.getElementById("staffThanksSend"); if (sd) sd.innerHTML = "お客様がLINEで送る内容：<br><b>" + String(no).padStart(4, "0") + " " + (staffThanksTel4 || "（電話番号の下4桁）") + "</b>"; }
+      if (st) st.textContent = formatReservationNo(no); // 店員さん用の画面は控えとして小さく出すだけ（2026-10-28：LINEは電話番号でつなぐ）
       return;
     }
   } catch (e) { console.warn("予約番号の取得に失敗:", e); return; }
   if (attempt < (PHONE_MODE ? 20 : 4)) setTimeout(() => pollReservationNo(pushKey, attempt + 1), 1500); // 電話・店頭は番号を必ず伝えるため長めに待つ
-  else { const st = document.getElementById("staffThanksNo"); if (st) { st.style.fontSize = "16px"; st.textContent = "番号をまだ確認できません。管理画面の予約一覧で番号をご確認ください。"; } }
+  else { const st = document.getElementById("staffThanksNo"); if (st) { st.textContent = "（予約一覧でご確認ください）"; } }
 }
 // ギャラリーで選んだ商品の写真の仕様を、予約フォームの選択肢だけでは表せない場合（管理画面で「予約フォームの自動選択」が
 // 未設定の商品）は、お見積もり・納期をパティシエが別途ご回答する。写真と同じ仕様をプルダウンで再現できる商品は通常どおり確定。
@@ -2629,7 +2630,7 @@ function renderTierSizeSelects(tierCount) {
     html += tierFieldHtml(2, 3, suffix, editableSizeSelectHtml(2, topOpts, topVal, 0));
   }
   // 2段は入れ物の在庫・取り寄せ納期の確認が要る（2026-10-28オーナー指示）。タルト＋カットケーキの2段は通常の納期なので出さない
-  if (tierCount === 2 && !CakePricing.SPEC.tartTypes.includes(bottomCream())) html += '<div class="tier-lead-note">2段のケーキは、入れ物の在庫と取り寄せの納期を確認する必要があるため、お渡しまで15日ほどかかる場合があります。具体的な納期は、スタッフよりお電話でご案内します。</div>';
+  if (tierCount === 2 && !CakePricing.SPEC.tartTypes.includes(bottomCream())) html += '<div class="tier-lead-note">2段のケーキは、お箱の在庫がない場合、取り寄せ期間を含めて、納期が15日ほどかかることがあります。具体的な納期は、スタッフよりお電話でご案内します。</div>';
   wrap.innerHTML = html;
   const bottomEl = wrap.querySelector('[data-tier="0"]');
   // 再描画で元のselectが差し替わるため、document側の変更ハンドラ(e.target.closest)が効かない。
@@ -4153,12 +4154,14 @@ function setupReserveForm(uid, displayName) {
     // 電話・店頭予約（スタッフ用）：お客様にお伝えする予約番号を大きく出し、LINEで控えが届く方法を案内する（2026-10-26オーナー指示）
     if (PHONE_MODE && thanksDesc) {
       staffThanksTel4 = String(data.tel || "").replace(/\D/g, "").slice(-4);
+      // 2026-10-28オーナー指示：予約番号は忘れられるため、お客様にはLINEに「ご予約時の電話番号（ハイフンなし）」を送っていただく。
+      // その番号のお引き取り前の予約がすべてLINEとつながる（functions の tryLinkByPhone）。予約番号は控えとして小さく出すだけ
+      const telDigits = String(data.tel || "").replace(/\D/g, "");
       thanksDesc.innerHTML = '<div class="staff-thanks"><div class="staff-thanks__done">ご予約完了です</div>' +
-        '<div class="staff-thanks__step"><div class="staff-thanks__lead">① お客様に、予約番号をお伝えください</div>' +
-        '<div class="staff-thanks__no" id="staffThanksNo" style="font-size:18px;padding:14px 0;">番号を確認しています…</div></div>' + // 番号が届いたら特大の文字に切り替える
-        '<div class="staff-thanks__step"><div class="staff-thanks__lead">② お客様へ、次のようにご案内してください</div>' +
-        '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに<u>予約番号</u>と、<u>ご予約時にお伝えいただいた電話番号の下4桁</u>を送ってください。ご予約内容の詳細がLINEに届き、お引き取りの前にはリマインドもお届けします。」</div>' +
-        '<div class="staff-thanks__send" id="staffThanksSend"></div></div>' + // 友だち追加のQRコードは出さない（2026-10-26オーナー指示）
+        '<div class="staff-thanks__step"><div class="staff-thanks__lead">お客様へ、次のようにご案内してください</div>' +
+        '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに、<u>ご予約時の電話番号</u>を<u>ハイフンなしで</u>送信してください。ご予約内容の控えと、お受け取りまでのお知らせをお送りします。」</div>' +
+        '<div class="staff-thanks__send">お客様がLINEで送る内容：<br><b>' + escape(telDigits || "（ご予約時の電話番号）") + "</b></div></div>" +
+        '<div class="staff-thanks__noref">予約番号（控え）：<span id="staffThanksNo">確認しています…</span></div>' + // 友だち追加のQRコードは出さない（2026-10-26オーナー指示）
         '<div class="staff-thanks__back"><button type="button" class="staff-back-btn" data-staff-back>予約一覧に戻る</button>' +
         '<div class="staff-thanks__backhint">すぐにお会計する場合は、予約一覧でこの予約の「支払済み」にチェックを入れてください。</div></div></div>';
       setTimeout(() => { try { thanksDesc.scrollIntoView({ block: "start", behavior: "smooth" }); } catch (e) {} }, 300); // 完了画面の一番上を見せる

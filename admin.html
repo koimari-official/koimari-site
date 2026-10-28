@@ -1168,7 +1168,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <!-- ===== AI要確認一覧 ===== -->
     <section class="panel" id="panel-aiReview">
       <div class="panel__head">
-        <h2 class="panel__title">AIが答えられなかった質問</h2>
+        <h2 class="panel__title">AIが答えられなかった質問 <span class="tab__count tab__count--warn" id="aiReviewTitleCount" style="display:none;"></span></h2>
         <label style="font-size:13px; color:var(--color-text-soft); display:flex; align-items:center; gap:6px;"><input type="checkbox" id="aiReviewShowResolved"> 解決済みも表示</label>
       </div>
       <p class="panel__desc">LINE公式アカウントのAIが、店舗情報・FAQだけでは自信を持って回答できなかった質問の一覧です。正しい回答をFAQに登録すると、次回から同じ質問にAIが正確に答えられるようになります。</p>
@@ -1179,7 +1179,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <b>やること</b>
         <ol>
           <li>お客様の質問と、AIの回答を読みます。</li>
-          <li>AIの回答が<b>間違っている・足りない</b>ときは、お店のタブレットの<b>「LINE公式アカウント」アプリ</b>（緑のアイコン）を開き、「チャット」からそのお客様に正しい内容を送ります。</li>
+          <li>AIの回答が<b>間違っている・足りない</b>ときは、<b>オーナーに知らせてください</b>。お客様への連絡はオーナーが行います。</li>
           <li>下の欄に正しい回答を入力して登録します。次から同じ質問には、AIがその内容で答えるようになります。</li>
         </ol>
         <span>登録した回答は、ホームページの「よくある質問」にも載ります。お客様のお名前など、個人的な内容は書かないでください。わからないときは、オーナー・店長に確認してください。</span>
@@ -2169,6 +2169,8 @@ function updateCounts() {
   if (arc) {
     const pendingCount = loadList(AI_REVIEW_KEY).filter(r => r.status !== "resolved").length;
     arc.textContent = pendingCount;
+    const atc = document.getElementById("aiReviewTitleCount"); // ページの見出しにも未対応の件数（2026-10-28）
+    if (atc) { atc.textContent = "未対応 " + pendingCount + "件"; atc.style.display = pendingCount ? "inline-block" : "none"; }
     arc.style.display = pendingCount > 0 ? "" : "none";
   }
   if (typeof updateConfirmCallWarning === "function") updateConfirmCallWarning();

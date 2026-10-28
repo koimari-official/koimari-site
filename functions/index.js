@@ -520,7 +520,7 @@ exports.lineWebhook = onRequest(
         // カード②「ご予約について教えてください」はAIの生成に任せず、確実にLIFF予約フォームへ案内する。
         { // 電話・店頭のご予約を、予約番号＋電話番号の下4桁でこのLINEとつなぐ（2026-10-26）
           const linkReply = await tryLinkReservation(event.source.userId, event.message.text);
-          if (linkReply) { await replyToLine(event.replyToken, linkReply, LINE_CHANNEL_ACCESS_TOKEN.value()); continue; }
+          if (linkReply) { await replyTextsToLine(event.replyToken, Array.isArray(linkReply) ? linkReply : [linkReply], LINE_CHANNEL_ACCESS_TOKEN.value()); continue; }
         }
         if (event.message.text.trim() === RESERVE_CARD_TRIGGER_TEXT) {
           await replyToLine(event.replyToken, await reserveCardReplyText(), LINE_CHANNEL_ACCESS_TOKEN.value(), RESERVE_QUICK_REPLY_ITEMS);
@@ -961,14 +961,15 @@ function buildFollowMessage(pick, coupons) {
   }
   lines.push(
     "",
-    "◆お電話・店頭でご予約の方",
-    "◇予約番号と、ご予約時に",
-    "　ご登録いただいた電話番号の",
-    "　下4桁を送信してください",
-    "　（例：0142 0641）",
-    "◇ご予約の控えと、",
-    "　お引き取り日時の",
-    "　リマインドが届きます",
+    "◆店頭・お電話でご予約の",
+    "　お客様へ",
+    "◇このトークに、ご予約時の",
+    "　電話番号をハイフンなしで",
+    "　送信してください",
+    "　（例：09012345678）",
+    "◇ご予約内容の控えと、",
+    "　お受け取りまでのお知らせを",
+    "　お送りします",
     "",
     "◆ご予約の流れ",
     "◇予約フォームで日時・お名前を入力",
@@ -1243,7 +1244,17 @@ function buildLinkedCopyMessage(data) {
   lines.push("", "◆ご変更・ご相談", "◇お電話（070-9158-0641）へ");
   return lines.join("\n");
 }
+// 電話番号だけのメッセージ（例：090-1234-5678、06 1234 5678、「電話番号は09012345678です」）を読み取る。読めなければ ""
+function parseLinkPhone(text) {
+  const t = String(text || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
+    .replace(/電話番号|お電話|電話|TEL|Tel|tel|携帯|は|です|でした|。|、|:|：/g, "").replace(/[\s\-ー－‐−()（）]/g, "");
+  return /^0\d{9,10}$/.test(t) ? t : "";
+}
+// 予約が複数あるときは、お引き取りの早い順に並べる
+function pickupSortKey(d) { return String(d.finalPickupDate || d.pickupDate || "9999") + " " + String(d.finalPickupTime || d.pickupTime || ""); }
 async function tryLinkReservation(userId, text) {
+  const phone = parseLinkPhone(text);
+  if (phone && userId) return tryLinkByPhone(userId, phone);
   const code = parseLinkCode(text);
   if (!code || !userId) return null;
   const db = admin.database();
@@ -1264,6 +1275,41 @@ async function tryLinkReservation(userId, text) {
   if (d.lineUserId && d.lineUserId !== userId) return "このご予約は、すでに別のLINEと\nつながっています。\nお手数ですが、お電話\n（070-9158-0641）で\nお問い合わせください。";
   if (!d.lineUserId) await db.ref("reservations/" + key).update({ lineUserId: userId, lineLinkedAt: new Date().toISOString() });
   return buildLinkedCopyMessage(d);
+}
+
+// 電話番号で、まだお引き取り前の予約をすべてこのLINEとつなぎ、控えをお引き取りの早い順に返す（2026-10-28オーナー指示）。
+// 別のLINEとつながっている予約はつなぎ替えない。合わない入力は1日5回まで（予約番号の方式と共通の回数）。
+async function tryLinkByPhone(userId, phone) {
+  const db = admin.database();
+  const attRef = db.ref("koimariOps/linkAttempts/" + userId + "/" + todayDateKeyJST(new Date()));
+  const tries = (await attRef.once("value")).val() || 0;
+  if (tries >= 5) return "本日は確認の回数が上限に達しました。\nお手数ですが、お電話\n（070-9158-0641）で\nお問い合わせください。";
+  const today = todayDateKeyJST(new Date());
+  const all = (await db.ref("reservations").once("value")).val() || {};
+  const live = Object.entries(all).filter(([, d]) => d && String(d.tel || "").replace(/\D/g, "") === phone &&
+    !["キャンセル", "完了", "引取りなし"].includes(d.status) && !d.handedOver && String(d.finalPickupDate || d.pickupDate || "") >= today);
+  if (!live.length) {
+    await attRef.set(tries + 1);
+    return "ご予約が見つかりませんでした。\nご予約時にお伝えいただいた\n電話番号を、ハイフンなしで\nもう一度お送りください。\n（例：09012345678）";
+  }
+  const mine = live.filter(([, d]) => !d.lineUserId || d.lineUserId === userId);
+  if (!mine.length) return "このご予約は、すでに別のLINEと\nつながっています。\nお手数ですが、お電話\n（070-9158-0641）で\nお問い合わせください。";
+  for (const [key, d] of mine) if (!d.lineUserId) await db.ref("reservations/" + key).update({ lineUserId: userId, lineLinkedAt: new Date().toISOString() });
+  mine.sort((a, b) => pickupSortKey(a[1]).localeCompare(pickupSortKey(b[1])));
+  const copies = mine.map(([, d]) => buildLinkedCopyMessage(d));
+  if (copies.length > 1) copies[0] = "ご予約が" + copies.length + "件あります。\nお引き取りの早い順に\nお送りします。\n\n" + copies[0];
+  return copies;
+}
+// 複数の文をまとめて返信する（LINEの返信は1回5通まで。6件以上は5通目にまとめる）
+async function replyTextsToLine(replyToken, texts, accessToken) {
+  const list = texts.filter(Boolean);
+  const msgs = list.length > 5 ? list.slice(0, 4).concat([list.slice(4).join("\n\n――――――\n\n")]) : list;
+  const res = await fetch("https://api.line.me/v2/bot/message/reply", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
+    body: JSON.stringify({ replyToken, messages: msgs.map((t) => ({ type: "text", text: String(t).slice(0, 4900) })) }),
+  });
+  if (!res.ok) console.error("LINE返信に失敗:", res.status, await res.text().catch(() => ""));
 }
 
 // ===== クリスマスケーキの支払い期限のお知らせ（2026-10-26オーナー指示）=====
