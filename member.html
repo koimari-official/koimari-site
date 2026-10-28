@@ -515,7 +515,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </div>
           <input type="text" id="reserveOccasionOther" class="input" style="display:none;margin-top:10px;" maxlength="20" placeholder="例: 退職祝い">
           <div class="error" id="reserveOccasionError"></div>
-          <div id="reserveChristmasNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>クリスマスケーキについて</strong><br>ご予約は12月20日までです（ご予約が満員になり次第、受付を終了します）。メッセージプレートは全商品「メリークリスマス」のチョコプレートが付きます（変更はできません）。ろうそくは無料でお付けします。「クリームたっぷり乗せ」などの増量はお受けできません。</div>
+          <div id="reserveChristmasNotice" style="display:none;margin-top:10px;background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.8;color:#6b4a12;"><strong>クリスマスケーキについて</strong><br>ご予約は、Web・お電話は12月18日まで、店頭は12月20日までです（ご予約が満員になり次第、受付を終了します）。12月21日〜31日のお受け取りは、12月20日までに店頭でお支払いください（先払い）。メッセージプレートは全商品「メリークリスマス」のチョコプレートが付きます（変更はできません）。ろうそくは無料でお付けします。「クリームたっぷり乗せ」などの増量はお受けできません。</div>
         </div>
         <div class="field" id="reserveSizeField">
           <label class="field__label" id="reserveSizeFieldLabel">サイズ<span class="req-mark">必須</span></label>
@@ -791,7 +791,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
-<script src="cake-pricing.js?v=20261028c"></script>
+<script src="cake-pricing.js?v=20261028d"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
@@ -2198,7 +2198,7 @@ function renderShopPicker() {
     return;
   }
   label.innerHTML = 'クリスマスケーキ<span class="req-mark">必須</span>';
-  notice.innerHTML = box("お渡しは<b>" + xmasRangeText() + "</b>です。お支払いは<b>12月20日まで</b>に店頭でお願いいたします（お支払いの時点でご予約確定）。ご予約が埋まり次第、受付を終了します。<br>写真は昨年のケーキです。砂糖菓子など一部の仕様が異なる場合がございます。");
+  notice.innerHTML = box("お渡しは<b>" + xmasRangeText() + "</b>です。<b>12月21日〜31日</b>のお受け取りは、<b>12月20日まで</b>に店頭でお支払いください（お支払いの時点でご予約確定）。12月1日〜20日のお受け取りは、お受け取りの際のお支払いでも承ります。ご予約が埋まり次第、受付を終了します。<br>写真は昨年のケーキです。砂糖菓子など一部の仕様が異なる場合がございます。");
   const items = ((xmasConf && xmasConf.items) || []).map((c, i) => ({ c, i })).filter(x => x.c && x.c.visible !== false && x.c.img);
   grid.innerHTML = items.length ? items.map(({ c, i }) => card(xmasPick.i === i, pic(c.img) +
     '<div style="font-size:14px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(c.name || "") + "</div>" +
@@ -2405,13 +2405,14 @@ function estimateHeadline(data) {
   return CakePricing.fromYen(data.subtotal) + "（税込）";
 }
 const XMAS_PAYMENT_DEADLINE = "12月20日";
-// お支払い方法の案内文。クリスマスケーキだけ「当日会計なし・12月20日までに店頭払い」になる。
+// お支払い方法の案内文。クリスマスケーキで12/21〜31のお受け取りだけ「当日会計なし・12月20日までに店頭払い」（2026-10-28：12/1〜20のお受け取りはお受け取りの際のお支払い）
 function paymentNoticeText(data) {
-  if (data && data.christmasOrder) {
-    return "クリスマスケーキは、" + XMAS_PAYMENT_DEADLINE + "までに店頭へお支払いにお越しください。お支払いの時点でご予約確定となります。お引き渡し日当日は大変混雑するため、当日のお会計は承っておりません。";
+  if (data && data.christmasOrder && CakePricing.christmasNeedsPrepay(data.pickupDate)) {
+    return "12月21日〜31日にお受け取りのクリスマスケーキは、" + XMAS_PAYMENT_DEADLINE + "までに店頭へお支払いにお越しください。お支払いの時点でご予約確定となります。お引き渡し日当日は大変混雑するため、当日のお会計は承っておりません。";
   }
+  if (data && data.christmasOrder) return "お支払いは、お受け取りの際に店頭でお願いいたします。";
   const n = new Date(), m = n.getMonth() + 1, day = n.getDate();
-  const xmasNote = (m === 10 || m === 11 || (m === 12 && day <= 20)) ? "※クリスマスのご予約は、" + XMAS_PAYMENT_DEADLINE + "までに店舗での事前精算が必要です。" : "";
+  const xmasNote = (m === 10 || m === 11 || (m === 12 && day <= 20)) ? "※12月21日〜31日にお受け取りのクリスマスケーキは、" + XMAS_PAYMENT_DEADLINE + "までに店舗での事前精算が必要です。" : "";
   return "お支払いは、お引き渡しの際に店頭でお願いいたします。" + xmasNote;
 }
 function estimateDisclaimer(data) {

@@ -781,7 +781,7 @@ function buildStaffNotifyText(data) {
   else if (data.quoteSeparately) lines.push("⚠ ギャラリーの写真の仕様で注文（プルダウンで表せない仕様）：お見積もり・納期を電話で回答してください" + (data.galleryPick && data.galleryPick.price ? "（お客様に表示した" + data.galleryPick.price + "）" : ""));
   if (isPhotoChristmas(data)) lines.push("📷 写真で選んだクリスマスケーキ：確認電話なし（LINE自動送信のみ）。仕様確定後に確定画像を送ってください");
   if (data.christmasOrder) {
-    lines.push("🎄 クリスマスケーキ: 当日のお会計なし（" + XMAS_PAYMENT_DEADLINE + "までに店頭でお支払いいただく案内済み）");
+    lines.push(xmasNeedsPrepay(data) ? "🎄 クリスマスケーキ: 当日のお会計なし（" + XMAS_PAYMENT_DEADLINE + "までに店頭でお支払いいただく案内済み）" : "🎄 クリスマスケーキ（12/20までのお受け取り）: お受け取りの際に店頭でお会計");
   }
   if (data.priceNeedsConsult) {
     lines.push("⚠ 特殊仕様（原価表にない組み合わせ）：お電話で仕様・料金を確認してください");
@@ -849,6 +849,15 @@ function sizeWithDiameter(size) {
 // 12月20日までに店頭でお支払いいただく（2026-09-29オーナー指示）。それ以外は当日店頭でご精算。
 // member.html の paymentNoticeText()・XMAS_PAYMENT_DEADLINE と内容をそろえること。
 const XMAS_PAYMENT_DEADLINE = "12月20日";
+// 2026-10-28オーナー決定：お渡しが12/1〜12/31に広がったため、先払いは混む日（12/21〜31のお受け取り）だけ。
+// 12/1〜20のお受け取りは、お受け取りの際のお支払いでよい。予約フォーム・管理画面は cake-pricing.js の christmasNeedsPrepay（同じ決まり）
+const XMAS_PREPAY_FROM_DAY = 21;
+function xmasNeedsPrepay(data) {
+  if (!data || !data.christmasOrder) return false;
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(pickupDateOf(data));
+  if (!m) return true; // 日付が分からないときは、これまでどおり先払いの案内
+  return Number(m[2]) === 12 && Number(m[3]) >= XMAS_PREPAY_FROM_DAY;
+}
 // 10月1日〜12月20日（日本時間）は、クリスマス以外のご予約の案内にもクリスマスの事前精算の注意を添える（2026-10-20オーナー指示）
 function xmasPrepayNoticeActive(now) {
   const d = new Date((now ? now.getTime() : Date.now()) + 9 * 3600 * 1000);
@@ -863,7 +872,7 @@ function paymentLines(data, stage) {
     lines.push("◇お支払い済みです", "　ありがとうございます");
     return lines;
   }
-  if (data && data.christmasOrder) {
+  if (xmasNeedsPrepay(data)) { // 12/21〜31のお受け取りのクリスマスケーキだけ先払い（2026-10-28）
     lines.push("◇" + XMAS_PAYMENT_DEADLINE + "までに店頭へ", "　お支払いにお越しください"); // 2026-10-26オーナー指示の文言
     // 2026-10-02オーナー確認：LINEで予約 → 12/20までに店頭で前払い。お支払いの時点でご予約確定
     lines.push("◇お支払いの時点で", "　ご予約確定となります");
@@ -872,7 +881,7 @@ function paymentLines(data, stage) {
     return lines;
   }
   lines.push("◇お支払いは、お引き渡しの際に", "　店頭でお願いいたします"); // 未払い（2026-10-26オーナー指示：お引き渡し時）
-  if (xmasPrepayNoticeActive()) lines.push("※クリスマスのご予約は、", "　" + XMAS_PAYMENT_DEADLINE + "までに店舗での", "　事前精算が必要です");
+  if (!(data && data.christmasOrder) && xmasPrepayNoticeActive()) lines.push("※12月21日〜31日お受け取りの", "　クリスマスケーキは、" + XMAS_PAYMENT_DEADLINE, "　までに店舗での事前精算が必要です");
   return lines;
 }
 
@@ -1333,6 +1342,7 @@ async function replyTextsToLine(replyToken, texts, accessToken) {
 const XMAS_PAY_REMIND_DAYS = ["12-17", "12-20"];
 function dueXmasPayReminder(data, now) {
   if (!data || !data.lineUserId || !data.christmasOrder || data.paymentDone || data.handedOver) return "";
+  if (!xmasNeedsPrepay(data)) return ""; // 12/1〜20のお受け取りは先払いではないので、支払い期限のお知らせは送らない（2026-10-28）
   if (["キャンセル", "完了", "引取りなし"].includes(data.status)) return "";
   const jst = new Date(now.getTime() + 9 * 3600000);
   if (jst.getUTCHours() !== 10 || jst.getUTCMinutes() >= 15) return "";
@@ -1666,10 +1676,10 @@ function buildCustomerConfirmationEmailText(data) {
     `商品: ${product}`,
     pickupLine,
     "",
-    data.christmasOrder
+    xmasNeedsPrepay(data)
       ? "お支払い: クリスマスケーキのお支払いは、" + XMAS_PAYMENT_DEADLINE + "までに店頭でお願いいたします（お支払いの時点でご予約確定となります。お引き渡し当日のお会計は承っておりません）。"
       : "お支払い: お引き取り日当日、お受け取りの際に店頭でお願いいたします。",
-    ...(!data.christmasOrder && xmasPrepayNoticeActive() ? ["※クリスマスのご予約は、" + XMAS_PAYMENT_DEADLINE + "までに店舗での事前精算が必要です。"] : []),
+    ...(!data.christmasOrder && xmasPrepayNoticeActive() ? ["※12月21日〜31日にお受け取りのクリスマスケーキは、" + XMAS_PAYMENT_DEADLINE + "までに店舗での事前精算が必要です。"] : []),
     "",
     "後ほど、詳細確認のためスタッフよりお電話またはチャットでご連絡いたします。ご予約内容の変更・キャンセルも、お電話にて承っております。",
     "",

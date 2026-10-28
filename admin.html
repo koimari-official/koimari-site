@@ -302,7 +302,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .man .msg{border:1px solid #cdbfae;border-radius:8px;background:#fff;padding:10px 14px;font-size:13.5px;line-height:1.7;margin:6px 0 10px}
 .man .qr{text-align:center;font-size:13px;line-height:1.6;margin:8px 0 14px}.man .qr img{display:block;width:160px;margin:0 auto 4px}
 </style>
-<script src="cake-pricing.js?v=20261028c"></script>
+<script src="cake-pricing.js?v=20261028d"></script>
 <script src="photo-adjust.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
@@ -1042,7 +1042,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <ul>
 <li>ご予約は、ホームページの<b>クリスマス特設ページからだけ</b>受けます。</li>
 <li><b>オプションはお受けできません</b>（ろうそくは無料、メッセージは「メリークリスマス」のプレートで固定）。</li>
-<li>お支払いは<b>12月20日までに店頭で事前精算</b>です。受け取り当日のお会計はありません。精算したら「支払済み」にチェックを入れます。</li>
+<li>お支払いは、<b>12月21日〜31日のお受け取りは12月20日までに店頭で事前精算</b>です（受け取り当日のお会計はありません）。<b>12月1日〜20日のお受け取りは、受け取りのときのお会計</b>でも大丈夫です。精算したら「支払済み」にチェックを入れます。</li>
 </ul>
 
 <h3>13．お客様に自動で届くLINE（ネット予約）</h3>
@@ -1742,7 +1742,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
           <label><input type="radio" name="xmStatus" value="open"> 受付中</label>
           <label><input type="radio" name="xmStatus" value="closed"> 受付終了</label>
         </div>
-        <div class="xm-row"><b>お渡し期間</b><input type="date" id="xmFrom" class="input"> 〜 <input type="date" id="xmTo" class="input"><span class="small">ご予約は12月20日まで・店頭で前払い（これまでどおり）</span></div>
+        <div class="xm-row"><b>お渡し期間</b><input type="date" id="xmFrom" class="input"> 〜 <input type="date" id="xmTo" class="input"><span class="small">締切：Web・お電話12/18・店頭12/20。12/21〜31のお受け取りは12/20までに店頭で先払い（12/1〜20のお受け取りは受け取りのときのお会計でも可）</span></div>
         <div class="xm-row"><b>表題</b><input id="xmTitleIn" class="input" style="flex:1;min-width:min(100%,360px)" placeholder="空欄なら自動：★ クリスマスケーキ 近日ご予約開始 ★"><span class="small">トップの帯と特設ページの一番上に出ます（空欄なら受付状態に合わせて自動）。絵文字は使わないでください</span></div>
         <div class="xm-row"><b>受付開始の予定</b><input id="xmOpenPlan" class="input" style="width:12em" placeholder="例：10月後半"><span class="small">準備中のあいだ「ご予約の受付は、〇〇に開始予定です」と出します（表題が空欄なら表題にも）。空欄なら「近日ご予約開始」</span></div>
         <div class="xm-row"><b>特設ページの入口</b><label><input type="checkbox" id="xmEntryOn"> トップの帯・ついてくるボタン・ギャラリーの「クリスマスケーキ」に出す</label><label>最終日 <input type="date" id="xmEntryUntil" class="input"></label><span class="small">最終日が空欄なら、お渡し期間の最終日まで出します。特設ページはお知らせとは別のページです</span></div>
@@ -5249,6 +5249,7 @@ function formatReservationNo(n) { return n ? "No." + String(n).padStart(4, "0") 
 // 12月21日以降、支払い未了のまま残っている注文をひと目で分かるようにする。
 function isChristmasPaymentOverdue(r) {
   if (!r.christmasOrder || r.paymentDone || r.status === "キャンセル") return false;
+  if (window.CakePricing && CakePricing.christmasNeedsPrepay && !CakePricing.christmasNeedsPrepay(r.finalPickupDate || r.pickupDate)) return false; // 12/1〜20のお受け取りは受け取りのときのお会計でよい（2026-10-28）
   const now = new Date();
   return now.getMonth() === 11 && now.getDate() > 20;
 }
@@ -6269,7 +6270,7 @@ function renderReservationsTable() {
       </td>
       <td style="text-align:center;">
         <input type="checkbox" onchange="updateResPayment(${idx},this.checked)" ${r.paymentDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
-        ${r.christmasOrder?'<div style="margin-top:4px;font-size:10px;font-weight:700;color:#0b7a37;white-space:nowrap;">🎄 12/20までに店頭で</div>':""}
+        ${r.christmasOrder?(!window.CakePricing||!CakePricing.christmasNeedsPrepay||CakePricing.christmasNeedsPrepay(r.finalPickupDate||r.pickupDate)?'<div style="margin-top:4px;font-size:10px;font-weight:700;color:#0b7a37;white-space:nowrap;">🎄 12/20までに店頭で</div>':'<div style="margin-top:4px;font-size:10px;font-weight:700;color:#0b7a37;white-space:nowrap;">🎄 受け取り時にお会計</div>'):""}
         ${payOverdue?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 支払い期限超過</div>':""}
         ${r.paymentDone?byLine(r.paymentDoneBy, r.paymentDoneAt):""}
       </td>

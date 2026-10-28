@@ -20,7 +20,7 @@
       "6号": { cm: "約18cm", serves: "7〜8人前" },
       "7号": { cm: "約21cm", serves: "9〜10人前" }
     },
-    christmas: { deadlineMonth: 12, deadlineDay: 20, webDeadlineDay: 18 }, // 締切：店頭は12/20、Web・お電話は12/18（2026-10-28オーナー指示・チラシどおり）
+    christmas: { deadlineMonth: 12, deadlineDay: 20, webDeadlineDay: 18, prepayFromDay: 21 }, // 先払いは12/21〜31のお受け取りだけ（2026-10-28オーナー決定） // 締切：店頭は12/20、Web・お電話は12/18（2026-10-28オーナー指示・チラシどおり）
     fruitTopping: { "セルクル": 500, "3号": 600, "4号": 900, "5号": 1300, "6号": 1600, "7号": 1900 }, // 2026-10-22オーナー指示（ケーキ・タルト共通。多段は段ごと）
     chocoCream: 500,
     colorCream: { 1: 500, 2: 1000, 3: 1500 },
@@ -282,6 +282,15 @@
     return new Date(today || new Date()) > deadline;
   }
 
+  // クリスマスケーキの先払いが要るか（2026-10-28オーナー決定：お渡しが12/1〜31に広がったため、混む日だけ）。
+  // 12/21〜31のお受け取り＝12/20までに店頭で先払い。12/1〜20のお受け取り＝お受け取りの際のお支払いでよい。日付が分からないときは先払いの案内。
+  // functions/index.js の xmasNeedsPrepay と同じ決まり
+  function christmasNeedsPrepay(pickup) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(pickup || ""));
+    if (!m) return true;
+    return Number(m[2]) === SPEC.christmas.deadlineMonth && Number(m[3]) >= (SPEC.christmas.prepayFromDay || 21);
+  }
+
   // 管理画面(admin.html)で設定した料金・納期の上書き値（Firebase koimariContent/cakeSpecOverrides）をSPECに反映する。
   // 正の数値だけを採用し、未設定の項目は既定値のまま。
   function applyOverrides(o) {
@@ -303,7 +312,7 @@
   }
 
   function lineYen(l) { return yen(l && l.amount) + (l && l.range ? "〜" : ""); }
-  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, candleParts: candleParts, candleText: candleText, formatCandleNumbers: formatCandleNumbers, parseCandleNumbers: parseCandleNumbers, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, yen: yen, fromYen: fromYen };
+  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, candleParts: candleParts, candleText: candleText, formatCandleNumbers: formatCandleNumbers, parseCandleNumbers: parseCandleNumbers, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, christmasNeedsPrepay: christmasNeedsPrepay, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);
