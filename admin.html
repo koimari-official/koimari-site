@@ -455,6 +455,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .xm-photo img{width:180px;height:180px;object-fit:contain;background:#faf7f2;border-radius:8px}
 .xm-photo span{width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#faf7f2;color:#a98554}
 .xm-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.xm-secimg{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
+.xm-secimg img{width:110px;height:110px;object-fit:contain;background:#faf7f2;border-radius:8px}
 .xm-l{font-size:12.5px;color:var(--color-text-soft);margin-top:6px}
 .xm-sizes{display:flex;flex-direction:column;gap:6px}
 .xm-size{display:flex;align-items:center;gap:6px}
@@ -659,6 +661,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <span class="tab-group-label">予約・問い合わせ管理</span>
       <button class="tab" data-panel="notify">🔔 店舗通知モード</button>
       <button class="tab" data-panel="kitchen">🧁 製造シート（タブレット）</button>
+      <button class="tab" data-panel="storeGallery">ギャラリー（商品を見る）</button>
       <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount" style="display:none;">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
       <button class="tab" data-panel="quoteBuilder">個別見積もり作成</button>
       <button class="tab" data-panel="manual">使い方マニュアル</button>
@@ -1725,16 +1728,23 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     </section>
 
     <!-- ===== クリスマスケーキ（2026-10-03） ===== -->
+    <section class="panel" id="panel-storeGallery">
+      <div class="panel__head"><h2 class="panel__title">ギャラリー（商品を見る）</h2><a href="gallery.html" target="_blank" class="btn btn--small btn--ghost">別の画面で開く ↗</a></div>
+      <p class="panel__desc">お客様が見ているギャラリーと同じ画面です（お客様向けの予約ボタンは出しません）。<b>新しい商品も、登録されるとここにすぐ出ます。</b>お電話・店頭でご予約を受けるときは、ここで写真・名前・サイズ・お値段をお客様と一緒に確かめてください。</p>
+      <iframe id="storeGalleryFrame" title="ギャラリー（商品を見る）" style="width:100%;height:calc(100vh - 230px);min-height:560px;border:1px solid var(--color-line,#e5dccf);border-radius:10px;background:#fff"></iframe>
+    </section>
     <section class="panel" id="panel-christmas">
       <div class="panel__head"><h2 class="panel__title">クリスマスケーキ</h2><a href="christmas.html" target="_blank" class="btn btn--small btn--ghost">公開ページを見る ↗</a></div>
       <p class="panel__desc">クリスマスケーキの写真・名前・サイズ・お値段と、ご予約の受付状態を設定します。<b>「受付中」にして保存した時点で</b>、クリスマスページの予約ボタンと、LINE予約フォームの「クリスマスケーキ」が表示されます。写真は元の画質のまま保存します。</p>
       <div class="xm-box">
         <div class="xm-row"><b>受付状態</b>
-          <label><input type="radio" name="xmStatus" value="preparing"> 準備中（ページは「近日受付開始」・予約はできない）</label>
+          <label><input type="radio" name="xmStatus" value="preparing"> 準備中（ページは「近日ご予約開始」・予約はできない）</label>
           <label><input type="radio" name="xmStatus" value="open"> 受付中</label>
           <label><input type="radio" name="xmStatus" value="closed"> 受付終了</label>
         </div>
         <div class="xm-row"><b>お渡し期間</b><input type="date" id="xmFrom" class="input"> 〜 <input type="date" id="xmTo" class="input"><span class="small">ご予約は12月20日まで・店頭で前払い（これまでどおり）</span></div>
+        <div class="xm-row"><b>表題</b><input id="xmTitleIn" class="input" style="flex:1;min-width:min(100%,360px)" placeholder="空欄なら自動：★ クリスマスケーキ 近日ご予約開始 ★"><span class="small">トップの帯と特設ページの一番上に出ます（空欄なら受付状態に合わせて自動）。絵文字は使わないでください</span></div>
+        <div class="xm-row"><b>特設ページの入口</b><label><input type="checkbox" id="xmEntryOn"> トップの帯・ついてくるボタン・ギャラリーの「クリスマスケーキ」に出す</label><label>最終日 <input type="date" id="xmEntryUntil" class="input"></label><span class="small">最終日が空欄なら、お渡し期間の最終日まで出します。特設ページはお知らせとは別のページです</span></div>
       </div>
       <div id="xmItems"></div>
       <div style="position:sticky;bottom:0;background:var(--color-bg,#fff);padding:14px 0;border-top:1px solid var(--color-line);margin-top:10px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
@@ -8386,12 +8396,18 @@ function xmRender() {
   document.querySelectorAll('input[name="xmStatus"]').forEach((r) => { r.checked = r.value === (xmData.status || "preparing"); });
   document.getElementById("xmFrom").value = xmData.pickupFrom || "";
   document.getElementById("xmTo").value = xmData.pickupTo || "";
+  document.getElementById("xmTitleIn").value = xmData.title || "";
+  document.getElementById("xmEntryOn").checked = xmData.entryOff !== true;
+  document.getElementById("xmEntryUntil").value = xmData.entryUntil || "";
   wrap.innerHTML = (xmData.items || []).map((c, i) => '<div class="xm-card" data-i="' + i + '">' +
     '<div class="xm-photo img-item__preview">' + (c.img ? '<img src="' + xmEsc(c.img) + '" alt="">' : '<span>写真なし</span>') + '<label class="btn btn--small btn--ghost">写真を変える<input type="file" accept="image/*" class="xm-file" hidden></label></div>' +
     '<div class="xm-main">' +
       '<label class="xm-l">ケーキの名前</label><input class="input xm-name" value="' + xmEsc(c.name) + '">' +
       '<label class="xm-l">説明文（クリスマスページに表示）</label><textarea class="input xm-desc" rows="2">' + xmEsc(c.desc) + '</textarea>' +
       '<label class="xm-l">写真の左上の目印（例：人気No.1・Web予約限定・5台。不要なら空欄）</label><input class="input xm-badge-in" value="' + xmEsc(c.badge || "") + '" placeholder="空欄なら出しません">' +
+      '<label class="xm-l">断面の絵（ケーキの中の層。クリスマスページの写真の右下「断面を見る」で切り替わります。入れていないケーキには出ません。動く絵（GIF・WebP）も可）</label>' +
+      '<div class="xm-secimg">' + (c.sectionImg ? '<img src="' + xmEsc(c.sectionImg) + '" alt="">' : '') + '<label class="btn btn--small btn--ghost">' + (c.sectionImg ? '断面の絵を変える' : '断面の絵を入れる') + '<input type="file" accept="image/*" class="xm-sec-file" hidden></label>' + (c.sectionImg ? '<button type="button" class="btn btn--small btn--ghost xm-sec-del">断面の絵を外す</button>' : '') + '</div>' +
+      '<label class="xm-l">断面の説明（例：上から いちご／生クリーム／スポンジ。不要なら空欄）</label><input class="input xm-secnote" value="' + xmEsc(c.sectionNote || "") + '" placeholder="空欄なら出しません">' +
       '<label class="xm-l">サイズとお値段（税込・未定なら空欄）</label>' +
       '<div class="xm-sizes">' + (c.sizes || []).map((s, j) => '<div class="xm-size" data-j="' + j + '"><input class="input xm-sz" list="xmSizeList" value="' + xmEsc(s.size) + '" placeholder="例：5号"><span>¥</span><input class="input xm-pr" inputmode="numeric" value="' + xmEsc(s.price || "") + '" placeholder="未定"><button type="button" class="xm-del-size" title="このサイズを消す">×</button></div>').join("") + '</div>' +
       '<button type="button" class="btn btn--small btn--ghost xm-add-size">＋ サイズを追加</button>' +
@@ -8413,6 +8429,9 @@ function xmCollect() {
   xmData.status = st ? st.value : "preparing";
   xmData.pickupFrom = document.getElementById("xmFrom").value || "";
   xmData.pickupTo = document.getElementById("xmTo").value || "";
+  xmData.title = document.getElementById("xmTitleIn").value.trim();
+  xmData.entryOff = !document.getElementById("xmEntryOn").checked;
+  xmData.entryUntil = document.getElementById("xmEntryUntil").value || "";
   document.querySelectorAll("#xmItems .xm-card").forEach((card) => {
     const c = xmData.items[Number(card.dataset.i)];
     if (!c) return;
@@ -8421,6 +8440,7 @@ function xmCollect() {
     c.visible = card.querySelector(".xm-vis").checked;
     c.badge = card.querySelector(".xm-badge-in").value.trim();
     c.featured = card.querySelector(".xm-feat").checked;
+    c.sectionNote = card.querySelector(".xm-secnote").value.trim();
     c.sizes = Array.from(card.querySelectorAll(".xm-size")).map((row) => ({ size: row.querySelector(".xm-sz").value.trim(), price: Number(String(row.querySelector(".xm-pr").value).replace(/[^0-9]/g, "")) || "" })).filter((s) => s.size);
   });
 }
@@ -8446,22 +8466,24 @@ function initXmasPanel() {
     else if (e.target.closest(".xm-del-size")) { const j = Number(e.target.closest(".xm-size").dataset.j); act(() => { xmData.items[i].sizes.splice(j, 1); }); }
     else if (e.target.closest(".xm-up")) act(() => { const a = xmData.items; [a[i - 1], a[i]] = [a[i], a[i - 1]]; });
     else if (e.target.closest(".xm-down")) act(() => { const a = xmData.items; [a[i + 1], a[i]] = [a[i], a[i + 1]]; });
+    else if (e.target.closest(".xm-sec-del")) { if (confirm("断面の絵を外しますか？（保存するまで公開ページは変わりません）")) act(() => { delete xmData.items[i].sectionImg; }); }
     else if (e.target.closest(".xm-del")) { if (confirm("「" + (xmData.items[i].name || "このケーキ") + "」を消しますか？（保存するまで公開ページは変わりません）")) act(() => { xmData.items.splice(i, 1); }); }
   });
   wrap.addEventListener("change", async (e) => {
-    if (!e.target.classList.contains("xm-file") || !e.target.files[0]) return;
+    const isSec = e.target.classList.contains("xm-sec-file"); // 断面の絵（2026-10-28）
+    if (!(e.target.classList.contains("xm-file") || isSec) || !e.target.files[0]) return;
     const file = e.target.files[0];
     const i = Number(e.target.closest(".xm-card").dataset.i);
     const note = document.getElementById("xmNote");
-    note.textContent = "写真をアップロード中…";
+    note.textContent = (isSec ? "断面の絵" : "写真") + "をアップロード中…";
     try {
       // 画質を落とさないよう、選んだファイルをそのまま保存する（縮小・圧縮しない）
-      const path = "siteImages/christmas/" + Date.now() + "-" + file.name.replace(/[^\w.\-]/g, "_");
+      const path = "siteImages/christmas/" + (isSec ? "section-" : "") + Date.now() + "-" + file.name.replace(/[^\w.\-]/g, "_");
       const r = storageRef(fbStorage, path);
       await uploadBytes(r, file, { contentType: file.type || "image/jpeg", cacheControl: "public,max-age=31536000" });
       const url = await getDownloadURL(r);
-      xmCollect(); xmData.items[i].img = url; wrap.dataset.dirty = "1"; xmRender();
-      note.textContent = "写真を入れ替えました。「保存して反映」を押すと公開されます";
+      xmCollect(); xmData.items[i][isSec ? "sectionImg" : "img"] = url; wrap.dataset.dirty = "1"; xmRender();
+      note.textContent = (isSec ? "断面の絵を入れました" : "写真を入れ替えました") + "。「保存して反映」を押すと公開されます";
     } catch (err) { console.warn(err); note.textContent = "写真のアップロードに失敗しました"; }
   });
   document.getElementById("xmAdd").addEventListener("click", () => { xmCollect(); xmData.items.push({ name: "", desc: "", img: "", sizes: [{ size: "5号", price: "" }], visible: true }); wrap.dataset.dirty = "1"; xmRender(); });
@@ -9126,7 +9148,13 @@ function initQuoteBuilder() {
 
 const STORE_ACCOUNTS = ["sankyu00002@gmail.com"];
 // 店舗アカウントでいつも出すタブと、「その他の設定」を開いたときだけ出すタブ（2026-10-27・10-28オーナー指示）
-const STORE_MAIN_TABS = ["reservations", "kitchen", "calendar", "notify"];
+const STORE_MAIN_TABS = ["reservations", "kitchen", "calendar", "notify", "storeGallery"]; // ギャラリー（商品を見る）：予約を受けるとき・新商品の確認用（2026-10-28オーナー指示）
+// ギャラリーは開いたときに初めて読み込む（ほかの画面を使っている間は読み込まない）
+(function () {
+  const f = document.getElementById("storeGalleryFrame");
+  if (!f || !("IntersectionObserver" in window)) { if (f) f.src = "gallery.html?staff=1"; return; }
+  new IntersectionObserver((ents, ob) => { if (ents.some((en) => en.isIntersecting)) { f.src = "gallery.html?staff=1"; ob.disconnect(); } }).observe(f);
+})();
 const STORE_MORE_TABS = ["manual", "aiReview", "quoteBuilder", "news", "galleryAdmin", "holidays"];
 function applyStoreMode() {
   document.body.classList.add("store-mode");

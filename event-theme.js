@@ -13,6 +13,8 @@
       deco: ["pumpkin", "ghost", "witch-hat", "cat", "pumpkin2", "lollipop", "moon", "pumpkin3", "web"],
       flyer: { img: "bat", count: 3, every: 9000, trail: null },
       fall: null,
+      // 2026-10-28オーナー指示：フランケンシュタイン・ミイラ・黒猫（かぼちゃ）を仲間入り。見出しの下に並んで跳ねる（LottieFiles の絵を1コマ書き出し・Lottie Simple License）
+      parade: ["frankenstein", "mummy", "cat-pumpkin"],
     },
     christmas: {
       label: "クリスマス", en: "Merry Christmas",
@@ -96,6 +98,10 @@
 .ev-hero__en{display:block;font-family:var(--ev-en);font-size:clamp(34px,7vw,64px);color:var(--ev-accent);line-height:1.1;text-shadow:0 2px 0 rgba(0,0,0,.15);letter-spacing:.02em}
 .ev-hero__ja{display:inline-block;margin-top:6px;font-family:var(--ev-font);font-size:clamp(15px,2.4vw,19px);color:var(--ev-ink);letter-spacing:.18em;padding:4px 14px;border-top:1px solid var(--ev-accent);border-bottom:1px solid var(--ev-accent)}
 .ev-deco{position:absolute;pointer-events:none;z-index:2;filter:drop-shadow(0 4px 8px rgba(0,0,0,.18));animation:ev-bob 4.5s ease-in-out infinite}
+.ev-parade{position:relative;z-index:2;display:flex;justify-content:center;align-items:flex-end;gap:clamp(10px,3vw,26px);margin:18px auto 0;pointer-events:none}
+.ev-parade img{height:clamp(58px,9vw,92px);width:auto;filter:drop-shadow(0 5px 8px rgba(0,0,0,.28));animation:ev-hop 2.6s ease-in-out infinite;transform-origin:50% 100%}
+.ev-parade img:nth-child(2){animation-delay:.45s}.ev-parade img:nth-child(3){animation-delay:.9s}
+@keyframes ev-hop{0%,100%{transform:translateY(0) scale(1,1)}12%{transform:translateY(0) scale(1.05,.94)}30%{transform:translateY(-12px) scale(.97,1.04)}48%{transform:translateY(0) scale(1.03,.97)}}
 @keyframes ev-bob{0%,100%{transform:translateY(0) rotate(var(--r,0deg))}50%{transform:translateY(-10px) rotate(calc(var(--r,0deg) + 4deg))}}
 .ev-on .nw-head__en,.ev-on .nw-head__ja{color:var(--ev-ink)!important}
 .ev-on .nw-head__line{background:linear-gradient(90deg,transparent,var(--ev-accent),transparent)!important}
@@ -140,7 +146,7 @@
 .ev-item__name{font-size:14px;font-weight:700;line-height:1.45;padding:9px 10px 2px}
 .ev-item__price{font-size:13.5px;color:var(--ev-accent2,#a88a52);font-weight:700;padding:0 10px 11px}
 @media(max-width:600px){.ev-hero{padding:22px 54px 16px}.ev-grid{grid-template-columns:repeat(2,1fr);gap:10px}.ev-item__name{font-size:13px}}
-@media (prefers-reduced-motion: reduce){.ev-deco,.ev-fall,.ev-rise,.ev-lights i{animation:none}}
+@media (prefers-reduced-motion: reduce){.ev-deco,.ev-fall,.ev-rise,.ev-lights i,.ev-parade img{animation:none}}
 `;
     document.head.appendChild(st);
   }
@@ -155,6 +161,13 @@
       el.style.cssText = "left:" + s[0] + "%;top:" + s[1] + "%;width:" + w + "px;--r:" + s[3] + "deg;animation-delay:" + (i * 0.6) + "s";
       host.appendChild(el);
     });
+  }
+  // 見出しの下に並ぶ仲間たち（文字に重ならないよう、見出しの中の一番下に並べる）
+  function heroParade(theme, t, host) {
+    if (!t.parade || !t.parade.length || host.querySelector(".ev-parade")) return;
+    const row = document.createElement("div"); row.className = "ev-parade"; row.setAttribute("aria-hidden", "true");
+    t.parade.forEach((n) => { const el = document.createElement("img"); el.src = img(theme, n); el.alt = ""; el.loading = "lazy"; row.appendChild(el); });
+    host.appendChild(row);
   }
   // 降ってくる／昇っていく素材
   function particles(theme, conf, cls, layer) {
@@ -281,6 +294,7 @@
       hero.innerHTML = '<span class="ev-hero__en">' + t.en + '</span><span class="ev-hero__ja">' + t.label + "特集</span>";
       heroHost.parentNode.insertBefore(hero, heroHost);
       heroDeco(theme, t, hero);
+      heroParade(theme, t, hero);
       if (t.lights) { hero.classList.add("ev-hero--lights"); const g = document.createElement("div"); g.className = "ev-lights"; g.innerHTML = "<i></i>".repeat(window.innerWidth < 600 ? 11 : 20); hero.appendChild(g); }
       if (t.stripe) { const st = document.createElement("div"); st.className = "ev-stripe"; heroHost.parentNode.insertBefore(st, heroHost); }
     }

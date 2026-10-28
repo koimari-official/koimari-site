@@ -11,18 +11,23 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
 <script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
+<script src="xmas-entry.js"></script><!-- 表題・受付状態（トップの帯と同じ決め方） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
-<title>クリスマスケーキ2026｜ケーキ屋さん こいまり 城東店</title>
-<meta name="description" content="ケーキ屋さん こいまり 城東店のクリスマスケーキ2026。国産いちごをたっぷり使ったスペシャルデコレーション、スタンダードデコレーション、クリスマスノエル、スノーマンズ・ミッシェル、あわてんぼうサンタのタルトなど。">
+<title>クリスマスケーキ 2026｜大阪市城東区のケーキ屋さん こいまり 城東店</title>
+<meta name="description" content="大阪市城東区成育のケーキ屋さん こいまり 城東店のクリスマスケーキ2026。国産いちごをたっぷり使ったデコレーションケーキ、生チョコクリーム、クリスマスノエル、タルトなどをご用意しています。お受け取りは12月22日〜27日、店頭でお渡しします。">
 <link rel="canonical" href="https://koimari-official.github.io/koimari-site/christmas.html">
-<meta name="robots" content="noindex">
 <meta property="og:type" content="website">
-<meta property="og:title" content="クリスマスケーキ2026｜こいまり">
-<meta property="og:site_name" content="こいまり">
-<meta property="og:image" content="https://koimari-official.github.io/koimari-site/ogp.jpg">
+<meta property="og:url" content="https://koimari-official.github.io/koimari-site/christmas.html">
+<meta property="og:title" content="クリスマスケーキ 2026｜ケーキ屋さん こいまり 城東店">
+<meta property="og:description" content="国産いちごをたっぷり使った、こいまりのクリスマスケーキ。お受け取りは12月22日〜27日、店頭でお渡しします。">
+<meta property="og:site_name" content="ケーキ屋さん こいまり 城東店">
+<meta property="og:image" content="https://firebasestorage.googleapis.com/v0/b/koimari-tasting.firebasestorage.app/o/siteImages%2Fchristmas%2F1792317195453-LINE_ALBUM_2026_____________ver._261018_4.png?alt=media&token=a8583070-c02b-48a1-9e98-9cae34306fad">
 <meta property="og:locale" content="ja_JP">
+<link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ケーキ屋さん こいまり 城東店","item":"https://koimari-official.github.io/koimari-site/"},{"@type":"ListItem","position":2,"name":"クリスマスケーキ 2026","item":"https://koimari-official.github.io/koimari-site/christmas.html"}]}</script>
 <meta name="twitter:card" content="summary_large_image">
+<meta name="robots" content="max-image-preview:large">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
@@ -205,6 +210,82 @@ button.xm-price.on{border-color:#0b5d33;background:#eaf7ee;box-shadow:inset 0 0 
   .xm-info dd{margin-bottom:10px}
 }
 </style>
+<style id="xmas2">
+/* 2026-10-28 作り込み：表題（★〜★）・要点の札・全種類の目次・断面の絵・予約の帯（受付中だけ） */
+html{scroll-behavior:smooth}
+.nf{font-family:var(--font-sans)}
+.xm-hero__sub{font-family:var(--font-mincho);font-size:16px;font-weight:700;letter-spacing:.08em;margin-top:2px}
+.ev-on .xm-hero__sub{color:var(--ev-ink)!important;opacity:.95}
+.xm-title{font-size:clamp(24px,4.4vw,40px)!important;letter-spacing:.04em;margin:6px 0 6px!important}
+.xm-title.is-wait{visibility:hidden}
+.xm-facts{list-style:none;display:flex;justify-content:center;flex-wrap:wrap;gap:8px 10px;margin:14px auto 4px;padding:0;max-width:900px}
+.xm-facts li{display:flex;flex-direction:column;align-items:center;gap:1px;background:rgba(255,253,248,.96);color:#3a2a1c;border:1.5px solid #ffd54a;border-radius:14px;padding:7px 14px 8px;min-width:150px;font-family:var(--font-sans);font-size:14.5px;font-weight:700;line-height:1.5;box-shadow:0 6px 16px rgba(0,0,0,.2)}
+.xm-facts li b{font-size:12.5px;color:#c8102e;letter-spacing:.1em}
+.xm-status--prep{font-weight:700}
+/* 全種類の目次（押すとそのケーキへ） */
+.xm-index{max-width:980px;margin:4px auto 0;background:rgba(255,253,248,.97);border-radius:20px;padding:14px 12px 14px;box-shadow:0 10px 30px rgba(0,0,0,.22);border:2px solid #ffd54a}
+.xm-index__title{text-align:center;font-family:var(--font-mincho);font-weight:700;font-size:19px;color:#3a2a1c;margin:0}
+.xm-index__title b{font-family:var(--font-sans);color:#c8102e;font-size:23px;margin:0 3px}
+.xm-index__note{text-align:center;font-size:13.5px;color:#6b5a48;margin:0 0 10px;font-weight:500}
+.xm-index__row{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:8px}
+.xm-index__item{display:flex;align-items:center;gap:9px;background:#fff;border:1.5px solid #f0e2cc;border-radius:14px;padding:7px 8px;color:#3a2a1c;transition:transform .2s,border-color .2s}
+.xm-index__item:hover{transform:translateY(-2px);border-color:#ffd54a}
+.xm-index__item img{width:58px;height:58px;border-radius:50%;object-fit:cover;flex-shrink:0;background:#fff6e8;border:2px solid #ffd54a}
+.xm-index__txt{display:flex;flex-direction:column;min-width:0}
+.xm-index__name{font-family:var(--font-mincho);font-weight:700;font-size:14px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.xm-index__price{font-family:var(--font-sans);font-size:13.5px;color:#c8102e;font-weight:700;margin-top:2px;white-space:nowrap}
+.xm-index__price small{font-size:10.5px;color:#6b5a48;font-weight:500}
+/* カード：出てくるときにふわっと／目次から来たときに光る */
+.xm-card,.xm-feature{scroll-margin-top:14px}
+.xm-reveal{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.xm-reveal.is-in{opacity:1;transform:none}
+.xm-flash{animation:xmFlash 1.1s ease-out 2}
+@keyframes xmFlash{0%{box-shadow:0 0 0 0 rgba(255,213,74,.95)}100%{box-shadow:0 0 0 20px rgba(255,213,74,0)}}
+.xm-badge{z-index:4}
+.xm-card:hover{transform:translateY(-3px)}
+.xm-card{transition:transform .25s ease,opacity .7s ease}
+/* 断面の絵：写真の右下の丸いボタンで、ナイフで切ったように切り替わる（絵がないケーキには出さない） */
+.xm-media{position:relative;overflow:hidden}
+.xm-media .xm-cut{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#fffdf6 0%,#fff6e8 65%,#ffeaea 100%);clip-path:inset(0 100% 0 0);transition:clip-path .85s cubic-bezier(.6,.05,.3,1)}
+.is-cut .xm-media .xm-cut{clip-path:inset(0 0 0 0)}
+.xm-media .xm-cut img,.xm-media .xm-cut video{width:94%;height:94%;max-width:none;aspect-ratio:auto;object-fit:contain;display:block}
+.xm-knife{position:absolute;top:-4%;bottom:-4%;left:0;width:4px;z-index:3;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 20%,#dfe6ea 50%,#fff 80%,rgba(255,255,255,0));box-shadow:0 0 12px 2px rgba(255,255,255,.95);opacity:0;pointer-events:none}
+.is-cut .xm-knife{animation:xmKnife .85s cubic-bezier(.6,.05,.3,1)}
+@keyframes xmKnife{0%{left:0;opacity:1}85%{opacity:1}100%{left:calc(100% - 4px);opacity:0}}
+.xm-media .xm-lens{position:absolute;right:10px;bottom:12px;z-index:5;display:flex;align-items:center;gap:8px;padding:4px 14px 4px 4px;border-radius:999px;border:2px solid #fff;background:#0b5d33;color:#fff;font-family:var(--font-sans);font-weight:700;font-size:14px;line-height:1;box-shadow:0 4px 12px rgba(0,0,0,.28);cursor:pointer}
+.xm-media .xm-lens img{width:42px;height:42px;max-width:none;aspect-ratio:1;border-radius:50%;object-fit:cover;background:#fff;border:2px solid #ffd54a}
+.xm-lens__v{width:42px;height:42px;border-radius:50%;background:#fff;color:#0b5d33;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:12px}
+.xm-media .xm-lens.hint{animation:xmHint 1.4s ease-in-out 3}
+@keyframes xmHint{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.xm-card__desc.is-clamp{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.xm-more{align-self:flex-start;border:0;background:none;color:#0b5d33;font-family:var(--font-sans);font-weight:700;font-size:14.5px;padding:0;margin-top:-4px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.xm-secnote{font-size:14.5px;line-height:1.75;color:#4a3a2a;background:#fff8ec;border-left:4px solid #c8102e;border-radius:6px;padding:6px 10px;margin:0}
+.xm-secnote b{color:#0b5d33;margin-right:8px}
+/* 予約の帯（受付中だけ・いま見ているケーキを予約） */
+.xm-bar{position:fixed;left:50%;transform:translateX(-50%);bottom:12px;z-index:60;width:min(640px,calc(100% - 20px));display:flex;align-items:center;gap:10px;background:#fffdf8;border:2px solid #ffd54a;border-radius:18px;padding:8px 8px 8px 10px;box-shadow:0 12px 30px rgba(0,0,0,.35)}
+.xm-bar[hidden]{display:none}
+.xm-bar__img{width:48px;height:48px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #ffd54a}
+.xm-bar__txt{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.4}
+.xm-bar__name{font-family:var(--font-mincho);font-size:15px;color:#3a2a1c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xm-bar__sub{font-family:var(--font-sans);font-size:13.5px;color:#0b5d33;font-weight:700}
+.xm-bar__sub small{font-size:11px;color:#6b5a48;font-weight:500}
+.xm-bar__btn{flex-shrink:0;border:0;background:#c8102e;color:#fff;font-weight:700;font-size:16px;border-radius:999px;padding:12px 18px;box-shadow:0 3px 0 #8e0d20;cursor:pointer;font-family:var(--font-sans)}
+body.xm-bar-on main.xm{padding-bottom:120px}
+/* スマホ：目次は1列（名前を省略せずに見せる・お値段は右）／要点の札は横長で縦に並べる */
+@media(max-width:600px){
+  .xm-index__row{grid-template-columns:1fr;gap:6px}
+  .xm-index__item{padding:6px 10px 6px 6px}
+  .xm-index__item img{width:52px;height:52px}
+  .xm-index__txt{flex:1;flex-direction:row;align-items:center;justify-content:space-between;gap:8px}
+  .xm-index__name{font-size:14.5px;-webkit-line-clamp:3}
+  .xm-index__price{margin-top:0;text-align:right;line-height:1.25}
+  .xm-index__price small{display:block}
+  .xm-facts{flex-direction:column;align-items:stretch;max-width:440px}
+  .xm-facts li{flex-direction:row;justify-content:space-between;align-items:center;gap:12px;min-width:0;padding:7px 12px;text-align:right}
+  .xm-facts li b{flex-shrink:0;text-align:left}
+}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}.xm-reveal{opacity:1;transform:none;transition:none}.xm-media .xm-cut{transition:none}.is-cut .xm-knife,.xm-media .xm-lens.hint,.xm-flash{animation:none}}
+</style>
 <style id="nav-mobile-grid">
 /* 2026-10-07オーナー指摘：スマホでメニューの境目が分からない。上質さを崩さないよう、ボタン調にはせず
    金の細い罫線で区切った2列の目次にする（奇数個のときは最後の項目を横いっぱいに）。 */
@@ -244,11 +325,17 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </nav>
 <main class="xm">
   <section class="xm-hero">
-    <div class="xm-hero__en">Christmas Cake 2026</div>
-    <h1><span class="nb">こいまりの</span><span class="nb">クリスマスケーキ</span></h1>
-    <p class="xm-hero__lead">お渡しは<b id="xmRange"></b>。<br><span class="nb">ご家族で囲む、</span><span class="nb">特別な一台をご用意しています。</span></p>
+    <p class="xm-hero__sub"><span class="nb">こいまりの</span><span class="nb">クリスマスケーキ</span> <span class="nf">2026</span></p>
+    <h1 class="xm-title is-wait" id="xmTitle">★ こいまりのクリスマスケーキ ★</h1>
+    <p class="xm-hero__lead"><span class="nb">ご家族で囲む、</span><span class="nb">特別な一台をご用意しています。</span></p>
+    <ul class="xm-facts">
+      <li><b>お受け取り</b><span id="xmRange"></span></li>
+      <li><b>ご予約の締切</b><span><span class="nb">Web・お電話 12月18日（金）</span> <span class="nb">店頭 12月20日（日）</span></span></li>
+      <li><b>お支払い</b><span><span class="nb">12月20日（日）までに</span><span class="nb">店頭で先払い</span></span></li>
+    </ul>
   </section>
   <div id="xmStatus"></div>
+  <nav class="xm-index" id="xmIndex" aria-label="クリスマスケーキの一覧" hidden></nav>
   <section class="xm-sec" id="xmFeatureSec" hidden>
     <span class="xm-h2__en">Special Gift</span>
     <h2 class="xm-h2">数量限定の特別なケーキ</h2>
@@ -295,6 +382,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </dl>
   </section>
 </main>
+<div class="xm-bar" id="xmBar" data-reserve-ui hidden><img class="xm-bar__img" alt=""><div class="xm-bar__txt"><b class="xm-bar__name"></b><span class="xm-bar__sub"></span></div><button type="button" class="xm-bar__btn">予約へ進む</button></div>
 <div class="lightbox" id="lightbox"><button class="lightbox__close" id="lightboxClose">×</button><img id="lightboxImg" src="" alt=""></div>
 <footer class="footer">
   <div class="footer__mark">こ い ま り</div>
@@ -302,18 +390,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 <script src="reserve-draft.js"></script>
 <script>
-// クリスマスケーキのページ（2026-10-28作り込み）。内容は管理画面「クリスマスケーキ」（koimariContent/christmas）から。
-// 先行公開中（site-mode.js）や準備中は「ご予約は近日公開予定」。受付中のときだけ、号数を選んで予約に進める。
+// クリスマスケーキのページ（2026-10-03・2026-10-28作り込み）。内容は管理画面「クリスマスケーキ」（koimariContent/christmas）から。
+// 先行公開中（site-mode.js）や準備中は「近日ご予約開始」。受付中のときだけ、号数を選んで予約に進める。
+// 予約ボタンの置き場所（受付中だけ出す）：①各ケーキのサイズ欄と「このケーキを予約する」②画面の下についてくる帯（いま見ているケーキを予約）
+// 途中で離れないための工夫：★表題と要点の札／全種類の目次（押すとそのケーキへ）／断面の絵（写真の右下で切り替え）／人数の目安／締切までの日数（受付中）
 const XM_DB = "https://koimari-tasting-default-rtdb.asia-southeast1.firebasedatabase.app";
+const X = window.KoimariXmasEntry;
 const picked = {}; // ケーキごとに選んだサイズ
+const revealed = new Set(), cutOn = new Set(), hinted = new Set(), expanded = new Set();
 let conf = null;
 // 号数ごとの直径と人数の目安（チラシと同じ）
 const SIZE_GUIDE = { "4号": "直径12cm・3〜4人分", "5号": "直径15cm・5〜6人分", "6号": "直径18cm・7〜8人分", "7号": "直径21cm・9〜10人分" };
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
-function md(ds){const m=String(ds||"").match(/^\d{4}-(\d{2})-(\d{2})$/);return m?(+m[1])+"月"+(+m[2])+"日":"";}
 function sizesOf(c){return (Array.isArray(c&&c.sizes)?c.sizes:[]).filter(s=>s&&s.size);}
 function yen(n){return "¥" + Number(n).toLocaleString() + "<small>（税込）</small>";}
-function canReserve(){ return conf && conf.status === "open" && window.KOIMARI_RESERVE_PUBLIC !== false; }
+function canReserve(){ return !!conf && X.statusOf(conf) === "open"; }
+function isVideo(u){ try { return /\.(mp4|webm|mov)$/i.test(decodeURIComponent(String(u || "").split("?")[0])); } catch (e) { return false; } }
+function items(){ return (conf && Array.isArray(conf.items) ? conf.items : []).map((c, i) => ({ c, i })).filter(x => x.c && x.c.visible !== false && x.c.img); }
 function priceRows(c, i){
   const sizes = sizesOf(c), open = canReserve();
   if (!sizes.length) return '<div class="xm-prices"><div class="xm-price"><span class="xm-price__size">お値段</span><span class="xm-price__yen" style="font-size:15px;color:#6b5a48">近日公開</span></div></div>';
@@ -325,50 +418,178 @@ function priceRows(c, i){
   }).join('') + '</div>' + (open ? '<button type="button" class="xm-reserve" data-i="' + i + '"' + (picked[i] ? '' : ' disabled') + '>' + (picked[i] ? 'このケーキを予約する（' + esc(picked[i]) + '）' : 'サイズを選んでください') + '</button>' : '');
 }
 function badgeHtml(c){ return c.badge ? '<span class="xm-badge' + (/限定/.test(c.badge) ? ' xm-badge--gold' : '') + '">' + esc(c.badge) + '</span>' : ''; }
+// 断面の絵（管理画面で入れたケーキだけ）。動く絵（GIF・WebP・動画）もそのまま
+function secMedia(u, name){ return isVideo(u) ? '<video src="' + esc(u) + '" muted autoplay loop playsinline preload="metadata"></video>' : '<img src="' + esc(u) + '" alt="' + esc(name) + 'の断面" loading="lazy" decoding="async">'; }
+function lensInner(c, cut){ const t = cut ? c.img : c.sectionImg; return (cut || !isVideo(t) ? '<img src="' + esc(t) + '" alt="">' : '<i class="xm-lens__v">断面</i>') + '<span>' + (cut ? '写真に戻る' : '断面を見る') + '</span>'; }
+function mediaHtml(c, i, cls, eager){
+  const sec = c.sectionImg ? String(c.sectionImg) : "", cut = cutOn.has(i);
+  return '<div class="' + cls + ' xm-media xm-zoom" data-img="' + esc(c.img) + '"' + (sec ? ' data-sec="' + esc(sec) + '"' : '') + '>' + badgeHtml(c) +
+    '<img class="xm-photo" src="' + esc(c.img) + '" alt="' + esc(c.name) + '"' + (eager ? ' fetchpriority="high"' : ' loading="lazy"') + ' decoding="async">' +
+    (sec ? '<div class="xm-cut">' + secMedia(sec, c.name) + '</div><i class="xm-knife" aria-hidden="true"></i><button type="button" class="xm-lens" data-i="' + i + '" aria-pressed="' + cut + '">' + lensInner(c, cut) + '</button>' : '') + '</div>';
+}
+// 一覧のカードの説明は4行まで（長いときは「続きを読む」）。サイズとお値段・予約ボタンまで近くするため
+function bodyText(c, i, clampable){
+  const long = clampable && String(c.desc || "").length > 80, open = expanded.has(i);
+  return (c.desc ? '<div class="xm-card__desc' + (long && !open ? ' is-clamp' : '') + '">' + esc(c.desc).replace(/\n/g, "<br>") + '</div>' + (long ? '<button type="button" class="xm-more" data-i="' + i + '">' + (open ? '閉じる ▲' : '続きを読む ▼') + '</button>' : '') : '') + (c.sectionNote ? '<p class="xm-secnote"><b>断面</b>' + esc(c.sectionNote) + '</p>' : ''); }
+function cardCls(base, i){ return base + ' xm-reveal' + (revealed.has(i) ? ' is-in' : '') + (cutOn.has(i) ? ' is-cut' : ''); }
+function statusHtml(){
+  const st = X.statusOf(conf);
+  if (st === "closed") return '<div class="xm-status xm-status--closed"><b>今年のご予約受付は終了しました</b><br>たくさんのご予約をありがとうございました。お問い合わせはお電話でお願いいたします。</div>';
+  if (st === "open") {
+    const y = Number(String(conf.pickupFrom || "").slice(0, 4)) || new Date().getFullYear();
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    const left = Math.round((new Date(y, 11, 18) - t) / 86400000);
+    const cd = left > 0 ? 'Web・お電話のご予約締切（12月18日）まで、<b class="nf">あと' + left + '日</b>' : left === 0 ? 'Web・お電話のご予約は、<b>本日12月18日まで</b>' : '店頭でのご予約は<b>12月20日（日）</b>まで承ります';
+    return '<div class="xm-status xm-status--open"><b>ご予約受付中</b><br>' + cd + '<br>ケーキとサイズを選んで「このケーキを予約する」へお進みください。ご予約が埋まり次第、受付を終了します。</div>';
+  }
+  return '<div class="xm-status xm-status--prep"><span class="nb">受付開始まで、</span><span class="nb">もうしばらくお待ちください。</span></div>';
+}
+function minPriceHtml(c){
+  const ps = sizesOf(c).map(z => Number(z.price)).filter(n => n > 0);
+  return ps.length ? "¥" + Math.min(...ps).toLocaleString() + (ps.length > 1 ? "〜" : "") + "<small>（税込）</small>" : "<small>お値段は近日公開</small>";
+}
+function renderIndex(list){
+  const nav = document.getElementById("xmIndex");
+  if (list.length < 2) { nav.hidden = true; return; }
+  nav.innerHTML = '<p class="xm-index__title">全<b>' + list.length + '</b>種類のクリスマスケーキ</p><p class="xm-index__note">写真を押すと、そのケーキのところへ移動します</p><div class="xm-index__row">' +
+    list.map(({ c, i }) => '<a class="xm-index__item" href="#xm-c' + i + '"><img src="' + esc(c.img) + '" alt="" loading="lazy" decoding="async"><span class="xm-index__txt"><span class="xm-index__name">' + esc(c.name) + '</span><span class="xm-index__price">' + minPriceHtml(c) + '</span></span></a>').join('') + '</div>';
+  nav.hidden = false;
+}
+// 検索結果に商品として出るよう、ケーキの一覧を構造化データにする（ページに出ている内容と同じもの）
+function putJsonLd(list){
+  const old = document.getElementById("xmLd"); if (old) old.remove();
+  const open = canReserve(), base = location.origin + location.pathname;
+  const els = list.map(({ c, i }, k) => {
+    const ps = sizesOf(c).map(z => Number(z.price)).filter(n => n > 0);
+    const prod = { "@type": "Product", name: c.name, image: c.img, brand: { "@type": "Brand", name: "こいまり" } };
+    if (c.desc) prod.description = c.desc;
+    if (ps.length) {
+      prod.offers = ps.length > 1 ? { "@type": "AggregateOffer", priceCurrency: "JPY", lowPrice: Math.min(...ps), highPrice: Math.max(...ps), offerCount: ps.length } : { "@type": "Offer", priceCurrency: "JPY", price: ps[0] };
+      prod.offers.url = base + "#xm-c" + i;
+      prod.offers.seller = { "@id": "https://koimari-official.github.io/koimari-site/" };
+      if (open) prod.offers.availability = "https://schema.org/PreOrder";
+    }
+    return { "@type": "ListItem", position: k + 1, item: prod };
+  });
+  const sc = document.createElement("script"); sc.type = "application/ld+json"; sc.id = "xmLd";
+  sc.textContent = JSON.stringify({ "@context": "https://schema.org", "@type": "ItemList", name: "こいまりのクリスマスケーキ", itemListElement: els });
+  document.head.appendChild(sc);
+}
 function render(){
-  const st = conf ? (conf.status || "preparing") : "preparing";
-  const range = conf && conf.pickupFrom ? md(conf.pickupFrom) + "〜" + md(conf.pickupTo) : "";
+  const range = conf && X.mdw(conf.pickupFrom) && X.mdw(conf.pickupTo) ? X.mdw(conf.pickupFrom) + "〜" + X.mdw(conf.pickupTo) : "";
+  const tt = document.getElementById("xmTitle"); tt.innerHTML = X.titleHtml(conf); tt.classList.remove("is-wait");
   document.getElementById("xmRange").textContent = range;
   document.getElementById("xmFlowRange").textContent = range;
   document.getElementById("xmInfoRange").textContent = range + "（店頭でのお渡し）";
-  const s = document.getElementById("xmStatus");
-  if (st === "closed") s.innerHTML = '<div class="xm-status xm-status--closed"><b>今年のご予約受付は終了しました</b><br>たくさんのご予約をありがとうございました。お問い合わせはお電話でお願いいたします。</div>';
-  else if (canReserve()) s.innerHTML = '<div class="xm-status xm-status--open"><b>ご予約受付中</b><br>ケーキとサイズを選んで「このケーキを予約する」へお進みください。<br>ご予約が埋まり次第、受付を終了します。</div>';
-  else s.innerHTML = '<div class="xm-status xm-status--prep"><b>ご予約の受付は、近日公開予定です</b><br><span class="nb">受付開始まで、</span><span class="nb">もうしばらくお待ちください。</span></div>';
-  const all = (conf && Array.isArray(conf.items) ? conf.items : []).map((c, i) => ({ c, i })).filter(x => x.c && x.c.visible !== false && x.c.img);
+  document.getElementById("xmStatus").innerHTML = statusHtml();
+  const all = items();
   const feat = all.filter(x => x.c.featured), rest = all.filter(x => !x.c.featured);
+  renderIndex(feat.concat(rest));
   document.getElementById("xmFeatureSec").hidden = !feat.length;
-  document.getElementById("xmFeature").innerHTML = feat.map(({ c, i }) => '<article class="xm-feature">' +
-    '<div class="xm-feature__img xm-zoom" data-img="' + esc(c.img) + '">' + badgeHtml(c) + '<img src="' + esc(c.img) + '" alt="' + esc(c.name) + '"></div>' +
-    '<div class="xm-feature__body"><span class="xm-feature__kicker">Santa\'s Gift</span><h3 class="xm-feature__name">' + esc(c.name) + '</h3>' +
-    (c.desc ? '<div class="xm-card__desc">' + esc(c.desc).replace(/\n/g, "<br>") + '</div>' : '') + priceRows(c, i) + '</div></article>').join('');
+  document.getElementById("xmFeature").innerHTML = feat.map(({ c, i }) => '<article class="' + cardCls("xm-feature", i) + '" id="xm-c' + i + '" data-i="' + i + '">' +
+    mediaHtml(c, i, "xm-feature__img", true) +
+    '<div class="xm-feature__body"><span class="xm-feature__kicker">Santa\'s Gift</span><h3 class="xm-feature__name">' + esc(c.name) + '</h3>' + bodyText(c, i, false) + priceRows(c, i) + '</div></article>').join('');
   const grid = document.getElementById("xmGrid");
-  if (!rest.length) { grid.innerHTML = '<p class="xm-empty">ただいま準備中です</p>'; return; }
-  grid.innerHTML = rest.map(({ c, i }) => '<article class="xm-card">' +
-    '<div class="xm-card__img xm-zoom" data-img="' + esc(c.img) + '">' + badgeHtml(c) + '<img src="' + esc(c.img) + '" alt="' + esc(c.name) + '" loading="lazy"></div>' +
-    '<div class="xm-card__body"><h3 class="xm-card__name">' + esc(c.name) + '</h3>' +
-    (c.desc ? '<div class="xm-card__desc">' + esc(c.desc).replace(/\n/g, "<br>") + '</div>' : '') + priceRows(c, i) + '</div></article>').join('');
+  grid.innerHTML = rest.length ? rest.map(({ c, i }, k) => '<article class="' + cardCls("xm-card", i) + '" id="xm-c' + i + '" data-i="' + i + '">' +
+    mediaHtml(c, i, "xm-card__img", !feat.length && k < 2) +
+    '<div class="xm-card__body"><h3 class="xm-card__name">' + esc(c.name) + '</h3>' + bodyText(c, i, true) + priceRows(c, i) + '</div></article>').join('') : '<p class="xm-empty">ただいま準備中です</p>';
+  putJsonLd(feat.concat(rest));
+  observeCards();
+  updateBar();
+}
+// 画面に入ったカードをふわっと出す／断面のボタンを軽く知らせる／いま一番見えているケーキを予約の帯に出す
+let io = null, barIdx = null;
+const ratios = new Map();
+function observeCards(){
+  if (io) io.disconnect();
+  ratios.clear();
+  const cards = document.querySelectorAll(".xm-card[data-i],.xm-feature[data-i]");
+  if (!("IntersectionObserver" in window)) { cards.forEach(e => e.classList.add("is-in")); return; }
+  io = new IntersectionObserver((ents) => {
+    ents.forEach(en => {
+      const el = en.target, i = Number(el.dataset.i);
+      ratios.set(i, en.isIntersecting ? en.intersectionRatio : 0);
+      if (en.isIntersecting) {
+        el.classList.add("is-in"); revealed.add(i);
+        const lens = el.querySelector(".xm-lens");
+        if (lens && !hinted.has(i) && en.intersectionRatio > 0.5) { hinted.add(i); lens.classList.add("hint"); }
+      }
+    });
+    let best = null, br = 0; ratios.forEach((r, i) => { if (r > br) { br = r; best = i; } });
+    barIdx = br > 0.2 ? best : null; updateBar();
+  }, { threshold: [0, .2, .4, .6, .8, 1] });
+  cards.forEach(e => io.observe(e));
+}
+function updateBar(){
+  const bar = document.getElementById("xmBar");
+  const c = barIdx != null && conf && conf.items ? conf.items[barIdx] : null;
+  if (!canReserve() || !c) { bar.hidden = true; document.body.classList.remove("xm-bar-on"); return; }
+  const size = picked[barIdx], z = sizesOf(c).find(x => x.size === size);
+  bar.querySelector(".xm-bar__img").src = c.img;
+  bar.querySelector(".xm-bar__name").textContent = c.name;
+  bar.querySelector(".xm-bar__sub").innerHTML = size ? esc(size) + (z && Number(z.price) > 0 ? "　" + yen(z.price) : "") : "サイズを選んでください";
+  bar.querySelector(".xm-bar__btn").textContent = size ? "予約へ進む" : "サイズを選ぶ";
+  bar.dataset.i = barIdx; bar.hidden = false; document.body.classList.add("xm-bar-on");
+}
+function flash(el){ if (!el) return; el.classList.remove("xm-flash"); void el.offsetWidth; el.classList.add("xm-flash"); }
+function startReserve(i, btn){
+  const c = conf.items[i], size = picked[i];
+  const z = sizesOf(c).find(x => x.size === size) || {};
+  window.KoimariDraft.start({ name: c.name, productType: "christmasCake", idx: i, img: c.img, size: size, price: Number(z.price) > 0 ? "¥" + Number(z.price).toLocaleString() : "" }, btn);
 }
 document.addEventListener("click", (e) => {
+  const lens = e.target.closest(".xm-lens");
+  if (lens) {
+    const i = Number(lens.dataset.i), card = document.getElementById("xm-c" + i), on = !cutOn.has(i);
+    if (on) cutOn.add(i); else cutOn.delete(i);
+    if (card) card.classList.toggle("is-cut", on);
+    lens.setAttribute("aria-pressed", String(on)); lens.innerHTML = lensInner(conf.items[i], on); lens.classList.remove("hint");
+    return;
+  }
+  const more = e.target.closest(".xm-more");
+  if (more) {
+    const i = Number(more.dataset.i), d = more.previousElementSibling, open = !expanded.has(i);
+    if (open) expanded.add(i); else expanded.delete(i);
+    if (d) d.classList.toggle("is-clamp", !open);
+    more.textContent = open ? "閉じる ▲" : "続きを読む ▼";
+    return;
+  }
   const sz = e.target.closest(".xm-size");
   if (sz && !sz.disabled) { picked[sz.dataset.i] = sz.dataset.size; render(); return; }
   const rb = e.target.closest(".xm-reserve");
-  if (rb && !rb.disabled) {
-    const i = Number(rb.dataset.i), c = conf.items[i], size = picked[i];
-    const z = sizesOf(c).find(x => x.size === size) || {};
-    window.KoimariDraft.start({ name: c.name, productType: "christmasCake", idx: i, img: c.img, size: size, price: Number(z.price) > 0 ? "¥" + Number(z.price).toLocaleString() : "" }, rb);
+  if (rb && !rb.disabled) { startReserve(Number(rb.dataset.i), rb); return; }
+  const bb = e.target.closest(".xm-bar__btn");
+  if (bb) {
+    const i = Number(document.getElementById("xmBar").dataset.i);
+    if (picked[i]) startReserve(i, bb);
+    else { const pr = document.querySelector("#xm-c" + i + " .xm-prices"); if (pr) { pr.scrollIntoView({ behavior: "smooth", block: "center" }); flash(pr); } }
     return;
   }
   const im = e.target.closest(".xm-zoom");
-  if (im) { document.getElementById("lightboxImg").src = im.dataset.img; document.getElementById("lightbox").classList.add("show"); }
+  if (im) {
+    const src = im.closest(".is-cut") && im.dataset.sec ? im.dataset.sec : im.dataset.img;
+    if (isVideo(src)) return;
+    document.getElementById("lightboxImg").src = src; document.getElementById("lightbox").classList.add("show");
+  }
 });
 document.getElementById("lightboxClose").addEventListener("click", () => document.getElementById("lightbox").classList.remove("show"));
 document.getElementById("lightbox").addEventListener("click", (e) => { if (e.target.id === "lightbox") e.currentTarget.classList.remove("show"); });
-fetch(XM_DB + "/koimariContent/christmas.json").then(r => r.json()).then(v => {
-  conf = v; render();
+// ギャラリーなどから「#xm-c3」のように来たときは、読み込み後にそのケーキへ移動して光らせる
+function goHash(){
+  const id = (location.hash || "").slice(1); if (!/^xm-c\d+$/.test(id)) return;
+  const t = document.getElementById(id); if (!t) return;
+  t.classList.add("is-in"); revealed.add(Number(t.dataset.i));
+  setTimeout(() => { t.scrollIntoView({ block: "start" }); flash(t); }, 80);
+}
+X.load().then(v => {
+  if (!v) throw new Error("no data");
+  conf = v; render(); goHash();
   // 管理画面で調整した写真の色味・表示位置を反映する（ギャラリーと同じ仕組み。2026-10-28オーナー指示）
   if (window.PhotoAdjust && conf && conf.items) window.PhotoAdjust.register(conf.items);
-}).catch(() => { document.getElementById("xmGrid").innerHTML = '<p class="xm-empty">読み込みに失敗しました。少し待ってから再読み込みしてください。</p>'; });
+}).catch(() => {
+  document.getElementById("xmTitle").classList.remove("is-wait");
+  document.getElementById("xmGrid").innerHTML = '<p class="xm-empty">読み込みに失敗しました。少し待ってから再読み込みしてください。</p>';
+});
 </script>
 <script>
 // クリスマス特設のテーマ（背景・飾り・雪・ときどきサンタのそり）（2026-10-19）

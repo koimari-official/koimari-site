@@ -10,11 +10,14 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <!-- End Google Tag Manager -->
 <script src="error-tracker.js"></script>
 <meta charset="UTF-8">
-<script src="site-mode.js"></script><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
+<script src="site-mode.js"></script>
+<script src="xmas-entry.js"></script>
+<script>/* 管理画面「ギャラリー（商品を見る）」から開いたとき（スタッフ用）は、お客様向けの予約ボタンを出さない（2026-10-28） */if(/[?&]staff=1(&|$)/.test(location.search))document.documentElement.classList.add("staff-view");</script>
+<style>.staff-view .gal-card__reserve,.staff-view .gal-card__line-note,.staff-view .gal-campaign{display:none!important}</style><!-- 予約・LINEの案内の表示を切り替える（先行公開中は隠す） -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
-<title>作品ギャラリー｜こいまり</title>
-<meta name="description" content="こいまりでお作りしたオーダーケーキの作品集をご紹介します。誕生日・記念日・季節限定など。">
+<title>ケーキ・焼き菓子ギャラリー｜大阪市城東区のケーキ屋さん こいまり 城東店</title>
+<meta name="description" content="大阪市城東区のケーキ屋さん こいまり 城東店のケーキと焼き菓子を写真でご紹介します。誕生日・記念日のデコレーションケーキ、カットケーキ、ロールケーキ、焼き菓子ギフトなど。">
 <link rel="canonical" href="https://koimari-official.github.io/koimari-site/gallery.html">
 <meta property="og:type" content="website">
 <meta property="og:title" content="作品ギャラリー｜こいまり">
@@ -372,6 +375,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 // 「誕生日ケーキ」はデコレーションケーキに集約されたためタブなし（オーナー指示）。
 const CATEGORIES = [
   { key: "all", name: "すべて" },
+  { key: "christmas", name: "クリスマスケーキ", tile: "クリスマス\nケーキ" }, // クリスマス特設ページを出している間だけ（xmas-entry.js・2026-10-28オーナー指示）。カードはクリスマスページのそのケーキへ
   { key: "cake", name: "デコレーションケーキ（定番）", tile: "デコレーション\nケーキ（定番）" },
   { key: "order", name: "オーダーメイドケーキ", tile: "オーダーメイド\nケーキ" }, // 管理画面「ギャラリー」の作品（1点物・作品No.付き）。定番と分けて表示（2026-10-26オーナー指示）
   { key: "cutcake", name: "カットケーキ" },
@@ -454,6 +458,9 @@ let menuRollcakes = [];
 let menuBaked = [];
 let menuGift = [];
 let menuAddOns = []; // 砂糖菓子・ゼリー菓子（siteImages/cakeAddOns。2026-10-07）
+let menuChristmas = [], xmasOn = false; // クリスマスケーキ（koimariContent/christmas）。特設ページの入口を出している間だけ使う
+// 「すべて」に入れるもの（砂糖菓子・ゼリー菓子とクリスマスケーキは専用のカテゴリーだけ。トップの写真帯の並びと合わせるため）
+const inAll = (g) => g.category !== "addon" && g.category !== "christmas";
 let menuSynced = false; // Firebase同期前は「準備中」ではなく「読み込み中」を出す
 let gallery = [];
 let voices = loadList("koimari_voices", DEFAULT_VOICES);
@@ -505,11 +512,13 @@ function buildGallery(){
   gallery = assignGalleryNumbers([...galleryPortfolio.filter(g => g && g.img).map(g => Object.assign({}, g, { title: isPlaceholderTitle(g.title) ? "" : g.title, category: g.category === "cake" || !g.category ? "order" : g.category })), ...decorationCards, ...cutcakeCards, ...rollCards, ...bakedCards, ...giftCards]);
   // 砂糖菓子・ゼリー菓子は専用タブだけに出す（「すべて」には入れない。写真が小さめのため）
   gallery = gallery.concat(menuAddOns.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img && c.name && c.name !== "新しい商品").map(({ c, idx }) => menuItemToCard(c, "addon", idx, "addOn")));
+  // クリスマスケーキ（管理画面「クリスマスケーキ」の並び順。写真のあるものだけ）
+  if (xmasOn) gallery = gallery.concat(menuChristmas.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img).map(({ c, idx }) => ({ img: c.img, category: "christmas", title: c.name, desc: c.desc, isMenuItem: true, isXmas: true, idx, badge: c.badge || "", sizes: Array.isArray(c.sizes) ? c.sizes : [] })));
 }
 buildGallery();
 
 function getCount(catKey){
-  if (catKey === "all") return gallery.filter(g => g.category !== "addon").length;
+  if (catKey === "all") return gallery.filter(inAll).length;
   if (CROSS_TAG_CATEGORIES.has(catKey)) return gallery.filter(g => g[catKey]).length;
   return gallery.filter(g => g.category === catKey).length;
 }
@@ -518,7 +527,7 @@ function getCount(catKey){
 function coverOf(catKey){
   // 「すべて」は、管理画面で「ギャラリーの『すべて』の写真にする」を付けた商品・作品の写真を優先（2026-10-02）
   if (catKey === "all") { const pinned = gallery.find(g => g.galleryCover && g.img); if (pinned) return pinned.img; }
-  const list = catKey === "all" ? gallery.filter(g => g.category !== "addon") : CROSS_TAG_CATEGORIES.has(catKey) ? gallery.filter(g => g[catKey]) : gallery.filter(g => g.category === catKey);
+  const list = catKey === "all" ? gallery.filter(inAll) : CROSS_TAG_CATEGORIES.has(catKey) ? gallery.filter(g => g[catKey]) : gallery.filter(g => g.category === catKey);
   const first = list.find(g => g.isMenuItem && g.img) || list.find(g => g.img);
   return first ? first.img : "";
 }
@@ -544,7 +553,7 @@ function renderGrid(){
   const grid = document.getElementById("galleryGrid");
   grid.innerHTML = "";
   grid.classList.toggle("is-addon", currentCat === "addon");
-  const filtered = currentCat === "all" ? gallery.filter(g => g.category !== "addon")
+  const filtered = currentCat === "all" ? gallery.filter(inAll)
     : CROSS_TAG_CATEGORIES.has(currentCat) ? gallery.filter(g => g[currentCat])
     : gallery.filter(g => g.category === currentCat);
   if (currentCat === "addon" && filtered.length) {
@@ -564,7 +573,7 @@ function renderGrid(){
     // ナップは実商品メニューへ統合したため、通常はここに"cake"カテゴリは入らない）。
     const card = document.createElement(g.isMenuItem ? "a" : "article");
     card.className = "gal-card";
-    if (g.isMenuItem) card.href = "product.html?type=" + g.productType + "&idx=" + g.idx;
+    if (g.isMenuItem) card.href = g.isXmas ? "christmas.html#xm-c" + g.idx : "product.html?type=" + g.productType + "&idx=" + g.idx;
     const catName = (CATEGORIES.find(c => c.key === g.category) || {}).name || "";
     const photos = [g.img, ...(Array.isArray(g.gallery) ? g.gallery : [])].filter(Boolean);
     const subPhotos = g.isMenuItem ? [] : photos.slice(1);
@@ -573,7 +582,7 @@ function renderGrid(){
     // サイズはあくまで目安であることをオーナー指示で明示）。
     const sizeMatch = g.isMenuItem ? String(g.desc || "").match(/^【([^】]+)】/) : null;
     const descBody = sizeMatch ? String(g.desc || "").slice(sizeMatch[0].length) : g.desc;
-    const bodyHtml = g.isMenuItem
+    const bodyHtml = g.isXmas ? xmasCardBody(g) : g.isMenuItem
       ? `${g.cakeNo ? `<div class="gal-card__no">No.D${String(g.cakeNo).padStart(2, "0")}</div>` : ""}<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(descBody||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
@@ -598,6 +607,7 @@ function renderGrid(){
         ${g.notForSale ? `<span class="gal-card__seasonal" style="top:auto;bottom:12px;background:rgba(80,80,80,.85);color:#fff;">ただいま販売休止中</span>`
           : (g.saleModes || []).length ? `<span class="gal-card__seasonal" style="top:auto;bottom:12px;background:${g.saleModes.includes("ship") ? "rgba(32,104,76,.88)" : "rgba(74,53,40,.86)"};color:#fff;">${g.saleModes.map((m) => SALE_LABELS[m]).join("・")}</span>` : ""}
         ${g.featured ? `<span class="gal-card__popular">★ 人気</span>` : ""}
+        ${g.isXmas && g.badge ? `<span class="gal-card__popular">${escape(g.badge)}</span>` : ""}
         ${!g.isMenuItem ? `<span class="gal-card__custom">オーダーメイド</span>` : (g.category === "cake" ? (g.custom ? `<span class="gal-card__custom">フルオーダー</span>` : `<span class="gal-card__standard">定番</span>`) : "")}
         <img src="${escape(g.img)}" alt="${escape(g.title)}" loading="lazy" decoding="async">
       </div>
@@ -616,6 +626,23 @@ function renderGrid(){
   });
 }
 
+// クリスマスケーキのカード：サイズと「一番安いサイズのお値段〜」（価格の表示は price-format.js のきまりどおり）
+function xmasCardBody(g){
+  const ss = g.sizes.filter(z => z && z.size), ps = ss.map(z => Number(z.price)).filter(n => n > 0);
+  const price = window.KoimariPrice ? window.KoimariPrice.html(ps.length ? "¥" + Math.min(...ps) + (ps.length > 1 ? "〜" : "") : "") : "";
+  return `<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
+        <p class="gal-card__desc">${escape(String(g.desc||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
+        <div class="gal-card__meta">${ss.length ? `<span class="gal-card__meta-item">サイズ: <strong>${escape(ss.map(z => z.size).join("・"))}</strong></span>` : ""}</div>
+        <div class="gal-card__price">${price}</div>
+        <span class="gal-card__cta">クリスマスケーキのページで見る →</span>`;
+}
+// クリスマス特設ページの設定を受け取る（出している間だけカテゴリーを出す）
+window.applyXmasConf = function (conf) {
+  xmasOn = !!(conf && window.KoimariXmasEntry && window.KoimariXmasEntry.isActive(conf));
+  const raw = conf && conf.items;
+  menuChristmas = xmasOn ? (Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : []) : [];
+  if (window.PhotoAdjust && menuChristmas.length) window.PhotoAdjust.register(menuChristmas);
+};
 // カードの価格欄を埋める（管理画面の価格→無ければ料金表からデコレーションケーキの目安）。price-hint.js参照。
 function fillCardPrices(){
   if (!window.KoimariPriceHint) return;
@@ -833,6 +860,7 @@ async function fetchSiteImagesKey(key){
   return res.json();
 }
 (async () => {
+  const xmasP = window.KoimariXmasEntry ? window.KoimariXmasEntry.load() : Promise.resolve(null); // クリスマスケーキも同時に読む
   const keys = ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift", "cakeAddOns"];
   const data = {};
   // 6種類を同時に取得し、全部そろってから一度に表示する
@@ -843,6 +871,7 @@ async function fetchSiteImagesKey(key){
     }
     // 2026-10-08オーナー指示：届いたカテゴリーから順に出すと件数が段階的に増えて見えるため、全部そろってから一度に表示する
   }));
+  if (typeof window.applyXmasConf === "function") window.applyXmasConf(await xmasP);
   if (typeof window.applyFetchedMenuItems === "function") window.applyFetchedMenuItems(data, true);
 })();
 </script>

@@ -26,7 +26,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23f7f3ee'/><text x='50' y='62' font-family='serif' font-size='44' font-style='italic' fill='%23c9a96e' text-anchor='middle'>K</text></svg>">
 <script type="application/ld+json">
-{"@context":"https://schema.org","@type":"Bakery","name":"こいまり","image":"https://koimari-official.github.io/koimari-site/ogp.jpg","description":"大阪市城東区の手作りケーキ・焼き菓子のお店。誕生日ケーキやオーダーケーキ、ギフト用焼き菓子を承ります。","@id":"https://koimari-official.github.io/koimari-site/","url":"https://koimari-official.github.io/koimari-site/","telephone":"+81-70-9158-0641","address":{"@type":"PostalAddress","streetAddress":"成育2丁目13-15 アイビーマンション 1階","addressLocality":"大阪市城東区","addressRegion":"大阪府","postalCode":"536-0007","addressCountry":"JP"},"geo":{"@type":"GeoCoordinates","latitude":"34.6913","longitude":"135.5448"},"hasMap":"https://maps.google.com/?q=大阪府大阪市城東区成育2丁目13-15","areaServed":[{"@type":"AdministrativeArea","name":"大阪市城東区"},{"@type":"Place","name":"京橋"},{"@type":"Place","name":"蒲生四丁目"}],"sameAs":["https://www.instagram.com/_koimari_/"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"10:00","closes":"20:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":["Sunday"],"opens":"10:00","closes":"19:00"}],"priceRange":"¥¥","servesCuisine":"製菓"}
+{"@context":"https://schema.org","@type":"Bakery","name":"ケーキ屋さん こいまり 城東店","alternateName":"こいまり","image":"https://koimari-official.github.io/koimari-site/ogp.jpg","description":"大阪市城東区の手作りケーキ・焼き菓子のお店。誕生日ケーキやオーダーケーキ、ギフト用焼き菓子を承ります。","@id":"https://koimari-official.github.io/koimari-site/","url":"https://koimari-official.github.io/koimari-site/","telephone":"+81-70-9158-0641","address":{"@type":"PostalAddress","streetAddress":"成育2丁目13-15 アイビーマンション 1階","addressLocality":"大阪市城東区","addressRegion":"大阪府","postalCode":"536-0007","addressCountry":"JP"},"geo":{"@type":"GeoCoordinates","latitude":"34.6913","longitude":"135.5448"},"hasMap":"https://maps.google.com/?q=大阪府大阪市城東区成育2丁目13-15","areaServed":[{"@type":"AdministrativeArea","name":"大阪市城東区"},{"@type":"Place","name":"京橋"},{"@type":"Place","name":"蒲生四丁目"}],"sameAs":["https://www.instagram.com/_koimari_/"],"openingHoursSpecification":[{"@type":"OpeningHoursSpecification","dayOfWeek":["Tuesday","Wednesday","Thursday","Friday","Saturday"],"opens":"10:00","closes":"20:00"},{"@type":"OpeningHoursSpecification","dayOfWeek":["Sunday"],"opens":"10:00","closes":"19:00"}],"priceRange":"¥¥","servesCuisine":"製菓"}
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -661,6 +661,7 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
+<script src="xmas-entry.js"></script><!-- クリスマス特設ページの入口（帯・ついてくるボタン）を出すか -->
 <script src="i18n.js"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
@@ -774,6 +775,22 @@ img[src=""],img:not([src]){visibility:hidden}@media(min-width:901px){.nav-close{
 @keyframes ef-bob{0%,100%{transform:translateY(0) rotate(-4deg)}50%{transform:translateY(-5px) rotate(4deg)}}
 @media(max-width:700px){.event-fair{gap:10px;padding:12px 10px;flex-wrap:wrap}.event-fair__deco{width:42px;height:42px}.event-fair__title{font-size:19px}.event-fair__lead{font-size:min(12.5px,calc((100vw - 28px) / 31))}.event-fair__btn{font-size:13.5px;padding:8px 16px}}
 @media (prefers-reduced-motion: reduce){.event-fair__deco{animation:none}}
+/* クリスマス特設ページの帯：数字（日付）は装飾書体を使わない */
+.event-fair--xmas .event-fair__lead{font-family:var(--font-sans)}
+/* クリスマスの間は、ついてくるボタンをツリーの飾り玉（オーナメント）の形にして特設ページへ（2026-10-28オーナー指示）。
+   素材は LottieFiles「Christmas Bauble」（Lottie Simple License）の1コマ。ゆらゆら揺れるのは飾りの効果だけ */
+.xfab{position:fixed;z-index:91;right:26px;bottom:20px;width:130px;text-decoration:none;display:block}
+.xfab[hidden]{display:none!important}
+.xfab__swing{display:flex;flex-direction:column;align-items:center;transform-origin:50% 0;animation:xfabSway 3.4s ease-in-out infinite;filter:drop-shadow(0 10px 14px rgba(60,20,10,.28))}
+.xfab__orn{width:82px;height:auto}
+.xfab__label{margin-top:-4px;display:flex;flex-direction:column;align-items:center;gap:1px;background:linear-gradient(180deg,#0f6a3b,#0b5d33);border:1.5px solid #d9b86a;border-radius:12px;padding:5px 12px 6px;line-height:1.15;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.xfab__en{font-family:var(--font-en);font-style:italic;font-weight:600;font-size:15px;color:#f3d58a;letter-spacing:.05em}
+.xfab__ja{font-family:var(--font-mincho);font-weight:700;font-size:13px;color:#fff;letter-spacing:.06em;white-space:nowrap}
+.xfab:hover .xfab__swing,.xfab:focus-visible .xfab__swing{animation-play-state:paused}
+@keyframes xfabSway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.xmas-entry .fab{display:none!important}
+@media(max-width:900px){.xfab{right:auto;left:10px;bottom:12px;width:104px}.xfab__orn{width:56px}.xfab__en{font-size:12.5px}.xfab__ja{font-size:11.5px}.xfab__label{padding:4px 9px 5px}}
+@media (prefers-reduced-motion: reduce){.xfab__swing{animation:none}}
 /* 法人の帯：アクセスと区別がつくよう、写真に深い焦げ茶を重ねた特別なデザイン（2026-10-19） */.mini-banner{background:linear-gradient(rgba(31,22,18,.78),rgba(43,31,26,.82)),url(corporate-assets/hero.jpg) center/cover no-repeat!important;padding:46px 24px!important;border-top:1px solid var(--color-gold,#c9a96e);border-bottom:1px solid var(--color-gold,#c9a96e)}.mini-banner__en{color:#e6cf9f!important}.mini-banner__title{color:#fff!important;font-size:24px!important;font-weight:700!important}.mini-banner__sub{flex-basis:100%;order:3;color:rgba(255,255,255,.88);font-size:14.5px;font-weight:600;letter-spacing:.04em}.mini-banner__cta{background:#c9a96e!important;border-color:#c9a96e!important;color:#2b1f1a!important;font-weight:700}.mini-banner__cta:hover{background:#e6cf9f!important}.mini-banner__inner{gap:14px 22px!important}@media(max-width:700px){.mini-banner{padding:36px 16px!important}.mini-banner__title{font-size:20px!important}}.pay-xmas{display:block;margin-top:4px;font-weight:700;color:#a8362f}.pay-xmas[hidden]{display:none}
 /* 今月の主役：特設ページへの大きなボタン（2026-10-21） */
 .spotlight__evbtn{display:flex;align-items:center;gap:14px;width:100%;max-width:520px;margin:6px 0 26px;padding:16px 22px;border-radius:14px;background:linear-gradient(120deg,var(--eb-bg1),var(--eb-bg2));color:var(--eb-ink);text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.18);transition:transform .25s,box-shadow .25s}
@@ -848,6 +865,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </div>
 <!-- イベントフェアの帯：テーマ付きで公開中のお知らせがあるときだけ出る（2026-10-19） -->
 <a class="event-fair" id="eventFair" href="#" hidden></a>
+<a class="event-fair event-fair--xmas" id="xmasFair" href="christmas.html" hidden></a><!-- クリスマス特設ページ（お知らせとは別・管理画面「クリスマスケーキ」で出す期間を決める） -->
 <script>
 // ヘッダーの高さを測ってmargin-top(--header-h)に反映しつつ、position:stickyで
 // 上端に固定されるタイミングに合わせて予約FABも表示する
@@ -1123,6 +1141,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </section>
 
 <a href="reservation.html" class="fab fab--pc"><span class="fab--pc__icon">ご予約</span><span class="fab--pc__label">RESERVE</span></a>
+<a href="christmas.html" class="xfab" id="xmasFab" hidden aria-label="クリスマスケーキの特設ページへ"><span class="xfab__swing"><img class="xfab__orn" src="event-assets/christmas/ornament.png" alt="" width="387" height="569"><span class="xfab__label"><span class="xfab__en">Christmas</span><span class="xfab__ja">クリスマスケーキ</span></span></span></a>
 <!-- 四角い横長POPは丸いFABで代替しているため削除 -->
 
 <footer class="footer">
@@ -1445,6 +1464,25 @@ function renderEventFair(){
   el.innerHTML=(deco[0]||"")+'<span class="event-fair__body"><span class="event-fair__en">'+escape(t.en)+'</span><span class="event-fair__title">'+escape(title)+'</span>'+(lead?'<span class="event-fair__lead">'+escape(lead.length>60?lead.slice(0,60)+"…":lead)+'</span>':'')+'</span><span class="event-fair__btn">特集を見る →</span>'+(deco[1]||"");
   el.hidden=false;
 }
+// クリスマス特設ページの入口（2026-10-28オーナー指示）：ハロウィンの帯と同じ形で、お知らせとは別に出す。
+// ついてくるボタンも、この間はオーナメントの形で特設ページへ。出す期間は管理画面「クリスマスケーキ」（xmas-entry.js）
+function renderXmasEntry(conf){
+  const T=window.KoimariEventTheme&&window.KoimariEventTheme.THEMES.christmas, X=window.KoimariXmasEntry;
+  const el=document.getElementById("xmasFair");
+  if(el&&T){
+    const c=T.colors;
+    [T.font,T.enFont].forEach(fo=>{if(fo&&!document.getElementById("evfont-"+fo.css)){const l=document.createElement("link");l.id="evfont-"+fo.css;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+fo.css+"&display=swap";document.head.appendChild(l);}});
+    const range=X.mdw(conf.pickupFrom)&&X.mdw(conf.pickupTo)?X.mdw(conf.pickupFrom)+"〜"+X.mdw(conf.pickupTo):"";
+    const lead=X.statusOf(conf)==="closed"?"たくさんのご予約をありがとうございました":(range?"お受け取り "+range:"");
+    const deco=(T.deco||[]).slice(0,2).map(k=>'<img class="event-fair__deco" src="event-assets/'+(k.indexOf("/")>=0?k:"christmas/"+k)+'.png" alt="">');
+    el.style.setProperty("--ef-bg1",c.bg1);el.style.setProperty("--ef-bg2",c.bg2);el.style.setProperty("--ef-accent",c.accent2||c.accent);el.style.setProperty("--ef-ink",c.dark?c.ink:"#ffffff");el.style.setProperty("--ef-font",T.font.family);el.style.setProperty("--ef-en",T.enFont.family);
+    el.innerHTML=(deco[0]||"")+'<span class="event-fair__body"><span class="event-fair__en">'+escape(T.en)+'</span><span class="event-fair__title">'+X.titleHtml(conf)+'</span><span class="event-fair__lead">'+escape(lead)+'</span></span><span class="event-fair__btn">特設ページを見る →</span>'+(deco[1]||"");
+    el.hidden=false;
+  }
+  const fab=document.getElementById("xmasFab");
+  if(fab){fab.hidden=false;document.documentElement.classList.add("xmas-entry");}
+}
+if(window.KoimariXmasEntry)window.KoimariXmasEntry.whenActive(renderXmasEntry);
 function renderNews(){
   newsList.innerHTML='';
   const en=I18nCtrl.isEn();
