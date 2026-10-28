@@ -964,9 +964,10 @@ function buildFollowMessage(pick, coupons) {
     "◆店頭・お電話でご予約の",
     "　お客様へ",
     "◇このトークに、ご予約時の",
-    "　電話番号をハイフンなしで",
+    "　お名前の名字（ひらがな）と",
+    "　電話番号（ハイフンなし）を",
     "　送信してください",
-    "　（例：09012345678）",
+    "　（例：やまだ 09012345678）",
     "◇ご予約内容の控えと、",
     "　お受け取りまでのお知らせを",
     "　お送りします",
@@ -1244,17 +1245,30 @@ function buildLinkedCopyMessage(data) {
   lines.push("", "◆ご変更・ご相談", "◇お電話（070-9158-0641）へ");
   return lines.join("\n");
 }
-// 電話番号だけのメッセージ（例：090-1234-5678、06 1234 5678、「電話番号は09012345678です」）を読み取る。読めなければ ""
+// 「名字（ひらがな）＋電話番号」のメッセージを読み取る（2026-10-28オーナー指示：電話番号だけでは他人でも試せるため、名字もそろえて送っていただく）。
+// 例：「やまだ 09012345678」「09012345678 ヤマダ」「やまだです。090-1234-5678」。電話番号が無ければ null。名字が無ければ kana は ""
+function kataToHira(s) { return String(s || "").replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60)); }
 function parseLinkPhone(text) {
-  const t = String(text || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0))
-    .replace(/電話番号|お電話|電話|TEL|Tel|tel|携帯|は|です|でした|。|、|:|：/g, "").replace(/[\s\-ー－‐−()（）]/g, "");
-  return /^0\d{9,10}$/.test(t) ? t : "";
+  let t = String(text || "").replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+  const m = t.match(/0[\d\s\-－‐−ー()（）]{9,18}/);
+  if (!m) return null;
+  const phone = m[0].replace(/\D/g, "");
+  if (!/^0\d{9,10}$/.test(phone)) return null;
+  t = t.replace(m[0], " ").replace(/電話番号|お電話|電話|TEL|Tel|tel|携帯|お名前|名前|名字|苗字|です|でした|。|、|，|,|:|：|[(（)）]/g, " ").trim();
+  // 残りが「かな」だけ（＋空白）のときだけ受け付ける（会話の中の電話番号には反応しない）
+  if (t && !/^[ぁ-ゖァ-ヺー\s　]+$/.test(t)) return t.replace(/[\s　]/g, "").length <= 8 && /^[一-龥々ぁ-ゖァ-ヺー\s　]+$/.test(t) ? { phone, kana: "", kanji: true } : null; // 漢字の名字だけなら、ひらがなで送り直していただく
+  return { phone, kana: kataToHira(t).replace(/[\s　ー]/g, "") };
 }
 // 予約が複数あるときは、お引き取りの早い順に並べる
 function pickupSortKey(d) { return String(d.finalPickupDate || d.pickupDate || "9999") + " " + String(d.finalPickupTime || d.pickupTime || ""); }
 async function tryLinkReservation(userId, text) {
-  const phone = parseLinkPhone(text);
-  if (phone && userId) return tryLinkByPhone(userId, phone);
+  const pk = parseLinkPhone(text);
+  if (pk && userId) {
+    // 電話番号だけのときは、予約の有無は答えずに名字も送っていただく（回数にも数えない）
+    if (pk.kanji) return "お名前の名字は、ひらがなで\nお送りください。\n（例：やまだ 09012345678）";
+    if (pk.kana.length < 2) return "お名前の名字（ひらがな）も\n一緒にお送りください。\n（例：やまだ 09012345678）";
+    return tryLinkByPhone(userId, pk.phone, pk.kana);
+  }
   const code = parseLinkCode(text);
   if (!code || !userId) return null;
   const db = admin.database();
@@ -1279,18 +1293,20 @@ async function tryLinkReservation(userId, text) {
 
 // 電話番号で、まだお引き取り前の予約をすべてこのLINEとつなぎ、控えをお引き取りの早い順に返す（2026-10-28オーナー指示）。
 // 別のLINEとつながっている予約はつなぎ替えない。合わない入力は1日5回まで（予約番号の方式と共通の回数）。
-async function tryLinkByPhone(userId, phone) {
+async function tryLinkByPhone(userId, phone, kana) {
   const db = admin.database();
   const attRef = db.ref("koimariOps/linkAttempts/" + userId + "/" + todayDateKeyJST(new Date()));
   const tries = (await attRef.once("value")).val() || 0;
   if (tries >= 5) return "本日は確認の回数が上限に達しました。\nお手数ですが、お電話\n（070-9158-0641）で\nお問い合わせください。";
   const today = todayDateKeyJST(new Date());
   const all = (await db.ref("reservations").once("value")).val() || {};
-  const live = Object.entries(all).filter(([, d]) => d && String(d.tel || "").replace(/\D/g, "") === phone &&
+  // 電話番号が同じで、ご予約時のふりがなが送られた名字で始まる予約だけ（名字が合わなければ「見つからない」と同じ返事にする）
+  const furiOk = (d) => kataToHira(d.furigana || "").replace(/[\s　ー]/g, "").startsWith(kana);
+  const live = Object.entries(all).filter(([, d]) => d && String(d.tel || "").replace(/\D/g, "") === phone && furiOk(d) &&
     !["キャンセル", "完了", "引取りなし"].includes(d.status) && !d.handedOver && String(d.finalPickupDate || d.pickupDate || "") >= today);
   if (!live.length) {
     await attRef.set(tries + 1);
-    return "ご予約が見つかりませんでした。\nご予約時にお伝えいただいた\n電話番号を、ハイフンなしで\nもう一度お送りください。\n（例：09012345678）";
+    return "ご予約が見つかりませんでした。\nご予約時のお名前の名字\n（ひらがな）と、電話番号\n（ハイフンなし）を\nもう一度お送りください。\n（例：やまだ 09012345678）";
   }
   const mine = live.filter(([, d]) => !d.lineUserId || d.lineUserId === userId);
   if (!mine.length) return "このご予約は、すでに別のLINEと\nつながっています。\nお手数ですが、お電話\n（070-9158-0641）で\nお問い合わせください。";

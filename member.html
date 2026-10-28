@@ -4156,11 +4156,13 @@ function setupReserveForm(uid, displayName) {
       staffThanksTel4 = String(data.tel || "").replace(/\D/g, "").slice(-4);
       // 2026-10-28オーナー指示：予約番号は忘れられるため、お客様にはLINEに「ご予約時の電話番号（ハイフンなし）」を送っていただく。
       // その番号のお引き取り前の予約がすべてLINEとつながる（functions の tryLinkByPhone）。予約番号は控えとして小さく出すだけ
+      // 電話番号だけでは他人でも試せるため、お名前の名字（ひらがな）も一緒に送っていただく（2026-10-28オーナー指示）
       const telDigits = String(data.tel || "").replace(/\D/g, "");
+      const familyKana = String(data.furigana || "").trim().split(/[\s　]+/)[0] || "";
       thanksDesc.innerHTML = '<div class="staff-thanks"><div class="staff-thanks__done">ご予約完了です</div>' +
         '<div class="staff-thanks__step"><div class="staff-thanks__lead">お客様へ、次のようにご案内してください</div>' +
-        '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに、<u>ご予約時の電話番号</u>を<u>ハイフンなしで</u>送信してください。ご予約内容の控えと、お受け取りまでのお知らせをお送りします。」</div>' +
-        '<div class="staff-thanks__send">お客様がLINEで送る内容：<br><b>' + escape(telDigits || "（ご予約時の電話番号）") + "</b></div></div>" +
+        '<div class="staff-thanks__how">「こいまりのLINE公式アカウントを友だち追加して、トークに、<u>ご予約時のお名前の名字（ひらがな）</u>と<u>電話番号（ハイフンなし）</u>を送信してください。ご予約内容の控えと、お受け取りまでのお知らせをお送りします。」</div>' +
+        '<div class="staff-thanks__send">お客様がLINEで送る内容：<br><b>' + escape((familyKana ? familyKana + " " : "（名字） ") + (telDigits || "（電話番号）")) + "</b></div></div>" +
         '<div class="staff-thanks__noref">予約番号（控え）：<span id="staffThanksNo">確認しています…</span></div>' + // 友だち追加のQRコードは出さない（2026-10-26オーナー指示）
         '<div class="staff-thanks__back"><button type="button" class="staff-back-btn" data-staff-back>予約一覧に戻る</button>' +
         '<div class="staff-thanks__backhint">すぐにお会計する場合は、予約一覧でこの予約の「支払済み」にチェックを入れてください。</div></div></div>';
