@@ -337,6 +337,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .res-viewbar .seg--toggle button.on{background:#8a6a3a}
 @media(max-width:600px){.res-viewbar .seg button{padding:8px 11px;font-size:13px}.res-viewbar .seg--sub button{padding:7px 10px;font-size:12.5px}}
 .rc-tag--memo{background:#b03b48!important;color:#fff!important}
+.staff-guide{background:#fff8e6;border:2px solid #e0b872;border-radius:12px;padding:14px 18px;margin:0 0 18px;font-size:15px;line-height:1.8;color:#3a2a1a;max-width:760px}
+.staff-guide p{margin:4px 0 10px}
+.staff-guide ol{margin:4px 0 8px;padding-left:1.4em}
+.staff-guide > span{display:block;font-size:13.5px;color:#7a5a30}
 .rc-memos{margin:10px 0 6px;padding:10px 12px;background:#fffaf2;border:1px solid #ecd9c4;border-radius:10px}
 .rc-memos__head{font-weight:700;font-size:14px;margin-bottom:6px}
 .rc-memos__un{color:#b03b48}
@@ -1054,6 +1058,16 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 
     <section class="panel" id="panel-quoteBuilder">
       <div class="panel__head"><h2 class="panel__title">個別見積もり作成</h2></div>
+      <!-- スタッフ向けの説明（2026-10-28オーナー指示：「いくらくらい？」と聞かれたときに金額の目安を伝える道具として共有） -->
+      <div class="staff-guide">
+        <b>「いくらくらいですか？」と聞かれたときに使います</b>
+        <ol>
+          <li>お客様に、号数・クリーム・飾り・ろうそくやプレートなど、ご希望を伺います。</li>
+          <li>下の欄に入力すると、合計の金額がその場で出ます。</li>
+          <li>「◯◯円くらいです。正式な金額は、ご予約の内容を確認してからお伝えします」とお伝えします。</li>
+        </ol>
+        <span>ここで出る金額は目安です。ここで入力しても、予約にはなりません。</span>
+      </div>
       <p class="panel__desc">お電話等でお客様から伺った内容を入力すると、その場で見積り合計を計算できます。標準内容にない追加工賃も入力可能です。このツールはスタッフのみが使用し、公開ページ（予約フォーム）には一切表示されません（2026-09-05、同業者に価格を把握されないための方針）。</p>
       <div style="background:#fff;border:1px solid var(--color-line);padding:24px 28px;max-width:560px;margin-bottom:16px;">
         <label style="display:block;font-size:13px;color:var(--color-text-soft);margin-bottom:6px;">既存の予約を読み込んで編集する（お客様がフォームで入力済みの内容を確認しながら変更できます）</label>
@@ -1158,6 +1172,18 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <label style="font-size:13px; color:var(--color-text-soft); display:flex; align-items:center; gap:6px;"><input type="checkbox" id="aiReviewShowResolved"> 解決済みも表示</label>
       </div>
       <p class="panel__desc">LINE公式アカウントのAIが、店舗情報・FAQだけでは自信を持って回答できなかった質問の一覧です。正しい回答をFAQに登録すると、次回から同じ質問にAIが正確に答えられるようになります。</p>
+      <!-- スタッフ向けの説明（2026-10-28オーナー指示：AI要確認の意味がわかりにくい・LINE公式アカウントのアプリを知らない人もいる） -->
+      <div class="staff-guide">
+        <b>このページについて</b>
+        <p>こいまりの公式LINEでは、お客様からの質問に<b>AI（自動の返事）</b>が答えています。AIが「この答えで合っているか自信がない」と判断した質問が、ここに並びます。<b>AIはすでにお客様へ返事を送っています</b>（下の「AIの回答」が送った内容です）。</p>
+        <b>やること</b>
+        <ol>
+          <li>お客様の質問と、AIの回答を読みます。</li>
+          <li>AIの回答が<b>間違っている・足りない</b>ときは、お店のタブレットの<b>「LINE公式アカウント」アプリ</b>（緑のアイコン）を開き、「チャット」からそのお客様に正しい内容を送ります。</li>
+          <li>下の欄に正しい回答を入力して登録します。次から同じ質問には、AIがその内容で答えるようになります。</li>
+        </ol>
+        <span>登録した回答は、ホームページの「よくある質問」にも載ります。お客様のお名前など、個人的な内容は書かないでください。わからないときは、オーナー・店長に確認してください。</span>
+      </div>
       <div id="aiReviewArea"></div>
     </section>
 
@@ -8974,28 +9000,32 @@ function initQuoteBuilder() {
 }
 
 const STORE_ACCOUNTS = ["sankyu00002@gmail.com"];
+// 店舗アカウントでいつも出すタブと、「その他の設定」を開いたときだけ出すタブ（2026-10-27・10-28オーナー指示）
+const STORE_MAIN_TABS = ["reservations", "kitchen", "calendar", "notify"];
+const STORE_MORE_TABS = ["manual", "aiReview", "quoteBuilder", "news", "galleryAdmin", "holidays"];
 function applyStoreMode() {
   document.body.classList.add("store-mode");
   if (!document.getElementById("storeModeCss")) {
     const st = document.createElement("style"); st.id = "storeModeCss";
-    // 営業日設定はあまり使わないため、「その他の設定」を開いたときだけ出す（2026-10-27オーナー指示）
-    st.textContent = ".store-mode .tab:not([data-panel=reservations]):not([data-panel=kitchen]):not([data-panel=calendar]):not([data-panel=notify]):not([data-panel=holidays]),.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}" +
-      ".store-mode:not(.store-more-open) .tab[data-panel=holidays]{display:none!important}" +
+    const not = STORE_MAIN_TABS.concat(STORE_MORE_TABS).map((p) => ":not([data-panel=" + p + "])").join("");
+    st.textContent = ".store-mode .tab" + not + ",.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}" +
+      STORE_MORE_TABS.map((p) => ".store-mode:not(.store-more-open) .tab[data-panel=" + p + "]").join(",") + "{display:none!important}" +
       "#storeMoreToggle{border:1px dashed var(--color-line);background:transparent;border-radius:999px;padding:6px 14px;margin:4px 6px;font-size:13px;color:var(--color-text-soft);cursor:pointer}";
     document.head.appendChild(st);
   }
-  const notifyTab = document.querySelector('.tab[data-panel="notify"]'), holTab = document.querySelector('.tab[data-panel="holidays"]');
-  if (notifyTab && holTab && !document.getElementById("storeMoreToggle")) {
+  const notifyTab = document.querySelector('.tab[data-panel="notify"]');
+  if (notifyTab && !document.getElementById("storeMoreToggle")) {
     const btn = document.createElement("button"); btn.type = "button"; btn.id = "storeMoreToggle";
     const label = () => { btn.textContent = document.body.classList.contains("store-more-open") ? "▾ その他の設定をたたむ" : "▸ その他の設定"; };
     btn.addEventListener("click", () => { document.body.classList.toggle("store-more-open"); label(); });
     label();
-    holTab.parentNode.appendChild(btn); // タブの並びの一番後ろに「その他の設定」→ 開くと営業日設定のタブが出る
-    holTab.parentNode.appendChild(holTab);
+    const nav = notifyTab.parentNode;
+    nav.appendChild(btn); // タブの並びの一番後ろに「その他の設定」→ 開くと下のタブが出る
+    STORE_MORE_TABS.forEach((p) => { const t = nav.querySelector('.tab[data-panel="' + p + '"]'); if (t) nav.appendChild(t); });
   }
   const active = document.querySelector(".tab.active");
-  if (!active || !["reservations", "kitchen", "calendar", "notify", "holidays"].includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
-  else if (active.dataset.panel === "holidays" && !document.body.classList.contains("store-more-open")) { const mb = document.getElementById("storeMoreToggle"); if (mb) mb.click(); }
+  if (!active || !STORE_MAIN_TABS.concat(STORE_MORE_TABS).includes(active.dataset.panel)) { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }
+  else if (STORE_MORE_TABS.includes(active.dataset.panel) && !document.body.classList.contains("store-more-open")) { const mb = document.getElementById("storeMoreToggle"); if (mb) mb.click(); }
 }
 // ログイン後の準備で失敗した処理を、管理画面の上部に表示する（スクリーンショットを送ってもらえば原因が分かるように）
 function showStartupWarning(list) {

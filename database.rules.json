@@ -172,7 +172,20 @@
       ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full')",
       "holidays": {
         ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "news": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "gallery": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "faq": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
       }
+    },
+    "aiReviewQueue": {
+      ".read": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')",
+      ".write": "auth != null && ((auth.token.firebase.sign_in_provider === 'password' && auth.token.store !== true) || auth.token.koimariAdmin === 'full' || auth.token.koimariAdmin === 'store')"
     },
     "noritate": {
       "content": {

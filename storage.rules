@@ -7,6 +7,11 @@ service firebase.storage {
       allow read: if true;
       allow write: if request.auth != null && ((request.auth.token.firebase.sign_in_provider == 'password' && request.auth.token.get('store', false) != true) || request.auth.token.get('koimariAdmin', '') == 'full');
     }
+    // 店舗アカウント（ギャラリー・お知らせの写真。2026-10-28オーナー指示）：写真の置き場（uploads）だけ。画像で20MBまで。消すのも可
+    match /siteImages/uploads/{file} {
+      allow write: if request.auth != null && request.auth.token.get('koimariAdmin', '') == 'store'
+        && (request.resource == null || (request.resource.contentType.matches('image/.*') && request.resource.size < 20 * 1024 * 1024));
+    }
     // 試作ラボの写真・動画（レシピ）：正社員のみ（regular＝オーナー・店長・月給の社員）
     match /sweetsLab-media/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.token.get('regular', false) == true;
