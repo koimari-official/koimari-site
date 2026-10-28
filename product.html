@@ -765,7 +765,7 @@ function renderLeadAndTel(item, size) {
        '3営業日を切っているお急ぎの場合は、お電話にて直接ご相談ください。'];
   if (item.notForSale) rows.unshift('<b>この商品は、ただいま販売をお休みしています。</b>再開の時期はお電話でお問い合わせください。');
   { const n = new Date(), m = n.getMonth() + 1, d = n.getDate();
-    rows.push('<strong>お支払い</strong>は、お引き取り日当日、お受け取りの際に店頭でお願いいたします。' + ((m === 10 || m === 11 || (m === 12 && d <= 20)) ? '<span class="pay-xmas">※クリスマスのご予約は、12月20日までに店舗での事前精算が必要です。</span>' : '')); }
+    rows.push('<strong>お支払い</strong>は、お引き取り日当日、お受け取りの際に店頭でお願いいたします。' + ((m === 10 || m === 11 || (m === 12 && d <= 20)) ? '<span class="pay-xmas">※12月21日〜31日にお受け取りのクリスマスケーキは、12月20日までに店舗での事前精算が必要です。</span>' : '')); }
   lead.innerHTML = '<h2 class="pd-block__h">お引き渡しの目安・ご注意</h2><ul class="pd-lead__list">' + rows.map(r => '<li>' + r + '</li>').join('') + '</ul>';
   // ご予約可の焼き菓子・ギフトで「全国配送」も選んでいる場合は、その案内も足す（2026-10-24）
   if (SALE_TYPES.includes(productType) && saleModesOf(item).includes('ship')) shopUrl().then((url) => {

@@ -991,7 +991,7 @@ function buildFollowMessage(pick, coupons) {
     "◆お支払い",
     "◇お引き取り日当日、",
     "　お受け取りの際に店頭で",
-    ...(xmasPrepayNoticeActive() ? ["※クリスマスのご予約は、", "　" + XMAS_PAYMENT_DEADLINE + "までに店舗での", "　事前精算が必要です"] : [])
+    ...(xmasPrepayNoticeActive() ? ["※12月21日〜31日お受け取りの", "　クリスマスケーキは、" + XMAS_PAYMENT_DEADLINE, "　までに店舗での事前精算が必要です"] : [])
   );
   return lines.join("\n");
 }
@@ -1004,7 +1004,7 @@ function buildReserveCard(pick, imageUrl) {
       contents: [
         { type: "text", text: "ケーキのご予約", weight: "bold", size: "xl", color: "#2e2118" },
         { type: "text", text: pick && pick.code ? "さきほど選んだケーキが入った予約フォームが開きます" : "写真から選んで、そのままLINEでご予約いただけます", wrap: true, size: "sm", color: "#4a3a2a" },
-        { type: "text", text: "お支払いはお引き取り日当日、お受け取りの際に店頭で" + (xmasPrepayNoticeActive() ? "（クリスマスのご予約は" + XMAS_PAYMENT_DEADLINE + "までに店舗で事前精算）" : ""), wrap: true, size: "xs", color: "#856e58", margin: "md" },
+        { type: "text", text: "お支払いはお引き取り日当日、お受け取りの際に店頭で" + (xmasPrepayNoticeActive() ? "（12月21日〜31日お受け取りのクリスマスケーキは" + XMAS_PAYMENT_DEADLINE + "までに店舗で事前精算）" : ""), wrap: true, size: "xs", color: "#856e58", margin: "md" },
       ],
     },
     footer: {
