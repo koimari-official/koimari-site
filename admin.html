@@ -452,7 +452,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .xm-row .input{width:auto}
 .xm-card{display:flex;gap:16px;background:#fff;border:1px solid var(--color-line);padding:14px;margin-bottom:12px}
 .xm-photo{flex:0 0 180px;display:flex;flex-direction:column;gap:8px;align-items:center}
-.xm-photo img{width:150px;height:200px;object-fit:cover;background:#faf7f2;border-radius:8px}
+.xm-photo img{width:180px;height:200px;object-fit:cover;background:#faf7f2;border-radius:8px}
 .xm-photo span{width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#faf7f2;color:#a98554}
 .xm-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .xm-secimg{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
@@ -8424,7 +8424,7 @@ function xmRender() {
   // 写真の色・表示位置の調整（ギャラリーと同じ。2026-10-28オーナー指示）。調整値はケーキごとの photoAdjust に入り、「保存して反映」で公開される
   wrap.querySelectorAll(".xm-card").forEach((card) => {
     const c = xmData.items[Number(card.dataset.i)];
-    if (c && c.img && typeof appendPhotoAdjust === "function") appendPhotoAdjust(card.querySelector(".xm-photo"), c, "img", () => { wrap.dataset.dirty = "1"; }, { ratio: 3 / 4 }); // クリスマスページの写真の枠と同じ縦長
+    if (c && c.img && typeof appendPhotoAdjust === "function") appendPhotoAdjust(card.querySelector(".xm-photo"), c, "img", () => { wrap.dataset.dirty = "1"; }, { ratio: 9 / 10 }); // クリスマスページの写真の枠と同じ形（9:10）
   });
 }
 // 画面の入力内容を xmData に取り込む（描き直す前に必ず呼ぶ）

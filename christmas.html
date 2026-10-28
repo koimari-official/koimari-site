@@ -242,11 +242,15 @@ html{scroll-behavior:smooth}
 .xm-flash{animation:xmFlash 1.1s ease-out 2}
 @keyframes xmFlash{0%{box-shadow:0 0 0 0 rgba(255,213,74,.95)}100%{box-shadow:0 0 0 20px rgba(255,213,74,0)}}
 .xm-badge{z-index:4}
-/* 写真は枠いっぱいに表示。枠は写真と同じ縦長（3:4）でケーキ全体が見える（管理画面の「写真の色・表示位置を調整」も同じ枠・2026-10-28オーナー指示） */
-.xm-card__img{aspect-ratio:3/4}
+/* 英字の見出し（Special Gift・Christmas Cakes など）を大きく（2026-10-28オーナー指示） */
+.xm-h2__en{font-size:clamp(32px,5.2vw,46px);line-height:1.15;margin:0 0 4px;letter-spacing:.02em}
+.xm-feature__kicker{font-size:clamp(28px,3.4vw,34px)}
+/* 写真は枠いっぱいに表示。枠は 9:10（写真は縦長3:4。ケーキの写っている範囲を測って、どのケーキも切れずにいちばん大きく見える形）。
+   管理画面の「写真の色・表示位置を調整」も同じ枠（2026-10-28オーナー指示「もっとアップで」「下端の写り込み」） */
+.xm-card__img{aspect-ratio:9/10}
 .xm-card__img img.xm-photo{width:100%;height:100%;object-fit:cover}
 @media(min-width:761px){.xm-feature{grid-template-columns:minmax(0,440px) 1fr}}
-.xm-feature__img{padding:0;align-self:start;aspect-ratio:3/4}
+.xm-feature__img{padding:0;align-self:start;aspect-ratio:9/10}
 .xm-feature__img img.xm-photo{width:100%;height:100%;max-width:none;aspect-ratio:auto;object-fit:cover}
 .xm-card:hover{transform:translateY(-3px)}
 .xm-card{transition:transform .25s ease,opacity .7s ease}
