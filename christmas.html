@@ -242,6 +242,12 @@ html{scroll-behavior:smooth}
 .xm-flash{animation:xmFlash 1.1s ease-out 2}
 @keyframes xmFlash{0%{box-shadow:0 0 0 0 rgba(255,213,74,.95)}100%{box-shadow:0 0 0 20px rgba(255,213,74,0)}}
 .xm-badge{z-index:4}
+/* 写真は枠いっぱいに表示。枠は写真と同じ縦長（3:4）でケーキ全体が見える（管理画面の「写真の色・表示位置を調整」も同じ枠・2026-10-28オーナー指示） */
+.xm-card__img{aspect-ratio:3/4}
+.xm-card__img img.xm-photo{width:100%;height:100%;object-fit:cover}
+@media(min-width:761px){.xm-feature{grid-template-columns:minmax(0,440px) 1fr}}
+.xm-feature__img{padding:0;align-self:start;aspect-ratio:3/4}
+.xm-feature__img img.xm-photo{width:100%;height:100%;max-width:none;aspect-ratio:auto;object-fit:cover}
 .xm-card:hover{transform:translateY(-3px)}
 .xm-card{transition:transform .25s ease,opacity .7s ease}
 /* 断面の絵：写真の右下の丸いボタンで、ナイフで切ったように切り替わる（絵がないケーキには出さない） */
@@ -442,7 +448,8 @@ function statusHtml(){
     const cd = left > 0 ? 'Web・お電話のご予約締切（12月18日）まで、<b class="nf">あと' + left + '日</b>' : left === 0 ? 'Web・お電話のご予約は、<b>本日12月18日まで</b>' : '店頭でのご予約は<b>12月20日（日）</b>まで承ります';
     return '<div class="xm-status xm-status--open"><b>ご予約受付中</b><br>' + cd + '<br>ケーキとサイズを選んで「このケーキを予約する」へお進みください。ご予約が埋まり次第、受付を終了します。</div>';
   }
-  return '<div class="xm-status xm-status--prep"><span class="nb">受付開始まで、</span><span class="nb">もうしばらくお待ちください。</span></div>';
+  const plan = String(conf.openPlan || "").trim(); // 受付開始の予定（管理画面。例：10月後半）
+  return '<div class="xm-status xm-status--prep">' + (plan ? '<b><span class="nb">ご予約の受付は、</span><span class="nb">' + esc(plan) + 'に開始予定です</span></b><br>' : '') + '<span class="nb">受付開始まで、</span><span class="nb">もうしばらくお待ちください。</span></div>';
 }
 function minPriceHtml(c){
   const ps = sizesOf(c).map(z => Number(z.price)).filter(n => n > 0);

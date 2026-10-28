@@ -452,7 +452,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .xm-row .input{width:auto}
 .xm-card{display:flex;gap:16px;background:#fff;border:1px solid var(--color-line);padding:14px;margin-bottom:12px}
 .xm-photo{flex:0 0 180px;display:flex;flex-direction:column;gap:8px;align-items:center}
-.xm-photo img{width:180px;height:180px;object-fit:contain;background:#faf7f2;border-radius:8px}
+.xm-photo img{width:150px;height:200px;object-fit:cover;background:#faf7f2;border-radius:8px}
 .xm-photo span{width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#faf7f2;color:#a98554}
 .xm-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
 .xm-secimg{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:4px}
@@ -1744,6 +1744,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         </div>
         <div class="xm-row"><b>お渡し期間</b><input type="date" id="xmFrom" class="input"> 〜 <input type="date" id="xmTo" class="input"><span class="small">ご予約は12月20日まで・店頭で前払い（これまでどおり）</span></div>
         <div class="xm-row"><b>表題</b><input id="xmTitleIn" class="input" style="flex:1;min-width:min(100%,360px)" placeholder="空欄なら自動：★ クリスマスケーキ 近日ご予約開始 ★"><span class="small">トップの帯と特設ページの一番上に出ます（空欄なら受付状態に合わせて自動）。絵文字は使わないでください</span></div>
+        <div class="xm-row"><b>受付開始の予定</b><input id="xmOpenPlan" class="input" style="width:12em" placeholder="例：10月後半"><span class="small">準備中のあいだ「ご予約の受付は、〇〇に開始予定です」と出します（表題が空欄なら表題にも）。空欄なら「近日ご予約開始」</span></div>
         <div class="xm-row"><b>特設ページの入口</b><label><input type="checkbox" id="xmEntryOn"> トップの帯・ついてくるボタン・ギャラリーの「クリスマスケーキ」に出す</label><label>最終日 <input type="date" id="xmEntryUntil" class="input"></label><span class="small">最終日が空欄なら、お渡し期間の最終日まで出します。特設ページはお知らせとは別のページです</span></div>
       </div>
       <div id="xmItems"></div>
@@ -2894,7 +2895,7 @@ function openPhotoAdjust(item, src, onChange, opts) {
     (left ? '<div style="display:flex;justify-content:space-between;font-size:11px;color:#8a7a68;"><span>' + left + '</span><span>' + right + '</span></div>' : '') + '</div>';
   m.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:760px;width:100%;max-height:92vh;overflow:auto;padding:18px;display:flex;gap:18px;flex-wrap:wrap;">' +
     '<div style="flex:1 1 300px;"><div style="font-weight:700;margin-bottom:6px;">プレビュー（サイトでの見え方）</div>' +
-    '<div id="paBox" style="width:100%;max-width:340px;aspect-ratio:1/1;overflow:hidden;border-radius:10px;background:#f4ede1;"><img id="paImg" src="' + src.replace(/"/g, "&quot;") + '" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></div>' +
+    '<div id="paBox" style="width:100%;max-width:340px;aspect-ratio:' + (opts.ratio || 1) + ';overflow:hidden;border-radius:10px;background:#f4ede1;"><img id="paImg" src="' + src.replace(/"/g, "&quot;") + '" style="width:100%;height:100%;object-fit:cover;pointer-events:none;"></div>' +
     '<div style="font-weight:700;margin:14px 0 4px;">表示位置</div><div id="paPosArea" style="font-size:12.5px;color:#5a4a3a;line-height:1.7;">読み込み中…</div></div>' +
     '<div style="flex:1 1 260px;">' +
     sl("b", "明るさ", 60, 140, "暗く", "明るく") + sl("w", "色温度", -10, 10, "寒色（青み）", "暖色（黄み）") + sl("c", "コントラスト", 60, 140, "やわらかく", "くっきり") + sl("s", "鮮やかさ", 40, 160, "おだやか", "鮮やか") +
@@ -2911,14 +2912,16 @@ function openPhotoAdjust(item, src, onChange, opts) {
     if (PA.isDefault(cur)) { img.style.objectPosition = "50% 50%"; }
   };
   ["b", "c", "s", "w"].forEach(k => m.querySelector("#paR_" + k).addEventListener("input", e => { cur[k] = Number(e.target.value); sync(); }));
-  // 表示位置：元の写真全体を表示し、サイトで見える範囲（正方形の枠）をドラッグして決める（2026-10-06オーナー指示）。
+  // 表示位置：元の写真全体を表示し、サイトで見える範囲（枠）をドラッグして決める（2026-10-06オーナー指示）。
+  // 枠の形は opts.ratio（横÷縦）。ギャラリーは正方形（1）、クリスマスケーキは写真と同じ縦長（3/4）（2026-10-28オーナー指摘「はじめから見切れている」）。
   // 正方形に切り抜き済みのメイン写真は、元画像から切り抜き直す（「位置を調整」）。
   const posArea = m.querySelector("#paPosArea");
   const probe = new Image();
   probe.onload = () => {
-    const W = probe.naturalWidth, H = probe.naturalHeight;
-    if (Math.abs(W / H - 1) < 0.03) {
-      posArea.innerHTML = opts.isMain
+    const W = probe.naturalWidth, H = probe.naturalHeight, R = opts.ratio || 1;
+    if (Math.abs(W / H - R) < 0.03) {
+      posArea.innerHTML = R !== 1 ? "この写真は、サイトの写真の枠と同じ形のため、全体がそのまま表示されます（表示位置の調整はいりません）。"
+        : opts.isMain
         ? (opts.hasOriginal ? "この写真は正方形に切り抜いて保存しています。表示位置は、元の写真から枠を動かして選び直します。" : "<b style='color:#b03b48;'>この写真は元の写真が保存されていないため、今は位置を動かせません。</b>写真の下の「ファイルから選択」でもう一度写真を選ぶと、以降は元の写真から位置を選び直せます。") +
           (opts.onRecrop ? '<div><button type="button" class="btn btn--small" id="paRecrop" style="margin-top:8px;">元の写真から表示位置を選び直す</button></div>' : "")
         : "この写真は正方形のため、表示位置の調整はありません（全体がそのまま表示されます）。";
@@ -2931,20 +2934,21 @@ function openPhotoAdjust(item, src, onChange, opts) {
       '<div id="paFrame" style="position:absolute;box-sizing:border-box;border:3px solid #fff;outline:2px solid #e08a00;box-shadow:0 0 0 9999px rgba(0,0,0,.45);cursor:grab;"></div></div>';
     const full = m.querySelector("#paFull"), frame = m.querySelector("#paFrame");
     full.style.overflow = "hidden";
-    const landscape = W > H;
+    const wide = W / H > R; // 枠より横長の写真＝枠を左右に動かす。縦長の写真＝上下に動かす
+    const frameSize = () => { const fw = full.clientWidth, fh = fw * H / W; return { fw, fh, w: wide ? fh * R : fw, h: wide ? fh : fw / R }; };
     placeFrame = () => {
-      const fw = full.clientWidth, fh = fw * H / W, side = Math.min(fw, fh);
-      frame.style.width = frame.style.height = side + "px";
-      frame.style.left = (landscape ? (fw - side) * cur.x / 100 : 0) + "px";
-      frame.style.top = (landscape ? 0 : (fh - side) * cur.y / 100) + "px";
+      const z = frameSize();
+      frame.style.width = z.w + "px"; frame.style.height = z.h + "px";
+      frame.style.left = (wide ? (z.fw - z.w) * cur.x / 100 : 0) + "px";
+      frame.style.top = (wide ? 0 : (z.fh - z.h) * cur.y / 100) + "px";
     };
     let fd = null;
     frame.addEventListener("pointerdown", e => { e.preventDefault(); fd = { x: e.clientX, y: e.clientY, ox: cur.x, oy: cur.y }; frame.setPointerCapture(e.pointerId); frame.style.cursor = "grabbing"; });
     frame.addEventListener("pointermove", e => {
       if (!fd) return;
-      const fw = full.clientWidth, fh = fw * H / W, side = Math.min(fw, fh);
-      if (landscape) cur.x = Math.max(0, Math.min(100, Math.round(fd.ox + (e.clientX - fd.x) / Math.max(1, fw - side) * 100)));
-      else cur.y = Math.max(0, Math.min(100, Math.round(fd.oy + (e.clientY - fd.y) / Math.max(1, fh - side) * 100)));
+      const z = frameSize();
+      if (wide) cur.x = Math.max(0, Math.min(100, Math.round(fd.ox + (e.clientX - fd.x) / Math.max(1, z.fw - z.w) * 100)));
+      else cur.y = Math.max(0, Math.min(100, Math.round(fd.oy + (e.clientY - fd.y) / Math.max(1, z.fh - z.h) * 100)));
       sync();
     });
     const fend = () => { fd = null; frame.style.cursor = "grab"; };
@@ -2966,7 +2970,7 @@ function openPhotoAdjust(item, src, onChange, opts) {
 }
 // 画像を登録するカード（makeImageItem）に「色・表示位置を調整」を付ける共通部品（2026-10-07オーナー指示：
 // 画像を指定する画面は、明るさ等の調整と全体表示ができる状態で作る。新しい画像の画面を作る時は必ずこれを付ける）。
-function appendPhotoAdjust(itemEl, obj, key, onChange) {
+function appendPhotoAdjust(itemEl, obj, key, onChange, extraOpts) {
   const btn = document.createElement("button");
   btn.type = "button";
   btn.className = "btn btn--small btn--ghost";
@@ -2979,7 +2983,7 @@ function appendPhotoAdjust(itemEl, obj, key, onChange) {
   btn.addEventListener("click", () => {
     if (!obj[key]) { showToast("先に写真を登録してください", "error"); return; }
     const recrop = Array.from(itemEl.querySelectorAll(".img-item__actions button")).find(b => b.textContent === "位置を調整");
-    openPhotoAdjust(obj, obj[key], () => { apply(); onChange(); }, { isMain: true, hasOriginal: !!obj[key + "Original"], onRecrop: recrop ? () => recrop.click() : null });
+    openPhotoAdjust(obj, obj[key], () => { apply(); onChange(); }, Object.assign({ isMain: true, hasOriginal: !!obj[key + "Original"], onRecrop: recrop ? () => recrop.click() : null }, extraOpts || {}));
   });
   const actions = itemEl.querySelector(".img-item__actions");
   itemEl.insertBefore(btn, actions || null);
@@ -8397,6 +8401,7 @@ function xmRender() {
   document.getElementById("xmFrom").value = xmData.pickupFrom || "";
   document.getElementById("xmTo").value = xmData.pickupTo || "";
   document.getElementById("xmTitleIn").value = xmData.title || "";
+  document.getElementById("xmOpenPlan").value = xmData.openPlan || "";
   document.getElementById("xmEntryOn").checked = xmData.entryOff !== true;
   document.getElementById("xmEntryUntil").value = xmData.entryUntil || "";
   wrap.innerHTML = (xmData.items || []).map((c, i) => '<div class="xm-card" data-i="' + i + '">' +
@@ -8419,7 +8424,7 @@ function xmRender() {
   // 写真の色・表示位置の調整（ギャラリーと同じ。2026-10-28オーナー指示）。調整値はケーキごとの photoAdjust に入り、「保存して反映」で公開される
   wrap.querySelectorAll(".xm-card").forEach((card) => {
     const c = xmData.items[Number(card.dataset.i)];
-    if (c && c.img && typeof appendPhotoAdjust === "function") appendPhotoAdjust(card.querySelector(".xm-photo"), c, "img", () => { wrap.dataset.dirty = "1"; });
+    if (c && c.img && typeof appendPhotoAdjust === "function") appendPhotoAdjust(card.querySelector(".xm-photo"), c, "img", () => { wrap.dataset.dirty = "1"; }, { ratio: 3 / 4 }); // クリスマスページの写真の枠と同じ縦長
   });
 }
 // 画面の入力内容を xmData に取り込む（描き直す前に必ず呼ぶ）
@@ -8430,6 +8435,7 @@ function xmCollect() {
   xmData.pickupFrom = document.getElementById("xmFrom").value || "";
   xmData.pickupTo = document.getElementById("xmTo").value || "";
   xmData.title = document.getElementById("xmTitleIn").value.trim();
+  xmData.openPlan = document.getElementById("xmOpenPlan").value.trim();
   xmData.entryOff = !document.getElementById("xmEntryOn").checked;
   xmData.entryUntil = document.getElementById("xmEntryUntil").value || "";
   document.querySelectorAll("#xmItems .xm-card").forEach((card) => {

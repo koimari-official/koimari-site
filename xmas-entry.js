@@ -43,7 +43,9 @@
   function titleOf(conf) {
     var t = conf ? String(conf.title || "").trim() : "";
     if (t) return t;
-    return "★ クリスマスケーキ " + ({ open: "ご予約受付中", closed: "ご予約受付終了" }[statusOf(conf)] || "近日ご予約開始") + " ★";
+    var st = statusOf(conf), plan = conf ? String(conf.openPlan || "").trim() : "";
+    if (st === "preparing" && plan) return "★ クリスマスケーキ " + plan + "ご予約開始予定 ★"; // 受付開始の予定（例：10月後半）を管理画面で入れたとき
+    return "★ クリスマスケーキ " + ({ open: "ご予約受付中", closed: "ご予約受付終了" }[st] || "近日ご予約開始") + " ★";
   }
   // 表題をHTMLに（空白の位置でだけ折り返す。先頭・末尾の★は隣の言葉と離さない）
   function titleHtml(conf) {
@@ -51,7 +53,8 @@
     var w = titleOf(conf).split(/\s+/).filter(Boolean);
     if (w.length > 2 && w[0] === "★") w.splice(0, 2, w[0] + " " + w[1]);
     if (w.length >= 2 && w[w.length - 1] === "★") w.splice(w.length - 2, 2, w[w.length - 2] + " " + w[w.length - 1]);
-    return w.map(function (x) { return '<span style="display:inline-block">' + esc(x) + "</span>"; }).join(" ");
+    // 数字（日付など）は装飾書体を使わない（こいまりのきまり）
+    return w.map(function (x) { return '<span style="display:inline-block">' + esc(x).replace(/(\d+)/g, '<span style="font-family:var(--font-sans,sans-serif)">$1</span>') + "</span>"; }).join(" ");
   }
   window.KoimariXmasEntry = {
     load: load, isActive: isActive, itemsOf: itemsOf, today: today, mdw: mdw, statusOf: statusOf, titleOf: titleOf, titleHtml: titleHtml,

@@ -78,6 +78,7 @@ main{max-width:1180px;margin:0 auto;padding:80px 24px 60px}
 a.gal-card .gal-card__img{cursor:pointer}
 .gal-card__img img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
 .gal-card:hover .gal-card__img img{transform:scale(1.06)}
+.gal-card--xmas .gal-card__img img{object-fit:contain;background:#fffaf2} /* クリスマスケーキは縦長の写真なので、正方形の枠でも見切れないよう丸ごと表示（2026-10-28） */
 .gal-card__cat{position:absolute;z-index:2;top:12px;left:12px;background:rgba(201,169,110,.92);color:#fff;font-family:var(--font-mincho);font-size:12px;letter-spacing:.08em;padding:5px 12px;font-weight:500;backdrop-filter:blur(4px)}
 .gal-sugar-lead{display:flex;flex-direction:column;gap:6px;text-align:center;background:#fff7ea;border:1px solid #e8cf9f;border-radius:14px;padding:16px 18px;margin-bottom:6px}
 .gal-sugar-lead b{font-family:var(--font-mincho);font-size:clamp(18px,2.4vw,22px);letter-spacing:.06em;color:#3a2a1c}
@@ -572,7 +573,7 @@ function renderGrid(){
     // 納期・LINE相談の従来形式を維持する（2026-09-08、デコレーションケーキの既定ライン
     // ナップは実商品メニューへ統合したため、通常はここに"cake"カテゴリは入らない）。
     const card = document.createElement(g.isMenuItem ? "a" : "article");
-    card.className = "gal-card";
+    card.className = "gal-card" + (g.isXmas ? " gal-card--xmas" : "");
     if (g.isMenuItem) card.href = g.isXmas ? "christmas.html#xm-c" + g.idx : "product.html?type=" + g.productType + "&idx=" + g.idx;
     const catName = (CATEGORIES.find(c => c.key === g.category) || {}).name || "";
     const photos = [g.img, ...(Array.isArray(g.gallery) ? g.gallery : [])].filter(Boolean);
