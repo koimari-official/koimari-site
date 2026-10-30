@@ -36,6 +36,8 @@
   // 受付状態。HPの予約を隠している間（site-mode.js）は、受付中でも「近日ご予約開始」として扱う
   function statusOf(conf) {
     var st = (conf && conf.status) || "preparing";
+    // 受付終了の日時（管理画面）を過ぎたら、受付終了として扱う（2026-10-31：12/21 0時に自動で終わるように）
+    if (conf && conf.closeAt && Date.now() >= Date.parse(conf.closeAt)) return "closed";
     // 受付開始の日時（管理画面）を過ぎたら、準備中のままでも受付中として扱う（2026-10-31：18:00に誰も操作しなくても始まるように）
     if (st === "preparing" && conf && conf.openAt && Date.now() >= Date.parse(conf.openAt)) st = "open";
     if (st === "open" && window.KOIMARI_RESERVE_PUBLIC === false) st = "preparing";

@@ -1745,6 +1745,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         <div class="xm-row"><b>お渡し期間</b><input type="date" id="xmFrom" class="input"> 〜 <input type="date" id="xmTo" class="input"><span class="small">締切：Web・お電話12/18・店頭12/20。12/21〜31のお受け取りは12/20までに店頭で先払い（12/1〜20のお受け取りは受け取りのときのお会計でも可）</span></div>
         <div class="xm-row"><b>表題</b><input id="xmTitleIn" class="input" style="flex:1;min-width:min(100%,360px)" placeholder="空欄なら自動：★ クリスマスケーキ 近日ご予約開始 ★"><span class="small">トップの帯と特設ページの一番上に出ます。<b>準備中のあいだだけ</b>使い、受付が始まったら「★ クリスマスケーキ ご予約受付中 ★」に自動で変わります（空欄なら準備中も自動）。絵文字は使わないでください</span></div>
         <div class="xm-row"><b>受付開始の日時</b><input type="datetime-local" id="xmOpenAt" class="input"><span class="small">この日時になると、準備中のままでも自動で「受付中」になります（HP・LINEの予約フォーム・特設ページ）。空欄なら自動では始まりません</span></div>
+        <div class="xm-row"><b>受付終了の日時</b><input type="datetime-local" id="xmCloseAt" class="input"><span class="small">この日時になると、自動で「受付終了」になり、特設ページとトップの帯に「店頭での当日販売もございます」と出ます。空欄なら自動では終わりません</span></div>
         <div class="xm-row"><b>受付開始の予定</b><input id="xmOpenPlan" class="input" style="width:12em" placeholder="例：10月後半"><span class="small">準備中のあいだ「ご予約の受付は、〇〇に開始予定です」と出します（表題が空欄なら表題にも）。空欄なら「近日ご予約開始」</span></div>
         <div class="xm-row"><b>特設ページの入口</b><label><input type="checkbox" id="xmEntryOn"> トップの帯・ついてくるボタン・ギャラリーの「クリスマスケーキ」に出す</label><label>最終日 <input type="date" id="xmEntryUntil" class="input"></label><span class="small">最終日が空欄なら、お渡し期間の最終日まで出します。特設ページはお知らせとは別のページです</span></div>
       </div>
@@ -8400,9 +8401,10 @@ function xmRender() {
   const wrap = document.getElementById("xmItems");
   if (!wrap || !xmData) return;
   // 受付開始の日時を過ぎていたら、準備中でも「受付中」として表示する（保存すると受付中になる）
-  const xmEff = (xmData.status || "preparing") === "preparing" && xmData.openAt && Date.now() >= Date.parse(xmData.openAt) ? "open" : (xmData.status || "preparing");
+  const xmEff = xmData.closeAt && Date.now() >= Date.parse(xmData.closeAt) ? "closed" : (xmData.status || "preparing") === "preparing" && xmData.openAt && Date.now() >= Date.parse(xmData.openAt) ? "open" : (xmData.status || "preparing");
   document.querySelectorAll('input[name="xmStatus"]').forEach((r) => { r.checked = r.value === xmEff; });
   document.getElementById("xmOpenAt").value = xmData.openAt ? String(xmData.openAt).slice(0, 16) : "";
+  document.getElementById("xmCloseAt").value = xmData.closeAt ? String(xmData.closeAt).slice(0, 16) : "";
   document.getElementById("xmFrom").value = xmData.pickupFrom || "";
   document.getElementById("xmTo").value = xmData.pickupTo || "";
   document.getElementById("xmTitleIn").value = xmData.title || "";
@@ -8442,6 +8444,7 @@ function xmCollect() {
   xmData.title = document.getElementById("xmTitleIn").value.trim();
   xmData.openPlan = document.getElementById("xmOpenPlan").value.trim();
   { const v = document.getElementById("xmOpenAt").value; xmData.openAt = v ? v + ":00+09:00" : ""; } // 日本時間で保存
+  { const v = document.getElementById("xmCloseAt").value; xmData.closeAt = v ? v + ":00+09:00" : ""; }
   xmData.entryOff = !document.getElementById("xmEntryOn").checked;
   xmData.entryUntil = document.getElementById("xmEntryUntil").value || "";
   document.querySelectorAll("#xmItems .xm-card").forEach((card) => {

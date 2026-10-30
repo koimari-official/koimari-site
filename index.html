@@ -1474,7 +1474,7 @@ function renderXmasEntry(conf){
     const c=T.colors;
     [T.font,T.enFont].forEach(fo=>{if(fo&&!document.getElementById("evfont-"+fo.css)){const l=document.createElement("link");l.id="evfont-"+fo.css;l.rel="stylesheet";l.href="https://fonts.googleapis.com/css2?family="+fo.css+"&display=swap";document.head.appendChild(l);}});
     const range=X.mdw(conf.pickupFrom)&&X.mdw(conf.pickupTo)?X.mdw(conf.pickupFrom)+"〜"+X.mdw(conf.pickupTo):"";
-    const lead=X.statusOf(conf)==="closed"?"たくさんのご予約をありがとうございました":(range?"お受け取り "+range:"");
+    const lead=X.statusOf(conf)==="closed"?"店頭での当日販売もございます":(range?"お受け取り "+range:"");
     const deco=(T.deco||[]).slice(0,2).map(k=>'<img class="event-fair__deco" src="event-assets/'+(k.indexOf("/")>=0?k:"christmas/"+k)+'.png" alt="">');
     el.style.setProperty("--ef-bg1",c.bg1);el.style.setProperty("--ef-bg2",c.bg2);el.style.setProperty("--ef-accent",c.accent2||c.accent);el.style.setProperty("--ef-ink",c.dark?c.ink:"#ffffff");el.style.setProperty("--ef-font",T.font.family);el.style.setProperty("--ef-en",T.enFont.family);
     el.innerHTML=(deco[0]||"")+'<span class="event-fair__body"><span class="event-fair__en">'+escape(T.en)+'</span><span class="event-fair__title">'+X.titleHtml(conf)+'</span><span class="event-fair__lead">'+escape(lead)+'</span></span><span class="event-fair__btn">特設ページを見る →</span>'+(deco[1]||"");

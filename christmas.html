@@ -444,7 +444,7 @@ function bodyText(c, i, clampable){
 function cardCls(base, i){ return base + ' xm-reveal' + (revealed.has(i) ? ' is-in' : '') + (cutOn.has(i) ? ' is-cut' : ''); }
 function statusHtml(){
   const st = X.statusOf(conf);
-  if (st === "closed") return '<div class="xm-status xm-status--closed"><b>今年のご予約受付は終了しました</b><br>たくさんのご予約をありがとうございました。お問い合わせはお電話でお願いいたします。</div>';
+  if (st === "closed") return '<div class="xm-status xm-status--closed"><b>クリスマスケーキのご予約受付は終了しました</b><br>たくさんのご予約をありがとうございました。<br><b>店頭での当日販売もございます。</b></div>';
   if (st === "open") {
     const y = Number(String(conf.pickupFrom || "").slice(0, 4)) || new Date().getFullYear();
     const t = new Date(); t.setHours(0, 0, 0, 0);

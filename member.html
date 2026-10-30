@@ -400,7 +400,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="カットケーキ"> カットケーキ（3個から）</label>
             <label class="radio-list__opt"><input type="radio" name="reserveType" value="砂糖菓子・ゼリー菓子"> 砂糖菓子・ゼリー菓子のみ</label>
             <label class="radio-list__opt" id="reserveTypeBakedOpt" style="display:none;"><input type="radio" name="reserveType" value="焼き菓子・ギフト" disabled> 焼き菓子・ギフト</label>
-            <label class="radio-list__opt" id="reserveTypeXmasOpt" style="display:none;"><input type="radio" name="reserveType" value="クリスマスケーキ"> クリスマスケーキ（12月22日〜25日お渡し）</label>
+            <label class="radio-list__opt" id="reserveTypeXmasOpt" style="display:none;"><input type="radio" name="reserveType" value="クリスマスケーキ"> クリスマスケーキ<span id="reserveTypeXmasRange"></span></label><!-- お渡し期間は管理画面「クリスマスケーキ」から（2026-10-31） -->
           </div>
         </div>
         <div class="field" id="reserveTiersField" style="display:none;">
@@ -2099,7 +2099,9 @@ function shopCutSelected() { return shopCutCatalog().filter(c => shopCutQty[c.na
 // グランマニエの種類の名前（2026-10-28：いちごムース／チョコムース → イチゴBOX／チョコBOX。以前の名前で保存されたものも読み替える）
 function mousseFlavorName(v) { return v === "いちごムース" ? "イチゴBOX" : v === "チョコムース" ? "チョコBOX" : v; }
 // 受付中＝管理画面で「受付中」、または「受付開始の日時」を過ぎた（2026-10-31：10/31 18:00 に自動で始まるように。xmas-entry.js の statusOf と同じ決まり）
-function xmasOpen() { return !!(xmasConf && (xmasConf.status === "open" || (xmasConf.status === "preparing" && xmasConf.openAt && Date.now() >= Date.parse(xmasConf.openAt)))); }
+function xmasOpen() { return !!(xmasConf && !(xmasConf.closeAt && Date.now() >= Date.parse(xmasConf.closeAt)) && (xmasConf.status === "open" || (xmasConf.status === "preparing" && xmasConf.openAt && Date.now() >= Date.parse(xmasConf.openAt)))); } // 受付終了の日時を過ぎたら終わり（2026-10-31）
+// Web予約限定のケーキ（名前か目印に「Web予約限定」）は、電話・店頭のスタッフ入力では選べない（2026-10-31オーナー指示）
+function xmasWebOnly(c) { return /Web予約限定/.test(String((c && c.name) || "") + String((c && c.badge) || "")); }
 // クリスマスケーキの締切の受付方法（2026-10-28：Web・お電話は12/18、店頭は12/20）。電話・店頭予約の登録では、選んだ受付方法で決める
 function xmasChannel() { return PHONE_MODE ? phoneChannelNow() : "Web"; }
 function xmasClosedText() {
@@ -2120,7 +2122,7 @@ function updateXmasLinkBar() {
 }
 function xmasSizes(c) { return (Array.isArray(c && c.sizes) ? c.sizes : []).filter(s => s && s.size); }
 function xmasMd(ds) { const m = String(ds || "").match(/^\d{4}-(\d{2})-(\d{2})$/); return m ? (+m[1]) + "月" + (+m[2]) + "日" : ""; }
-function xmasRangeText() { return xmasConf && xmasConf.pickupFrom ? xmasMd(xmasConf.pickupFrom) + "〜" + xmasMd(xmasConf.pickupTo) : "12月22日〜12月25日"; }
+function xmasRangeText() { return xmasConf && xmasConf.pickupFrom ? xmasMd(xmasConf.pickupFrom) + "〜" + xmasMd(xmasConf.pickupTo) : ""; } // 設定がないときに古い期間を出さない（2026-10-31）
 function shopTotal() {
   const m = shopMode();
   if (m === "cut") {
@@ -2200,7 +2202,7 @@ function renderShopPicker() {
   }
   label.innerHTML = 'クリスマスケーキ<span class="req-mark">必須</span>';
   notice.innerHTML = box("お渡しは<b>" + xmasRangeText() + "</b>です。<b>12月21日〜31日</b>のお受け取りは、<b>12月20日まで</b>に店頭でお支払いください（お支払いの時点でご予約確定）。12月1日〜20日のお受け取りは、お受け取りの際のお支払いでも承ります。ご予約が埋まり次第、受付を終了します。<br>写真は昨年のケーキです。砂糖菓子など一部の仕様が異なる場合がございます。");
-  const items = ((xmasConf && xmasConf.items) || []).map((c, i) => ({ c, i })).filter(x => x.c && x.c.visible !== false && x.c.img);
+  const items = ((xmasConf && xmasConf.items) || []).map((c, i) => ({ c, i })).filter(x => x.c && x.c.visible !== false && x.c.img && !(PHONE_MODE && xmasWebOnly(x.c)));
   grid.innerHTML = items.length ? items.map(({ c, i }) => card(xmasPick.i === i, pic(c.img) +
     '<div style="font-size:14px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(c.name || "") + "</div>" +
     '<div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">' + (xmasSizes(c).map(s => {
@@ -2215,6 +2217,7 @@ onValue(ref(db, "koimariContent/christmas"), (snap) => {
   xmasConf = snap.val();
   const opt = document.getElementById("reserveTypeXmasOpt");
   if (opt) opt.style.display = xmasOpen() ? "" : "none";
+  { const rg = document.getElementById("reserveTypeXmasRange"); if (rg) rg.textContent = xmasConf && xmasConf.pickupFrom && xmasConf.pickupTo ? "（" + xmasRangeText() + "お渡し）" : ""; }
   updateXmasLinkBar();
   renderShopPicker();
 });
