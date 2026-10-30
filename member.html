@@ -2098,7 +2098,8 @@ function shopCutCatalog() {
 function shopCutSelected() { return shopCutCatalog().filter(c => shopCutQty[c.name] > 0).map(c => ({ name: c.name, img: c.img, price: c.price, qty: shopCutQty[c.name] })); }
 // グランマニエの種類の名前（2026-10-28：いちごムース／チョコムース → イチゴBOX／チョコBOX。以前の名前で保存されたものも読み替える）
 function mousseFlavorName(v) { return v === "いちごムース" ? "イチゴBOX" : v === "チョコムース" ? "チョコBOX" : v; }
-function xmasOpen() { return !!(xmasConf && xmasConf.status === "open"); }
+// 受付中＝管理画面で「受付中」、または「受付開始の日時」を過ぎた（2026-10-31：10/31 18:00 に自動で始まるように。xmas-entry.js の statusOf と同じ決まり）
+function xmasOpen() { return !!(xmasConf && (xmasConf.status === "open" || (xmasConf.status === "preparing" && xmasConf.openAt && Date.now() >= Date.parse(xmasConf.openAt)))); }
 // クリスマスケーキの締切の受付方法（2026-10-28：Web・お電話は12/18、店頭は12/20）。電話・店頭予約の登録では、選んだ受付方法で決める
 function xmasChannel() { return PHONE_MODE ? phoneChannelNow() : "Web"; }
 function xmasClosedText() {

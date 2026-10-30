@@ -36,14 +36,17 @@
   // 受付状態。HPの予約を隠している間（site-mode.js）は、受付中でも「近日ご予約開始」として扱う
   function statusOf(conf) {
     var st = (conf && conf.status) || "preparing";
+    // 受付開始の日時（管理画面）を過ぎたら、準備中のままでも受付中として扱う（2026-10-31：18:00に誰も操作しなくても始まるように）
+    if (st === "preparing" && conf && conf.openAt && Date.now() >= Date.parse(conf.openAt)) st = "open";
     if (st === "open" && window.KOIMARI_RESERVE_PUBLIC === false) st = "preparing";
     return st;
   }
   // 表題（ハロウィンの「★ ハロウィンフェア開催中 ★」と同じ形・2026-10-28オーナー指示）。管理画面で書いた表題があればそれを使う。絵文字は使わない
   function titleOf(conf) {
-    var t = conf ? String(conf.title || "").trim() : "";
-    if (t) return t;
     var st = statusOf(conf), plan = conf ? String(conf.openPlan || "").trim() : "";
+    // 管理画面で書いた表題は準備中のあいだだけ使う（受付が始まったら「ご予約受付中」に自動で変わる）
+    var t = conf ? String(conf.title || "").trim() : "";
+    if (t && st === "preparing") return t;
     if (st === "preparing" && plan) return "★ クリスマスケーキ " + plan + "ご予約開始予定 ★"; // 受付開始の予定（例：10月後半）を管理画面で入れたとき
     return "★ クリスマスケーキ " + ({ open: "ご予約受付中", closed: "ご予約受付終了" }[st] || "近日ご予約開始") + " ★";
   }

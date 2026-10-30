@@ -7,7 +7,9 @@
    ・代わりに出す案内は class="prelaunch-only"（ふだんは出ない）
    ページの読み込みの最初（<head>）で読むので、隠す前の一瞬の表示（ちらつき）は出ない。 */
 (function () {
-  var RESERVE_PUBLIC = false;
+  // 2026-10-31オーナー決定：LINE友だち追加・予約システムは 10/31 18:00（日本時間）から公開。この時刻以降に開いたページでは予約・LINEの案内が出る
+  var OPEN_AT = Date.parse("2026-10-31T18:00:00+09:00");
+  var RESERVE_PUBLIC = Date.now() >= OPEN_AT;
   window.KOIMARI_RESERVE_PUBLIC = RESERVE_PUBLIC;
   var html = document.documentElement;
   var style = document.createElement("style");
