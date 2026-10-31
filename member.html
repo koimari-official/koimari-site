@@ -791,6 +791,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   © 2026 Koimari. All Rights Reserved.
 </footer>
 
+<script src="reserve-draft.js"></script><!-- 電話・店頭予約でギャラリーの番号から選ぶとき、ケーキの仕様を同じ形にする（buildSpec） -->
 <script src="cake-pricing.js?v=20261028d"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -3739,6 +3740,8 @@ function renderDraftBanner() {
       <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${Number(currentDraft.no) > 0 ? "No.D" + String(currentDraft.no).padStart(2, "0") + " " : ""}${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div>${draftGuideNow() ? `<div style="font-size:13px;color:#8a3a2a;font-weight:700;margin-top:2px;">${esc(draftGuideNow().replace(/^目安\s*/, "目安："))}（税込）・お見積もりは別途ご回答</div>` : ""}${currentDraftSpecApplied ? `<div style="font-size:12px;color:#4a3a2a;margin-top:2px;">この商品の仕様を自動で選びました。内容は下でご変更いただけます。</div>` : ""}</div>
       <button type="button" id="draftClear" style="font-size:12px;border:1px solid #c9a96e;background:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;">解除</button></div>`;
     document.getElementById("draftClear").addEventListener("click", () => { currentDraft = null; try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {} clearPendingDraft(); renderDraftBanner(); });
+  } else if (PHONE_MODE) {
+    renderStaffGalleryPicker(el); // スタッフ用：ギャラリーの番号で選ぶ（2026-10-31）
   } else {
     el.innerHTML = `<details style="margin-bottom:18px;font-size:13px;"><summary style="cursor:pointer;color:#6b5a48;">ギャラリーで選んだ商品の「仕様コード」をお持ちの方</summary>
       <div style="display:flex;gap:8px;margin-top:10px;"><input id="draftCodeInput" type="text" maxlength="9" placeholder="例: ABCD2345" style="flex:1;padding:10px 12px;border:1px solid #d8baa4;border-radius:8px;font-size:16px;letter-spacing:.15em;text-transform:uppercase;">
@@ -3749,6 +3752,36 @@ function renderDraftBanner() {
       if (d) { applyDraft(d); savePendingDraft(normalizeDraftCode(document.getElementById("draftCodeInput").value)); } else document.getElementById("draftCodeMsg").textContent = "コードが見つかりませんでした。入力内容をご確認ください。";
     });
   }
+}
+// 電話・店頭予約（スタッフ）：HPギャラリーのデコレーションケーキを番号で選ぶ（2026-10-31オーナー指示）。
+// 選ぶと、ギャラリーから予約したときと同じく、そのケーキの内容（サイズ・クリーム・飾り）が入り、予約カード・製造シートに「No.D09 …」が残る。
+// 表示中・写真あり・番号ありの商品だけ（非表示の商品は出さない）。番号の書き方はHPのギャラリーと同じ「No.D09」
+let staffGalleryItems = null;
+async function loadStaffGalleryItems() {
+  if (staffGalleryItems) return staffGalleryItems;
+  try {
+    const r = await fetch(DRAFT_DB + "/siteImages/decorationCakes.json");
+    const v = r.ok ? await r.json() : null;
+    const arr = Array.isArray(v) ? v.map((c, idx) => ({ c, idx })) : v && typeof v === "object" ? Object.entries(v).map(([k, c]) => ({ c, idx: Number(k) })) : [];
+    staffGalleryItems = arr.filter(({ c }) => c && c.visible !== false && c.img && Number(c.no) > 0).sort((a, b) => Number(a.c.no) - Number(b.c.no));
+  } catch (e) { staffGalleryItems = []; }
+  return staffGalleryItems;
+}
+function staffCakeNo(n) { return "No.D" + String(n).padStart(2, "0"); }
+async function renderStaffGalleryPicker(el) {
+  const esc = (x) => String(x == null ? "" : x).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+  el.innerHTML = '<div class="field" style="background:#f3ece1;border:1px solid #d8baa4;border-radius:10px;padding:12px 14px;margin-bottom:18px;"><label class="field__label" for="staffGalleryNo">ギャラリーの番号で選ぶ（お客様が番号・写真でご指定のとき）</label><select id="staffGalleryNo" class="input" style="width:100%;font-size:16px;"><option value="">読み込み中…</option></select><div style="font-size:12.5px;color:#6b5a48;margin-top:6px;line-height:1.6;">選ぶと、ギャラリーのケーキの内容が下に入ります（あとから選び直せます）。番号は「ギャラリー（商品を見る）」と同じです。</div></div>';
+  const items = await loadStaffGalleryItems();
+  const sel = document.getElementById("staffGalleryNo");
+  if (!sel) return;
+  sel.innerHTML = '<option value="">選ばない（ギャラリーのケーキではない）</option>' + items.map(({ c, idx }) => '<option value="' + idx + '">' + esc(staffCakeNo(c.no)) + "　" + esc(String(c.name || "").replace(/<[^>]*>/g, "")) + "</option>").join("");
+  sel.addEventListener("change", () => {
+    const it = items.find((x) => String(x.idx) === sel.value);
+    if (!it) return;
+    const c = it.c, sm = String(c.desc || "").match(/^【([^】]+)】/);
+    const spec = c.spec && window.KoimariDraft && window.KoimariDraft.buildSpec ? window.KoimariDraft.buildSpec(c.spec) : "";
+    applyDraft({ name: String(c.name || "").replace(/<[^>]*>/g, ""), productType: "decorationCake", idx: it.idx, img: c.img, size: sm ? sm[1] : "", spec: spec || undefined, orderMode: spec ? "standard" : "custom", no: Number(c.no), price: c.price ? String(c.price) : "" });
+  });
 }
 // 2026-10-02オーナー指示：ギャラリーで選んだケーキの仕様を、友だち登録をはさんでも引き継ぐ。読み込んだ仕様コードを
 // LINEアカウントごと（lineMembers/{uid}/profile/pendingDraft）に保存し、URLにコードが無い状態で開き直した時（メニューの
