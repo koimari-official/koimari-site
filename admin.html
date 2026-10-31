@@ -4913,7 +4913,7 @@ function renderLineMembers() {
       const label = nowBlocked ? "クーポン利用を再開しますか？" : "この会員のクーポン利用を停止しますか？（SNS転載等の対応）";
       if (!confirm(label)) return;
       try {
-        await update(ref(fbDb, "lineMembers/" + uid), { couponBlacklisted: !nowBlocked });
+        await window.KoimariDB.update(window.KoimariDB.ref(window.KoimariDB.db, "lineMembers/" + uid), { couponBlacklisted: !nowBlocked });
         renderLineMembers();
       } catch (e) {
         showToast("更新に失敗しました（Firebaseルール未公開の可能性があります）", "error");
@@ -4962,7 +4962,7 @@ document.getElementById("aiReviewShowResolved").addEventListener("change", () =>
 async function resolveAiReviewToFaq(idx) {
   const list = loadList(AI_REVIEW_KEY);
   const item = list[idx];
-  const key = aiReviewKeys[idx];
+  const key = (window.aiReviewKeys || [])[idx];
   if (!item || !key) return;
   const textarea = document.querySelector(`textarea[data-ai-idx="${idx}"]`);
   const correctAnswer = (textarea ? textarea.value : "").trim();
@@ -4978,7 +4978,7 @@ async function resolveAiReviewToFaq(idx) {
   faqData = result.merged;
   if (document.getElementById("panel-faq")?.classList.contains("active") && typeof renderFaqAdmin === "function") renderFaqAdmin();
   try {
-    await update(ref(fbDb, "aiReviewQueue/" + key), { status: "resolved", resolvedAt: new Date().toISOString(), resolvedAnswer: correctAnswer });
+    await window.KoimariDB.update(window.KoimariDB.ref(window.KoimariDB.db, "aiReviewQueue/" + key), { status: "resolved", resolvedAt: new Date().toISOString(), resolvedAnswer: correctAnswer });
     showToast("FAQに追加し、解決済みにしました（次回からAIもこの内容で回答します）");
   } catch (e) {
     showToast("FAQには追加しましたが、一覧の更新に失敗しました", "error");
@@ -4986,10 +4986,10 @@ async function resolveAiReviewToFaq(idx) {
 }
 
 async function markAiReviewResolved(idx) {
-  const key = aiReviewKeys[idx];
+  const key = (window.aiReviewKeys || [])[idx];
   if (!key) return;
   try {
-    await update(ref(fbDb, "aiReviewQueue/" + key), { status: "resolved", resolvedAt: new Date().toISOString() });
+    await window.KoimariDB.update(window.KoimariDB.ref(window.KoimariDB.db, "aiReviewQueue/" + key), { status: "resolved", resolvedAt: new Date().toISOString() });
     showToast("解決済みにしました");
   } catch (e) {
     showToast("更新に失敗しました", "error");
@@ -7745,6 +7745,8 @@ const fbApp = initializeApp(firebaseConfig);
 // App Check（2026-10-23）：正規のページからの通信に印を付ける（ロボットによる大量の書き込み対策）。Firebaseで「適用」するまでは確認だけ。
 try { initializeAppCheck(fbApp, { provider: new ReCaptchaEnterpriseProvider("6LeTWvstAAAAADtCiZryhHIWWLne5_6PIa-lUNbD"), isTokenAutoRefreshEnabled: true }); } catch (e) { console.warn("AppCheck:", e && e.message); }
 const fbDb = getDatabase(fbApp);
+// 通常の<script>側（AI要確認・LINE会員のクーポン切り替え）から書き込めるように、名前を付けて渡す（2026-10-31：渡していなかったため「保存できない」不具合）
+window.KoimariDB = { db: fbDb, ref, update };
 // 2026-10-03：スマホ（iPhoneのSafari等）で、ブラウザ内のデータベース（IndexedDB）が応答しなくなっていると、Firebaseのログインが
 // いつまでも終わらず、ログイン画面から動かなくなる不具合があった（オーナーのスマホで発生・PCで再現確認）。標準設定（getAuth）は
 // ログイン状態の保存先にIndexedDBを使うため、保存先を localStorage（使えなければ画面を開いている間だけ）に切り替える。
@@ -8089,6 +8091,7 @@ function syncAiReviewFromFirebase() {
     const entries = Object.entries(val);
     entries.sort((a, b) => (a[1].timestamp || 0) - (b[1].timestamp || 0));
     aiReviewKeys = entries.map(([k]) => k);
+    window.aiReviewKeys = aiReviewKeys; // 通常の<script>側のボタン（FAQに追加して解決など）から使う
     const list = entries.map(([, data]) => data);
     localStorage.setItem(AI_REVIEW_KEY, JSON.stringify(list));
     if (typeof window.updateCounts === "function") window.updateCounts();
