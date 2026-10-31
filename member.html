@@ -3734,7 +3734,15 @@ function renderDraftBanner() {
   setTimeout(() => { try { updateCakeOptionUI(); } catch (e) {} updateRefImage(); try { updateLivePriceDisplay(); } catch (e) {} }, 0);
   el.style.display = "block";
   const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
-  if (currentDraft) {
+  if (currentDraft && PHONE_MODE && Number(currentDraft.no) > 0) {
+    el.innerHTML = `<div style="display:flex;gap:14px;align-items:center;background:#f3ece1;border:2px solid #c9a96e;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
+      ${currentDraft.img ? `<img class="ns-img" src="${esc(currentDraft.img)}" alt="" draggable="false" style="width:84px;height:84px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ""}
+      <div style="flex:1;min-width:0;line-height:1.7;"><div style="font-size:14px;color:#a88a52;font-weight:700;">ギャラリーで選んだケーキ</div>
+        <div style="font-size:17px;"><b>ケーキ番号：</b>${esc("No.D" + String(currentDraft.no).padStart(2, "0"))}</div>
+        <div style="font-size:17px;"><b>ケーキ名：</b>${esc(currentDraft.name || "")}</div></div>
+      <button type="button" id="draftClear" style="font-size:13px;border:1px solid #c9a96e;background:#fff;border-radius:999px;padding:8px 14px;cursor:pointer;">選び直す</button></div>`;
+    document.getElementById("draftClear").addEventListener("click", () => { currentDraft = null; try { localStorage.removeItem(DRAFT_LS_KEY); } catch (e) {} clearPendingDraft(); renderDraftBanner(); });
+  } else if (currentDraft) {
     el.innerHTML = `<div style="display:flex;gap:12px;align-items:center;background:#f3ece1;border:1px solid #d8baa4;border-radius:10px;padding:12px 14px;margin-bottom:18px;">
       ${currentDraft.img ? `<img class="ns-img" src="${esc(currentDraft.img)}" alt="" draggable="false" style="width:56px;height:56px;object-fit:cover;border-radius:8px;flex-shrink:0;">` : ""}
       <div style="flex:1;min-width:0;font-size:13px;line-height:1.6;"><div style="color:#a88a52;font-weight:700;">ギャラリーで選んだ商品</div><div style="font-weight:700;">${Number(currentDraft.no) > 0 ? "No.D" + String(currentDraft.no).padStart(2, "0") + " " : ""}${esc(currentDraft.name)}${currentDraft.size ? `（${esc(currentDraft.size)}）` : ""}</div>${draftGuideNow() ? `<div style="font-size:13px;color:#8a3a2a;font-weight:700;margin-top:2px;">${esc(draftGuideNow().replace(/^目安\s*/, "目安："))}（税込）・お見積もりは別途ご回答</div>` : ""}${currentDraftSpecApplied ? `<div style="font-size:12px;color:#4a3a2a;margin-top:2px;">この商品の仕様を自動で選びました。内容は下でご変更いただけます。</div>` : ""}</div>
@@ -3770,11 +3778,25 @@ async function loadStaffGalleryItems() {
 function staffCakeNo(n) { return "No.D" + String(n).padStart(2, "0"); }
 async function renderStaffGalleryPicker(el) {
   const esc = (x) => String(x == null ? "" : x).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
-  el.innerHTML = '<div class="field" style="background:#f3ece1;border:1px solid #d8baa4;border-radius:10px;padding:12px 14px;margin-bottom:18px;"><label class="field__label" for="staffGalleryNo">ギャラリーの番号で選ぶ（お客様が番号・写真でご指定のとき）</label><select id="staffGalleryNo" class="input" style="width:100%;font-size:16px;"><option value="">読み込み中…</option></select><div style="font-size:12.5px;color:#6b5a48;margin-top:6px;line-height:1.6;">選ぶと、ギャラリーのケーキの内容が下に入ります（あとから選び直せます）。番号は「ギャラリー（商品を見る）」と同じです。</div></div>';
+  el.innerHTML = '<div class="field" style="background:#f3ece1;border:2px solid #c9a96e;border-radius:10px;padding:12px 14px;margin-bottom:18px;"><label class="field__label" for="staffGalleryNum" style="font-size:16px;">ギャラリーのケーキ番号で選ぶ</label>' +
+    '<div style="font-size:13px;color:#6b5a48;margin:2px 0 8px;line-height:1.6;">お客様が「9番」「No.09」「D09」のように番号でご指定のときは、番号を入れてください。</div>' +
+    '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;"><span style="font-weight:700;">ケーキ番号</span><input id="staffGalleryNum" type="text" inputmode="numeric" maxlength="6" placeholder="例：9" class="input" style="width:7em;font-size:20px;text-align:center;"><span id="staffGalleryNumMsg" style="font-size:13px;color:#b03b48;"></span></div>' +
+    '<div style="margin-top:10px;"><span style="font-weight:700;">ケーキ名から選ぶ</span><select id="staffGalleryNo" class="input" style="width:100%;font-size:16px;margin-top:4px;"><option value="">読み込み中…</option></select></div>' +
+    '<div style="font-size:12.5px;color:#6b5a48;margin-top:6px;line-height:1.6;">選ぶと、そのケーキの内容が下に入ります（あとから選び直せます）。番号は「ギャラリー（商品を見る）」と同じです。</div></div>';
   const items = await loadStaffGalleryItems();
   const sel = document.getElementById("staffGalleryNo");
   if (!sel) return;
   sel.innerHTML = '<option value="">選ばない（ギャラリーのケーキではない）</option>' + items.map(({ c, idx }) => '<option value="' + idx + '">' + esc(staffCakeNo(c.no)) + "　" + esc(String(c.name || "").replace(/<[^>]*>/g, "")) + "</option>").join("");
+  // 番号の入力：「9」「09」「D09」「No.09」「ｎｏ．９」どれでも、ギャラリーの番号（No.D09）に合わせる
+  const num = document.getElementById("staffGalleryNum"), msg = document.getElementById("staffGalleryNumMsg");
+  num.addEventListener("input", () => {
+    const n = Number(String(num.value).replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[^0-9]/g, ""));
+    msg.textContent = "";
+    if (!n) return;
+    const it = items.find((x) => Number(x.c.no) === n);
+    if (!it) { msg.textContent = "その番号のケーキはありません（表示中のケーキだけ選べます）"; return; }
+    sel.value = String(it.idx); sel.dispatchEvent(new Event("change", { bubbles: true }));
+  });
   sel.addEventListener("change", () => {
     const it = items.find((x) => String(x.idx) === sel.value);
     if (!it) return;

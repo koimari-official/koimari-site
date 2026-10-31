@@ -502,10 +502,13 @@ exports.lineWebhook = onRequest(
 
       if (event.type === "follow" && event.replyToken && event.source && event.source.type === "user") {
         try {
+          // 2026-10-31オーナー指示：あいさつは「あいさつメッセージ」（LINE公式アカウントの管理画面）1本にまとめる。
+          // ここからは、ギャラリーでケーキを選んでから友だち追加した人にだけ、短い案内と予約カードを送る（それ以外は何も送らない）
           const pick = await pendingPickFor(event.source.userId);
-          const coupons = (await admin.database().ref("koimariOps/coupons").once("value")).val();
-          const card = buildReserveCard(pick, await reserveCardImage());
-          await replyLineMessages(event.replyToken, [{ type: "text", text: buildFollowMessage(pick, coupons) }, card], LINE_CHANNEL_ACCESS_TOKEN.value());
+          if (pick && pick.code) {
+            const card = buildReserveCard(pick, await reserveCardImage());
+            await replyLineMessages(event.replyToken, [{ type: "text", text: buildPickFollowMessage(pick) }, card], LINE_CHANNEL_ACCESS_TOKEN.value());
+          }
         } catch (err) {
           console.error("友だち登録への返信に失敗:", err);
         }
@@ -933,6 +936,18 @@ function galleryPickLabel(pick) {
 // 友だち登録した直後にトークへ送る案内（2026-10-02オーナー指示：登録後に予約ページへのリンクと簡単な案内があれば離脱が減る）。
 // ギャラリーでケーキを選んでから登録した方（予約フォームで読み込んだ仕様を lineMembers/{uid}/profile/pendingDraft に保存済み）には、
 // そのケーキが入った予約フォームのリンクを送る。それ以外の方には、通常の予約フォームとギャラリーのリンクを送る。
+// ギャラリーでケーキを選んでから友だち追加した人への短い案内（2026-10-31・18文字折り返しの◆◇の形）
+function buildPickFollowMessage(pick) {
+  return [
+    "さきほど選んだケーキで、",
+    "このままご予約いただけます🎂",
+    "",
+    "◆選んだケーキ",
+    "◇" + (pick.name || "ギャラリーで選んだケーキ"),
+    "",
+    "▼下の「ご予約はこちら」から",
+  ].join("\n");
+}
 function buildFollowMessage(pick, coupons) {
   const lines = ["友だち追加ありがとうございます🎂", ""];
   // 有効なクーポン（期限内）があれば、最初に案内する（2026-10-03：友だち登録キャンペーン）
