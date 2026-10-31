@@ -2034,6 +2034,9 @@ function reservationPriceHtml(r) {
   const pick = r.galleryPick && r.galleryPick.name
     ? `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#4a6f9c;">🖼 ギャラリーで選択: ${r.galleryPick.no ? escapeHtml(cakeNoLabel(r.galleryPick.no)) + " " : ""}${escapeHtml(r.galleryPick.name)}${r.galleryPick.size ? "（" + escapeHtml(r.galleryPick.size) + "）" : ""}</div>` : "";
   if (pick) return pick + reservationPriceHtmlBody(r);
+  // ギャラリーで選んでいないご予約でも、同じ仕様のギャラリーのケーキを参考画像として出す（2026-10-31）
+  const rp = r.refPick && r.refPick.name ? `<div style="margin-top:6px;font-size:11px;font-weight:700;color:#7a6a4a;">🖼 参考画像: ${r.refPick.no ? escapeHtml(cakeNoLabel(r.refPick.no)) + " " : ""}${escapeHtml(r.refPick.name)}${r.refPick.size ? "（写真は" + escapeHtml(r.refPick.size) + (r.refPick.sameSize ? "" : "・ご予約と号数違い") + "）" : ""}</div>` : "";
+  if (rp) return rp + reservationPriceHtmlBody(r);
   return reservationPriceHtmlBody(r);
 }
 function reservationPriceHtmlBody(r) {
@@ -5364,7 +5367,7 @@ function reservationMatches(r, q) {
   return [r.name, r.furigana, r.email, r.lineDisplayName].some(v => norm(v).includes(nq));
 }
 function reservationThumbHtml(r) {
-  const img = (r.galleryPick && r.galleryPick.img) || (r.sentImages && Object.values(r.sentImages).slice(-1)[0] || {}).url || "";
+  const img = (r.galleryPick && r.galleryPick.img) || (r.sentImages && Object.values(r.sentImages).slice(-1)[0] || {}).url || (r.refPick && r.refPick.img) || ""; // 参考画像（同じ仕様のギャラリーのケーキ）も最後の候補に
   return img ? `<img src="${escapeHtml(img)}" alt="">` : `<span class="res-open__noimg">写真</span>`;
 }
 function openReservationEditor(idx) {

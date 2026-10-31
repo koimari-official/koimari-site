@@ -748,6 +748,8 @@ function buildStaffNotifyText(data) {
   ];
   if (data.galleryPick && data.galleryPick.name) {
     lines.push("ギャラリーで選択: " + galleryPickLabel(data.galleryPick) + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
+  } else if (data.refPick && data.refPick.name) {
+    lines.push("参考画像（同じ仕様のギャラリーのケーキ）: " + galleryPickLabel(data.refPick) + (data.refPick.size ? "（写真は" + data.refPick.size + (data.refPick.sameSize ? "" : "・号数違い") + "）" : ""));
   }
   if (Array.isArray(data.decideLater) && data.decideLater.length) {
     lines.push("あとで相談: " + data.decideLater.join("・"));
@@ -1172,6 +1174,8 @@ function isPhotoChristmas(data) {
 // 写真はカード（Flex）に入れ、タップしても何も開かない形にする（スクリーンショットはどの方法でも防げない）。
 const PHOTO_CARD_TYPES = ["decorationCake", "custom", "christmasCake"];
 function orderPhotoCard(data) {
+  // ギャラリーで選んでいないご予約は、同じ仕様のギャラリーのケーキを「参考画像」として添える（2026-10-31オーナー指示）
+  if (data && !(data.galleryPick && data.galleryPick.img) && data.refPick && data.refPick.img && !data.christmasOrder) return refPhotoCard(data.refPick);
   const p = (data && data.galleryPick) || {};
   const img = String(p.img || "");
   if (!/^https:\/\//.test(img) || img.length > 2000) return null;
@@ -1195,6 +1199,26 @@ function orderPhotoCard(data) {
   };
 }
 
+function refPhotoCard(rp) {
+  const img = String(rp.img || "");
+  if (!/^https:\/\//.test(img) || img.length > 2000) return null;
+  const title = (galleryPickLabel(rp) || "参考画像").slice(0, 120);
+  return {
+    type: "flex", altText: "ご予約のケーキの参考画像",
+    contents: {
+      type: "bubble",
+      hero: { type: "image", url: img, size: "full", aspectRatio: "1:1", aspectMode: "cover" },
+      body: {
+        type: "box", layout: "vertical", spacing: "sm",
+        contents: [
+          { type: "text", text: "ご予約のケーキの参考画像", size: "xs", color: "#8a6a4a" },
+          { type: "text", text: title, weight: "bold", size: "md", wrap: true, color: "#2e2118" },
+          { type: "text", text: (rp.size && !rp.sameSize ? "写真は" + rp.size + "です。" : "") + "同じ仕様のケーキの写真です。仕入れ等により、実物と異なる場合がございます", size: "xs", wrap: true, color: "#6b5a4a" },
+        ],
+      },
+    },
+  };
+}
 // ③ 管理画面で「修正n」として変更を確定した時に送る文面（2026-10-02オーナー指示）。
 // 変更点（変更前→変更後）と、変更後のご注文内容・お引き取り日時・金額をまとめて送る。
 function buildRevisionMessage(data, rev) {

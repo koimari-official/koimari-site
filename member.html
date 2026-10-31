@@ -4154,6 +4154,17 @@ function setupReserveForm(uid, displayName) {
     const emailSent = await withTimeout(sendReserveToFormspree(data), 8000, "メール通知").catch(() => false);
     data.emailSent = !!emailSent;
 
+    // 参考画像（2026-10-31オーナー指示）：ギャラリーで選んでいなくても、号数違いでも同じ仕様（クリーム・飾り）の定番ケーキがあれば、
+    // その写真を参考画像として予約に残す（管理画面・受付LINEで表示）。照合は予約完了画面の写真と同じ refCakeForData
+    if (!data.galleryPick) {
+      try {
+        const rc = refCakeForData(data);
+        if (rc && rc.img) {
+          const mySize = String(((data.items || [])[0] || {}).size || "").split("(")[0];
+          data.refPick = { no: rc.no || 0, name: rc.name || "", img: rc.img, size: rc.size || "", sameSize: !!(rc.size && mySize && rc.size === mySize) };
+        }
+      } catch (e) { /* 参考画像が出せなくても予約は受け付ける */ }
+    }
     let savedRef;
     try {
       // 本人確認（2026-10-22）：予約IDを先に決め、LINEのアクセストークンを誰も読めない場所に置いてから予約を保存する。
