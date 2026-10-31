@@ -750,8 +750,9 @@ function buildStaffNotifyText(data) {
     `お電話番号: ${data.tel || ""}`,
   ];
   if (data.galleryPick && data.galleryPick.name) {
-    lines.push("ギャラリーで選択: " + galleryPickLabel(data.galleryPick) + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : ""));
-  } else if (data.refPick && data.refPick.name) {
+    lines.push("ギャラリーで選択: " + galleryPickLabel(data.galleryPick) + (data.galleryPick.size ? "（" + data.galleryPick.size + "）" : "") + (data.galleryPick.changed ? "（このあと内容を変更してご予約）" : ""));
+  }
+  if ((!data.galleryPick || data.galleryPick.changed) && data.refPick && data.refPick.name) {
     lines.push("参考画像（同じ仕様のギャラリーのケーキ）: " + galleryPickLabel(data.refPick) + (data.refPick.size ? "（写真は" + data.refPick.size + (data.refPick.sameSize ? "" : "・号数違い") + "）" : ""));
   }
   if (Array.isArray(data.decideLater) && data.decideLater.length) {
@@ -1190,6 +1191,8 @@ function isPhotoChristmas(data) {
 const PHOTO_CARD_TYPES = ["decorationCake", "custom", "christmasCake"];
 function orderPhotoCard(data) {
   // ギャラリーで選んでいないご予約は、同じ仕様のギャラリーのケーキを「参考画像」として添える（2026-10-31オーナー指示）
+  // ギャラリーで選んだあと内容を変えたご予約（changed）は、選んだケーキの写真を「この写真のケーキで承りました」と送らない（2026-10-31）
+  if (data && data.galleryPick && data.galleryPick.changed) return data.refPick && data.refPick.img ? refPhotoCard(data.refPick) : null;
   if (data && !(data.galleryPick && data.galleryPick.img) && data.refPick && data.refPick.img && !data.christmasOrder) return refPhotoCard(data.refPick);
   const p = (data && data.galleryPick) || {};
   const img = String(p.img || "");

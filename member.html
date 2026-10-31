@@ -410,6 +410,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="2"> 2段</label>
             <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveTiers" value="3"> 3段</label>
           </div>
+          <p id="tierTartNote" style="display:none;margin:6px 0 0;font-size:13px;line-height:1.7;color:#6b4a12;">タルトは、1段か、2段（一番下がタルトで、上にカットケーキ）でお作りします。</p>
           <div id="tier3Notice" class="tier3-notice" style="display:none;">
             <div class="tier3-notice__title">3段ケーキのお渡しについて</div>
             <ul>
@@ -2368,7 +2369,7 @@ function renderThanksPhoto(data) {
   const p = (data && data.galleryPick) || {};
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   let img = String(p.img || ""), label = "", note = "";
-  if (/^(https:\/\/|data:image\/)/.test(img) && (THANKS_PHOTO_TYPES.includes(p.productType) || isPhotoChristmas(data))) {
+  if (/^(https:\/\/|data:image\/)/.test(img) && !p.changed && (THANKS_PHOTO_TYPES.includes(p.productType) || isPhotoChristmas(data))) { // 内容を変えた（changed）ときは、選んだケーキの写真は出さない
     label = (Number(p.no) > 0 ? "No.D" + String(p.no).padStart(2, "0") + " " : "") + (p.name || "") + (p.size ? "（" + p.size + "）" : "");
   } else {
     // ギャラリーを通らない予約は、選んだ種類・飾りに合う定番ケーキの写真を「イメージ」として出す（2026-10-26オーナー指示）
@@ -2738,8 +2739,17 @@ function applyCreamTierRules() {
     }
   } finally { _creamRuleBusy = false; }
 }
+// タルトを選んでいる間は3段を出さない（2026-10-31オーナー指示：3段を押すとタルトが生クリームに勝手に変わっていたため）
+function applyTartTierLimit() {
+  const tart = CakePricing.SPEC.tartTypes.includes(bottomCream()) || (currentTierCount() === 1 && CakePricing.SPEC.tartTypes.includes(checkedCream()));
+  const r3 = document.querySelector('input[name="reserveTiers"][value="3"]');
+  if (r3 && !r3.checked) { r3.disabled = tart; const lab = r3.closest("label"); if (lab) lab.style.display = tart ? "none" : ""; }
+  const note = document.getElementById("tierTartNote");
+  if (note) note.style.display = tart ? "" : "none";
+}
 function updateCakeOptionUI() {
   try { normalizeTartRadio(); } catch (e) { console.error(e); }
+  try { applyTartTierLimit(); } catch (e) { console.error(e); }
   try { applyCreamTierRules(); } catch (e) { console.error(e); }
   { // 一番下をタルトにした／やめたとき、上の段（カットケーキに固定かどうか）を描き直す
     const top = document.querySelector('.tier-size-select[data-tier="1"]');
@@ -3677,6 +3687,27 @@ function refCandidatesByCream(cream) {
   const byName = refCakes.filter(c => c.name.indexOf(cream) >= 0 && c.name.indexOf(cream + "なし") < 0 && c.name.indexOf(cream + "あり") < 0);
   return byName;
 }
+// ギャラリーで選んだケーキの仕様（クリームの種類・飾り）と、いま選んでいる内容が同じか（2026-10-31）。
+// ケーキに仕様が設定されていない（フルオーダー等）ときは比べられないので「同じ」とみなす
+function draftSpecKind() {
+  if (!currentDraft || !currentDraft.spec) return null;
+  let sp; try { sp = typeof currentDraft.spec === "string" ? JSON.parse(currentDraft.spec) : currentDraft.spec; } catch (e) { return null; }
+  const c = (sp && sp.specs && sp.specs[0] && sp.specs[0].cream) || "";
+  if (!c) return null;
+  const deco = (sp && sp.decoration) || "";
+  const tart = CakePricing.SPEC.tartTypes.includes(c);
+  return { cream: tart ? ((deco === "いちごのみ" || c === "ストロベリータルトBOX") ? "ストロベリータルトBOX" : "フルーツタルトBOX") : c, deco: tart ? "" : deco };
+}
+function draftMatchesSelection() {
+  const k = draftSpecKind();
+  if (!k) return true;
+  const deco = (document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "";
+  const c = bottomCream(), tart = CakePricing.SPEC.tartTypes.includes(c);
+  const cur = tart ? (deco === "いちごのみ" ? "ストロベリータルトBOX" : "フルーツタルトBOX") : c;
+  if (cur !== k.cream) return false;
+  if (!tart && k.deco && deco && deco !== k.deco) return false;
+  return true;
+}
 function updateRefImage() {
   const box = document.getElementById("refImageBox");
   const field = document.getElementById("reserveCreamTypeField");
@@ -3684,7 +3715,7 @@ function updateRefImage() {
   if (!field || field.style.display === "none") { box.style.display = "none"; return; }
   const esc = v => String(v == null ? "" : v).replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   let label, list;
-  if (currentDraft && currentDraft.img) {
+  if (currentDraft && currentDraft.img && draftMatchesSelection()) { // 内容を選び直して違うケーキになったら、選んだケーキの写真は出さない
     label = "ギャラリーで選んだケーキ";
     list = [{ name: currentDraft.name || "", img: currentDraft.img, size: String(currentDraft.size || "").split("(")[0] }];
   } else {
@@ -4214,7 +4245,8 @@ function setupReserveForm(uid, displayName) {
 
     // 参考画像（2026-10-31オーナー指示）：ギャラリーで選んでいなくても、号数違いでも同じ仕様（クリーム・飾り）の定番ケーキがあれば、
     // その写真を参考画像として予約に残す（管理画面・受付LINEで表示）。照合は予約完了画面の写真と同じ refCakeForData
-    if (!data.galleryPick) {
+    if (data.galleryPick && data.category === "cake" && currentDraft && !draftMatchesSelection()) data.galleryPick.changed = true; // ギャラリーで選んだあと内容を変えた
+    if (!data.galleryPick || data.galleryPick.changed) {
       try {
         const rc = refCakeForData(data);
         if (rc && rc.img) {
