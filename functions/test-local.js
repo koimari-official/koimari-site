@@ -5,7 +5,7 @@ const crypto = require("crypto");
 const {
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage,
-  buildStaffNotifyText, buildChatGreetingPrefix, formatPickupDateTimeJp, buildCouponReplyText,
+  buildStaffNotifyText, buildChatGreetingPrefix, formatPickupDateTimeJp, buildCouponReplyText, buildLineCouponIntro,
 } = require("./index.js")._internal;
 
 function assertEqual(actual, expected, label) {
@@ -180,7 +180,8 @@ assert.ok(buildReminderMessage("oneHour", reminderData, summerNow).includes("ま
 ["threeDay", "oneDay", "oneHour"].forEach((stage) => {
   assert.ok(buildReminderMessage(stage, reminderData, summerNow).includes("◆"), stage + "メッセージも◆◇形式（LINEの折り返し対策）");
   assert.ok(buildReminderMessage(stage, reminderData, summerNow).includes("◆お支払い"), stage + "メッセージにお支払いの案内を含む");
-  const xmas = buildReminderMessage(stage, Object.assign({}, reminderData, { christmasOrder: true }), summerNow);
+  // 先払いは12月21日〜31日お受け取りのクリスマスケーキだけ（2026-10-31の決まり）
+  const xmas = buildReminderMessage(stage, Object.assign({}, reminderData, { christmasOrder: true, pickupDate: "2026-12-24" }), summerNow);
   assert.ok(xmas.includes("お会計を") && xmas.includes("12月20日"), stage + "：クリスマスケーキは当日会計なし・12月20日までのお支払いを案内する");
 });
 console.log("OK: 予約引き取りリマインダー関連の関数");
@@ -264,6 +265,17 @@ assertEqual(
   "displayName指定時は宛名とSNS転載注意書きを添える"
 );
 console.log("OK: buildCouponReplyText");
+
+// --- buildLineCouponIntro: LINEクーポンの前の短い案内（2026-11-01）。1行18文字以内・宛名とSNS注意は名前があるときだけ ---
+{
+  const withName = buildLineCouponIntro("山田太郎");
+  assert.ok(withName.startsWith("山田太郎様への\n友だち限定クーポンです🎫"), "宛名つき");
+  assert.ok(/スタッフにお見せください/.test(withName) && /ご遠慮ください。$/.test(withName), "提示の案内とSNS注意");
+  withName.split("\n").filter((l) => !l.includes("山田太郎")).forEach((l) => assert.ok([...l].length <= 18, "18文字以内: " + l));
+  const noName = buildLineCouponIntro();
+  assert.ok(noName.startsWith("友だち限定クーポンです🎫") && !/ご遠慮/.test(noName), "宛名なし");
+  console.log("OK: buildLineCouponIntro");
+}
 
 // --- 予約直後・確定時のLINEメッセージ（2026-09-28: 1通に統合し◆◇形式に） ---
 {

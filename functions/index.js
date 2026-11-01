@@ -467,7 +467,7 @@ exports._internal = { reserveCardReplyText,
   computeTodayStatus, verifyLineSignature, isAllergyRelated, buildFaqKnowledgeText, extractReviewTag,
   getSeasonCareLine, getStoreComfortLine, productLabel, computePickupDateTime, buildReminderMessage, dueReminderStages, orderPhotoCard, parseLinkCode, buildLinkedCopyMessage, dueXmasPayReminder, buildXmasPayMessage,
   buildStaffNotifyText, isFirstMessageOfChatSession, buildChatGreetingPrefix, formatPickupDateTimeJp,
-  buildCustomerConfirmationEmailText, buildCouponReplyText, buildReceivedMessage, buildConfirmMessage, diamondLine,
+  buildCustomerConfirmationEmailText, buildCouponReplyText, buildLineCouponIntro, buildReceivedMessage, buildConfirmMessage, diamondLine,
   assignReservationNo, formatReservationNo, buildRevisionMessage, isPhotoChristmas, buildFollowMessage, buildReserveCard, mapCostPricesToPriceTable, syncPriceTableFromCost, customerFlagLines, birthdayReminderText, birthdayReminderTargets,
 };
 
@@ -557,14 +557,24 @@ exports.lineWebhook = onRequest(
         // 会員には、クーポン内容自体を見せない＝実質のブラックリスト対応。2026-09-06オーナー指示）。
         if (event.message.text.trim() === COUPON_TRIGGER_TEXT) {
           const couponUserId = (event.source && event.source.userId) || null;
-          const [couponsSnap, memberSnap, profile] = await Promise.all([
+          const [couponsSnap, memberSnap, profile, lineCoupons] = await Promise.all([
             admin.database().ref("koimariOps/coupons").once("value"),
             couponUserId ? admin.database().ref("lineMembers/" + couponUserId).once("value") : Promise.resolve(null),
             couponUserId
               ? lineApi("GET", `https://api.line.me/v2/bot/profile/${couponUserId}`, LINE_CHANNEL_ACCESS_TOKEN.value()).catch(() => null)
               : Promise.resolve(null),
+            runningLineCoupons(LINE_CHANNEL_ACCESS_TOKEN.value()),
           ]);
           const isCouponBlocked = !!(memberSnap && memberSnap.val() && memberSnap.val().couponBlacklisted);
+          // 受付中のLINEクーポンがあれば、文字の案内ではなくLINEクーポンそのもの（画像つき・お会計で提示）を送る（2026-11-01）
+          if (!isCouponBlocked && lineCoupons.length) {
+            const sent = await replyLineMessages(event.replyToken, [
+              { type: "text", text: buildLineCouponIntro(profile && profile.displayName) },
+              ...lineCoupons.map((c) => ({ type: "coupon", couponId: c.couponId })),
+            ], LINE_CHANNEL_ACCESS_TOKEN.value());
+            if (sent) continue;
+            // 送れなかったときは、下のこれまでの文字の案内で返す
+          }
           const couponReply = isCouponBlocked
             ? buildCouponReplyText([], todayDateKeyJST(new Date()))
             : buildCouponReplyText(couponsSnap.val(), todayDateKeyJST(new Date()), profile && profile.displayName);
@@ -1974,6 +1984,28 @@ function todayDateKeyJST(now) {
 function formatCouponExpiry(expiry) {
   const m = String(expiry || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
   return m ? Number(m[1]) + "年" + Number(m[2]) + "月" + Number(m[3]) + "日" : String(expiry || "");
+}
+// LINE公式アカウントで受付中のLINEクーポン（管理画面で作ったもの・Messaging APIで作ったものの両方）。
+// 1回の返信は5通までなので、案内文1通＋クーポン4枚まで。取れなければ空（文字の案内に戻す）
+async function runningLineCoupons(accessToken) {
+  try {
+    const r = await lineApi("GET", "https://api.line.me/v2/bot/coupon?status=RUNNING&limit=4", accessToken);
+    return (r && Array.isArray(r.items) ? r.items : []).filter((c) => c && c.couponId).slice(0, 4);
+  } catch (e) {
+    console.error("LINE coupon list failed:", e.message);
+    return [];
+  }
+}
+// LINEクーポンの前に送る短い案内（クーポンの中身はクーポン側に書いてあるので、ここでは繰り返さない）
+function buildLineCouponIntro(displayName) {
+  const lines = displayName
+    ? [`${displayName}様への`, "友だち限定クーポンです🎫"]
+    : ["友だち限定クーポンです🎫"];
+  lines.push("", "◇お会計のときに、", "　下のクーポンを", "　スタッフにお見せください");
+  if (displayName) {
+    lines.push("", "恐れ入りますが、画面の", "スクリーンショットの", "SNS等への投稿・転載は", "ご遠慮ください。");
+  }
+  return lines.join("\n");
 }
 function buildCouponReplyText(coupons, todayKey, displayName) {
   const active = (Array.isArray(coupons) ? coupons : []).filter((c) => c && (!c.expiry || c.expiry >= todayKey));
