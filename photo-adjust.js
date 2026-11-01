@@ -54,9 +54,17 @@
   }
   // ---- 公開ページ用：登録した商品の写真に自動で反映 ----
   var map = {};
+  // 軽い版の写真（imgFast）にも、元の写真（img）の調整を当てる（2026-11-02）。元のファイル名が同じ時だけ
+  function baseOf(u) { return String(u || "").split("?")[0].replace(/\.[a-z0-9]+$/i, ""); }
+  function aliasFast(it) {
+    if (!it || !it.imgFast || !it.img || !it.photoAdjust || baseOf(it.imgFast) !== baseOf(it.img)) return;
+    var a = it.photoAdjust[hash(it.img)];
+    if (a) map[hash(it.imgFast)] = a;
+  }
   function register(list) {
     (Array.isArray(list) ? list : list ? Object.values(list) : []).forEach(function (it) {
       if (it && it.photoAdjust) Object.keys(it.photoAdjust).forEach(function (k) { map[k] = it.photoAdjust[k]; });
+      aliasFast(it);
     });
     scan(document);
   }
@@ -88,6 +96,7 @@
     if (!node || typeof node !== "object" || depth > 4) return;
     if (Array.isArray(node)) { node.forEach(function (x) { collect(x, depth + 1); }); return; }
     if (node.photoAdjust && typeof node.photoAdjust === "object") Object.keys(node.photoAdjust).forEach(function (k) { map[k] = node.photoAdjust[k]; });
+    aliasFast(node);
     Object.keys(node).forEach(function (k) { if (k !== "photoAdjust" && node[k] && typeof node[k] === "object") collect(node[k], depth + 1); });
   }
   if (typeof root.fetch === "function" && !root.fetch.__paWrapped) {

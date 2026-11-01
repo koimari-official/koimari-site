@@ -430,11 +430,13 @@ function priceRows(c, i){
 function badgeHtml(c){ return c.badge ? '<span class="xm-badge' + (/限定/.test(c.badge) ? ' xm-badge--gold' : '') + '">' + esc(c.badge) + '</span>' : ''; }
 // 断面の絵（管理画面で入れたケーキだけ）。動く絵（GIF・WebP・動画）もそのまま
 function secMedia(u, name){ return isVideo(u) ? '<video src="' + esc(u) + '" muted autoplay loop playsinline preload="metadata"></video>' : '<img src="' + esc(u) + '" alt="' + esc(name) + 'の断面" loading="lazy" decoding="async">'; }
-function lensInner(c, cut){ const t = cut ? c.img : c.sectionImg; return (cut || !isVideo(t) ? '<img src="' + esc(t) + '" alt="">' : '<i class="xm-lens__v">断面</i>') + '<span>' + (cut ? '写真に戻る' : '断面を見る') + '</span>'; }
+// 表示する写真は軽い版（画素は同じ）。LINE・予約・検索用データには元の写真（c.img）を使う（2026-11-02）
+function showImg(c){ return window.KoimariXmasEntry ? window.KoimariXmasEntry.fastImg(c) : c.img; }
+function lensInner(c, cut){ const t = cut ? showImg(c) : c.sectionImg; return (cut || !isVideo(t) ? '<img src="' + esc(t) + '" alt="">' : '<i class="xm-lens__v">断面</i>') + '<span>' + (cut ? '写真に戻る' : '断面を見る') + '</span>'; }
 function mediaHtml(c, i, cls, eager){
   const sec = c.sectionImg ? String(c.sectionImg) : "", cut = cutOn.has(i);
-  return '<div class="' + cls + ' xm-media xm-zoom" data-img="' + esc(c.img) + '"' + (sec ? ' data-sec="' + esc(sec) + '"' : '') + '>' + badgeHtml(c) +
-    '<img class="xm-photo" src="' + esc(c.img) + '" alt="' + esc(c.name) + '"' + (eager ? ' fetchpriority="high"' : ' loading="lazy"') + ' decoding="async">' +
+  return '<div class="' + cls + ' xm-media xm-zoom" data-img="' + esc(showImg(c)) + '"' + (sec ? ' data-sec="' + esc(sec) + '"' : '') + '>' + badgeHtml(c) +
+    '<img class="xm-photo" src="' + esc(showImg(c)) + '" alt="' + esc(c.name) + '"' + (eager ? ' fetchpriority="high"' : ' loading="lazy"') + ' decoding="async">' +
     (sec ? '<div class="xm-cut">' + secMedia(sec, c.name) + '</div><i class="xm-knife" aria-hidden="true"></i><button type="button" class="xm-lens" data-i="' + i + '" aria-pressed="' + cut + '">' + lensInner(c, cut) + '</button>' : '') + '</div>';
 }
 // 一覧のカードの説明は4行まで（長いときは「続きを読む」）。サイズとお値段・予約ボタンまで近くするため
@@ -463,7 +465,7 @@ function renderIndex(list){
   const nav = document.getElementById("xmIndex");
   if (list.length < 2) { nav.hidden = true; return; }
   nav.innerHTML = '<p class="xm-index__title">全<b>' + list.length + '</b>種類のクリスマスケーキ</p><p class="xm-index__note">写真を押すと、そのケーキのところへ移動します</p><div class="xm-index__row">' +
-    list.map(({ c, i }) => '<a class="xm-index__item" href="#xm-c' + i + '"><img src="' + esc(c.img) + '" alt="" loading="lazy" decoding="async"><span class="xm-index__txt"><span class="xm-index__name">' + esc(c.name) + '</span><span class="xm-index__price">' + minPriceHtml(c) + '</span></span></a>').join('') + '</div>';
+    list.map(({ c, i }) => '<a class="xm-index__item" href="#xm-c' + i + '"><img src="' + esc(showImg(c)) + '" alt="" loading="lazy" decoding="async"><span class="xm-index__txt"><span class="xm-index__name">' + esc(c.name) + '</span><span class="xm-index__price">' + minPriceHtml(c) + '</span></span></a>').join('') + '</div>';
   nav.hidden = false;
 }
 // 検索結果に商品として出るよう、ケーキの一覧を構造化データにする（ページに出ている内容と同じもの）
@@ -536,7 +538,7 @@ function updateBar(){
   const c = barIdx != null && conf && conf.items ? conf.items[barIdx] : null;
   if (!canReserve() || !c) { bar.hidden = true; document.body.classList.remove("xm-bar-on"); return; }
   const size = picked[barIdx], z = sizesOf(c).find(x => x.size === size);
-  bar.querySelector(".xm-bar__img").src = c.img;
+  bar.querySelector(".xm-bar__img").src = showImg(c);
   bar.querySelector(".xm-bar__name").textContent = c.name;
   bar.querySelector(".xm-bar__sub").innerHTML = size ? esc(size) + (z && Number(z.price) > 0 ? "　" + yen(z.price) : "") : "サイズを選んでください";
   bar.querySelector(".xm-bar__btn").textContent = size ? "予約へ進む" : "サイズを選ぶ";

@@ -61,8 +61,12 @@
     // 数字（日付など）は装飾書体を使わない（こいまりのきまり）
     return w.map(function (x) { return '<span style="display:inline-block">' + esc(x).replace(/(\d+)/g, '<span style="font-family:var(--font-sans,sans-serif)">$1</span>') + "</span>"; }).join(" ");
   }
+  // 表示用の写真：軽い版（imgFast＝元の写真と画素が同じ可逆WebP）が、いまの写真（img）と同じファイルから作ったものの時だけ使う。
+  // 管理画面で写真を差し替えると元のファイル名が変わるので、自動で img を出す（2026-11-02）。LINE・予約には img を使う
+  function baseOf(u) { return String(u || "").split("?")[0].replace(/\.[a-z0-9]+$/i, ""); }
+  function fastImg(c) { return c && c.imgFast && c.img && baseOf(c.imgFast) === baseOf(c.img) ? c.imgFast : (c && c.img) || ""; }
   window.KoimariXmasEntry = {
-    load: load, isActive: isActive, itemsOf: itemsOf, today: today, mdw: mdw, statusOf: statusOf, titleOf: titleOf, titleHtml: titleHtml,
+    load: load, isActive: isActive, itemsOf: itemsOf, today: today, mdw: mdw, statusOf: statusOf, titleOf: titleOf, titleHtml: titleHtml, fastImg: fastImg,
     whenActive: function (cb) { load().then(function (c) { if (isActive(c)) cb(c); }); }
   };
 })();

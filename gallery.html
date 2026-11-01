@@ -514,7 +514,7 @@ function buildGallery(){
   // 砂糖菓子・ゼリー菓子は専用タブだけに出す（「すべて」には入れない。写真が小さめのため）
   gallery = gallery.concat(menuAddOns.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img && c.name && c.name !== "新しい商品").map(({ c, idx }) => menuItemToCard(c, "addon", idx, "addOn")));
   // クリスマスケーキ（管理画面「クリスマスケーキ」の並び順。写真のあるものだけ）
-  if (xmasOn) gallery = gallery.concat(menuChristmas.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img).map(({ c, idx }) => ({ img: c.img, category: "christmas", title: c.name, desc: c.desc, isMenuItem: true, isXmas: true, idx, badge: c.badge || "", sizes: Array.isArray(c.sizes) ? c.sizes : [] })));
+  if (xmasOn) gallery = gallery.concat(menuChristmas.map((c, idx) => ({ c, idx })).filter(({ c }) => c && c.visible !== false && c.img).map(({ c, idx }) => ({ img: window.KoimariXmasEntry ? window.KoimariXmasEntry.fastImg(c) : c.img, category: "christmas", title: c.name, desc: c.desc, isMenuItem: true, isXmas: true, idx, badge: c.badge || "", sizes: Array.isArray(c.sizes) ? c.sizes : [] })));
 }
 buildGallery();
 
