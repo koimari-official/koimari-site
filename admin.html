@@ -693,7 +693,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <span class="tab-group-label">専用ページ・機能</span>
       <button class="tab" data-panel="cakeAddOns" style="display:none;">砂糖菓子・ゼリー菓子</button>
       <button class="tab" data-panel="faq">FAQ管理</button>
-      <button class="tab" data-panel="galleryAdmin">ギャラリー</button>
+      <button class="tab" data-panel="galleryAdmin">ギャラリーの登録・編集</button>
       <button class="tab" data-panel="blogAdmin">ブログ</button>
       <button class="tab" data-panel="experiences">体験プログラム</button>
       <button class="tab" data-panel="expDates">体験プログラム候補日</button>
@@ -1416,8 +1416,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div class="panel__head"><h2 class="panel__title">ギャラリー管理</h2></div>
       <p class="panel__desc">作品ギャラリー（gallery.html）に表示される商品を、カテゴリー別に編集できます。ボタンを押すとそれぞれの商品一覧に切り替わります（2026-09-09、散らばっていたタブをここに集約。カテゴリーを開いた後も上部のボタンで他カテゴリーへすぐ移動できます）。</p>
       <hr style="margin:26px 0;border:none;border-top:1px solid var(--color-line);">
-      <div class="panel__head"><h2 class="panel__title" style="font-size:16px;">オーダーメイドの1点物</h2><button class="btn btn--small" id="addGallery">＋ 作品を追加</button></div>
-      <p class="panel__desc">お名前入りなど、真にオーダーメイドの1点物（作品No.・見積り相談形式）のみをここに登録します（上記カテゴリー別の通常ラインナップとは別枠です）。</p>
+      <div class="panel__head"><h2 class="panel__title" style="font-size:16px;">オーダーメイドケーキ（作品No.）</h2><button class="btn btn--small" id="addGallery">＋ 作品を追加</button></div>
+      <p class="panel__desc">ギャラリーの「オーダーメイドケーキ」に、作品No.で並ぶケーキです。新しい作品は「＋ 作品を追加」で一番上に増えます。写真・タイトル・予約フォームの内容を入れて、「変更を保存」を押してください。</p>
       <div class="img-grid" id="galleryAdminGrid"></div>
 
       <hr style="margin:26px 0;border:none;border-top:1px solid var(--color-line);">
@@ -2322,7 +2322,17 @@ function updateCounts() {
    3者を項目単位で比較し、変更が無い側を残す形でマージする。
    同じ項目を両者が変更していた場合のみ「競合」として最新側を優先し、警告を出す。
    ============================================================ */
-function deepEqual(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
+// Firebaseは null・空の配列・空のオブジェクトを保存せず、キーも並べ替えて返す。それらの違いを「変更」と数えないように比べる（2026-11-01）
+function fbNormalize(v) {
+  if (Array.isArray(v)) { const a = v.map(fbNormalize); return a.length ? a : undefined; }
+  if (v && typeof v === "object") {
+    const o = {};
+    Object.keys(v).sort().forEach((k) => { const x = fbNormalize(v[k]); if (x !== undefined) o[k] = x; });
+    return Object.keys(o).length ? o : undefined;
+  }
+  return v === null ? undefined : v;
+}
+function deepEqual(a, b) { return JSON.stringify(fbNormalize(a)) === JSON.stringify(fbNormalize(b)); }
 
 function mergeArraySection(base, fresh, working, label, conflicts) {
   base = base || []; fresh = fresh || []; working = working || [];
@@ -6544,9 +6554,15 @@ const DEFAULT_GALLERY = [];
 const DEFAULT_VOICES = [];
 const DEFAULT_BLOG = [];
 
+// 読み込んだときの内容（キーごと）。サーバーとの基準がまだ無いうちは、これをマージの基準にする（2026-11-01）
+const loadedContentByKey = {};
+function loadedBaseOf(key) { const s = loadedContentByKey[key]; return s === undefined ? undefined : JSON.parse(s); }
 function loadByKey(key, fallback) {
-  try { const r = localStorage.getItem(key); if (r) return JSON.parse(r); } catch(e){}
-  return JSON.parse(JSON.stringify(fallback));
+  let v;
+  try { const r = localStorage.getItem(key); if (r) v = JSON.parse(r); } catch(e){}
+  if (v === undefined) v = JSON.parse(JSON.stringify(fallback));
+  loadedContentByKey[key] = JSON.stringify(v);
+  return v;
 }
 
 // コンテンツ種別ごとのデータ形状（配列＝項目単位でマージ／object＝丸ごと1項目としてマージ）とラベル
@@ -6564,7 +6580,7 @@ async function saveByKey(key, data) {
   try {
     if (typeof window.fbLoadContentKey === "function") {
       const fresh = await window.fbLoadContentKey(contentKey);
-      const base = savedContentByKey[contentKey];
+      const base = savedContentByKey[contentKey] !== undefined ? savedContentByKey[contentKey] : loadedBaseOf(key);
       // 保存直前にFirebase側の最新を取得し、自分の未保存編集とマージしてから書き込む
       // （他の項目・他の人の変更を丸ごと上書きしないため。基準となるbaseが無い場合は従来通り自分のデータをそのまま使う）
       if (fresh !== null && fresh !== undefined && base !== undefined) {
@@ -7705,8 +7721,14 @@ function applyFetchedContent(all) {
       // まだこのタブを開いていない（＝守るべき未保存編集が無い）→ 最新をそのまま採用
       merged = fresh;
     } else if (base === undefined) {
-      // 初回でこのセッションの基準がまだ無い → 安全側で自分の手元のデータを優先
-      merged = working;
+      // 初回でこのセッションの基準がまだ無い → 読み込んだときの内容（端末の控え）を基準にマージする。
+      // 以前は手元を丸ごと優先していたため、控えが空の端末ではオーダーメイド作品が0件のままになり、
+      // そこで追加・保存するとサーバーの既存作品を消すところだった（2026-11-01）
+      const loaded = loadedBaseOf(lsKey);
+      merged = loaded === undefined ? working
+        : CONTENT_SHAPES[contentKey] === "array"
+          ? mergeArraySection(loaded, fresh, working, CONTENT_LABELS[contentKey], allConflicts)
+          : mergeScalarSection(loaded, fresh, working, CONTENT_LABELS[contentKey], allConflicts);
     } else {
       merged = CONTENT_SHAPES[contentKey] === "array"
         ? mergeArraySection(base, fresh, working, CONTENT_LABELS[contentKey], allConflicts)
