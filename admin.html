@@ -907,7 +907,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <ul>
 <li>ご予約の受付・確定・変更のお知らせが、LINEに自動で届きます。</li>
 <li>受け取りの<b>3日前・前日・1時間前</b>に、LINEでお知らせ（リマインド）が届きます。</li>
-<li>LINE限定のクーポンが使えます<span data-until="2026-11-30">（今は「Wオープン記念クーポン」：お会計2,000円ごとに100円引き・11月30日まで）</span>。</li>
+<li>LINE限定のクーポンが使えます<span data-until="2026-11-30">（今は「Wオープン記念クーポン」：お会計2,000円ごとに100円引き・<b>11月中にお引き渡しのケーキだけ</b>。12月以降にお受け取りのクリスマスケーキなどは、11月に先払いしても使えません）</span>。</li>
 <li>2回目からは、お名前や電話番号が自動で入ります。</li>
 </ul>
 <h4>お店にとってよいこと</h4>
@@ -6070,7 +6070,19 @@ function resChangeSummaryHtml(r, idx) {
     (changed.length ? '<div class="rc-change__items">変わった項目：' + changed.map(escapeHtml).join("・") + "</div>" : "") +
     '<button type="button" class="rc-change__open" onclick="openReservationEditor(' + idx + ')">当初と変更後をくわしく見る</button></div>';
 }
-function resPriceBadgeHtml(r) {
+// Wオープン記念クーポン（LINE）は11月中にお引き渡しのケーキだけ（2026-11-03オーナー指示）。12月以降のお受け取り（クリスマスの先払い等）は対象外。
+// 予約カードの金額の下に注意を出す（クーポンの期間が終わったら出さない）
+const WOPEN_COUPON_LAST_PICKUP = "2026-11-30";
+function wopenCouponNoteHtml(r) {
+  const today = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
+  if (today > WOPEN_COUPON_LAST_PICKUP) return "";
+  const pk = String((r && (r.finalPickupDate || r.pickupDate)) || "");
+  if (!/^\d{4}-\d{2}-\d{2}/.test(pk) || pk.slice(0, 10) <= WOPEN_COUPON_LAST_PICKUP) return "";
+  const md = Number(pk.slice(5, 7)) + "/" + Number(pk.slice(8, 10));
+  return '<div style="margin:-2px 0 8px;font-size:12.5px;font-weight:700;color:#b03b48;">※Wオープン記念クーポンは使えません（11月中にお引き渡しのケーキだけ。このご予約は' + md + 'のお受け取り）</div>';
+}
+function resPriceBadgeHtml(r) { return resPriceBadgeCore(r) + wopenCouponNoteHtml(r); }
+function resPriceBadgeCore(r) {
   const yen = (n) => "¥" + Number(n).toLocaleString();
   if (r.finalPrice) return '<div class="rc-pb rc-pb--ok"><b>金額確定</b>' + yen(r.finalPrice) + '<small>スタッフが確定済み</small></div>';
   if (r.quoteSeparately || r.priceNeedsConsult || !r.subtotal) return '<div class="rc-pb rc-pb--ng"><b>要見積もり</b>' + (r.subtotal ? "目安 " + yen(r.subtotal) + "〜" : (r.galleryPick && /^目安/.test(r.galleryPick.price || "") ? escapeHtml(r.galleryPick.price) : "金額未提示")) + '<small>お電話で金額をお伝えしてください</small></div>';
