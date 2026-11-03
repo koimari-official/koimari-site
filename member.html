@@ -793,7 +793,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </footer>
 
 <script src="reserve-draft.js"></script><!-- 電話・店頭予約でギャラリーの番号から選ぶとき、ケーキの仕様を同じ形にする（buildSpec） -->
-<script src="cake-pricing.js?v=20261028d"></script>
+<script src="cake-pricing.js?v=20261103a"></script>
 <script src="photo-adjust.js"></script>
 <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script type="module">
@@ -2392,7 +2392,7 @@ function refCakeForData(data) {
   if (Array.isArray(data.tierSpecs) && data.tierSpecs.length > 1) return null;
   const tart = CakePricing.SPEC.tartTypes.includes(data.creamType);
   const cream = tart ? (data.decoration === "いちごのみ" ? "ストロベリータルトBOX" : "フルーツタルトBOX") : (data.creamType || "");
-  const deco = tart ? "" : (data.decoration || "");
+  const deco = tart || data.decoration === "なし" ? "" : (data.decoration || "");
   const sub = tart ? (data.creamTypeSub || "") : "";
   return refCandidatesByCream(cream).find((c) => (!deco || !c.decoration || c.decoration === deco) && (!sub || !c.creamSub || c.creamSub === sub)) || null;
 }
@@ -2570,7 +2570,10 @@ function sizeOptionLabel(o, tierCount) {
     // ケーキの種類ごとに単段の価格が違う（種類別価格表 currentTypePrices）。生クリーム系は基本料金を表示。
     const creamNow = (document.querySelector('input[name="reserveCreamType"]:checked') || {}).value || "";
     const typeMap = currentTypePrices[creamNow];
-    if (typeMap) {
+    if (CakePricing.isFullOrderSize && CakePricing.isFullOrderSize(creamNow, key)) {
+      const fp = (typeMap && typeMap[key]) || currentSizePrices[key]; // 5号以外のミッシェル・ガトーショコラ＝フルオーダー（2026-11-03）
+      priceText = fp ? `（フルオーダー）- ¥${fp.toLocaleString()}〜` : "（フルオーダー：お電話で確認）";
+    } else if (typeMap) {
       priceText = typeMap[key] ? ` - ¥${typeMap[key].toLocaleString()}〜` : "（特殊仕様：お電話で確認）";
     } else if (!creamNow || CakePricing.SPEC.plainCreams.indexOf(creamNow) >= 0) {
       const price = currentSizePrices[key];
@@ -2718,7 +2721,7 @@ function applyCreamTierRules() {
           else tierSpecs[i] = { cream: "生クリーム", colors: [] };
         }
       }
-      if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ミッシェル・ガトーショコラは5号の段だけ、ムースは一番上が3号の段だけ、タルトは2段の一番下の段だけ選べます）");
+      if (fixed.length) alert(fixed.join("・") + "は、この段の大きさでは作れないため、生クリームに戻しました。\n（ムースは一番上が3号の段だけ、タルトは2段の一番下の段だけ選べます）");
       if (fixedCercle.length) alert(fixedCercle.join("・") + "は、セルクルを乗せる段では作れないため、生クリームに戻しました。\n（セルクルとそのすぐ下の段は、生クリームか生チョコクリームの同じクリームになります）");
       // セルクルとすぐ下の段を同じクリームにそろえる。いま選んでいる段がどちらかなら、その段で選んだクリームに合わせる
       if (ci >= 1) {
@@ -4119,7 +4122,11 @@ function setupReserveForm(uid, displayName) {
       const creamType = isCake ? tartKindFor(bottomCream()) : ""; // タルトBOXは、飾り付け（いちご／ミックス）でストロベリー／フルーツに振り分ける
       const creamTypeNeedsSub = creamType === "フルーツタルトBOX" || creamType === "ストロベリータルトBOX";
       const creamTypeSub = creamTypeNeedsSub ? ((document.querySelector('input[name="reserveCreamTypeSub"]:checked') || {}).value || "") : "";
-      const decoration = isCake ? ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "") : "";
+      const strawCream = isCake && currentTierCount() === 1 && CakePricing.SPEC.strawberryAdd.creamTypes.includes(creamType); // 1段だけ（2段・3段はほかの段の飾りがあるため、これまでどおり）
+      const strawOn = strawCream && document.getElementById("reserveStrawberryAdd").checked;
+      const decoration = !isCake ? "" : strawCream
+        ? (strawOn ? (((document.querySelector('input[name="reserveStrawberryKind"]:checked') || {}).value === "ミックスフルーツ") ? "バラエティフルーツ" : "いちごのみ") : "なし")
+        : ((document.querySelector('input[name="reserveDecoration"]:checked') || {}).value || "");
       const creamTopping = isCake && !isXmasOrder && currentTierCount() === 1 && document.getElementById("reserveCreamTopping").checked; // 2段・3段は段ごと（tierSpecs）
       const candleNeeded = ((isBaked || isXmasOrder) ? false : document.getElementById("reserveCandleNeeded").checked);
       const candleNumbers = candleNeeded ? candleNumbersNow() : [];

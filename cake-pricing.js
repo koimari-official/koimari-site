@@ -7,10 +7,13 @@
 (function (root) {
   var SPEC = {
     // ベースの種類ごとに作れる号数（2026-10-03オーナー確認：グランマニエ＝ムースは4号のみ）。ここに無いベースは4〜7号
-    baseSizes: { "ムース": ["3号"], "ミッシェルBOX": ["5号"], "ガトーショコラBOX": ["5号"] }, // 2026-10-28オーナー指示：グランマニエBOX（ムース）は3号相当（10/25の「4号」から戻した）／2026-10-21：ミッシェル・ガトーショコラは5号のみ
+    baseSizes: { "ムース": ["3号"] }, // 2026-10-28オーナー指示：グランマニエBOX（ムース）は3号相当（10/25の「4号」から戻した）／2026-10-21：ミッシェル・ガトーショコラは5号のみ
     // 2段・3段で、その段に入れられる種類の条件（2026-10-21オーナー指示）
     //  ムース（グランマニエBOX）＝一番上の段だけ（4号＝2段の6号+4号の上）／ミッシェル・ガトーショコラ＝5号になる段だけ（3段の一番上は不可）
     tierOnlyTop: ["ムース"],
+    // ミッシェルBOX・ガトーショコラBOXの定番は5号（確定金額）。ほかの号数・段はフルオーダー＝確定にせず「〇〇円〜」でスタッフがお電話で回答
+    // （2026-11-03オーナー指示。以前は5号だけ選べる決まりだったが、4号のまま送られ、料金表の4号の額が確定金額として案内された件を受けて）
+    fixedSizes: { "ミッシェルBOX": ["5号"], "ガトーショコラBOX": ["5号"] },
     // フルオーダー扱いのベース（料金表に載せず、お見積もり・納期は別途ご回答。2026-10-03：モンブラン）
     customBases: ["モンブラン", "ブルーベリーケーキ"], // 2026-10-26：ブルーベリーBOXもフルオーダー・要お見積もり
     sizes: {
@@ -60,6 +63,9 @@
     return v.split("(")[0];
   }
   function comboKey(values) { return values.map(tierKey).join("+"); }
+  // その種類・号数は確定金額で受けない（フルオーダー）組み合わせか（SPEC.fixedSizes：5号以外のミッシェル・ガトーショコラ）
+  function isFullOrderSize(cream, sizeKey) { var f = SPEC.fixedSizes && SPEC.fixedSizes[cream]; return !!(f && sizeKey && f.indexOf(sizeKey) < 0); }
+  function fullOrderNote(cream, sizeKey) { return cream + "の" + sizeKey + "はフルオーダーです。金額はスタッフよりお電話でご案内します（" + SPEC.fixedSizes[cream].join("・") + "は確定金額でご予約いただけます）"; }
   // 段の組み合わせのセット価格・納期。一番上がカットケーキなら、ホールケーキの組み合わせを基準に差し引く。
   function resolveCombo(tiers) {
     var keys = (tiers || []).filter(Boolean).map(tierKey);
@@ -138,9 +144,16 @@
       // 生クリーム系でもない場合は、誤った金額を出さないよう「お電話で個別にご案内」にする。
       var typeMap = base.typePrices && base.typePrices[cream];
       var p;
-      if (typeMap && typeMap[k] != null) p = typeMap[k];
-      else if (!cream || SPEC.plainCreams.indexOf(cream) >= 0) p = base.sizePrices && base.sizePrices[k];
-      if (p) lines.push({ label: (cream && SPEC.plainCreams.indexOf(cream) < 0 ? cream + " " : "") + k + "ケーキ", amount: p }); else consult = true;
+      if (isFullOrderSize(cream, k)) {
+        // フルオーダー：注記を付ける＝確定にしない（予約フォームは注記があると「〇〇円〜」）。料金表にその号数の額があっても確定にはしない。
+        // 目安の額は、種類別の価格（無ければ同じ号数の生クリームの価格）
+        p = typeMap && typeMap[k] != null ? typeMap[k] : base.sizePrices && base.sizePrices[k];
+        if (p) { lines.push({ label: cream + " " + k + "ケーキ（フルオーダー）", amount: p }); notes.push(fullOrderNote(cream, k)); } else consult = true;
+      } else {
+        if (typeMap && typeMap[k] != null) p = typeMap[k];
+        else if (!cream || SPEC.plainCreams.indexOf(cream) >= 0) p = base.sizePrices && base.sizePrices[k];
+        if (p) lines.push({ label: (cream && SPEC.plainCreams.indexOf(cream) < 0 ? cream + " " : "") + k + "ケーキ", amount: p }); else consult = true;
+      }
     } else {
       var combo = resolveCombo(tiers);
       if (combo) lines.push({ label: tiers.length + "段ケーキ（" + comboKey(tiers).replace(/\+/g, "＋") + "）", amount: combo.price });
@@ -149,6 +162,7 @@
       if (combo && specs) {
         for (var ti = 0; ti < tiers.length; ti++) {
           var c = creamOf(ti), tk = tierKey(tiers[ti]);
+          if (isFullOrderSize(c, tk)) { notes.push(fullOrderNote(c, tk)); continue; } // 5号以外の段のミッシェル・ガトーショコラ＝フルオーダー（差額は付けず、注記で「〇〇円〜」）
           var plainP = base.sizePrices && base.sizePrices[tk];
           if (!plainP || !c || SPEC.plainCreams.indexOf(c) >= 0) continue; // セルクル・カット等、または生クリーム系は差額なし
           var tm = base.typePrices && base.typePrices[c];
@@ -312,7 +326,7 @@
   }
 
   function lineYen(l) { return yen(l && l.amount) + (l && l.range ? "〜" : ""); }
-  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, candleParts: candleParts, candleText: candleText, formatCandleNumbers: formatCandleNumbers, parseCandleNumbers: parseCandleNumbers, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, christmasNeedsPrepay: christmasNeedsPrepay, yen: yen, fromYen: fromYen };
+  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, isFullOrderSize: isFullOrderSize, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, candleParts: candleParts, candleText: candleText, formatCandleNumbers: formatCandleNumbers, parseCandleNumbers: parseCandleNumbers, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, christmasNeedsPrepay: christmasNeedsPrepay, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);
