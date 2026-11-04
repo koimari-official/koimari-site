@@ -1010,6 +1010,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <li>カードの<b>見出し</b>に、ケーキの種類と段数・号数が出ます。予約番号は<b>No.0011</b>から順に付きます。</li>
 <li>並べ方は<b>「新着順」と「受け取り日順」</b>を切り替えられます。「たたむ」にすると、名前と内容だけの一覧で、その日にどんなケーキがいくつ入っているかをざっと見られます。</li>
 <li>電話がまだのご予約には<b>「電話済み（要電話）」</b>と出ます。お支払いが済んだら<b>「支払済み」</b>にチェックします。</li>
+<li>確認の電話がつながらなかったときは、カードの<b>「電話に出なかった（不在）を記録する」</b>を押して、かけた人を選びます。日時は自動で残ります（次にかける人が、いつ誰がかけたか分かります）。</li>
 <li><b>スタッフメモ</b>：カードにメモを残せます。入力した人・日時が残り、読んだ人は「確認」にチェックします。確認されていないメモがあるカードには印が出ます（お店のタブレットでは、入力した人をプルダウンで選びます）。</li>
 <li><b>お渡しの確認</b>：受け取り時刻を30分過ぎても「お渡し済み」が付いていないご予約（閉店30分前からはその日の分すべて）は、管理画面とこいまりポータルに<b>「お渡しに✓が入っていない予約があります。予約番号No.〇〇〇〇」</b>の帯が出ます。押すとそのカードが開きます（帯は閉じられます）。</li>
 </ul>
@@ -4629,6 +4630,30 @@ async function deleteOneReservation(idx) {
 // 以前の1つだけのメモ（notes）は「以前のメモ」として表示だけする。
 function resMemoList(r) { return Object.entries((r && r.staffMemos) || {}).filter(([, m]) => m && m.text).sort((a, b) => String(a[1].at || "").localeCompare(String(b[1].at || ""))); }
 function resMemoUnchecked(r) { return resMemoList(r).filter(([, m]) => !m.checkedAt).length; }
+// 確認の電話がつながらなかった記録（2026-11-04オーナー指示：誰が・何日の何時にかけて不在だったか）。
+// 老眼の方・機械が苦手な方でも使えるよう、大きいボタン1つ（押すと担当者を選ぶだけ。日時は自動）
+function resCallAttemptsHtml(r, idx) {
+  const list = r.callAttempts ? Object.keys(r.callAttempts).sort().map((k) => r.callAttempts[k]).filter(Boolean) : [];
+  const W = ["日", "月", "火", "水", "木", "金", "土"];
+  const when = (at) => { const d = new Date(new Date(at).getTime() + 9 * 3600000); return (d.getUTCMonth() + 1) + "/" + d.getUTCDate() + "（" + W[d.getUTCDay()] + "）" + d.getUTCHours() + ":" + String(d.getUTCMinutes()).padStart(2, "0"); };
+  const rows = list.map((a, i) => '<div style="font-size:16px;line-height:1.7;">' + (i + 1) + "回目　" + escapeHtml(when(a.at)) + "　" + escapeHtml(a.by || "") + "　<b style=\"color:#b03b48;\">不在</b></div>").join("");
+  const btn = r.confirmCallDone ? "" : '<button type="button" onclick="recordCallNoAnswer(' + idx + ')" style="display:block;width:100%;margin-top:6px;padding:14px 10px;font-size:18px;font-weight:700;border-radius:10px;border:2px solid #b03b48;background:#fff;color:#b03b48;cursor:pointer;">電話に出なかった（不在）を記録する</button>';
+  if (!list.length && !btn) return "";
+  return '<div style="margin:8px 0;padding:10px 12px;border-radius:10px;background:#fdf6f6;border:1px solid #efc9c9;">' +
+    (list.length ? '<div style="font-size:14px;font-weight:700;color:#8a2020;margin-bottom:2px;">確認の電話がつながらなかった記録</div>' + rows : "") + btn + "</div>";
+}
+async function recordCallNoAnswer(idx) {
+  const key = resKeyNow(idx); // 押した瞬間の予約で決める
+  const r = resByKey(key) || loadList(RES_KEY)[idx];
+  if (!key || !r) return;
+  const actor = await askActor("電話をかけた人");
+  if (!actor) return;
+  const now = new Date();
+  const cur = resByKey(key) || r;
+  const next = Object.assign({}, cur.callAttempts || {});
+  next[String(now.getTime())] = { at: now.toISOString(), by: actor };
+  await saveResPatch(key, { callAttempts: next }, "不在の記録");
+}
 function resMemoHtml(r, idx) {
   const list = resMemoList(r), un = resMemoUnchecked(r);
   return '<div class="rc-memos"><div class="rc-memos__head">スタッフメモ' + (list.length ? "（" + list.length + "件" + (un ? '・<b class="rc-memos__un">未確認 ' + un + "件</b>" : "・すべて確認済み") + "）" : "") + "</div>" +
@@ -6154,6 +6179,7 @@ function resCardHtml(r, idx, byTel) {
         '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
         '<button type="button" class="rc-del" onclick="deleteOneReservation(' + idx + ')">削除</button>' +
       "</div>" +
+      resCallAttemptsHtml(r, idx) +
       resMemoHtml(r, idx) +
       '<details class="rc-more"><summary>連絡文・受付日時</summary>' +
         '<div class="small">受付：' + fmtDate(r.submittedAt) + (r.email ? "　" + escapeHtml(r.email) : "") + (r.birthday ? "　生年月日：" + escapeHtml(r.birthday) : "") + "</div>" +

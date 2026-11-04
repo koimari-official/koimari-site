@@ -2775,7 +2775,9 @@ function updateCakeOptionUI() {
 
   // クリスマス：クリームたっぷり乗せ不可／メッセージプレートは「メリークリスマス」固定／ろうそくは無料（選択肢を出さない）
   g("reserveChristmasNotice").style.display = isXmas ? "" : "none"; // フォームでクリスマスを選んだ場合は特設ページへの案内だけを出す（2026-10-22）
-  g("reserveCreamToppingField").style.display = isXmas ? "none" : "";
+  const noCreamTop = checkedCream() === "ミッシェルBOX"; // ミッシェルは生クリームたっぷり乗せ不可（2026-11-04オーナー指示。タルトは可）
+  g("reserveCreamToppingField").style.display = isXmas || noCreamTop ? "none" : "";
+  if (noCreamTop) g("reserveCreamTopping").checked = false;
   g("reserveCandleField").style.display = isXmas ? "none" : "";
   g("reserveChocoField").style.display = isXmas ? "none" : "";
   if (isXmas) {
