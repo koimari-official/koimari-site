@@ -194,6 +194,14 @@ function occasionCategoryName(baseCategory, occasion, occasionOther) {
   return null;
 }
 
+// 一緒にご予約の商品（2026-11-07）：ケーキと一緒のカットケーキ（1個から）・電話のまとめて受付のロールケーキ等。cake-pricing.js の extraItemsOf と同じ数え方
+function extraItemsOf(data) {
+  const raw = data && data.extraItems;
+  const a = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : [];
+  return a.filter((x) => x && x.name && Number(x.qty) > 0);
+}
+function extraItemsText(data) { return extraItemsOf(data).map((x) => x.name + "×" + Number(x.qty)).join("、"); }
+
 function productLabel(data) {
   const item = data.items && data.items[0];
   if (!item) return data.type || "ご予約商品";
@@ -203,7 +211,7 @@ function productLabel(data) {
   const occasionName = occasionCategoryName(item.category, data.occasion, data.occasionOther);
   let base;
   if (isRoll) {
-    base = occasionName || item.flavor || item.category;
+    base = (occasionName || item.flavor || item.category) + (Number(item.qty) > 1 ? "×" + Number(item.qty) : ""); // まとめて受付は本数つき（2026-11-07）
   } else {
     const categoryName = occasionName || item.category;
     base = !item.flavor ? categoryName : `${item.flavor}の${categoryName}`;
@@ -768,6 +776,8 @@ function buildStaffNotifyText(data) {
   if (Array.isArray(data.decideLater) && data.decideLater.length) {
     lines.push("あとで相談: " + data.decideLater.join("・"));
   }
+  if (extraItemsOf(data).length) lines.push("一緒にご予約: " + extraItemsText(data));
+  if (data.detailPending) lines.push("⚠ ケーキの詳しい内容がまだ決まっていません（管理画面の「詳細・変更」で入れて確定してください）");
   if (data.fruitExtra) lines.push("フルーツ増量: あり");
   if (data.omakaseDeco) lines.push("おまかせデコレーション: " + data.omakaseDeco + (data.omakaseWish ? "（ご希望：" + data.omakaseWish + "）" : ""));
   if (Array.isArray(data.toppings) && data.toppings.length) {
@@ -1116,7 +1126,7 @@ function orderDetailLines(data) {
     }
   }
   if (data.decoration) lines.push(diamondLine("飾り付け", ({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[data.decoration] || data.decoration)));
-  if (isCakeLike) {
+  if (isCakeLike && !data.detailPending) {
     lines.push(diamondLine("ろうそく", data.christmasOrder ? "無料でお付けします" : candleTextOf(data)));
     if (data.christmasOrder) lines.push(diamondLine("プレート", "「メリークリスマス」"));
     else if (it.message) lines.push(diamondLine("プレート", "「" + it.message + "」"));
@@ -1127,6 +1137,7 @@ function orderDetailLines(data) {
   if (data.strawberryAdd) extras.push("フルーツトッピング（" + (data.strawberryKind || "いちご") + "）");
   if (data.topCut && !(data.cutCakes || []).length) extras.push("カットケーキ載せ" + (data.topCut.note ? "（" + data.topCut.note + "）" : ""));
   if (Array.isArray(data.cutCakes) && data.cutCakes.length) lines.push(diamondLine("カットケーキ", data.cutCakes.map((c) => c.name + "×" + c.qty).join("、")));
+  if (extraItemsOf(data).length) lines.push(diamondLine("一緒にご予約", extraItemsText(data)));
   if (data.onsiteAssembly) extras.push("出張組み立て（納期・日程は要確認）");
   (data.addOns || []).forEach((a) => extras.push(a.name + (a.qty > 1 ? "×" + a.qty : "")));
   if (data.fruitExtra) extras.push("フルーツ増量");
@@ -1726,6 +1737,7 @@ function buildCustomerConfirmationEmailText(data) {
     "以下の内容でご予約を承りました。",
     "",
     `商品: ${product}`,
+    ...(extraItemsOf(data).length ? [`一緒にご予約: ${extraItemsText(data)}`] : []),
     pickupLine,
     "",
     xmasNeedsPrepay(data)

@@ -303,12 +303,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .man .msg{border:1px solid #cdbfae;border-radius:8px;background:#fff;padding:10px 14px;font-size:13.5px;line-height:1.7;margin:6px 0 10px}
 .man .qr{text-align:center;font-size:13px;line-height:1.6;margin:8px 0 14px}.man .qr img{display:block;width:160px;margin:0 auto 4px}
 </style>
-<script src="cake-pricing.js?v=20261103b"></script>
+<script src="cake-pricing.js?v=20261107a"></script>
 <script src="photo-adjust.js"></script>
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261103a"></script>
+<script src="reservation-editor.js?v=20261107a"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -1010,6 +1010,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <li>カードの<b>見出し</b>に、ケーキの種類と段数・号数が出ます。予約番号は<b>No.0011</b>から順に付きます。</li>
 <li>並べ方は<b>「新着順」と「受け取り日順」</b>を切り替えられます。「たたむ」にすると、名前と内容だけの一覧で、その日にどんなケーキがいくつ入っているかをざっと見られます。</li>
 <li>電話がまだのご予約には<b>「電話済み（要電話）」</b>と出ます。お支払いが済んだら<b>「支払済み」</b>にチェックします。</li>
+<li>電話・店頭予約の「まとめて受付」では、ロールケーキ・カットケーキを何種類でも、デコレーション／オーダーケーキを1台、一度に受けられます。ケーキの詳しい内容を後で決めるご予約には「（詳細未定）」と出ます。決まったら、そのご予約の「詳細・変更」から入れて確定してください。</li>
 <li>クリスマスケーキのご予約は、確認の電話はしません（「電話済み」「内容確定」のチェックも出ません）。</li>
 <li>確認の電話がつながらなかったときは、カードの<b>「電話に出なかった（不在）を記録する」</b>を押して、かけた人を選びます。日時は自動で残ります（次にかける人が、いつ誰がかけたか分かります）。</li>
 <li><b>スタッフメモ</b>：カードにメモを残せます。入力した人・日時が残り、読んだ人は「確認」にチェックします。確認されていないメモがあるカードには印が出ます（お店のタブレットでは、入力した人をプルダウンで選びます）。</li>
@@ -4631,6 +4632,29 @@ async function deleteOneReservation(idx) {
 // 以前の1つだけのメモ（notes）は「以前のメモ」として表示だけする。
 function resMemoList(r) { return Object.entries((r && r.staffMemos) || {}).filter(([, m]) => m && m.text).sort((a, b) => String(a[1].at || "").localeCompare(String(b[1].at || ""))); }
 function resMemoUnchecked(r) { return resMemoList(r).filter(([, m]) => !m.checkedAt).length; }
+// 詳しい内容がまだ決まっていない予約（電話・店頭の「まとめて受付」。2026-11-07オーナー指示）。
+// 予約一覧の「詳細・変更」で内容を入れて確定すると外れる。受け取りの4営業日前からは赤で強調（デコレーションの締切は3営業日前）
+function resOpenDaysUntil(dateStr) {
+  const m = String(dateStr || "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!m) return 99;
+  const hol = (typeof holidaysData !== "undefined" && holidaysData) || (typeof loadByKey === "function" ? loadByKey(HOLIDAYS_KEY, DEFAULT_HOLIDAYS) : {});
+  const end = new Date(+m[1], +m[2] - 1, +m[3]);
+  const d = new Date(); d.setHours(0, 0, 0, 0);
+  let n = 0;
+  for (let i = 0; i < 60 && d < end; i++) {
+    d.setDate(d.getDate() + 1);
+    const key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const closed = window.KoimariHours ? window.KoimariHours.dayInfoFor(hol || {}, key).closed : d.getDay() === 1;
+    if (!closed) n++;
+  }
+  return n;
+}
+function resDetailPendingHtml(r) {
+  if (!r || !r.detailPending || r.status === "キャンセル") return "";
+  const urgent = resOpenDaysUntil(r.finalPickupDate || r.pickupDate) <= 4;
+  return '<div style="margin:8px 0;padding:12px 14px;border-radius:10px;font-size:16px;line-height:1.7;font-weight:700;' + (urgent ? "background:#b03b48;color:#fff;" : "background:#fff4e0;color:#8a4b00;border:2px solid #e0a040;") + '">' +
+    (urgent ? "【急ぎ】お受け取りが近いのに、" : "") + "ケーキの詳しい内容がまだ決まっていません。<br><span style=\"font-weight:400;\">お客様に確認して、このご予約の「詳細・変更」から入れて確定してください（確定すると、この表示は消えます）。</span></div>";
+}
 // 確認の電話がつながらなかった記録（2026-11-04オーナー指示：誰が・何日の何時にかけて不在だったか）。
 // 老眼の方・機械が苦手な方でも使えるよう、大きいボタン1つ（押すと担当者を選ぶだけ。日時は自動）
 function resCallAttemptsHtml(r, idx) {
@@ -5984,10 +6008,14 @@ function resSizeKey(s) { const m = String(s || "").match(/([3-7])号/); return m
 // 予約一覧のカード：お客様が選んだ仕様をすべて表示する（2026-10-07オーナー指示：何のケーキか・カットケーキなら何を何個か）
 const DECO_LABEL = { "いちごのみ": "いちご", "バラエティフルーツ": "ミックスフルーツ" };
 function resCakeTitle(r) {
+  const t = resCakeTitleBase(r);
+  return r && r.detailPending ? t + "（詳細未定）" : t; // 詳しい内容は後で（2026-11-07）。どの画面でも分かるように名前に付ける
+}
+function resCakeTitleBase(r) {
   if (r.category === "kidsManager") return "キッズ店長体験";
   const it = Array.isArray(r.items) && r.items[0] || {};
   const pick = r.galleryPick && r.galleryPick.name ? (r.galleryPick.no ? cakeNoLabel(r.galleryPick.no) + " " : "") + r.galleryPick.name : "";
-  if (it.category === "ロールケーキ") return "ロールケーキ" + (it.flavor ? "（" + it.flavor + "）" : "");
+  if (it.category === "ロールケーキ") return "ロールケーキ" + (it.flavor ? "（" + it.flavor + (Number(it.qty) > 1 ? "×" + Number(it.qty) : "") + "）" : "");
   if (it.category === "焼き菓子") return "焼き菓子・ギフト";
   // カットケーキ・砂糖菓子：種類名と個数（2026-10-22）
   if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return it.category + "（" + r.items.filter((x) => x && x.flavor).map((x) => x.flavor + "×" + (Number(x.qty) || 1)).join("・") + "）";
@@ -6028,6 +6056,7 @@ function resExtrasLine(r) {
   const it = (Array.isArray(r.items) && r.items[0]) || {};
   if (it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") return r.note ? "備考：" + r.note : "";
   if (Array.isArray(r.cutCakes) && r.cutCakes.length) out.push("上に載せるカットケーキ：" + r.cutCakes.map((c) => c.name + "×" + c.qty).join("、"));
+  if (window.CakePricing && CakePricing.extraItemsOf(r).length) out.push("一緒にご予約：" + CakePricing.extraItemsText(r, " ＋ ")); // 2026-11-07
   if (r.colorCream && !(Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1)) out.push("カラークリーム " + r.colorCream.count + "色" + ((r.colorCream.colors || []).length ? "（" + r.colorCream.colors.join("・") + "）" : "") + (r.colorCream.note ? "：" + r.colorCream.note : ""));
   if (r.fruitExtra) out.push("フルーツ増量");
   if (r.strawberryAdd) out.push("フルーツトッピング（" + (r.strawberryKind || "いちご") + "）");
@@ -6184,6 +6213,7 @@ function resCardHtml(r, idx, byTel) {
         '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
         '<button type="button" class="rc-del" onclick="deleteOneReservation(' + idx + ')">削除</button>' +
       "</div>" +
+      resDetailPendingHtml(r) +
       resCallAttemptsHtml(r, idx) +
       resMemoHtml(r, idx) +
       '<details class="rc-more"><summary>連絡文・受付日時</summary>' +
@@ -6209,9 +6239,11 @@ function resDaySummary(rows) {
     if (!items.length) { cnt[resCakeTitle(r)] = (cnt[resCakeTitle(r)] || 0) + 1; return; }
     items.forEach((it, i) => {
       const base = (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? "" : (r.creamType || it.category || ""));
-      const k = it.category === "カットケーキ" ? "カット " + it.flavor : it.category === "砂糖菓子・ゼリー菓子" ? it.flavor : (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "");
+      const k = it.category === "カットケーキ" ? "カット " + it.flavor : it.category === "砂糖菓子・ゼリー菓子" ? it.flavor : it.category === "ロールケーキ" ? "ロール " + (it.flavor || "") :
+        (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "") + (r.detailPending ? "（詳細未定）" : "");
       cnt[k] = (cnt[k] || 0) + (Number(it.qty) || 1);
     });
+    if (window.CakePricing) CakePricing.extraItemsOf(r).forEach((x) => { const k = (x.category === "ロールケーキ" ? "ロール " : "カット ") + x.name; cnt[k] = (cnt[k] || 0) + Number(x.qty); });
   });
   return Object.keys(cnt).sort().map((k) => k + "×" + cnt[k]);
 }
@@ -8067,7 +8099,10 @@ function renderKitchen() {
       spec.push(kEsc(String(it.size || "").replace(/\(.*$/, "")) + "　" + kEsc(r.creamType || "") + (r.creamTypeSub ? "（" + kEsc(r.creamTypeSub) + "）" : "") + (r.mousseFlavor ? "　" + kEsc(r.mousseFlavor) : ""));
       if (r.colorCream && r.colorCream.count) spec.push("🎨 カラークリーム " + r.colorCream.count + "色：" + (r.colorCream.colors || []).map(kEsc).join("・") + (r.colorCream.note ? "（" + kEsc(r.colorCream.note) + "）" : ""));
     }
+    if (it.category === "ロールケーキ" || it.category === "カットケーキ" || it.category === "砂糖菓子・ゼリー菓子") { spec.length = 0; spec.push("<b>" + kEsc(resCakeTitle(r)) + "</b>"); } // 2026-11-07：号数の欄（ホール等）ではなく商品名と本数
+    if (r.detailPending) spec.unshift('<b style="color:#b03b48;">⚠ 詳しい内容がまだ決まっていません（作り始める前に確認）</b>');
     const extra = [];
+    if (window.CakePricing && CakePricing.extraItemsOf(r).length) extra.push("<b>一緒にご予約：" + CakePricing.extraItemsOf(r).map((x) => kEsc(x.name) + "×" + x.qty).join("、") + "</b>");
     if (r.occasion && r.occasion !== "特になし") extra.push("シーン：" + kEsc(r.occasion === "その他" ? (r.occasionOther || "その他") : r.occasion));
     if (r.decoration) extra.push("飾り：" + kEsc(({"いちごのみ":"いちご","バラエティフルーツ":"ミックスフルーツ"}[r.decoration] || r.decoration)));
     if (r.strawberryAdd) extra.push("フルーツトッピング（" + (r.strawberryKind || "いちご") + "）");

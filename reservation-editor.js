@@ -142,6 +142,7 @@
       omakase: r.omakaseDeco || "",
       fruitExtra: !!r.fruitExtra,
       extraNote: r.extraChargeNote || "",
+      withItems: window.CakePricing && window.CakePricing.extraItemsText ? window.CakePricing.extraItemsText(r, "、") : "", // 一緒にご予約（2026-11-07。この画面では変えない）
       // 表示用（お客様が選んだ仕様。この画面では変更しない）
       cutCakes: (r.cutCakes || []).map(function (c) { return c.name + "×" + c.qty; }).join("、"),
       toppings: (r.toppings || []).join("・"),
@@ -193,6 +194,7 @@
     if (s.toppings) rows.push(["トッピング", s.toppings]);
     if (s.addOns) rows.push(["砂糖菓子・オーナメント等", s.addOns]);
     if (s.note) rows.push(["備考", s.note]);
+    if (s.withItems) rows.push(["一緒にご予約", s.withItems]);
     if (s.extraNote || s.extraAmount) rows.push(["追加のご注文", (s.extraNote || "内容未記入") + (s.extraAmount ? "　" + yen(s.extraAmount) : "")]);
     rows.push(["お引き取り", (s.pickupDate || "未定") + " " + (s.pickupTime || "")]);
     if (s.tel !== undefined) rows.push(["電話番号", s.tel || "未登録"]); // 以前の記録（電話番号を持たない写し）には出さない
@@ -209,7 +211,14 @@
     ra.forEach(function (r) { if (!labelsB[r[0]]) out.push({ label: r[0], from: r[1], to: "—" }); });
     return out;
   }
-  function estimateOf(s, r) { return withExtra(estimateOfBase(s, r), s); }
+  function estimateOf(s, r) { return withItemsEst(withExtra(estimateOfBase(s, r), s), r); }
+  // 一緒にご予約の商品（ケーキと一緒のカットケーキ・まとめて受付のロール等。2026-11-07）を金額に足す
+  function withItemsEst(est, r) {
+    var t = est && !est.needsConsult && window.CakePricing && window.CakePricing.extraItemsTotal ? window.CakePricing.extraItemsTotal(r) : null;
+    if (!t || !t.count) return est;
+    var lines = (est.lines || []).concat(t.lines.map(function (l) { return { label: "一緒にご予約 " + l.label, amount: l.amount }; }));
+    return Object.assign({}, est, { lines: lines, subtotal: est.subtotal + t.subtotal, notes: t.priced ? est.notes : (est.notes || []).concat(["価格が未登録の商品があります（一緒にご予約）"]) });
+  }
   function estimateOfBase(s, r) {
     if (s.cuts) return cutEstimate(s);
     if (!window.CakePricing || !priceBase || !s.tiers.length) return null;
@@ -443,6 +452,8 @@
     // 変更後の金額＝お伝え済みの金額＋（変更後の仕様の金額−変更前の仕様の金額）。料金表が予約後に改定されていても、
     // 仕様を変えていない部分の金額は上がらない（2026-10-03オーナー指摘：お伝え済みの金額から、今回の変更でいくらになったかを出す）。
     state.told = { price: state.snap.price || state.snap.subtotal || 0, range: !state.snap.price && !!state.snap.subtotal };
+    // 「詳しい内容は後で」で受けた予約は、ケーキの金額をまだお伝えしていない（目安は一緒にご予約の分だけ）。差額ではなく料金表どおりの金額にする（2026-11-07）
+    if (state.r && state.r.detailPending && !state.snap.price) state.told = { price: 0, range: false };
     var b0 = estimateOf(state.snap, state.r);
     state.baseAuto = b0 && !b0.needsConsult ? b0.subtotal : null;
     if (!state.edit.price && state.told.price) state.edit.price = state.told.price;
@@ -605,6 +616,11 @@
     var patch = patchOf(e, r, est);
     if (!isCakeRes(r) && !e.cuts) { patch = { pickupDate: e.pickupDate, pickupTime: e.pickupTime, finalPickupDate: e.pickupDate, finalPickupTime: e.pickupTime, finalPrice: e.price, priceIsFixed: true }; }
     if (e.tel && e.tel !== (r.tel || "")) patch.tel = e.tel; // 電話番号の変更（2026-10-24）
+    if (r.detailPending) { // 「詳しい内容は後で」で受けた予約：内容を入れて確定したら外す（2026-11-07）
+      patch.detailPending = null;
+      var later = (r.decideLater || []).filter(function (x) { return String(x).indexOf("ケーキの詳しい内容") !== 0; });
+      patch.decideLater = later.length ? later : null;
+    }
     up[base + "revisions/" + n] = { label: label, savedAt: now, by: staff, byAccount: api.currentUserEmail() || "", memo: memo, changes: changes, snapshot: e };
     Object.keys(patch).forEach(function (k) { up[base + k] = patch[k]; });
     up[base + "revisionCount"] = Number(label.replace(/[^0-9]/g, "")) || n; up[base + "lastRevisionAt"] = now;

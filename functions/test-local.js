@@ -318,3 +318,32 @@ console.log("OK: buildCouponReplyText");
 }
 
 console.log("\nすべてのローカルテストに合格しました。");
+
+// --- まとめて受付・一緒にご予約（2026-11-07） ---
+{
+  const T = require("./index.js")._internal;
+  const roll = { name: "テスト", tel: "09000000000", pickupDate: "2026-11-20", pickupTime: "14:00", subtotal: 4600, priceIsFixed: true,
+    items: [{ category: "ロールケーキ", flavor: "こいまりロール", qty: 2, size: "ホール" }],
+    extraItems: [{ category: "ロールケーキ", name: "フルーツロール", qty: 1, price: 1800 }, { category: "カットケーキ", name: "ショートケーキ", qty: 2, price: 500 }] };
+  assertEqual(T.productLabel(roll), "こいまりロール×2", "まとめて受付：ロールの本数");
+  const linked = T.buildLinkedCopyMessage(roll);
+  assert.ok(linked.includes("一緒にご予約") && linked.includes("フルーツロール×1、ショートケーキ×2"), "控えに一緒にご予約");
+  console.log("OK: 控えに一緒にご予約");
+  const staff = T.buildStaffNotifyText(roll);
+  assert.ok(staff.includes("一緒にご予約: フルーツロール×1、ショートケーキ×2"), "スタッフ通知に一緒にご予約");
+  console.log("OK: スタッフ通知に一緒にご予約");
+  const mail = T.buildCustomerConfirmationEmailText(roll);
+  assert.ok(mail.includes("一緒にご予約: フルーツロール×1、ショートケーキ×2"), "メールに一緒にご予約");
+  console.log("OK: メールに一緒にご予約");
+  const pending = { name: "テスト", items: [{ category: "デコレーションケーキ", size: "5号(約15cm/5-6名)" }], detailPending: true, priceNeedsConsult: true,
+    decideLater: ["ケーキの詳しい内容（飾り・プレート・ろうそくなど）"], extraItems: [{ category: "カットケーキ", name: "ショートケーキ", qty: 1, price: 500 }] };
+  const pc = T.buildLinkedCopyMessage(pending);
+  assert.ok(!pc.includes("◇ろうそく") && !pc.includes("◇プレート") && pc.includes("あとで相談") && pc.includes("ショートケーキ×1"), "詳細未定はろうそく・プレートを出さない");
+  console.log("OK: 詳細未定はろうそく・プレートを出さない");
+  assert.ok(T.buildStaffNotifyText(pending).includes("まだ決まっていません"), "スタッフ通知に詳細未定");
+  console.log("OK: スタッフ通知に詳細未定");
+  // 一緒にご予約が無い予約は今までどおり（ろうそく・プレートの行が出る）
+  const plain = T.buildLinkedCopyMessage({ name: "テスト", items: [{ category: "ロールケーキ", flavor: "こいまりロール" }] });
+  assert.ok(plain.includes("ろうそく") && !plain.includes("一緒にご予約"), "従来のロールは変わらない");
+  console.log("OK: 従来のロールは変わらない");
+}

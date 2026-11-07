@@ -325,8 +325,22 @@
     });
   }
 
+  // 一緒にご予約の商品（2026-11-07オーナー指示）：ケーキと一緒のカットケーキ（1個から）・電話のまとめて受付のロールケーキ等。
+  // 予約の extraItems = [{ category, name, qty, price }]。予約フォーム・管理画面・変更画面で同じ数え方にする
+  function extraItemsOf(r) {
+    var raw = r && r.extraItems;
+    var a = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.keys(raw).map(function (k) { return raw[k]; }) : [];
+    return a.filter(function (x) { return x && x.name && Number(x.qty) > 0; });
+  }
+  function extraItemsText(r, sep) { return extraItemsOf(r).map(function (x) { return x.name + "×" + Number(x.qty); }).join(sep || "・"); }
+  // 合計（価格が分からない商品があれば priced=false。その商品は0円で数え、金額は「〜」で出す）
+  function extraItemsTotal(r) {
+    var list = extraItemsOf(r), priced = true;
+    var lines = list.map(function (x) { var p = Number(x.price) || 0; if (!p) priced = false; return { label: x.name + " ×" + Number(x.qty), amount: p * Number(x.qty) }; });
+    return { subtotal: lines.reduce(function (a, l) { return a + l.amount; }, 0), priced: priced, lines: lines, count: list.reduce(function (a, x) { return a + Number(x.qty); }, 0) };
+  }
   function lineYen(l) { return yen(l && l.amount) + (l && l.range ? "〜" : ""); }
-  var api = { lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, isFullOrderSize: isFullOrderSize, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, candleParts: candleParts, candleText: candleText, formatCandleNumbers: formatCandleNumbers, parseCandleNumbers: parseCandleNumbers, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, christmasNeedsPrepay: christmasNeedsPrepay, yen: yen, fromYen: fromYen };
+  var api = { extraItemsOf: extraItemsOf, extraItemsText: extraItemsText, extraItemsTotal: extraItemsTotal, lineYen: lineYen, applyOverrides: applyOverrides, SPEC: SPEC, isFullOrderSize: isFullOrderSize, tierKey: tierKey, comboKey: comboKey, resolveCombo: resolveCombo, isTartCut: isTartCut, candleParts: candleParts, candleText: candleText, formatCandleNumbers: formatCandleNumbers, parseCandleNumbers: parseCandleNumbers, estimate: estimate, checkLead: checkLead, checkSpecialLead: checkSpecialLead, christmasClosed: christmasClosed, christmasNeedsPrepay: christmasNeedsPrepay, yen: yen, fromYen: fromYen };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   root.CakePricing = api;
 })(typeof window !== "undefined" ? window : globalThis);
