@@ -1010,6 +1010,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <li>カードの<b>見出し</b>に、ケーキの種類と段数・号数が出ます。予約番号は<b>No.0011</b>から順に付きます。</li>
 <li>並べ方は<b>「新着順」と「受け取り日順」</b>を切り替えられます。「たたむ」にすると、名前と内容だけの一覧で、その日にどんなケーキがいくつ入っているかをざっと見られます。</li>
 <li>電話がまだのご予約には<b>「電話済み（要電話）」</b>と出ます。お支払いが済んだら<b>「支払済み」</b>にチェックします。</li>
+<li>クリスマスケーキのご予約は、確認の電話はしません（「電話済み」「内容確定」のチェックも出ません）。</li>
 <li>確認の電話がつながらなかったときは、カードの<b>「電話に出なかった（不在）を記録する」</b>を押して、かけた人を選びます。日時は自動で残ります（次にかける人が、いつ誰がかけたか分かります）。</li>
 <li><b>スタッフメモ</b>：カードにメモを残せます。入力した人・日時が残り、読んだ人は「確認」にチェックします。確認されていないメモがあるカードには印が出ます（お店のタブレットでは、入力した人をプルダウンで選びます）。</li>
 <li><b>お渡しの確認</b>：受け取り時刻を30分過ぎても「お渡し済み」が付いていないご予約（閉店30分前からはその日の分すべて）は、管理画面とこいまりポータルに<b>「お渡しに✓が入っていない予約があります。予約番号No.〇〇〇〇」</b>の帯が出ます。押すとそのカードが開きます（帯は閉じられます）。</li>
@@ -4633,6 +4634,7 @@ function resMemoUnchecked(r) { return resMemoList(r).filter(([, m]) => !m.checke
 // 確認の電話がつながらなかった記録（2026-11-04オーナー指示：誰が・何日の何時にかけて不在だったか）。
 // 老眼の方・機械が苦手な方でも使えるよう、大きいボタン1つ（押すと担当者を選ぶだけ。日時は自動）
 function resCallAttemptsHtml(r, idx) {
+  if (isXmasRes(r)) return "";
   const list = r.callAttempts ? Object.keys(r.callAttempts).sort().map((k) => r.callAttempts[k]).filter(Boolean) : [];
   const W = ["日", "月", "火", "水", "木", "金", "土"];
   const when = (at) => { const d = new Date(new Date(at).getTime() + 9 * 3600000); return (d.getUTCMonth() + 1) + "/" + d.getUTCDate() + "（" + W[d.getUTCDay()] + "）" + d.getUTCHours() + ":" + String(d.getUTCMinutes()).padStart(2, "0"); };
@@ -5336,8 +5338,11 @@ function isConfirmCallOverdue(r) {
   return (Date.now() - new Date(r.submittedAt).getTime()) > CONFIRM_CALL_OVERDUE_HOURS * 60 * 60 * 1000;
 }
 // 電話がまだのご予約（キャンセル・完了・お引き取りなしを除く、お引き取り日が今日以降または未定）。バッジ・警告・赤いバナーで共通（2026-10-07）
+// クリスマスケーキのご予約は確認の電話をしない（2026-11-07オーナー指示）
+function isXmasRes(r) { return !!(r && (r.christmasOrder || (Array.isArray(r.items) && r.items[0] && r.items[0].category === "クリスマスケーキ"))); }
+window.isXmasRes = isXmasRes;
 function isNotCalledYet(r) {
-  if (!r || r.confirmCallDone || r.category === "kidsManager") return false;
+  if (!r || r.confirmCallDone || r.category === "kidsManager" || isXmasRes(r)) return false;
   if (["キャンセル", "引取りなし", "完了"].indexOf(r.status) >= 0) return false;
   const d = String(r.finalPickupDate || r.pickupDate || "");
   const today = new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
@@ -6172,8 +6177,8 @@ function resCardHtml(r, idx, byTel) {
       '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "</div>" +
       // アレルギー・備考・領収書は上の項目チップに表示（2026-10-21）
       '<div class="rc-checks">' +
-        '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（要電話）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>" +
-        '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">内容確定" + (r.reservationConfirmedBy ? byText(r.reservationConfirmedBy, r.reservationConfirmedAt) : (r.channel === "LINE" ? "（電話済みでLINE自動連絡）" : "")) + "</label>" +
+        (isXmasRes(r) ? "" : '<label class="' + (r.confirmCallDone ? "on" : overdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResConfirmCall(' + idx + ',this.checked)"' + (r.confirmCallDone ? " checked" : "") + ">電話済み" + (overdue ? "（要電話）" : "") + byText(r.confirmCallBy, r.confirmCallAt) + "</label>") +
+        (isXmasRes(r) ? "" : '<label class="' + (r.reservationConfirmed ? "on" : "") + '"><input type="checkbox" onchange="updateResConfirmed(' + idx + ',this.checked)"' + (r.reservationConfirmed ? " checked" : "") + ">内容確定" + (r.reservationConfirmedBy ? byText(r.reservationConfirmedBy, r.reservationConfirmedAt) : (r.channel === "LINE" ? "（電話済みでLINE自動連絡）" : "")) + "</label>") +
         '<label class="' + (r.paymentDone ? "on" : payOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResPayment(' + idx + ',this.checked)"' + (r.paymentDone ? " checked" : "") + ">支払済み" + (r.christmasOrder && !r.paymentDone ? "（12/20までに店頭）" : "") + byText(r.paymentDoneBy, r.paymentDoneAt) + "</label>" +
         '<label class="' + (handed ? "on" : handOverdue ? "ng" : "") + '"><input type="checkbox" onchange="updateResHanded(' + idx + ',this.checked)"' + (handed ? " checked" : "") + ">お渡し済み" + (handOverdue ? "（受け取り日を過ぎています）" : "") + byText(r.handedOverBy, r.handedOverAt) + "</label>" +
         '<button type="button" class="rc-open" onclick="openReservationEditor(' + idx + ')">詳細・変更</button>' +
@@ -6270,7 +6275,7 @@ function renderReservationCalendar(area, fullList) {
     const lv = list.length === 0 ? 0 : list.length <= 2 ? 1 : list.length <= 5 ? 2 : list.length <= 10 ? 3 : 4;
     const wd = new Date(y, m - 1, d).getDay();
     const xmas = list.filter((x) => x.r.christmasOrder).length;
-    const unconfirmed = list.filter((x) => !x.r.confirmCallDone && !x.r.reservationConfirmed).length;
+    const unconfirmed = list.filter((x) => !x.r.confirmCallDone && !x.r.reservationConfirmed && !isXmasRes(x.r)).length;
     cells += '<button type="button" class="cal-cell lv' + lv + (ds === today ? " is-today" : "") + (ds === resCalDay ? " is-sel" : "") + (wd === 0 ? " is-sun" : wd === 6 ? " is-sat" : "") + '" onclick="resCalPick(\'' + ds + '\')">' +
       '<span class="cal-d">' + d + "</span>" +
       (list.length ? '<span class="cal-n">' + list.length + "<small>件</small></span>" : "") +
@@ -6352,13 +6357,13 @@ function renderReservationsTable() {
         ${r.emailSent===false?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ メール未送信</div>':""}
       </td>
       <td style="text-align:center;">
-        <input type="checkbox" onchange="updateResConfirmCall(${idx},this.checked)" ${r.confirmCallDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
+        ${isXmasRes(r)?'<span style="color:#999;">—（電話なし）</span>':`<input type="checkbox" onchange="updateResConfirmCall(${idx},this.checked)" ${r.confirmCallDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
         ${overdue?'<div style="margin-top:4px;font-size:11px;color:#b03b48;font-weight:700;white-space:nowrap;">⚠ 未確認</div>':""}
-        ${r.confirmCallDone?byLine(r.confirmCallBy, r.confirmCallAt):""}
+        ${r.confirmCallDone?byLine(r.confirmCallBy, r.confirmCallAt):""}`}
       </td>
       <td style="text-align:center;">
-        <input type="checkbox" onchange="updateResConfirmed(${idx},this.checked)" ${r.reservationConfirmed?"checked":""} style="width:18px;height:18px;cursor:pointer;">
-        ${r.reservationConfirmed?byLine(r.reservationConfirmedBy, r.reservationConfirmedAt):""}
+        ${isXmasRes(r)?'<span style="color:#999;">—</span>':`<input type="checkbox" onchange="updateResConfirmed(${idx},this.checked)" ${r.reservationConfirmed?"checked":""} style="width:18px;height:18px;cursor:pointer;">
+        ${r.reservationConfirmed?byLine(r.reservationConfirmedBy, r.reservationConfirmedAt):""}`}
       </td>
       <td style="text-align:center;">
         <input type="checkbox" onchange="updateResPayment(${idx},this.checked)" ${r.paymentDone?"checked":""} style="width:18px;height:18px;cursor:pointer;">
