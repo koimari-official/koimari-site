@@ -106,6 +106,15 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 }
 .confirm-call-warning { display: none; align-items: center; gap: 10px; background: #fdecec; border: 1px solid #b03b48; color: #8a2c37; padding: 12px 16px; font-size: 13px; font-weight: 600; margin-bottom: 16px; }
 .confirm-call-warning.show { display: flex; }
+.confirm-call-warning { cursor: pointer; }
+.confirm-call-warning__go { margin-left: auto; white-space: nowrap; text-decoration: underline; }
+/* 未対応のご予約だけを表示しているとき（2026-11-08） */
+.res-pending-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:#fdecec;border:2px solid #b03b48;border-radius:12px;padding:14px 16px;margin:0 0 14px;color:#8a2c37}
+.res-pending-bar>div{flex:1;min-width:220px}
+.res-pending-bar b{display:block;font-size:18px;line-height:1.5}
+.res-pending-bar small{display:block;font-size:14px;line-height:1.7;margin-top:4px;color:#5a3a3a}
+.res-pending-bar button{border:0;border-radius:999px;background:#b03b48;color:#fff;font-size:16px;font-weight:700;padding:14px 22px;min-height:52px;cursor:pointer}
+.res-pending-done{margin:12px 0 -6px;padding:8px 14px;border-radius:10px 10px 0 0;background:#e6f2e1;color:#3d6b30;font-size:15px;font-weight:700}
 .res-row--overdue { background: #fdecec !important; }
 
 .panel { display: none; scroll-margin-top: 8px; }
@@ -663,7 +672,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <button class="tab" data-panel="notify">🔔 店舗通知モード</button>
       <button class="tab" data-panel="kitchen">🧁 製造シート（タブレット）</button>
       <button class="tab" data-panel="storeGallery">ギャラリー（商品を見る）</button>
-      <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount" style="display:none;">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;"></span></button>
+      <button class="tab" data-panel="reservations">予約一覧 <span class="tab__count" id="resCount" style="display:none;">0</span><span class="tab__count tab__count--warn" id="resUnconfirmedCount" style="display:none;cursor:pointer;"></span></button>
       <button class="tab" data-panel="quoteBuilder">個別見積もり作成</button>
       <button class="tab" data-panel="manual">使い方マニュアル</button>
       <button class="tab" data-panel="applications">応募一覧 <span class="tab__count" id="expCount">0</span></button>
@@ -880,8 +889,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
         </div>
       </div>
       <div id="trashAreaRes" style="display:none; margin-bottom:20px; background:#fdfaf6; border:1px solid var(--color-line); padding:16px;"></div>
-      <div class="confirm-call-warning" id="confirmCallWarning">⚠️ <span id="confirmCallWarningText"></span></div>
+      <div class="confirm-call-warning" id="confirmCallWarning" onclick="showPendingReservations()" title="押すと、未対応のご予約だけを表示します">⚠️ <span id="confirmCallWarningText"></span><span class="confirm-call-warning__go">未対応だけを見る ›</span></div>
       <div class="res-search"><input type="search" id="resSearch" class="input" placeholder="予約番号・お名前・ふりがな・電話番号で検索（例：142／山田／09012345678）" oninput="renderReservations()"><span id="resSearchCount" class="small"></span></div>
+      <div id="resPendingBar"></div>
       <div class="res-viewbar" id="resViewBar"></div>
       <div id="reservationsArea"></div>
     </section>
@@ -1011,6 +1021,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <li>並べ方は<b>「新着順」と「受け取り日順」</b>を切り替えられます。「たたむ」にすると、名前と内容だけの一覧で、その日にどんなケーキがいくつ入っているかをざっと見られます。</li>
 <li>電話がまだのご予約には<b>「電話済み（要電話）」</b>と出ます。お支払いが済んだら<b>「支払済み」</b>にチェックします。</li>
 <li>電話・店頭予約の「まとめて受付」では、ロールケーキ・カットケーキを何種類でも、デコレーション／オーダーケーキを1台、一度に受けられます。ケーキの詳しい内容を後で決めるご予約には「（詳細未定）」と出ます。決まったら、そのご予約の「詳細・変更」から入れて確定してください。</li>
+<li>画面上の赤い「未対応のご予約」のお知らせや、予約一覧の「未対応 N」を押すと、電話がまだのご予約だけがカードで並びます。電話で確認して「電話済み」に✓を入れていき、終わったら「すべてのご予約を表示する」で元に戻します。</li>
 <li>クリスマスケーキのご予約は、確認の電話はしません（「電話済み」「内容確定」のチェックも出ません）。</li>
 <li>確認の電話がつながらなかったときは、カードの<b>「電話に出なかった（不在）を記録する」</b>を押して、かけた人を選びます。日時は自動で残ります（次にかける人が、いつ誰がかけたか分かります）。</li>
 <li><b>スタッフメモ</b>：カードにメモを残せます。入力した人・日時が残り、読んだ人は「確認」にチェックします。確認されていないメモがあるカードには印が出ます（お店のタブレットでは、入力した人をプルダウンで選びます）。</li>
@@ -1811,11 +1822,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <div class="toast" id="toast"></div>
 
 <div id="overdueResAlert" class="overdue-alert" style="display:none;"></div>
-<div id="pendingResAlert" style="display:none;position:fixed;left:0;right:0;top:0;z-index:1500;background:#b03b48;color:#fff;padding:12px 56px 12px 16px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-size:15px;line-height:1.6;">
+<div id="pendingResAlert" title="押すと、未対応のご予約だけを表示します" style="display:none;cursor:pointer;position:fixed;left:0;right:0;top:0;z-index:1500;background:#b03b48;color:#fff;padding:12px 56px 12px 16px;box-shadow:0 4px 14px rgba(0,0,0,.25);font-size:15px;line-height:1.6;">
   <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:1100px;margin:0 auto;">
     <b id="pendingResTitle" style="font-size:17px;"></b>
     <span id="pendingResList" style="flex:1;min-width:200px;font-size:13.5px;opacity:.95;"></span>
-    <button type="button" id="pendingResOpen" style="background:#fff;color:#b03b48;border:none;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;cursor:pointer;">予約一覧を開く</button>
+    <button type="button" id="pendingResOpen" style="background:#fff;color:#b03b48;border:none;border-radius:999px;padding:9px 18px;font-weight:700;font-size:14px;cursor:pointer;">未対応のご予約を見る ›</button>
     <button type="button" id="pendingResClose" aria-label="閉じる" title="閉じる（新しい未対応の予約が入るか、60分たつとまた出ます）" style="position:absolute;top:10px;right:10px;background:transparent;color:#fff;border:2px solid #fff;border-radius:50%;width:36px;height:36px;font-size:18px;font-weight:700;line-height:1;cursor:pointer;flex-shrink:0;">✕</button>
   </div>
   <div id="pendingResSoundHint" style="display:none;max-width:1100px;margin:6px auto 0;font-size:12.5px;opacity:.9;">※音を鳴らすには、画面のどこかを一度タップしてください</div>
@@ -2256,7 +2267,9 @@ document.getElementById("pendingResClose").addEventListener("click", () => {
   updatePendingResAlert(pendingResLastEntries);
   setTimeout(() => updatePendingResAlert(pendingResLastEntries), 60 * 60000 + 1000); // 60分たったら、まだ未対応なら出し直す
 });
-document.getElementById("pendingResOpen").addEventListener("click", () => { const t = document.querySelector('.tab[data-panel="reservations"]'); if (t) t.click(); }); // 予約一覧の位置への移動はタブを押したときの処理で行う
+// 赤いバナーは、ボタン以外の所を押しても未対応のご予約だけの一覧を開く（2026-11-08オーナー指示）。✕は閉じるだけ
+document.getElementById("pendingResAlert").addEventListener("click", (e) => { if (e.target.closest("#pendingResClose")) return; showPendingReservations(); });
+document.getElementById("resUnconfirmedCount").addEventListener("click", (e) => { e.stopPropagation(); showPendingReservations(); });
 // スマホ・タブレットは一度タップするまで音を鳴らせないため、最初のタップで音を有効にする
 document.addEventListener("pointerdown", function unlockOnce() {
   if (notifyAudioUnlocked) return;
@@ -5973,8 +5986,26 @@ let resRange = "upcoming"; // upcoming＝今日以降／all＝すべて／past�
 let resCalMonth = "";      // "2026-12"
 let resCalDay = "";        // カレンダーで選んだ日 "2026-12-24"
 const RES_WEEK = ["日", "月", "火", "水", "木", "金", "土"];
-function setResView(v) { resView = v; try { localStorage.setItem("koimari_res_view", v); } catch (e) {} renderReservations(); }
-function setResRange(v) { resRange = v; renderReservations(); }
+// 未対応のご予約だけを見る（2026-11-08オーナー指示）。赤いバナー・タブの「未対応 N」・要電話の警告を押すと、カード表示で電話がまだのご予約だけを出す。
+// 「電話済み」に✓を入れたご予約は、この表示を閉じるまで「対応済み」として残す（急に消えると分かりにくく、押し間違えてもすぐ戻せるように）
+let resPendingOnly = false, resPendingSeen = new Set();
+function showPendingReservations() {
+  resPendingOnly = true; resPendingSeen = new Set();
+  resView = "card"; resRange = "upcoming";
+  const q = document.getElementById("resSearch"); if (q) q.value = "";
+  const un = document.getElementById("resUnpaidOnly"); if (un) un.checked = false;
+  const tab = document.querySelector('.tab[data-panel="reservations"]');
+  if (tab && !tab.classList.contains("active")) activateTab(tab); else renderReservations();
+  requestAnimationFrame(() => { // 一覧の先頭まで移動（上のバナーに隠れない位置）
+    const el = document.getElementById("resPendingBar");
+    if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - (parseInt(document.body.style.paddingTop, 10) || 0) - 12, behavior: "smooth" });
+  });
+}
+window.showPendingReservations = showPendingReservations;
+function exitPendingReservations() { resPendingOnly = false; resPendingSeen = new Set(); renderReservations(); }
+function setResView(v) { if (v !== "card") exitPendingMode(); resView = v; try { localStorage.setItem("koimari_res_view", v); } catch (e) {} renderReservations(); }
+function setResRange(v) { exitPendingMode(); resRange = v; renderReservations(); }
+function exitPendingMode() { resPendingOnly = false; resPendingSeen = new Set(); }
 // カードの並び順（pickup＝予約日順／new＝新着順）と、詳細をたたむか（2026-10-27オーナー指示）。端末ごとに覚える
 let resSort = (() => { try { return localStorage.getItem("koimari_res_sort") || "pickup"; } catch (e) { return "pickup"; } })();
 let resCompact = (() => { try { return localStorage.getItem("koimari_res_compact") === "1"; } catch (e) { return false; } })();
@@ -6096,11 +6127,18 @@ function resFiltered(list) {
   const q = ((document.getElementById("resSearch") || {}).value || "").trim();
   const today = resTodayStr();
   const out = [];
+  const pendingOnly = resPendingOnly && resView === "card";
+  const keys = pendingOnly && typeof window.resKeys === "function" ? window.resKeys() : [];
   list.forEach((r, idx) => {
     if (!r) return;
+    if (pendingOnly) { // 電話がまだのご予約＋この表示の間に対応したご予約
+      const k = keys[idx] || "#" + idx;
+      if (isNotCalledYet(r)) resPendingSeen.add(k);
+      else if (!resPendingSeen.has(k)) return;
+    }
     if (unpaidOnly && r.paymentDone) return;
     if (q && !reservationMatches(r, q)) return;
-    if (!q && resView === "card") {
+    if (!q && resView === "card" && !pendingOnly) {
       const d = resPickupDate(r);
       if (resRange === "upcoming" && d && d < today) return;
       if (resRange === "past" && (!d || d >= today)) return;
@@ -6251,14 +6289,17 @@ function renderReservationCards(area, fullList) {
   const rows = resFiltered(fullList);
   const byTel = resVisitCounts(fullList);
   const today = resTodayStr();
-  const one = (r, idx) => resCompact ? resMiniHtml(r, idx, byTel, resSort === "new") : resCardHtml(r, idx, byTel);
+  const pendingOnly = resPendingOnly && resView === "card";
+  const doneTag = (r) => pendingOnly && !isNotCalledYet(r) ? '<div class="res-pending-done">✓ 対応済み（「すべてのご予約を表示する」を押すと、この一覧から消えます）</div>' : "";
+  const one = (r, idx) => doneTag(r) + (resCompact ? resMiniHtml(r, idx, byTel, resSort === "new") : resCardHtml(r, idx, byTel));
+  const emptyText = pendingOnly ? "未対応のご予約はありません（すべて対応済みです）" : "該当するご予約はありません";
   // 描き直しても、開いていた行は開いたままにする（チェックを入れるたびに閉じないように）
   const wasOpen = new Set([...area.querySelectorAll("details.rc-mini[open]")].map((d) => d.dataset.k));
   const reopen = () => { if (wasOpen.size) area.querySelectorAll("details.rc-mini").forEach((d) => { if (wasOpen.has(d.dataset.k)) d.open = true; }); };
   if (resSort === "new") {
     // 新着順：受付の新しい順に1列で並べる（受け取り日の見出しは付けない）
     rows.sort((a, b) => String(b.r.submittedAt || "").localeCompare(String(a.r.submittedAt || "")));
-    area.innerHTML = rows.length ? '<section class="rc-day">' + rows.map(({ r, idx }) => one(r, idx)).join("") + "</section>" : '<div class="empty">該当するご予約はありません</div>';
+    area.innerHTML = rows.length ? '<section class="rc-day">' + rows.map(({ r, idx }) => one(r, idx)).join("") + "</section>" : '<div class="empty">' + emptyText + "</div>";
     reopen();
     return rows.length;
   }
@@ -6270,7 +6311,7 @@ function renderReservationCards(area, fullList) {
   const groups = [];
   rows.forEach((x) => { const d = resPickupDate(x.r); const g = groups[groups.length - 1]; if (g && g.d === d) g.rows.push(x); else groups.push({ d, rows: [x] }); });
   let html = "";
-  if (!groups.length) html = '<div class="empty">' + (resRange === "upcoming" ? "今日以降のご予約はありません" : "該当するご予約はありません") + "</div>";
+  if (!groups.length) html = '<div class="empty">' + (pendingOnly ? emptyText : resRange === "upcoming" ? "今日以降のご予約はありません" : "該当するご予約はありません") + "</div>";
   groups.forEach((g) => {
     const live = g.rows.filter((x) => x.r.status !== "キャンセル").length;
     html += '<section class="rc-day"><h3 class="rc-day__head' + (g.d === today ? " is-today" : "") + '"><span>' + (g.d === today ? "今日　" : "") + resDateLabel(g.d) + "</span><b>" + live + "件</b><small>" + escapeHtml(resDaySummary(g.rows).join("　")) + "</small></h3>" +
@@ -6338,8 +6379,16 @@ function renderResViewBar() {
   if (!bar) return;
   const b = (v, t) => '<button type="button" class="' + (resView === v ? "on" : "") + '" onclick="setResView(\'' + v + '\')">' + t + "</button>";
   const r = (v, t) => '<button type="button" class="' + (resRange === v ? "on" : "") + '" onclick="setResRange(\'' + v + '\')">' + t + "</button>";
+  const pendingOnly = resPendingOnly && resView === "card";
+  const pb = document.getElementById("resPendingBar");
+  if (pb) {
+    const n = pendingOnly ? loadList(RES_KEY).filter(isNotCalledYet).length : 0;
+    pb.innerHTML = pendingOnly ? '<div class="res-pending-bar"><div><b>' + (n ? "未対応のご予約だけを表示しています（あと" + n + "件）" : "未対応のご予約は、もうありません") + "</b>" +
+      "<small>お電話で内容を確認したら「電話済み」に✓を入れてください。✓を入れたご予約は「対応済み」と出ます。</small></div>" +
+      '<button type="button" onclick="exitPendingReservations()">すべてのご予約を表示する</button></div>' : "";
+  }
   bar.innerHTML = '<div class="seg">' + b("card", "カード") + b("calendar", "カレンダー") + b("table", "表") + "</div>" +
-    (resView === "card" ? '<div class="seg seg--sub">' + r("upcoming", "今日以降") + r("past", "過去") + r("all", "すべて") + "</div>" +
+    (resView === "card" ? (pendingOnly ? "" : '<div class="seg seg--sub">' + r("upcoming", "今日以降") + r("past", "過去") + r("all", "すべて") + "</div>") +
       '<div class="seg seg--sub">' + ["pickup", "new"].map((v) => '<button type="button" class="' + (resSort === v ? "on" : "") + '" onclick="setResSort(\'' + v + '\')">' + (v === "pickup" ? "予約日順" : "新着順") + "</button>").join("") + "</div>" +
       '<div class="seg seg--sub seg--toggle"><button type="button" class="' + (resCompact ? "on" : "") + '" onclick="toggleResCompact()">' + (resCompact ? "詳細をたたむ：オン" : "詳細をたたむ") + "</button></div>" : "");
 }
