@@ -1,0 +1,29 @@
+# ケーキ屋さん こいまり 城東店
+
+> 大阪市城東区のケーキ屋さん。「フルーツリッチ」が自慢で、果物をたっぷり使ったケーキ・焼き菓子・ギフト・オーダーケーキをお作りしています。
+
+- 住所：〒536-0007 大阪府大阪市城東区成育2丁目13-15 アイビーマンション1階
+- 電話：070-9158-0641
+- ご予約：LINE公式アカウントまたはお電話。営業日・営業時間は下の「営業日カレンダー」を参照
+- お値段は載せていません。店頭・お電話・LINEでご確認ください
+
+## 主なページ
+
+- [商品一覧（文章と写真）](https://koimari-official.github.io/koimari-site/catalog.html): 公開中の商品の名前と説明
+- [ギャラリー](https://koimari-official.github.io/koimari-site/gallery.html): 写真で見る商品とオーダーケーキの作例
+- [クリスマスケーキ](https://koimari-official.github.io/koimari-site/christmas.html): クリスマスケーキの特設ページ
+- [店舗情報・アクセス](https://koimari-official.github.io/koimari-site/shop.html)
+- [営業日カレンダー](https://koimari-official.github.io/koimari-site/calendar.html)
+- [ご予約について](https://koimari-official.github.io/koimari-site/reservation.html)
+- [よくあるご質問](https://koimari-official.github.io/koimari-site/faq.html)
+- [お知らせ](https://koimari-official.github.io/koimari-site/news.html)
+- [法人・企業・団体のお客様](https://koimari-official.github.io/koimari-site/corporate.html)
+
+## 商品のカテゴリー
+
+- デコレーションケーキ（12品）
+- カットケーキ（10品）
+- ロールケーキ（3品）
+- 焼き菓子（14品）
+- ギフト（9品）
+- オーダーケーキの作例（15品）
