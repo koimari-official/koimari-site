@@ -601,8 +601,9 @@ function renderInfo(item, plainName, config) {
   if (item.featured) badges.push('<span class="pd-badge pd-badge--popular">人気</span>');
   if (item.seasonal) badges.push('<span class="pd-badge pd-badge--seasonal">季節限定</span>');
   document.getElementById('pdBadges').innerHTML = badges.join('');
-  // デコレーションケーキの固定番号（お電話でのお問い合わせ用。2026-10-02）
-  const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
+  // デコレーションケーキ（No.D）・ロールケーキ（No.R・2026-11-10）の固定番号（お電話でのお問い合わせ用。2026-10-02）
+  const noHead = { decorationCake: 'No.D', rollcake: 'No.R' }[productType];
+  const no = noHead && Number(item.no) > 0 ? noHead + String(item.no).padStart(2, '0') : '';
   if (no) document.getElementById('pdBadges').insertAdjacentHTML('beforeend', '<span class="pd-no">' + no + '</span>');
   const PH = window.KoimariPriceHint;
   const size = PH ? PH.sizeOf(item) : '';
@@ -772,7 +773,8 @@ function renderLeadAndTel(item, size) {
     const ul = lead.querySelector('.pd-lead__list');
     if (ul) ul.insertAdjacentHTML('beforeend', '<li><b>全国配送</b>でもお届けします。' + (url ? '</li><li>' + shopButton(url) : 'オンラインショップは11月中旬にオープン予定です。') + '</li>');
   });
-  const no = productType === 'decorationCake' && Number(item.no) > 0 ? 'No.D' + String(item.no).padStart(2, '0') : '';
+  const noHead = { decorationCake: 'No.D', rollcake: 'No.R' }[productType];
+  const no = noHead && Number(item.no) > 0 ? noHead + String(item.no).padStart(2, '0') : '';
   const say = no ? '「' + no + (size ? '・' + esc(size) : '') + '」' : '「' + esc(String(item.name || '').replace(/<[^>]*>/g, '')) + '」';
   const prelaunch = window.KOIMARI_RESERVE_PUBLIC === false; // 先行公開中は、ご予約はお電話・店頭だけ（site-mode.js）
   tel.innerHTML = '<div class="pd-howto__label">' + (prelaunch ? 'ご予約はお電話・店頭で' : 'お電話でご予約の方（LINEをお持ちでない方）') + '</div>' +

@@ -1000,7 +1000,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <h3>6．電話・店頭でご予約を受けるとき</h3>
 <ol>
 <li>予約一覧の<b>「＋ 電話・店頭予約登録」</b>を押します（新しい画面が開きます）。メールアドレスは伺わなくて大丈夫です。</li>
-<li>お客様がギャラリーの番号（例：<b>No.D09 生クリーム（いちご）</b>）や写真でご指定のときは、いちばん上の<b>「ギャラリーの番号で選ぶ」</b>で選ぶと、そのケーキの内容が自動で入ります。番号の欄に数字だけ（例：9）を入れると定番ケーキ（No.D09）、「作品2」のように入れるとオーダーメイドの<b>作品No.02</b>を選べます（一覧からも選べます）。オーダーメイドの作品は、金額・納期を楠田さんに確認してからお伝えします。予約カードと製造シートにも番号が出ます。</li>
+<li>お客様がギャラリーの番号（例：<b>No.D09 生クリーム（いちご）</b>）や写真でご指定のときは、いちばん上の<b>「ギャラリーの番号で選ぶ」</b>で選ぶと、そのケーキの内容が自動で入ります。番号の欄に数字だけ（例：9）を入れると定番ケーキ（No.D09）、「R2」のように入れるとロールケーキ（No.R02）、「作品2」のように入れるとオーダーメイドの<b>作品No.02</b>を選べます（一覧からも選べます）。オーダーメイドの作品は、金額・納期を楠田さんに確認してからお伝えします。予約カードと製造シートにも番号が出ます。</li>
 <li>お客様に伺いながら、上から順に選びます。商品は「ギャラリー（商品を見る）」で、お客様と一緒に写真を確かめると安心です。段数・サイズ・段ごとのクリームと色・オプションを選ぶと、<b>金額がその場で出ます</b>。</li>
 <li>受け取り日が<b>3営業日前を切る</b>ときは、黄色い案内が出ます。<b>パティシエに、その日に作れるか（納期）を確認</b>してから、「予約確定」を押してください。</li>
 <li>お名前（ふりがな）・電話番号を入れ、いちばん下で<b>受付方法（電話・店頭）と受付担当（自分の名前）</b>を選び、「内容を確認する」→「確定」を押します。</li>
@@ -3303,7 +3303,7 @@ function appendMoveCategory(item, arr, i, catKey) {
     const it = arr[i];
     if (!confirm("「" + String((it && it.name) || "この商品").replace(/<[^>]*>/g, "") + "」を「" + MOVE_CATEGORY_LABELS[to] + "」へ移します。\n（季節限定・おすすめの印はそのまま引き継ぎます。画面下の「変更を保存」で公開ページに反映されます）")) { e.target.value = ""; return; }
     if (!Array.isArray(workingData[to])) workingData[to] = [];
-    if (to !== "decorationCakes") delete it.no; // デコレーションケーキの番号（No.D）は移動先では使わない
+    delete it.no; // 番号（デコレーションケーキのNo.D・ロールケーキのNo.R）はカテゴリーごと。移動先で、そのカテゴリーの番号を新しく振る
     arr.splice(i, 1);
     workingData[to].push(it);
     ({ decorationCakes: renderDecorationCakes, cutcakes: renderCutcakes, rollcakes: renderRollcakes, baked: renderBaked, gift: renderGift })[catKey]();
@@ -3877,6 +3877,8 @@ function appendSpecEditor(item, r, onChange) {
 // デコレーションケーキの固定番号（No.D01）。番号の無いケーキ（新しく追加した等）には、使われている最大番号＋1を自動で振る。
 // 並び替えても番号は変わらない。お客様が電話で「ギャラリーのD03」と言えば特定できるようにするため（2026-10-02）。
 function cakeNoLabel(n) { return n ? "No.D" + String(n).padStart(2, "0") : ""; }
+// ロールケーキも同じしくみで固定番号（No.R01）を振る（2026-11-10オーナー指示：電話・店頭予約の番号で選ぶ一覧にロールケーキも出す）
+function rollNoLabel(n) { return n ? "No.R" + String(n).padStart(2, "0") : ""; }
 function ensureCakeNumbers(list) {
   let max = list.reduce((m, c) => Math.max(m, Number(c && c.no) || 0), 0), added = false;
   list.forEach((c) => { if (c && !(Number(c.no) > 0)) { c.no = ++max; added = true; } });
@@ -3949,6 +3951,7 @@ function renderCutcakes() {
 }
 function renderRollcakes() {
   const grid = document.getElementById("rollcakesGrid"); grid.innerHTML = "";
+  if (ensureCakeNumbers(workingData.rollcakes)) setTimeout(updateSaveBar, 0);
   workingData.rollcakes.forEach((r, i) => {
     if (r.visible === undefined) r.visible = true;
     if (!Array.isArray(r.gallery)) r.gallery = [];
@@ -3972,6 +3975,10 @@ function renderRollcakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderRollcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.rollcakes[i].visible, () => { workingData.rollcakes[i].visible = !workingData.rollcakes[i].visible; renderRollcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    const noTag = document.createElement("div");
+    noTag.className = "cake-no-tag";
+    noTag.textContent = "ギャラリー番号 " + rollNoLabel(r.no) + "（お客様にはこの番号で表示されます）";
+    item.insertBefore(noTag, item.firstChild);
     appendReorderControls(item, workingData.rollcakes, i, () => { renderRollcakes(); updateSaveBar(); }, "rollcakes");
     grid.appendChild(item);
   });

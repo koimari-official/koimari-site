@@ -480,7 +480,7 @@ function saleModesOfItem(item) {
 }
 function menuItemToCard(item, catKey, idx, productType){
   const custom = productType === "decorationCake" && window.KoimariPriceHint && window.KoimariPriceHint.orderModeOf(item) === "custom";
-  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, notForSale: !!item.notForSale, featured: !!item.featured, galleryCover: !!item.galleryCover, custom, cakeNo: productType === "decorationCake" ? Number(item.no) || 0 : 0,
+  return { img: item.img, category: catKey, title: item.name, desc: item.desc, price: item.price, isMenuItem: true, idx, productType, seasonal: !!item.seasonal, notForSale: !!item.notForSale, featured: !!item.featured, galleryCover: !!item.galleryCover, custom, cakeNo: productType === "decorationCake" ? Number(item.no) || 0 : 0, rollNo: productType === "rollcake" ? Number(item.no) || 0 : 0,
     // 焼き菓子・ギフトの販売方法（2026-10-24・複数選択）。未設定は「店頭販売のみ」＝商品ページ（product.html の saleModesOf）と同じ判定
     saleModes: (productType === "baked" || productType === "gift") ? saleModesOfItem(item) : [] };
 }
@@ -583,7 +583,7 @@ function renderGrid(){
     const sizeMatch = g.isMenuItem ? String(g.desc || "").match(/^【([^】]+)】/) : null;
     const descBody = sizeMatch ? String(g.desc || "").slice(sizeMatch[0].length) : g.desc;
     const bodyHtml = g.isXmas ? xmasCardBody(g) : g.isMenuItem
-      ? `${g.cakeNo ? `<div class="gal-card__no">No.D${String(g.cakeNo).padStart(2, "0")}</div>` : ""}<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
+      ? `${g.cakeNo ? `<div class="gal-card__no">No.D${String(g.cakeNo).padStart(2, "0")}</div>` : g.rollNo ? `<div class="gal-card__no">No.R${String(g.rollNo).padStart(2, "0")}</div>` : ""}<h3 class="gal-card__title">${titleWithWrap(g.title)}</h3>
         <p class="gal-card__desc">${escape(String(descBody||"").replace(/<\s*br\s*\/?\s*>/gi,"\n")).replace(/\n/g,"<br>")}</p>
         <div class="gal-card__meta">
           ${sizeMatch ? `<span class="gal-card__meta-item">写真のサイズ: <strong>${escape((sizeMatch[1].match(/[3-7]号/) || [sizeMatch[1]])[0])}</strong></span>` : ""}
