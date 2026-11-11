@@ -406,6 +406,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-cake{font-size:18px;font-weight:800;color:#2f241a;margin-top:4px;line-height:1.45}
 .rc-spec{font-size:15px;color:#4a3a2a;margin-top:2px}
 .rc-rev{margin-left:8px;font-size:12px;color:#4a6f9c;font-weight:700}
+.rc-mode{white-space:nowrap}
+.rc-mode--full{color:#b03b48}
 .rc-extra{font-size:13.5px;color:#6b5a48;margin-top:2px}
 .rc-who{font-size:14.5px;margin-top:6px}
 .rc-who a{color:#0b7a37;font-weight:700}
@@ -6027,7 +6029,7 @@ function resMiniHtml(r, idx, byTel, withDate) {
     '<span class="rc-mini__time">' + escapeHtml(when) + "</span>" +
     (r.reservationNo ? '<span class="rc-mini__no">' + formatReservationNo(r.reservationNo) + "</span>" : "") +
     '<span class="rc-mini__name">' + escapeHtml(r.name || "") + " 様</span>" +
-    '<span class="rc-mini__cake">' + escapeHtml(resCakeTitle(r)) + "</span>" +
+    '<span class="rc-mini__cake">' + resCardTitle(r, { html: true, noWhen: true }) + "</span>" +
     (resMemoUnchecked(r) ? '<span class="rc-tag rc-tag--memo">未確認メモ ' + resMemoUnchecked(r) + "件</span>" : "") +
     '<span class="rc-mini__st" style="color:' + (STATUS_COLORS[st] || "#999") + '">' + escapeHtml(st) + (r.paymentDone ? "・支払済" : "") + "</span>" +
     "</summary>" + resCardHtml(r, idx, byTel) + "</details>";
@@ -6066,6 +6068,59 @@ function resCakeTitleBase(r) {
   const scale = n > 1 ? n + "段" : resSizeKey(it.size || "");
   if (pick) return pick + (scale ? "　" + scale : "") + (occ ? "（" + occ + "）" : "");
   return (occ && occ !== "その他" ? occ + "デコレーション" : "デコレーションケーキ") + (scale ? "　" + scale : "");
+}
+// 予約カードの表題（2026-11-11オーナー指示：どのご予約も同じ形に固定）。
+// 「ギャラリーの番号　受け取り日（曜日）時刻（24時間）　ケーキの種類（いちご／ミックスフルーツ）　号数　段数（用途）　定番／フルオーダー」
+// 番号を指定しなかったご予約は番号を出さない。デコレーションケーキ以外（ロール・カット・クリスマス等）は、番号・日時のあとに今までの名前
+function resGalleryNoOf(r) {
+  const gp = r.galleryPick || {};
+  if (Number(gp.no) > 0) return cakeNoLabel(gp.no);
+  const name = String(gp.name || "");
+  const m = name.match(/^No\.R\d+/) || name.match(/オーダーメイド作品 No\.(\d+)/); // ロールケーキ（No.R02）・オーダーメイドの作品（作品No.02）
+  return !m ? "" : m[1] ? "作品No." + m[1] : m[0];
+}
+function resWhenLabel(r) {
+  const d = resPickupDate(r);
+  return (/^\d{4}-\d{2}-\d{2}$/.test(d) ? resDateLabel(d) : "日付未定") + " " + (resPickupTime(r) || "時間未定");
+}
+function resIsDecoration(r) {
+  if (r.category === "kidsManager" || r.christmasOrder) return false;
+  const c = ((Array.isArray(r.items) && r.items[0]) || {}).category;
+  return !["ロールケーキ", "焼き菓子", "カットケーキ", "砂糖菓子・ゼリー菓子", "クリスマスケーキ"].includes(c);
+}
+function resIsFullOrder(r) {
+  const gp = r.galleryPick || {};
+  return !!(r.quoteSeparately || r.customBase || gp.productType === "custom" || /オーダーメイド作品|オーダーケーキ/.test(gp.name || ""));
+}
+// opts.html：フルオーダーを赤字にしたHTMLで返す。opts.noWhen：日時を付けない（日時を別に出している一覧用）
+function resCardTitle(r, opts) {
+  opts = opts || {};
+  const no = resGalleryNoOf(r);
+  const head = (no ? no + " " : "") + (opts.noWhen ? "" : resWhenLabel(r) + "　");
+  const esc = (s) => (opts.html ? escapeHtml(s) : s);
+  if (!resIsDecoration(r)) return esc(head + resCakeTitle(r));
+  const items = Array.isArray(r.items) ? r.items : [];
+  const tiers = Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? r.tierSpecs : null;
+  const sizes = (tiers ? tiers.map((t) => resSizeKey(t.size)) : items.map((x) => resSizeKey(x.size))).filter(Boolean);
+  const creams = (tiers ? tiers.map((t) => t.cream) : [r.creamType]).filter(Boolean).filter((c, i, a) => a.indexOf(c) === i);
+  // ミッシェルBOX・ガトーショコラBOXは、いちご／ミックスフルーツを選ばない（予約フォームと同じ）
+  const noFruit = (window.CakePricing && CakePricing.SPEC.strawberryAdd && CakePricing.SPEC.strawberryAdd.creamTypes) || ["ミッシェルBOX", "ガトーショコラBOX"];
+  let kind = creams.join("・");
+  if (kind) {
+    const sub = creams.includes("ムース") && r.mousseFlavor ? r.mousseFlavor : creams.some((c) => !noFruit.includes(c)) ? (DECO_LABEL[r.decoration] || "") : "";
+    if (sub) kind += "（" + sub + "）";
+  } else {
+    const wt = String((r.galleryPick || {}).name || "").match(/オーダーメイド作品 No\.\d+（(.+)）$/);
+    kind = wt ? wt[1] : "デコレーションケーキ";
+  }
+  const occRaw = r.occasion === "その他" && r.occasionOther ? r.occasionOther : r.occasion;
+  const occ = occRaw === "特になし" || occRaw === "その他" ? "" : occRaw || "";
+  const n = tiers ? tiers.length : Math.max(1, items.length);
+  const full = resIsFullOrder(r);
+  const main = head + kind + (sizes.length ? " " + sizes.join("＋") : "") + " " + n + "段" + (occ ? "（" + occ + "）" : "");
+  const pending = r.detailPending ? "（詳細未定）" : "";
+  if (!opts.html) return main + " " + (full ? "フルオーダー" : "定番") + pending;
+  return escapeHtml(main) + " " + (full ? '<span class="rc-mode rc-mode--full">フルオーダー</span>' : '<span class="rc-mode">定番</span>') + escapeHtml(pending);
 }
 function resCakeSpecLine(r, opts) {
   const items = Array.isArray(r.items) ? r.items : [];
@@ -6237,7 +6292,7 @@ function resCardHtml(r, idx, byTel) {
   return '<article class="rc' + (status === "キャンセル" ? " rc--cancel" : "") + (overdue || payOverdue ? " rc--alert" : "") + (customerFlagsFor(r).length ? " rc--flag" : "") + '" data-k="' + escapeHtml(cardKey) + '">' +
     '<button type="button" class="rc-photo" onclick="openReservationEditor(' + idx + ')" title="詳細・変更">' + reservationThumbHtml(r) + "</button>" +
     '<div class="rc-body">' +
-      '<div class="rc-top"><span class="rc-time">' + escapeHtml(resPickupTime(r) || "時間未定") + "</span>" +
+      '<div class="rc-top">' + // 受け取りの日時は下の表題に入れる（2026-11-11）
         (r.reservationNo ? '<span class="rc-no">' + formatReservationNo(r.reservationNo) + '</span>' : '') +
         (r.christmasOrder ? '<span class="rc-tag rc-tag--xmas">クリスマス</span>' : "") +
         (resMemoUnchecked(r) ? '<span class="rc-tag rc-tag--memo">未確認メモ ' + resMemoUnchecked(r) + "件</span>" : "") +
@@ -6246,7 +6301,7 @@ function resCardHtml(r, idx, byTel) {
         (r.channel === "電話" || r.channel === "店頭" ? '<span class="rc-tag rc-tag--tel">' + r.channel + (r.phoneTakenBy ? "（受付：" + escapeHtml(r.phoneTakenBy) + "）" : "") + "</span>" : "") +
         (nth > 1 ? '<span class="rc-tag rc-tag--repeat">' + nth + "回目のご予約</span>" : "") +
         '<select class="rc-status" onchange="updateResStatus(' + idx + ',this.value)" style="color:' + (STATUS_COLORS[status] || "#999") + '">' + ["受付済", "対応中", "完了", "キャンセル", "引取りなし"].map((s) => '<option value="' + s + '"' + (s === status ? " selected" : "") + ">" + s + "</option>").join("") + "</select></div>" +
-      '<div class="rc-cake">' + escapeHtml(resCakeTitle(r)) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
+      '<div class="rc-cake">' + resCardTitle(r, { html: true }) + (r.revisionCount ? '<span class="rc-rev">修正' + r.revisionCount + "まで反映</span>" : "") + "</div>" +
       resVerifyWarnHtml(r) + resPriceBadgeHtml(r) + resChangeSummaryHtml(r, idx) + resSpecChipsHtml(r) + alertHtml +
       '<div class="rc-who"><b>' + escapeHtml(r.name || "") + "</b> 様" + (r.furigana ? '<span class="small">（' + escapeHtml(r.furigana) + "）</span>" : "") + (r.tel ? ' <a href="tel:' + escapeHtml(tel) + '">' + escapeHtml(r.tel) + "</a>" : "") + "</div>" +
       // アレルギー・備考・領収書は上の項目チップに表示（2026-10-21）

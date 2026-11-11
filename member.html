@@ -2536,7 +2536,7 @@ function hasMeaningfulNote(note) {
 function customBaseNow() { try { const hit = activeSpecs().find(s => (CakePricing.SPEC.customBases || []).includes(s.cream)); return hit ? hit.cream : ""; } catch (e) { return ""; } }
 // フルオーダーの目安（商品ページで出した「目安 5号 ¥5,000〜」）
 function draftGuideNow() { try { return currentDraft && currentDraft.orderMode === "custom" && /^目安/.test(String(currentDraft.price || "")) ? String(currentDraft.price) : ""; } catch (e) { return ""; } }
-function quoteSeparatelyNow() { try { return !!customBaseNow() || !!(currentDraft && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // 宣言前（初期化中）に呼ばれても落ちないように
+function quoteSeparatelyNow() { try { return !!customBaseNow() || !!(currentDraft && ["decorationCake", "custom"].includes(currentDraft.productType || "decorationCake") && (currentDraft.orderMode === "custom" || !currentDraftSpecApplied)); } catch (e) { return false; } } // ロールケーキ等をギャラリーから選んだときは付けない（2026-11-11） // 宣言前（初期化中）に呼ばれても落ちないように
 // 写真で選ぶクリスマスケーキ（確認電話なし・LINEの自動送信のみ）
 function isPhotoChristmas(data) { return !!(data && data.christmasOrder && data.galleryPick && data.galleryPick.img); }
 // 完了画面に「ご予約のケーキ」の写真を出す（お客様・店員さん共通。2026-10-26オーナー指示）。
@@ -4413,7 +4413,7 @@ function setupReserveForm(uid, displayName) {
         ...(isXmasOrder ? { christmasOrder: true } : {}),
         ...(isCake && anySpecialCream() ? { specialSpec: anySpecialCream() } : {}),
         ...(currentDraft ? { galleryPick: { code: currentDraft.code, name: (Number(currentDraft.rollNo) > 0 ? staffRollNo(currentDraft.rollNo) + " " : "") + (currentDraft.name || ""), productType: currentDraft.productType || "", size: currentDraft.size || "", price: currentDraft.price || "", img: currentDraft.img || "", ...(Number(currentDraft.no) > 0 ? { no: Number(currentDraft.no) } : {}) } } : {}),
-        ...(quoteSeparatelyNow() ? { quoteSeparately: true } : {}),
+        ...(isCake && quoteSeparatelyNow() ? { quoteSeparately: true } : {}),
         ...(isCake && customBaseNow() ? { customBase: customBaseNow() } : {}),
         ...(includedDecorationNow() ? { includedDecoration: includedDecorationNow() } : {}),
         ...(withCutSelected().length ? { extraItems: withCutSelected() } : {}),
