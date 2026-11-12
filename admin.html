@@ -407,6 +407,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .rc-spec{font-size:15px;color:#4a3a2a;margin-top:2px}
 .rc-rev{margin-left:8px;font-size:12px;color:#4a6f9c;font-weight:700}
 .rc-mode{white-space:nowrap}
+.cost-app-link{display:inline-block;margin:6px 0;padding:8px 16px;border:1px solid #4a6f9c;border-radius:999px;color:#2f527d;font-weight:700;font-size:14px;text-decoration:none;background:#fff}
+.cost-app-link:hover{background:#eef4ff}
+.cost-app-bar{margin:0 0 12px;font-size:13px;color:var(--color-text-soft,#856e58);line-height:1.7}
 .rc-mode--full{color:#b03b48}
 .rc-extra{font-size:13.5px;color:#6b5a48;margin-top:2px}
 .rc-who{font-size:14.5px;margin-top:6px}
@@ -1311,26 +1314,31 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-decorationCakes">
       <div class="panel__head"><h2 class="panel__title">デコレーションケーキ</h2><button class="btn btn--small" id="addDecorationCake">＋ 商品を追加</button></div>
       <p class="panel__desc">gallery.html（作品ギャラリー）の「デコレーションケーキ」タブ・各商品詳細ページに表示される商品です（2026-09-08、旧作品ポートフォリオ形式からカットケーキ・ロールケーキと同じ実商品メニュー形式に統合）。各商品の「★ おすすめ商品に表示」にチェックを入れると、トップページの「おすすめ商品」セクションにも表示されます（2026-09-08、おすすめ商品専用パネルは廃止しこの一覧から直接選ぶ形式に変更）。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">「ファイルから選択」で入れた写真は、画質を落とさずに保存されます（元の写真も別に保存します。1枚15MB以下にしてください）。</span></p>
+      <div class="cost-app-bar"><a class="cost-app-link" href="https://koimari-tasting.web.app/cost-calculator.html" target="_blank" rel="noopener">原価計算アプリで金額を直す ›</a><br>商品の金額は原価計算アプリの販売価格が元です（2026-11-13オーナー方針）。</div>
       <div class="img-grid" id="decorationCakesGrid"></div>
     </section>
     <section class="panel" id="panel-cutcakes">
       <div class="panel__head"><h2 class="panel__title">カットケーキ</h2><button class="btn btn--small" id="addCutcake">＋ 商品を追加</button></div>
       <p class="panel__desc">gallery.html（作品ギャラリー）の「カットケーキ」タブ・各商品詳細ページに表示される商品です（2026-09-08、cutcakes.htmlは廃止しギャラリーへ統合）。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">「ファイルから選択」で入れた写真は、画質を落とさずに保存されます（元の写真も別に保存します。1枚15MB以下にしてください）。</span></p>
+      <div class="cost-app-bar"><a class="cost-app-link" href="https://koimari-tasting.web.app/cost-calculator.html" target="_blank" rel="noopener">原価計算アプリで金額を直す ›</a><br>商品の金額は原価計算アプリの販売価格が元です。各商品の「価格の元」で、原価計算アプリのどの商品と同じかを選んでください。</div>
       <div class="img-grid" id="cutcakesGrid"></div>
     </section>
     <section class="panel" id="panel-rollcakes">
       <div class="panel__head"><h2 class="panel__title">ロールケーキ</h2><button class="btn btn--small" id="addRollcake">＋ 商品を追加</button></div>
       <p class="panel__desc">gallery.html（作品ギャラリー）の「ロールケーキ」タブ・各商品詳細ページに表示される商品です（2026-09-08、rollcakes.htmlは廃止しギャラリーへ統合）。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">「ファイルから選択」で入れた写真は、画質を落とさずに保存されます（元の写真も別に保存します。1枚15MB以下にしてください）。</span></p>
+      <div class="cost-app-bar"><a class="cost-app-link" href="https://koimari-tasting.web.app/cost-calculator.html" target="_blank" rel="noopener">原価計算アプリで金額を直す ›</a><br>商品の金額は原価計算アプリの販売価格が元です。各商品の「価格の元」で、原価計算アプリのどの商品と同じかを選んでください。</div>
       <div class="img-grid" id="rollcakesGrid"></div>
     </section>
     <section class="panel" id="panel-baked">
       <div class="panel__head"><h2 class="panel__title">焼き菓子</h2><button class="btn btn--small" id="addBaked">＋ 商品を追加</button></div>
       <p class="panel__desc">gallery.html（作品ギャラリー）の「焼き菓子」タブ・各商品詳細ページに表示される商品です（2026-09-09新設）。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">「ファイルから選択」で入れた写真は、画質を落とさずに保存されます（元の写真も別に保存します。1枚15MB以下にしてください）。</span></p>
+      <div class="cost-app-bar"><a class="cost-app-link" href="https://koimari-tasting.web.app/cost-calculator.html" target="_blank" rel="noopener">原価計算アプリで金額を直す ›</a><br>商品の金額は原価計算アプリの販売価格が元です（2026-11-13オーナー方針）。</div>
       <div class="img-grid" id="bakedGrid"></div>
     </section>
     <section class="panel" id="panel-gift">
       <div class="panel__head"><h2 class="panel__title">ギフト</h2><button class="btn btn--small" id="addGift">＋ 商品を追加</button></div>
       <p class="panel__desc">gallery.html（作品ギャラリー）の「ギフト」タブ・各商品詳細ページに表示される商品です（2026-09-09新設）。<br><span style="font-size:12.5px;color:var(--color-text-mute,#856e58);">「ファイルから選択」で入れた写真は、画質を落とさずに保存されます（元の写真も別に保存します。1枚15MB以下にしてください）。</span></p>
+      <div class="cost-app-bar"><a class="cost-app-link" href="https://koimari-tasting.web.app/cost-calculator.html" target="_blank" rel="noopener">原価計算アプリで金額を直す ›</a><br>商品の金額は原価計算アプリの販売価格が元です（2026-11-13オーナー方針）。</div>
       <div class="img-grid" id="giftGrid"></div>
     </section>
     <section class="panel" id="panel-cakeAddOns">
@@ -3650,8 +3658,8 @@ function renderCategories() {
 // ため廃止し、実商品からの選択制に変更。季節限定は既存カテゴリを横断するタグとして追加）。
 // カットケーキ：ホールケーキの上に載せられるか（予約フォームの写真選択に出す）と、原価計算アプリの商品との紐づけ（価格の元）。2026-09-30
 function normJa(s) { return String(s || "").replace(/[\s　（）()「」]/g, "").replace(/苺/g, "いちご").replace(/イチジク|いちぢく/g, "いちじく"); }
-function guessCostName(name) {
-  const list = (window.costPublicPrices || []).filter(p => p.category === "カットケーキ");
+function guessCostName(name, category) {
+  const list = (window.costPublicPrices || []).filter(p => p.category === (category || "カットケーキ"));
   const n = normJa(name);
   const hit = list.find(p => normJa(p.name) === n) || list.find(p => normJa(p.name).replace(/の/g, "") === n.replace(/の/g, "")) || list.find(p => n.includes(normJa(p.name)) || normJa(p.name).includes(n));
   return hit ? hit.name : "";
@@ -3672,20 +3680,24 @@ function appendTopperControls(item, obj, onUpdate) {
   cb2.addEventListener("change", () => { obj.topperWhenHidden = cb2.checked; onUpdate(); });
   lab2.appendChild(cb2); lab2.appendChild(document.createTextNode("ギャラリーで非表示にしているときも、上に載せるカットケーキとしては選べる"));
   box.appendChild(lab2);
+  box.appendChild(costSourceRow(obj, onUpdate, "カットケーキ"));
+  item.appendChild(box);
+}
+// 価格の元（原価計算アプリの商品）。カットケーキ・ロールケーキ（2026-11-13）で使う。選んだ商品の販売価格が予約フォームの金額になる
+function costSourceRow(obj, onUpdate, category) {
   const row = document.createElement("div");
   row.style.cssText = "display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap;";
   row.appendChild(document.createTextNode("価格の元（原価計算アプリの商品）："));
   const sel = document.createElement("select");
   sel.style.cssText = "padding:6px 8px;border:1px solid var(--color-line);font-size:13px;max-width:100%;";
-  const list = (window.costPublicPrices || []).slice().sort((a, b) => (a.category === "カットケーキ" ? 0 : 1) - (b.category === "カットケーキ" ? 0 : 1) || a.name.localeCompare(b.name, "ja"));
-  const cur = obj.costName || guessCostName(obj.name);
+  const list = (window.costPublicPrices || []).slice().sort((a, b) => (a.category === category ? 0 : 1) - (b.category === category ? 0 : 1) || a.name.localeCompare(b.name, "ja"));
+  const cur = obj.costName || (category === "カットケーキ" ? guessCostName(obj.name, category) : ""); // ロールケーキは名前が似ていても1切れの値段のことがあるため自動では選ばない（2026-11-13：こいまりロール¥750）
   sel.innerHTML = '<option value="">（未設定：上の「価格」欄を使用）</option>' + list.map(p => '<option value="' + escapeHtml(p.name) + '"' + (p.name === cur ? " selected" : "") + '>' + escapeHtml(p.name) + '（¥' + Number(p.salePrice || 0).toLocaleString() + '）</option>').join("");
   if (cur && !obj.costName) { obj.costName = cur; }
   sel.addEventListener("change", () => { obj.costName = sel.value; onUpdate(); });
   row.appendChild(sel);
   if (!list.length) { const w = document.createElement("span"); w.style.color = "var(--color-text-soft)"; w.textContent = "（原価計算アプリの商品一覧を一度開くと、ここに表示されます）"; row.appendChild(w); }
-  box.appendChild(row);
-  item.appendChild(box);
+  return row;
 }
 
 // 商品ページの文章（2026-10-17）：ひとことのキャッチ・3つのこだわり・召し上がり方・商品情報。空欄の項目は商品ページに出さない。
@@ -3977,6 +3989,8 @@ function renderRollcakes() {
     item.appendChild(makeGalleryEditor(r, "img", { maxWidth: 2400, max: 6, onChange: () => { renderRollcakes(); updateSaveBar(); } }));
     appendVisibleToggle(item, () => workingData.rollcakes[i].visible, () => { workingData.rollcakes[i].visible = !workingData.rollcakes[i].visible; renderRollcakes(); updateSaveBar(); });
     appendExtraFlags(item, r, () => updateSaveBar());
+    { const box = document.createElement("div"); box.style.cssText = "padding:10px 14px;margin-top:8px;background:rgba(74,111,156,0.08);border-left:3px solid #4a6f9c;";
+      box.appendChild(costSourceRow(r, () => updateSaveBar(), "ロールケーキ")); item.appendChild(box); }
     const noTag = document.createElement("div");
     noTag.className = "cake-no-tag";
     noTag.textContent = "ギャラリー番号 " + rollNoLabel(r.no) + "（お客様にはこの番号で表示されます）";
@@ -9102,7 +9116,7 @@ function buildPriceTable() {
     html += group("その他", "", table(row("3段の出張組み立て料（最低額）", yenIn("cso_onsite", SO.onsiteAssemblyFee), "お客様には「この金額〜（税込）」と案内。遠方の場合は交通費を加算")));
   }
   html += '<div class="pt-group"><h3>このページ以外で管理している金額</h3><p class="pt-note" style="margin-bottom:0;">砂糖菓子・ゼリー菓子などの追加商品は「<a href="#cakeAddOns" onclick="var t=document.querySelector(\'.tab[data-panel=cakeAddOns]\');if(t){t.click();}return false;">追加商品（砂糖菓子）</a>」タブで1個ごとの単価を管理しています。</p></div>';
-  html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。<b>原価表にない組み合わせは「特殊仕様」</b>となり、予約フォームでは金額を出さず、スタッフがお電話で仕様・料金を確認します。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div><details style="margin-top:8px;"><summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6f9c;">原価計算アプリとの対応表を見る（自動判定が正しいか確認できます）</summary><div id="ptSourceMap" style="margin-top:8px;overflow-x:auto;"></div></details></div>' + html;
+  html = '<div class="pt-group pt-source" id="ptSource"><h3>原価計算アプリとの連動</h3><a class="cost-app-link" href="https://koimari-tasting.web.app/cost-calculator.html" target="_blank" rel="noopener">原価計算アプリで金額を直す ›</a><p class="pt-note" style="margin-bottom:0;">デコレーションケーキの1段の価格（生クリーム・種類ごと）は、<b>原価計算アプリの商品一覧の税込価格から自動で反映</b>されます。金額を変えるときは原価計算アプリで変更してください（緑色の欄はここでは書き換えられません）。<b>原価表にない組み合わせは「特殊仕様」</b>となり、予約フォームでは金額を出さず、スタッフがお電話で仕様・料金を確認します。</p><div id="ptSourceStatus" class="pt-note" style="margin:6px 0 0;"></div><details style="margin-top:8px;"><summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#4a6f9c;">原価計算アプリとの対応表を見る（自動判定が正しいか確認できます）</summary><div id="ptSourceMap" style="margin-top:8px;overflow-x:auto;"></div></details></div>' + html;
   wrap.innerHTML = html;
   // 原価計算アプリから反映された欄を書き換え不可にする（koimariContent/priceTableSource）
   if (typeof window.fbOnPriceTableSource === "function") window.fbOnPriceTableSource((src) => {

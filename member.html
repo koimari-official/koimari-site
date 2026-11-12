@@ -2135,6 +2135,18 @@ const MQ_SIZES = ["4号", "5号", "6号", "7号"];
 const MQ_SIZE_FULL = { "4号": "4号(約12cm/3-4名)", "5号": "5号(約15cm/5-6名)", "6号": "6号(約18cm/7-8名)", "7号": "7号(約21cm/9-10名)" };
 const MQ_CREAMS = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX"];
 let mqWorks = null; // オーダーメイドの作品（作品No.）
+// ロールケーキ1本のご予約の金額（2026-11-13）：まとめて受付と同じく、原価計算アプリの販売価格 → 無ければ商品の「価格」欄。
+// 金額が分からないロールケーキは、今までどおり金額を出さない（¥0と出さない）
+function rollSubtotal() {
+  const none = { subtotal: 0, priceNeedsConsult: false, applicable: false, lines: [], notes: [] };
+  const fl = (document.getElementById("reserveFlavor") || {}).value || "";
+  const c = fl && rollCatalog().find((x) => x.name === fl);
+  if (!c || !(c.price > 0)) return none;
+  const wx = CakePricing.extraItemsTotal({ extraItems: withCutSelected() });
+  const noteFilled = hasMeaningfulNote((document.getElementById("reserveNote") || {}).value);
+  const lines = [{ label: "ロールケーキ " + fl, amount: c.price }].concat(wx.lines.map((l) => ({ label: "カットケーキ " + l.label, amount: l.amount })));
+  return { subtotal: c.price + wx.subtotal, priceNeedsConsult: false, priceIsFixed: !noteFilled && (!wx.count || wx.priced), applicable: true, lines, notes: [] };
+}
 function rollCatalog() {
   return rollRaw.map(it => { const name = String(it.name).replace(/<[^>]*>/g, ""); return { name, img: it.img || "", price: cutPriceMap[it.costName || ""] || cutPriceMap[name] || parseYenNumber(it.price) || 0 }; });
 }
@@ -2477,7 +2489,8 @@ function gatherEstimateInput() {
 }
 function computeCakeSubtotal() {
   const cakeType = (document.querySelector('input[name="reserveType"]:checked') || {}).value || "デコレーションケーキ";
-  if (cakeType === BAKED_GOODS_CATEGORY || cakeType === "ロールケーキ") return { subtotal: 0, priceNeedsConsult: false, applicable: false, lines: [], notes: [] };
+  if (cakeType === "ロールケーキ") return rollSubtotal();
+  if (cakeType === BAKED_GOODS_CATEGORY) return { subtotal: 0, priceNeedsConsult: false, applicable: false, lines: [], notes: [] };
   const input = gatherEstimateInput();
   if (!input.tiers.length || input.tiers.some(v => !v)) return { subtotal: 0, priceNeedsConsult: false, applicable: true, incomplete: true, lines: [], notes: [] };
   if (!pricesReady()) return { subtotal: 0, priceNeedsConsult: true, priceIsFixed: false, applicable: true, lines: [], notes: [] };
@@ -4374,7 +4387,8 @@ function setupReserveForm(uid, displayName) {
       if (isBaked) {
         items = [{ category: "焼き菓子", image: "", size: "", flavor: "", message: "" }];
       } else if (isRoll) {
-        items = [{ category: "ロールケーキ", image: "", size: "ホール", flavor, message: chocoText }];
+        const rp = (rollCatalog().find((x) => x.name === flavor) || {}).price || 0; // 1本の金額（まとめて受付と同じ形で残す・2026-11-13）
+        items = [{ category: "ロールケーキ", image: "", size: "ホール", flavor, message: chocoText, ...(rp > 0 ? { price: rp, qty: 1 } : {}) }];
       } else {
         const tierSizes = Array.from(document.querySelectorAll(".tier-size-select")).map(s => s.value);
         items = tierSizes.map((size, i) => ({ category: "デコレーションケーキ", image: "", size, flavor, message: i === 0 ? chocoText : "" }));
