@@ -716,9 +716,9 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           <div class="error" id="reserveTelError"></div>
         </div>
         <div class="field">
-          <label class="field__label" for="reserveEmail">メールアドレス<span class="req-mark">必須</span></label>
+          <label class="field__label" for="reserveEmail">メールアドレス<span class="req-mark" style="background:#9a8f82;">任意</span></label>
           <input type="email" id="reserveEmail" class="input" placeholder="例: example@example.com">
-          <div class="field__hint">ご予約内容の確認・ご連絡に使用します</div>
+          <div class="field__hint">ご入力いただくと、ご予約内容の確認メールをお送りします（空欄でもご予約いただけます）</div>
           <div class="error" id="reserveEmailError"></div>
         </div>
         <div class="field" id="reserveReceiptField" style="display:none;">
@@ -1620,7 +1620,6 @@ function remainingItems() {
   if (!v("reserveTime")) miss.push("お受取時間");
   if (!v("reserveName")) miss.push("お名前");
   if (!v("reserveTel")) miss.push("電話番号");
-  if (!v("reserveEmail")) miss.push("メール");
   if (!(document.getElementById("reserveConsent") || {}).checked) miss.push("同意");
   return miss;
 }
@@ -3582,7 +3581,7 @@ function validateReserve(data) {
   else if (!NAME_INPUT_RE.test(data.name.trim())) { setReserveError("reserveNameError", "お名前はひらがな・カタカナ・漢字でご入力ください"); ok = false; }
   if (!data.tel.trim()) { setReserveError("reserveTelError", "電話番号をご入力ください"); ok = false; }
   else if (!/^[\d\-+()\s]{8,}$/.test(data.tel)) { setReserveError("reserveTelError", "正しい電話番号をご入力ください"); ok = false; }
-  if (!data.email.trim()) { if (!PHONE_MODE) { setReserveError("reserveEmailError", "メールアドレスをご入力ください"); ok = false; } } // 電話・店頭は任意
+  if (!data.email.trim()) { /* メールアドレスは任意（2026-11-16オーナー指示：すべての予約で任意） */ }
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { setReserveError("reserveEmailError", "正しいメールアドレスをご入力ください"); ok = false; }
   if (data.receiptNeeded && !data.receiptName.trim()) { setReserveError("reserveReceiptNameError", "領収書の宛名をご入力ください"); ok = false; }
   if (!data.privacyConsent) { setReserveError("reserveConsentError", "プライバシーポリシーへの同意が必要です"); ok = false; }
@@ -3630,7 +3629,7 @@ function renderReserveConfirm(data, targetId) {
       <dt>保護者の方のお名前（ふりがな）</dt><dd>${escape(data.furigana)}</dd>
       <dt>保護者の方のお名前</dt><dd>${escape(data.name)}</dd>
       <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
-      <dt>メールアドレス</dt><dd>${escape(data.email)}</dd>
+      <dt>メールアドレス</dt><dd>${data.email ? escape(data.email) : "（未入力）"}</dd>
       ${data.note ? `<dt>その他ご要望・仕様の相談</dt><dd>${escape(data.note)}</dd>` : ""}
     `;
     return;
@@ -3644,7 +3643,7 @@ function renderReserveConfirm(data, targetId) {
       <dt>お名前（ふりがな）</dt><dd>${escape(data.furigana)}</dd>
       <dt>お名前</dt><dd>${escape(data.name)}</dd>
       <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
-      <dt>メールアドレス</dt><dd>${escape(data.email)}</dd>
+      <dt>メールアドレス</dt><dd>${data.email ? escape(data.email) : "（未入力）"}</dd>
       ${data.receiptNeeded ? `<dt>領収書</dt><dd>必要（宛名: ${escape(data.receiptName)}）</dd>` : ""}
       ${data.note ? `<dt>その他ご要望</dt><dd>${escape(data.note)}</dd>` : ""}
     `;
@@ -3688,7 +3687,7 @@ function renderReserveConfirm(data, targetId) {
     <dt>お名前（ふりがな）</dt><dd>${escape(data.furigana)}</dd>
     <dt>お名前</dt><dd>${escape(data.name)}</dd>
     <dt>お電話番号</dt><dd>${escape(data.tel)}</dd>
-    <dt>メールアドレス</dt><dd>${escape(data.email)}</dd>
+    <dt>メールアドレス</dt><dd>${data.email ? escape(data.email) : "（未入力）"}</dd>
     ${data.receiptNeeded ? `<dt>領収書</dt><dd>必要（宛名: ${escape(data.receiptName)}）</dd>` : ""}
     ${data.note ? `<dt>その他ご要望・仕様の相談</dt><dd>${escape(data.note)}</dd>` : ""}
   `;
