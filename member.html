@@ -2305,7 +2305,8 @@ function renderShopPicker() {
   const grid = document.getElementById("reserveShopGrid"), label = document.getElementById("reserveShopLabel");
   const notice = document.getElementById("reserveShopNotice"), status = document.getElementById("reserveShopStatus");
   grid.style.display = m === "multi" ? "block" : "grid";
-  const pic = img => img ? '<img src="' + escape(img) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">' : '<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;"></div>';
+  // 写真がまだ無い新商品は「Coming soon」（2026-11-18オーナー指示。写真はあとで管理画面から追加）
+  const pic = img => img ? '<img src="' + escape(img) + '" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;display:block;">' : '<div style="aspect-ratio:1;border-radius:10px;background:#f7efe3;border:1px solid #eadcc8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:#a88a52;"><span style="font-size:15px;font-weight:700;letter-spacing:.08em;">Coming soon</span><span style="font-size:11px;">写真は準備中です</span></div>';
   const card = (on, inner) => '<div style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;' + (on ? "box-shadow:0 0 0 3px #f0b35a;" : "") + '">' + inner + "</div>";
   const box = html => '<div style="background:#fff7ea;border:1px solid #e0b872;border-radius:10px;padding:12px 14px;font-size:14px;line-height:1.8;color:#6b4a12;margin-bottom:12px;">' + html + "</div>";
   if (m === "multi") { renderMultiPicker(grid, label, notice, status, box); return; }
