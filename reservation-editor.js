@@ -69,7 +69,7 @@
       cutCatalog = arr.filter(function (it) { return it && it.name && (it.visible !== false || (it.topperOk && it.topperWhenHidden)); }).map(function (it) {
         var nm = String(it.name).replace(/<[^>]*>/g, "");
         return { name: nm, img: it.img || "", price: pm[it.costName || ""] || pm[it.name] || pm[nm] || (Number(String(it.price || "").replace(/[^0-9]/g, "")) || 0),
-          shop: it.visible !== false && !!it.img && !it.notForSale }; // 予約フォームの「一緒にご予約」で選べるもの（member.html の shopCutCatalog と同じ）
+          shop: it.visible !== false && (!!it.img || yenNum(it.price) > 0) && !it.notForSale }; // 予約フォームの「一緒にご予約」で選べるもの（member.html の shopCutCatalog と同じ。写真がまだ無い新商品も値段があれば選べる）
       });
       return cutCatalog;
     });

@@ -2122,7 +2122,8 @@ function shopMode() {
   return v === "カットケーキ" ? "cut" : v === "クリスマスケーキ" ? "xmas" : v === "砂糖菓子・ゼリー菓子" ? "addon" : v === "まとめて受付" ? "multi" : "";
 }
 function shopCutCatalog() {
-  return cutRaw.filter(it => it && it.name && it.visible !== false && it.img && !it.notForSale).map(it => ({
+  // 写真がまだ無い新商品でも、値段が入っていれば予約で選べる（2026-11-18オーナー指示：販売開始に写真の登録が間に合わないと予約が入力できなかった）。HPの一覧は写真がある商品だけ
+  return cutRaw.filter(it => it && it.name && it.visible !== false && (it.img || parseYenNumber(it.price) > 0) && !it.notForSale).map(it => ({
     name: String(it.name).replace(/<[^>]*>/g, ""), img: it.img || "",
     price: cutPriceMap[it.costName || ""] || cutPriceMap[it.name] || parseYenNumber(it.price) || 0
   }));
