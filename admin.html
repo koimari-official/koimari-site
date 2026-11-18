@@ -4283,6 +4283,11 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     window.SITE_IMAGES_KEYS.forEach(k => {
       if (JSON.stringify(merged[k]) !== JSON.stringify(fresh[k])) changedKeys[k] = merged[k];
     });
+    // 登録時のガード：今回書き込む商品カテゴリーに、名前・説明文の無い公開中の商品があれば止める（2026-11-18）
+    const catLabels = { decorationCakes: "デコレーションケーキ", cutcakes: "カットケーキ", rollcakes: "ロールケーキ", baked: "焼き菓子", gift: "ギフト" };
+    const blockers = [];
+    PUBLISH_GUARD_PRODUCT_KEYS.forEach(k => { if (k in changedKeys) blockers.push(...findPublishBlockers(changedKeys[k], false, catLabels[k])); });
+    if (alertPublishBlockers(blockers)) return;
     await window.fbSaveSiteImages(changedKeys);
     workingData = merged;
     savedData = JSON.parse(JSON.stringify(merged));
@@ -6992,6 +6997,33 @@ const CONTENT_LABELS = { news: "お知らせ", holidays: "営業日設定", faq:
 // 各コンテンツ種別について「最後にFirebaseと同期が取れた状態」を保持（保存時・ライブ更新時のマージの基準にする）
 let savedContentByKey = {};
 
+// 登録時のガード（2026-11-18・Muse仕様「HP改良仕様_追補_恒久化」）：
+// 公開中（visible !== false）で写真のある商品・作例は、名前と説明文が無いと保存させない。
+// 説明文が空だと、検索・AIが読む静的ページ（catalog.html・llms.txt）に中身が載らないため。
+// altは静的書き出し側で「名前＋説明文の1文目」から必ず作るので、説明文があればaltも揃う。
+const PUBLISH_GUARD_PRODUCT_KEYS = ["decorationCakes", "cutcakes", "rollcakes", "baked", "gift"];
+function publishGuardText(s) {
+  return String(s == null ? "" : s).replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+}
+// list: 商品の配列／isGallery: オーダーケーキの作例（title・lead＋desc）か／label: カテゴリー名
+function findPublishBlockers(list, isGallery, label) {
+  const out = [];
+  (Array.isArray(list) ? list : []).forEach((raw, i) => {
+    if (!raw || typeof raw !== "object" || raw.visible === false) return;
+    if (typeof raw.img !== "string" || !raw.img.startsWith("https://")) return; // 写真の無いものはサイトに出ないので対象外
+    const name = publishGuardText(isGallery ? raw.title : raw.name);
+    const desc = publishGuardText(isGallery ? [raw.lead, raw.desc].filter(Boolean).join(" ") : raw.desc);
+    if (!name) out.push(`［${label}］${i + 1}番目：名前が空です`);
+    else if (!desc) out.push(`［${label}］${name}：説明文が空です`);
+  });
+  return out;
+}
+function alertPublishBlockers(blockers) {
+  if (!blockers.length) return false;
+  alert("次の商品は、名前と説明文が入っていないため公開できません。\n説明文を入れるか、「非表示」にしてから保存してください。\n\n" + blockers.join("\n"));
+  return true;
+}
+
 async function saveByKey(key, data) {
   const contentKey = key.replace(/^koimari_/, "");
   const shape = CONTENT_SHAPES[contentKey] || "array";
@@ -8035,6 +8067,8 @@ function renderGalleryAdmin() {
   sb.innerHTML = '<button class="btn" id="saveGalleryBtn">変更を保存</button>';
   grid.appendChild(sb);
   document.getElementById("saveGalleryBtn").addEventListener("click", async () => {
+    // 登録時のガード：名前・説明文の無い公開中の作例は保存させない（2026-11-18）
+    if (alertPublishBlockers(findPublishBlockers(galleryData, true, "オーダーケーキの作例"))) return;
     afterSave(await saveByKey(GALLERY_KEY, galleryData), merged => { galleryData = merged; renderGalleryAdmin(); }, "ギャラリーを保存しました（サイトに反映されます）");
   });
 }
