@@ -560,7 +560,7 @@
           '<div class="re-manual__row"><select class="input select" id="reWithManCat"><option value="カットケーキ">カットケーキ</option><option value="ロールケーキ">ロールケーキ</option><option value="その他">その他</option></select>' +
           '<input class="input" id="reWithManName" placeholder="商品名（例：抹茶ミッシェル）" autocomplete="off"></div>' +
           '<div class="re-manual__row"><span class="re-yen"><input type="number" min="1" step="1" inputmode="numeric" class="input" id="reWithManPrice" placeholder="税込価格"> 円（税込・1個／1本）</span>' +
-          '<select class="input select" id="reWithManQty">' + QTY_LIST.filter(function (n) { return n > 0; }).map(function (n) { return '<option value="' + n + '">' + n + "</option>"; }).join("") + "</select>" +
+          '<select class="input select" id="reWithManQty">' + QTY_LIST.filter(function (n) { return n > 0; }).map(function (n) { return '<option value="' + n + '">' + n + "つ</option>"; }).join("") + "</select>" +
           '<button type="button" class="re-btn re-btn--small" id="reWithManAdd">追加する</button></div>' +
           '<div class="re-hint" id="reWithManErr" style="color:#b03b48;margin:2px 0 0;"></div></div>' + "</div>";
     }
