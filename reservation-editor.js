@@ -554,7 +554,15 @@
         field(withs.length ? "別の商品を追加" : "追加する", addSel("reWithNew", [
           { label: "カットケーキ", key: "カットケーキ", items: (cutCatalog || []).filter(function (c) { return c.shop && withKeys.indexOf("カットケーキ|" + c.name) < 0; }) },
           { label: "ロールケーキ", key: "ロールケーキ", items: (rollCatalog || []).filter(function (c) { return withKeys.indexOf("ロールケーキ|" + c.name) < 0; }) }
-        ], "＋ 追加する商品を選ぶ")) + "</div>";
+        ], "＋ 追加する商品を選ぶ")) +
+        // リストにない商品の手入力（2026-11-18オーナー指示：販売開始したばかりで、まだ商品に登録されていないケーキ等）
+        '<div class="re-field re-manual"><label>リストにない商品を手入力（新しいケーキなど）</label>' +
+          '<div class="re-manual__row"><select class="input select" id="reWithManCat"><option value="カットケーキ">カットケーキ</option><option value="ロールケーキ">ロールケーキ</option><option value="その他">その他</option></select>' +
+          '<input class="input" id="reWithManName" placeholder="商品名（例：抹茶ミッシェル）" autocomplete="off"></div>' +
+          '<div class="re-manual__row"><span class="re-yen"><input type="number" min="1" step="1" inputmode="numeric" class="input" id="reWithManPrice" placeholder="税込価格"> 円（税込・1個／1本）</span>' +
+          '<select class="input select" id="reWithManQty">' + QTY_LIST.filter(function (n) { return n > 0; }).map(function (n) { return '<option value="' + n + '">' + n + "</option>"; }).join("") + "</select>" +
+          '<button type="button" class="re-btn re-btn--small" id="reWithManAdd">追加する</button></div>' +
+          '<div class="re-hint" id="reWithManErr" style="color:#b03b48;margin:2px 0 0;"></div></div>' + "</div>";
     }
     if (e.cuts) {
       e.cuts.forEach(function (c, i) {
@@ -617,10 +625,34 @@
       state.edit._priceManual = false; renderEdit();
     });
     document.getElementById("rePrice").addEventListener("input", function () { state.edit._priceManual = true; });
+    var mAdd = document.getElementById("reWithManAdd");
+    if (mAdd) mAdd.addEventListener("click", addManualWith);
     var xa = document.getElementById("reExtraAmt"); if (xa) xa.addEventListener("change", function () { readEdit(true); });
     document.getElementById("reCancel").addEventListener("click", function () { if (!confirmDiscard()) return; clearDraft(state.key); state.edit = null; renderView(); });
     document.getElementById("reSave").addEventListener("click", save);
     document.getElementById("reEditStaff").addEventListener("click", editStaff);
+  }
+  // 一緒にご予約：リストにない商品を手入力で追加（2026-11-18）。同じ種類・同じ名前がすでにあれば数を足す
+  function addManualWith() {
+    var g = function (id) { return document.getElementById(id); };
+    var name = (g("reWithManName").value || "").replace(/\s+/g, " ").trim();
+    var price = Math.round(Number(String(g("reWithManPrice").value || "").replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[^0-9.]/g, "")) || 0);
+    var qty = Number(g("reWithManQty").value) || 1, cat = g("reWithManCat").value || "カットケーキ";
+    var err = g("reWithManErr");
+    if (!name) { err.textContent = "商品名を入れてください"; g("reWithManName").focus(); return; }
+    if (name.length > 40) { err.textContent = "商品名は40文字までにしてください"; return; }
+    if (!(price > 0)) { err.textContent = "税込価格（1個・1本の値段）を入れてください"; g("reWithManPrice").focus(); return; }
+    readEdit(false);
+    var e = state.edit; e.withList = e.withList || [];
+    var same = e.withList.filter(function (x) { return x.category === cat && x.name === name; })[0];
+    if (same) { same.qty = (Number(same.qty) || 0) + qty; same.price = price; }
+    else e.withList.push({ category: cat, name: name, qty: qty, price: price });
+    e.withItems = withText(e.withList);
+    var memo = g("reMemo") ? g("reMemo").value : "", staff = g("reStaff") ? g("reStaff").value : "";
+    renderEdit();
+    if (g("reMemo")) g("reMemo").value = memo;
+    if (g("reStaff")) g("reStaff").value = staff;
+    scheduleDraft();
   }
   // 入力内容を state.edit に読み込む。rerender=true ならプルダウンの変化に合わせて画面を作り直す
   function readEdit(rerender) {

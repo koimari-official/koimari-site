@@ -317,7 +317,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261118a"></script>
+<script src="reservation-editor.js?v=20261118b"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -662,6 +662,12 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .re-field select,.re-field input,.re-field textarea{width:100%;font-size:16px;padding:9px 10px;margin-bottom:4px}
 .re-check{display:flex!important;align-items:center;gap:6px;font-size:14px!important;font-weight:600!important;color:#2e2118!important}
 .re-check input{width:auto!important;margin:0!important}
+.re-manual{grid-column:1/-1;border-top:1px dashed #eadcc8;padding-top:8px}
+.re-manual__row{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px}
+.re-manual__row select,.re-manual__row input{width:auto!important;margin:0!important}
+.re-manual__row #reWithManName{flex:1 1 200px;min-width:0}
+.re-manual__row #reWithManPrice{width:120px!important}
+.re-manual__row .re-yen{display:inline-flex;align-items:center;gap:4px;font-size:13px}
 .re-tier{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px 14px;background:#fff;border:1px solid #eadcc8;border-radius:10px;padding:10px 12px}
 .re-tier__title{grid-column:1/-1;font-weight:700;font-size:13.5px;color:#a88a52}
 .re-price{grid-column:1/-1;background:#fff;border:2px solid #c9a96e;border-radius:12px;padding:12px 14px}
