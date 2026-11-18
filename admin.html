@@ -345,6 +345,65 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 .res-viewbar .seg--sub button{padding:7px 14px;font-size:13px}
 .rc-day{margin:0 0 22px}
 .res-viewbar .seg--toggle button.on{background:#8a6a3a}
+/* クリスマス受け渡しリスト（2026-11-18）：画面（タブレットで入力） */
+.ho-days{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px}
+.ho-days button{border:1px solid var(--color-line,#e5d9c6);background:#fff;border-radius:10px;padding:8px 12px;font-size:14px;font-weight:700;color:#4a3a2a;cursor:pointer;line-height:1.3;font-family:var(--font-sans)}
+.ho-days button small{display:block;font-size:12px;font-weight:400;color:#856e58}
+.ho-days button.on{background:#4a3a2a;color:#fff;border-color:#4a3a2a}
+.ho-days button.on small{color:#e9dccb}
+.ho-sum{font-size:14px;line-height:1.7;margin:0 0 4px}
+.ho-sum b{font-size:17px}
+.ho-counts{font-size:13px;color:#6b5a48;margin:0 0 10px;line-height:1.6}
+.ho-tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 12px}
+.ho-actor{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;white-space:nowrap}
+.ho-actor select{font-size:16px;padding:6px 8px;min-width:8em}
+.ho-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ho-table{width:100%;min-width:720px;border-collapse:collapse;background:#fff}
+.ho-table th,.ho-table td{border-bottom:1px solid var(--color-line,#e5d9c6);padding:8px;text-align:left;vertical-align:middle;font-size:14px;line-height:1.5}
+.ho-table th{font-size:12px;color:#856e58;white-space:nowrap;font-weight:700}
+.ho-time{font-size:18px;font-weight:700;white-space:nowrap;font-family:var(--font-sans)}
+.ho-no{font-weight:700;white-space:nowrap;font-family:var(--font-sans)}
+.ho-no button{display:block;margin-top:4px;border:1px solid #c9b8a2;background:#fff;border-radius:6px;padding:3px 8px;font-size:12px;color:#4a6f9c;cursor:pointer}
+.ho-name b{font-size:15px}
+.ho-name small,.ho-order small{display:block;font-size:12px;color:#856e58;line-height:1.5}
+.ho-order b{font-size:14px}
+.ho-chk{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:6px 12px;border:2px solid #c9b8a2;border-radius:10px;font-size:15px;font-weight:700;color:#6b5a48;cursor:pointer;white-space:nowrap;background:#fff;user-select:none}
+.ho-chk input{width:24px;height:24px;margin:0;cursor:pointer;flex-shrink:0}
+.ho-chk small{display:block;font-size:12px;font-weight:400}
+.ho-chk.on{border-color:#5d8a4e;color:#2f5a24;background:#eef6ea}
+.ho-row.is-done td{color:#9a8f82}
+.ho-row.is-done .ho-name b,.ho-row.is-done .ho-order b{color:#9a8f82}
+.ho-st{display:inline-block;margin-top:4px;font-size:12px;font-weight:700;color:#7a1f2b}
+.ho-help{font-size:12.5px;color:#856e58;line-height:1.7;margin:10px 0 0}
+/* 受け渡しリストの印刷（白黒・塗りつぶしなし・罫線は黒の実線） */
+#hoPrintSheet{display:none}
+@media print{
+  @page{size:A4 portrait;margin:10mm}
+  body.ho-printing{background:#fff!important;padding:0!important;margin:0!important}
+  body.ho-printing > *:not(#hoPrintSheet){display:none!important}
+  body.ho-printing #hoPrintSheet{display:block!important}
+}
+#hoPrintSheet,#hoPrintSheet *{color:#000!important;background:none!important;box-shadow:none!important}
+.hop-page{font-family:var(--font-sans);break-after:page;page-break-after:always}
+.hop-page:last-child{break-after:auto;page-break-after:auto}
+.hop-head{display:flex;align-items:baseline;gap:4mm;flex-wrap:wrap;margin:0 0 2mm}
+.hop-title{font-size:11pt;font-weight:700}
+.hop-date{font-size:17pt;font-weight:700}
+.hop-meta{margin-left:auto;font-size:9pt}
+.hop-counts{font-size:9pt;line-height:1.5;margin:0 0 2.5mm}
+.hop-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:10pt;line-height:1.4}
+.hop-table th,.hop-table td{border:0.3mm solid #000;padding:1.6mm 1.4mm;vertical-align:middle;overflow-wrap:anywhere;word-break:break-word}
+.hop-table th{font-size:9pt;font-weight:700;text-align:center;white-space:nowrap}
+.hop-table thead{display:table-header-group}
+.hop-table tr{break-inside:avoid;page-break-inside:avoid}
+.hop-c{text-align:center}
+.hop-time{font-size:12.5pt;font-weight:700;text-align:center;white-space:nowrap}
+.hop-name{font-size:11pt;font-weight:700}
+.hop-sub{display:block;font-size:8.5pt;font-weight:400;line-height:1.35;margin-top:0.6mm}
+.hop-box{display:inline-block;width:6mm;height:6mm;border:0.4mm solid #000;vertical-align:middle}
+.hop-pay{white-space:nowrap}
+.hop-pay .hop-box{width:4.5mm;height:4.5mm;margin-right:1mm}
+.hop-foot{font-size:9pt;margin-top:2.5mm;line-height:1.5}
 @media(max-width:600px){.res-viewbar .seg button{padding:8px 11px;font-size:13px}.res-viewbar .seg--sub button{padding:7px 10px;font-size:12.5px}}
 .overdue-alert{position:fixed;left:0;right:0;top:0;z-index:1499;background:#c8661a;color:#fff;padding:10px 56px 10px 16px;box-shadow:0 4px 14px rgba(0,0,0,.2);font-size:14.5px;line-height:1.6}
 .overdue-alert__in{max-width:1100px;margin:0 auto}
@@ -5434,13 +5493,13 @@ function isHandOverOverdue(r) {
   const t = new Date(), today = t.getFullYear() + "-" + String(t.getMonth() + 1).padStart(2, "0") + "-" + String(t.getDate()).padStart(2, "0");
   return d < today;
 }
-async function updateResHanded(idx, checked) {
+async function updateResHanded(idx, checked, presetActor) {
   const key = resKeyNow(idx); // 押した瞬間の予約で決める
   const list = loadList(RES_KEY);
   const r = list[idx];
   if (!r) return;
   if (checked && !r.paymentDone && !confirm("「支払済み」にチェックが入っていません。\nお支払いを受けてから、お渡し済みにしてください。\n\nこのまま「お渡し済み」にしますか？")) { renderReservations(); return; }
-  const actor = await askActor(checked ? "お渡しした人" : "「お渡し済み」を外す人");
+  const actor = presetActor || await askActor(checked ? "お渡しした人" : "「お渡し済み」を外す人");
   if (!actor) { renderReservations(); return; }
   const now = new Date().toISOString();
   const cur = resByKey(key) || r; // 担当者を選んでいる間に変わっていても、いまの内容でステータスを決める
@@ -5449,10 +5508,10 @@ async function updateResHanded(idx, checked) {
   await saveResPatch(key, patch, checked ? "お渡し済み" : "お渡し済みを外す");
 }
 // 「支払い済」チェック（2026-09-29オーナー指示：引き渡し・支払いの管理を楽にする）。
-async function updateResPayment(idx, checked) {
+async function updateResPayment(idx, checked, presetActor) {
   const key = resKeyNow(idx); // 押した瞬間の予約で決める
   if (!loadList(RES_KEY)[idx]) return;
-  const actor = checked ? await askActor("お支払いを受けた人") : null;
+  const actor = checked ? (presetActor || await askActor("お支払いを受けた人")) : null;
   if (checked && !actor) { renderReservations(); return; }
   const patch = { paymentDone: checked, paymentDoneAt: checked ? new Date().toISOString() : null, paymentDoneBy: checked ? actor : null };
   await saveResPatch(key, patch, checked ? "支払い" : "支払いを外す");
@@ -6450,6 +6509,149 @@ function renderReservationCalendar(area, fullList) {
   area.innerHTML = html;
   return rows.length;
 }
+// ===== クリスマスケーキの受け渡しリスト（2026-11-18オーナー指示）=====
+// 受け渡しの日は込み合って1件ずつ入力できないため、前もって日ごとのリストを紙に印刷し（白黒・塗りつぶしなし）、
+// 落ち着いてからタブレットで「支払済み」「お渡し済み」をまとめて入力する。日ごと・受け取り時刻の順。キャンセルは出さない。
+// 入力は今までの「お渡し済み」「支払済み」と同じ保存（予約カード・表・カレンダーにもそのまま出る）
+let hoDay = "";            // 選んでいる日 "2026-12-24"（日付が未定のご予約は "未定"）
+let hoUndoneOnly = false;  // まだお渡ししていないご予約だけを出す
+function hoDayOf(r) { const d = resPickupDate(r); return /^\d{4}-\d{2}-\d{2}$/.test(d) ? d : "未定"; }
+function hoAllRows(fullList) {
+  const out = [];
+  (fullList || loadList(RES_KEY)).forEach((r, idx) => { if (r && isXmasRes(r) && r.status !== "キャンセル") out.push({ r, idx }); });
+  return out;
+}
+function hoSortRows(rows) { // 受け取り時刻の順（時刻が未定は最後）→ 予約番号の順
+  return rows.slice().sort((a, b) => (resPickupTime(a.r) || "99:99").localeCompare(resPickupTime(b.r) || "99:99") || (Number(a.r.reservationNo) || 0) - (Number(b.r.reservationNo) || 0));
+}
+function hoDayKeys(rows) {
+  const s = {}; rows.forEach(({ r }) => { s[hoDayOf(r)] = (s[hoDayOf(r)] || 0) + 1; });
+  return { counts: s, keys: Object.keys(s).sort((a, b) => (a === "未定") - (b === "未定") || a.localeCompare(b)) };
+}
+function hoDayLabel(d) { return d === "未定" ? "日付未定" : resDateLabel(d); }
+// ご注文（一覧はすべてクリスマスケーキなので、頭の「クリスマスケーキ」は付けない）
+function hoOrderTitle(r) { return resCardTitle(r, { noWhen: true }).replace(/^クリスマスケーキ\s*/, "") || "クリスマスケーキ"; }
+function hoOrderSubs(r) {
+  const out = [];
+  if (window.CakePricing && CakePricing.extraItemsOf && CakePricing.extraItemsOf(r).length) out.push("一緒に：" + CakePricing.extraItemsText(r, "・"));
+  if (r.candleNeeded) out.push("ろうそく：" + candleLabelOf(r));
+  const al = (r.allergy || []).filter((a) => a && a !== "なし");
+  if (al.length) out.push("アレルギー：" + al.join("・"));
+  if (r.note && String(r.note).trim()) out.push("備考：" + String(r.note).trim());
+  if (r.notes && String(r.notes).trim()) out.push("メモ：" + String(r.notes).trim().replace(/\s*\n\s*/g, "／"));
+  return out;
+}
+// お支払い：済み／まだ（受け取りのときにいただく金額）
+function hoAmountText(r) {
+  const fixed = Number(r.finalPrice) || (r.priceIsFixed ? Number(r.subtotal) || 0 : 0);
+  if (fixed) return "¥" + fixed.toLocaleString();
+  if (Number(r.subtotal)) return "目安¥" + Number(r.subtotal).toLocaleString();
+  return "金額要確認";
+}
+function hoCakeCounts(rows) {
+  const m = {}; rows.forEach(({ r }) => { const t = hoOrderTitle(r); m[t] = (m[t] || 0) + 1; });
+  return Object.keys(m).sort((a, b) => a.localeCompare(b, "ja")).map((t) => t + " ×" + m[t]).join("　");
+}
+function hoSetDay(d) { hoDay = d; renderReservations(); }
+function hoToggleUndone() { hoUndoneOnly = !hoUndoneOnly; renderReservations(); }
+function hoSetActor(v) { try { if (v) sessionStorage.setItem("koimari_last_actor", v); else sessionStorage.removeItem("koimari_last_actor"); } catch (e) {} }
+// チェックを入れる・外す。店舗の共用アカウントは、上で選んだ「入力する人」で記録する（1件ずつ担当者を聞かない）。選んでいないときは今までどおり聞く
+function hoToggle(idx, kind, checked) {
+  let actor = "";
+  if (window.__actor && window.__actor.shared) { const sel = document.getElementById("hoActorSel"); actor = sel ? sel.value : ""; }
+  if (kind === "pay") updateResPayment(idx, checked, actor || null);
+  else updateResHanded(idx, checked, actor || null);
+}
+function hoActorHtml() {
+  if (!(window.__actor && window.__actor.shared)) return "";
+  if (resStaffList === null && window.fbResEditorApi && window.fbResEditorApi.getStaff) {
+    resStaffList = [];
+    window.fbResEditorApi.getStaff().then((v) => { resStaffList = (Array.isArray(v) ? v : Object.values(v || {})).filter(Boolean); renderReservations(); }).catch(() => {});
+  }
+  let last = ""; try { last = sessionStorage.getItem("koimari_last_actor") || ""; } catch (e) {}
+  return '<label class="ho-actor">入力する人<select id="hoActorSel" class="input" onchange="hoSetActor(this.value)"><option value="">選んでください</option>' +
+    (resStaffList || []).map((n) => "<option" + (n === last ? " selected" : "") + ">" + escapeHtml(n) + "</option>").join("") + "</select></label>";
+}
+function renderHandoverList(area, fullList) {
+  const all = hoAllRows(fullList);
+  const { counts, keys } = hoDayKeys(all);
+  if (!keys.length) { area.innerHTML = '<div class="empty">クリスマスケーキのご予約はまだありません</div>'; return 0; }
+  if (!counts[hoDay]) { const t = resTodayStr(); hoDay = counts[t] ? t : (keys.find((d) => d !== "未定" && d >= t) || keys[keys.length - 1]); }
+  const dayRows = hoSortRows(all.filter((x) => hoDayOf(x.r) === hoDay));
+  const doneN = dayRows.filter((x) => isHandedOver(x.r)).length;
+  const unpaidN = dayRows.filter((x) => !x.r.paymentDone && !isHandedOver(x.r)).length;
+  const q = ((document.getElementById("resSearch") || {}).value || "").trim();
+  const unpaidOnly = (document.getElementById("resUnpaidOnly") || {}).checked;
+  let rows = dayRows;
+  if (q) rows = rows.filter((x) => reservationMatches(x.r, q));
+  if (unpaidOnly) rows = rows.filter((x) => !x.r.paymentDone);
+  if (hoUndoneOnly) rows = rows.filter((x) => !isHandedOver(x.r));
+  let html = '<div class="ho-days">' + keys.map((d) => '<button type="button" class="' + (d === hoDay ? "on" : "") + '" onclick="hoSetDay(\'' + d + '\')">' + escapeHtml(hoDayLabel(d)) + "<small>" + counts[d] + "件</small></button>").join("") + "</div>";
+  html += '<p class="ho-sum"><b>' + escapeHtml(hoDayLabel(hoDay)) + "</b>　全" + dayRows.length + "件　お渡し済み " + doneN + "件　<b>まだ " + (dayRows.length - doneN) + "件</b>" + (unpaidN ? "　（お支払いがまだ " + unpaidN + "件）" : "") + "</p>";
+  html += '<p class="ho-counts">ケーキ別：' + escapeHtml(hoCakeCounts(dayRows)) + "</p>";
+  html += '<div class="ho-tools"><button type="button" class="btn btn--small" onclick="hoPrint(false)">この日のリストを印刷</button>' +
+    '<button type="button" class="btn btn--small btn--ghost" onclick="hoPrint(true)">全部の日を印刷（日ごとに別の紙）</button>' +
+    '<button type="button" class="btn btn--small btn--ghost" onclick="hoToggleUndone()">' + (hoUndoneOnly ? "まだの分だけ表示中（すべて表示に戻す）" : "まだの分だけ表示") + "</button>" + hoActorHtml() + "</div>";
+  if (!rows.length) {
+    html += '<div class="empty">' + (dayRows.length ? "条件に合うご予約はありません" : "この日のご予約はありません") + "</div>";
+  } else {
+    html += '<div class="ho-wrap"><table class="ho-table"><thead><tr><th>時刻</th><th>予約番号</th><th>お名前</th><th>ご注文</th><th>お支払い</th><th>お渡し</th></tr></thead><tbody>' +
+      rows.map(({ r, idx }) => {
+        const handed = isHandedOver(r);
+        const subs = hoOrderSubs(r);
+        return '<tr class="ho-row' + (handed ? " is-done" : "") + '">' +
+          '<td class="ho-time">' + escapeHtml(resPickupTime(r) || "未定") + "</td>" +
+          '<td class="ho-no">' + escapeHtml(r.reservationNo ? String(r.reservationNo).padStart(4, "0") : "—") + '<button type="button" onclick="openReservationEditor(' + idx + ')">詳細</button></td>' +
+          '<td class="ho-name"><b>' + escapeHtml(r.name || "") + " 様</b><small>" + escapeHtml(r.furigana || "") + "</small><small>" + escapeHtml(r.tel || "") + "</small>" +
+            (r.status === "引取りなし" ? '<span class="ho-st">引取りなし</span>' : "") + "</td>" +
+          '<td class="ho-order"><b>' + escapeHtml(hoOrderTitle(r)) + "</b>" + subs.map((s) => "<small>" + escapeHtml(s) + "</small>").join("") + "</td>" +
+          '<td><label class="ho-chk' + (r.paymentDone ? " on" : "") + '"><input type="checkbox" onchange="hoToggle(' + idx + ',\'pay\',this.checked)"' + (r.paymentDone ? " checked" : "") + "><span>" + (r.paymentDone ? "支払済み" : "まだ<small>" + escapeHtml(hoAmountText(r)) + "</small>") + "</span></label></td>" +
+          '<td><label class="ho-chk' + (handed ? " on" : "") + '"><input type="checkbox" onchange="hoToggle(' + idx + ',\'hand\',this.checked)"' + (handed ? " checked" : "") + "><span>" + (handed ? "お渡し済み" : "まだ") + "</span></label></td></tr>";
+      }).join("") + "</tbody></table></div>";
+  }
+  html += '<p class="ho-help">受け渡しの日は、前もって印刷した紙の□に✓を付けてください。落ち着いてから、この画面で「支払済み」「お渡し済み」に✓を入れます（予約カード・表にも同じく反映されます）。キャンセルのご予約はこの一覧に出しません。</p>';
+  area.innerHTML = html;
+  return rows.length;
+}
+// 印刷用の1日分（白黒・塗りつぶしなし。□は手で✓を付ける欄）
+function hoPrintDayHtml(day, rows, printedAt) {
+  const body = rows.map(({ r }) => {
+    const handed = isHandedOver(r);
+    const subs = hoOrderSubs(r);
+    const pay = r.paymentDone ? "済" : '<span class="hop-box"></span>' + escapeHtml(hoAmountText(r));
+    const hand = handed ? "済" : r.status === "引取りなし" ? "引取りなし" : '<span class="hop-box"></span>';
+    return "<tr>" +
+      '<td class="hop-time">' + escapeHtml(resPickupTime(r) || "未定") + "</td>" +
+      '<td class="hop-c">' + escapeHtml(r.reservationNo ? String(r.reservationNo).padStart(4, "0") : "—") + "</td>" +
+      '<td><span class="hop-name">' + escapeHtml(r.name || "") + " 様</span>" + (r.furigana ? '<span class="hop-sub">' + escapeHtml(r.furigana) + "</span>" : "") + "</td>" +
+      "<td>" + escapeHtml(r.tel || "") + "</td>" +
+      "<td><b>" + escapeHtml(hoOrderTitle(r)) + "</b>" + subs.map((s) => '<span class="hop-sub">' + escapeHtml(s) + "</span>").join("") + "</td>" +
+      '<td class="hop-c hop-pay">' + pay + "</td>" +
+      '<td class="hop-c">' + hand + "</td>" +
+      "<td></td></tr>";
+  }).join("");
+  return '<section class="hop-page"><div class="hop-head"><span class="hop-title">クリスマスケーキ 受け渡しリスト</span><span class="hop-date">' + escapeHtml(hoDayLabel(day)) + "</span>" +
+    '<span class="hop-meta">全' + rows.length + "件　印刷 " + escapeHtml(printedAt) + "</span></div>" +
+    '<div class="hop-counts">ケーキ別：' + escapeHtml(hoCakeCounts(rows)) + "</div>" +
+    '<table class="hop-table"><colgroup><col style="width:8%"><col style="width:9%"><col style="width:16%"><col style="width:14%"><col style="width:26%"><col style="width:11%"><col style="width:7%"><col style="width:9%"></colgroup>' +
+    "<thead><tr><th>時刻</th><th>予約番号</th><th>お名前</th><th>電話番号</th><th>ご注文</th><th>お支払い</th><th>お渡し</th><th>担当</th></tr></thead><tbody>" +
+    (body || '<tr><td colspan="8" class="hop-c">この日のご予約はありません</td></tr>') + "</tbody></table>" +
+    '<div class="hop-foot">受け渡したら「お渡し」の□に✓、お会計をいただいたら「お支払い」の□に✓。落ち着いてから、管理画面の「予約・応募」→「クリスマス受け渡し」で入力してください。</div></section>';
+}
+function hoPrint(allDays) {
+  const all = hoAllRows();
+  const { keys } = hoDayKeys(all);
+  const days = allDays ? keys : [hoDay];
+  if (!days.length || !days[0]) { showToast("印刷するご予約がありません", "error"); return; }
+  const n = new Date(), printedAt = (n.getMonth() + 1) + "/" + n.getDate() + " " + String(n.getHours()).padStart(2, "0") + ":" + String(n.getMinutes()).padStart(2, "0");
+  let el = document.getElementById("hoPrintSheet");
+  if (!el) { el = document.createElement("div"); el.id = "hoPrintSheet"; document.body.appendChild(el); }
+  el.innerHTML = days.map((d) => hoPrintDayHtml(d, hoSortRows(all.filter((x) => hoDayOf(x.r) === d)), printedAt)).join("");
+  document.body.classList.add("ho-printing");
+  const done = () => { document.body.classList.remove("ho-printing"); window.removeEventListener("afterprint", done); };
+  window.addEventListener("afterprint", done);
+  setTimeout(() => window.print(), 60);
+}
 function renderResViewBar() {
   const bar = document.getElementById("resViewBar");
   if (!bar) return;
@@ -6463,7 +6665,7 @@ function renderResViewBar() {
       "<small>お電話で内容を確認したら「電話済み」に✓を入れてください。✓を入れたご予約は「対応済み」と出ます。</small></div>" +
       '<button type="button" onclick="exitPendingReservations()">すべてのご予約を表示する</button></div>' : "";
   }
-  bar.innerHTML = '<div class="seg">' + b("card", "カード") + b("calendar", "カレンダー") + b("table", "表") + "</div>" +
+  bar.innerHTML = '<div class="seg">' + b("card", "カード") + b("calendar", "カレンダー") + b("table", "表") + b("handover", "クリスマス受け渡し") + "</div>" +
     (resView === "card" ? (pendingOnly ? "" : '<div class="seg seg--sub">' + r("upcoming", "今日以降") + r("past", "過去") + r("all", "すべて") + "</div>") +
       '<div class="seg seg--sub">' + ["pickup", "new"].map((v) => '<button type="button" class="' + (resSort === v ? "on" : "") + '" onclick="setResSort(\'' + v + '\')">' + (v === "pickup" ? "予約日順" : "新着順") + "</button>").join("") + "</div>" +
       '<div class="seg seg--sub seg--toggle"><button type="button" class="' + (resCompact ? "on" : "") + '" onclick="toggleResCompact()">' + (resCompact ? "詳細をたたむ：オン" : "詳細をたたむ") + "</button></div>" : "");
@@ -6475,7 +6677,7 @@ function renderReservations() {
   const fullList = loadList(RES_KEY);
   updateConfirmCallWarning();
   if (!fullList.length) { area.innerHTML = '<div class="empty">予約データはまだありません</div>'; return; }
-  const n = resView === "calendar" ? renderReservationCalendar(area, fullList) : renderReservationCards(area, fullList);
+  const n = resView === "calendar" ? renderReservationCalendar(area, fullList) : resView === "handover" ? renderHandoverList(area, fullList) : renderReservationCards(area, fullList);
   const q = ((document.getElementById("resSearch") || {}).value || "").trim();
   const countEl = document.getElementById("resSearchCount");
   if (countEl) countEl.textContent = q ? n + "件ヒット" : "";
