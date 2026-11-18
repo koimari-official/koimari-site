@@ -317,7 +317,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
 <script src="koimari-hours.js"></script>
 <script src="spotlight-from-news.js"></script>
 <script src="event-theme.js"></script>
-<script src="reservation-editor.js?v=20261118d"></script>
+<script src="reservation-editor.js?v=20261118e"></script>
 <script src="price-hint.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <script>tailwind.config={corePlugins:{preflight:false}}</script>
@@ -6433,7 +6433,7 @@ function resDaySummary(rows) {
         (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "") + (r.detailPending ? "（詳細未定）" : "");
       cnt[k] = (cnt[k] || 0) + (Number(it.qty) || 1);
     });
-    if (window.CakePricing) CakePricing.extraItemsOf(r).forEach((x) => { const k = (x.category === "ロールケーキ" ? "ロール " : "カット ") + x.name; cnt[k] = (cnt[k] || 0) + Number(x.qty); });
+    if (window.CakePricing) CakePricing.extraItemsOf(r).forEach((x) => { const k = ({ "ロールケーキ": "ロール ", "カットケーキ": "カット ", "ホールケーキ": "ホール " }[x.category] || "") + x.name; cnt[k] = (cnt[k] || 0) + Number(x.qty); }); // ホールケーキ・その他は2026-11-18
   });
   return Object.keys(cnt).sort().map((k) => k + "×" + cnt[k]);
 }

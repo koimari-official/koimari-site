@@ -99,12 +99,23 @@
       return rollCatalog;
     });
   }
+  // 一緒にご予約のホールケーキ（2026-11-18オーナー指摘）：原価計算アプリのホールケーキ（値段の正本）
+  var wholeCatalog = null;
+  function loadWholeCatalog() {
+    if (wholeCatalog) return Promise.resolve(wholeCatalog);
+    return getJson("koimariContent/costPublicPrices").then(function (v) {
+      wholeCatalog = ((v && v.list) || []).filter(function (p) { return p && p.name && p.category === "ホールケーキ" && Number(p.salePrice) > 0; })
+        .map(function (p) { return { name: String(p.name).replace(/[\s\u3000]+/g, " ").trim(), price: Number(p.salePrice) }; })
+        .sort(function (a, b) { return a.name.localeCompare(b.name, "ja", { numeric: true }); });
+      return wholeCatalog;
+    });
+  }
   function listOf(v) { return Array.isArray(v) ? v : v && typeof v === "object" ? Object.keys(v).map(function (k) { return v[k]; }) : []; }
   function addOnItemsOf(r) { return listOf(r.addOns).map(function (a) { return { name: String((a && a.name) || (typeof a === "string" ? a : "")), price: Number(a && a.price) || 0, qty: Number(a && a.qty) || 1 }; }).filter(function (a) { return a.name; }); }
   function addOnText(list) { return (list || []).map(function (a) { return a.name + (a.qty > 1 ? "×" + a.qty : ""); }).join("・"); }
   function withListOf(r) { return window.CakePricing && window.CakePricing.extraItemsOf ? window.CakePricing.extraItemsOf(r).map(function (x) { return { category: String(x.category || "カットケーキ"), name: String(x.name), qty: Number(x.qty) || 0, price: Number(x.price) || 0 }; }) : []; }
   function withText(list) { return (list || []).map(function (x) { return x.name + "×" + Number(x.qty); }).join("、"); }
-  function unitOf(cat) { return cat === "ロールケーキ" ? "本" : "個"; }
+  function unitOf(cat) { return cat === "ロールケーキ" ? "本" : cat === "ホールケーキ" ? "台" : "個"; }
   // 追加用のプルダウン（グループ分け）。値は「グループ|商品名」
   function addSel(id, groups, placeholder) {
     var total = groups.reduce(function (n, g) { return n + g.items.length; }, 0);
@@ -369,7 +380,7 @@
       state.staff = orderStaffByUse(state.staff);
       var go = function () { state.key = key; state.r = v[0] || {}; state.snap = snapshotOf(state.r); state.edit = null; state.editor = ""; state.draft = v[4] && v[4].edit ? v[4] : null; renderView(); };
       var r0 = v[0] || {};
-      return isCutRes(r0) ? loadCutCatalog().then(go, go) : isCakeRes(r0) ? Promise.all([loadCutCatalog(), loadAddOnCatalog(), loadRollCatalog()]).then(go, go) : go();
+      return isCutRes(r0) ? loadCutCatalog().then(go, go) : isCakeRes(r0) ? Promise.all([loadCutCatalog(), loadAddOnCatalog(), loadRollCatalog(), loadWholeCatalog()]).then(go, go) : go();
     }).catch(function (e) { document.getElementById("reBody").innerHTML = '<p style="padding:30px;color:#b03b48;">読み込みに失敗しました：' + esc(e && e.message || e) + "</p>"; });
   }
 
@@ -549,15 +560,17 @@
         field(adds.length ? "別のものを追加" : "追加する", addOnCatalog ? addSel("reAddNew", [{ key: "addon", items: addOnCatalog.filter(function (c) { return addNames.indexOf(c.name) < 0; }) }], "＋ 追加するものを選ぶ") : '<div class="re-told re-told--warn">商品の一覧を読み込めませんでした。画面を開き直してください</div>') + "</div>";
       // 一緒にご予約（ショートケーキ等のカットケーキ・ロールケーキ。2026-11-18オーナー指示）
       var withs = e.withList || [], withKeys = withs.map(function (x) { return x.category + "|" + x.name; });
-      html += '<div class="re-tier"><div class="re-tier__title">一緒にご予約（カットケーキ・ロールケーキ）</div>' +
+      html += '<div class="re-tier"><div class="re-tier__title">一緒にご予約（カットケーキ・ロールケーキ・ホールケーキ）</div>' +
         withs.map(function (x, i) { var u = unitOf(x.category); return field(x.name + "（" + x.category + "・" + (x.price ? "1" + u + " " + yen(x.price) : "価格未登録") + "）", sel("reWithQ" + i, QTY_LIST, x.qty, function (o) { return o ? o + u : "0" + u + "（取り消す）"; })); }).join("") +
         field(withs.length ? "別の商品を追加" : "追加する", addSel("reWithNew", [
           { label: "カットケーキ", key: "カットケーキ", items: (cutCatalog || []).filter(function (c) { return c.shop && withKeys.indexOf("カットケーキ|" + c.name) < 0; }) },
-          { label: "ロールケーキ", key: "ロールケーキ", items: (rollCatalog || []).filter(function (c) { return withKeys.indexOf("ロールケーキ|" + c.name) < 0; }) }
+          { label: "ロールケーキ", key: "ロールケーキ", items: (rollCatalog || []).filter(function (c) { return withKeys.indexOf("ロールケーキ|" + c.name) < 0; }) },
+          { label: "ホールケーキ（もう1台）", key: "ホールケーキ", items: (wholeCatalog || []).filter(function (c) { return withKeys.indexOf("ホールケーキ|" + c.name) < 0; }) }
         ], "＋ 追加する商品を選ぶ")) +
+        (withs.some(function (x) { return x.category === "ホールケーキ"; }) ? '<div class="re-told re-told--warn" style="grid-column:1/-1;">追加のホールケーキの飾り・プレートの文字・ろうそくなどは、下の「変更メモ」に書いてください（製造の確認用）。お引き取り日までの日数（ご予約の締め切り）もご確認ください</div>' : "") +
         // リストにない商品の手入力（2026-11-18オーナー指示：販売開始したばかりで、まだ商品に登録されていないケーキ等）
         '<div class="re-field re-manual"><label>リストにない商品を手入力（新しいケーキなど）</label>' +
-          '<div class="re-manual__row"><select class="input select" id="reWithManCat"><option value="カットケーキ">カットケーキ</option><option value="ロールケーキ">ロールケーキ</option><option value="その他">その他</option></select>' +
+          '<div class="re-manual__row"><select class="input select" id="reWithManCat"><option value="カットケーキ">カットケーキ</option><option value="ロールケーキ">ロールケーキ</option><option value="ホールケーキ">ホールケーキ</option><option value="その他">その他</option></select>' +
           '<input class="input" id="reWithManName" placeholder="商品名（例：抹茶ミッシェル）" autocomplete="off"></div>' +
           '<div class="re-manual__row"><span class="re-yen"><input type="number" min="1" step="1" inputmode="numeric" class="input" id="reWithManPrice" placeholder="税込価格"> 円（税込・1個／1本）</span>' +
           '<select class="input select" id="reWithManQty">' + QTY_LIST.filter(function (n) { return n > 0; }).map(function (n) { return '<option value="' + n + '">' + n + "つ</option>"; }).join("") + "</select>" +
@@ -683,7 +696,7 @@
       var wn = g("reWithNew") ? g("reWithNew").value : "";
       if (wn) {
         var wcat = wn.slice(0, wn.indexOf("|")), wnm = wn.slice(wn.indexOf("|") + 1);
-        var wc = ((wcat === "ロールケーキ" ? rollCatalog : cutCatalog) || []).filter(function (c) { return c.name === wnm; })[0];
+        var wc = ((wcat === "ロールケーキ" ? rollCatalog : wcat === "ホールケーキ" ? wholeCatalog : cutCatalog) || []).filter(function (c) { return c.name === wnm; })[0];
         if (wc) e.withList.push({ category: wcat, name: wc.name, qty: 1, price: Number(wc.price) || 0 });
       }
       e.withItems = withText(e.withList);
