@@ -157,7 +157,7 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 @keyframes toppingBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(5px)}}
 @media(prefers-reduced-motion:reduce){.topping-more__arrow{animation:none}}
 @media(min-width:700px){.topping-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.topping-grid .addon-card > div:nth-of-type(1){font-size:11.5px!important;margin-top:3px!important;line-height:1.3!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
+.topping-grid .addon-card > div:nth-of-type(1){font-size:13.5px!important;margin-top:3px!important;line-height:1.3!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:2.6em}
 .topping-grid .addon-card button{width:28px!important;height:28px!important;font-size:16px!important}
 .topping-grid .addon-card > div:last-child{margin-top:4px!important;gap:8px!important}
 .topping-grid__img{width:100%;max-width:64px;aspect-ratio:1/1;object-fit:contain;border-radius:10px;display:block;margin:0 auto;background:#fff}
@@ -314,6 +314,40 @@ textarea.input{resize:vertical;font-family:var(--font-sans);}
 .opt-photo--card{display:block;width:100%;height:auto;aspect-ratio:1/1;margin:0 0 6px}
 /* ギャラリーで選んだケーキの写真は保存させない（長押し・右クリック・ドラッグ。スクリーンショットは防げない）2026-10-24オーナー指示 */
 .ns-img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none;pointer-events:none}/* 長押し・右クリックが写真に当たらない＝iPhone・Androidとも保存メニューが出ない */
+/* 文字を大きく（2026-11-18 お客様から「選択項目やプルダウンの文字が小さくて見にくい」）。子どもからお年寄りまで読める大きさに */
+.field__label{font-size:15.5px;font-weight:600;color:#4a3a2a}
+.input{font-size:17px;padding:13px 14px}
+select.input{min-height:52px}
+.radio-list__opt{font-size:17px;padding:14px 16px;min-height:54px;line-height:1.5}
+.radio-list__opt input{width:22px;height:22px}
+.field__hint{font-size:14px;line-height:1.75}
+.field__check{font-size:16px}
+.field__check input{width:21px;height:21px;margin-top:4px}
+.error{font-size:14.5px}
+.req-mark{font-size:12px}
+.addon-toggle{font-size:16.5px}
+.ref-image__label{font-size:13px}
+.ref-image__name{font-size:16px}
+.ref-image__size{font-size:14.5px}
+.ref-image__note{font-size:13.5px}
+.omakase-card__desc{font-size:13px}
+.omakase-card__price{font-size:16px}
+.omakase-none{font-size:16px}
+.live-total-bar__label{font-size:14.5px}
+.live-total-bar__consult{font-size:14.5px}
+.live-total-bar__amount small{font-size:13px}
+.confirm-box dt{font-size:14px}
+.topping-teaser__sub{font-size:14px}
+.topping-sheet__hint{font-size:13.5px}
+.dcal__dow{font-size:13.5px}
+.dcal__legend{font-size:13.5px}
+.dcal__day.is-closed small,.dcal__day.is-phone small{font-size:11px}
+.pre-notes__item p.pre-notes__sub{font-size:14px}
+.stepnav__price span{font-size:13.5px}
+.opt-collapse__title{font-size:16.5px}
+.opt-collapse__sum{font-size:14px}
+.mq-label{font-size:16px}
+.mq-price{font-size:15px}
 </style>
 <script>
 ["contextmenu", "dragstart"].forEach(function (t) { document.addEventListener(t, function (e) { if (e.target && e.target.closest && e.target.closest(".ns-img")) e.preventDefault(); }, true); });
@@ -468,7 +502,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <label class="radio-list__opt"><input type="radio" name="reserveCreamType" value="ブルーベリーケーキ"> ブルーベリーBOX（フルオーダー・要お見積もり）</label>
           </div>
           <div id="reserveMousseFlavorWrap" style="display:none;margin-top:10px;">
-            <label class="field__label" style="font-size:12px;">グランマニエの種類</label>
+            <label class="field__label">グランマニエの種類</label>
             <div class="radio-list" style="flex-direction:row;">
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="イチゴBOX"> イチゴBOX</label>
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveMousseFlavor" value="チョコBOX"> チョコBOX</label>
@@ -476,7 +510,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="error" id="reserveMousseFlavorError"></div>
           </div>
           <div id="reserveCreamTypeSubWrap" style="display:none;margin-top:10px;">
-            <label class="field__label" style="font-size:12px;">生クリームの有無（同一価格）</label>
+            <label class="field__label">生クリームの有無（同一価格）</label>
             <div class="radio-list" style="flex-direction:row;">
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamTypeSub" value="生クリームあり" checked> 生クリームあり</label>
               <label class="radio-list__opt" style="flex:1;justify-content:center;"><input type="radio" name="reserveCreamTypeSub" value="生クリームなし"> 生クリームなし</label>
@@ -592,12 +626,12 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
           </label>
           <div id="reserveCandleDetail" style="display:none;margin-top:10px;">
             <div id="candleNumberBlock">
-              <div class="field__label" style="font-size:14px;">ナンバーろうそく（0〜9の数字）</div>
+              <div class="field__label">ナンバーろうそく（0〜9の数字）</div>
               <div class="field__hint" id="candleNumberHint" style="margin-bottom:6px;"></div>
               <div id="candleNumRows"></div>
             </div>
             <div id="candlePlainBlock" style="margin-top:14px;">
-              <label class="field__label" for="reserveCandleBags" style="font-size:14px;">普通のろうそく（1袋5本入）</label>
+              <label class="field__label" for="reserveCandleBags">普通のろうそく（1袋5本入）</label>
               <select id="reserveCandleBags" class="input select">
                 <option value="0">なし</option>
                 <option value="1">1袋（無料）</option>
@@ -1093,8 +1127,8 @@ function renderAddOns() {
     const q = addOnQty[addOnKey(it)] || 0;
     return `<div class="addon-card" data-i="${i}" style="background:#fff;border:1px solid #ecd9c4;border-radius:14px;padding:8px;text-align:center;${q > 0 ? "box-shadow:0 0 0 2px #f0b35a;" : ""}">
       ${it.img ? `<img src="${esc(it.img)}" alt="" loading="lazy" class="topping-grid__img">` : `<div style="width:76px;height:76px;margin:0 auto;border-radius:10px;background:#f7efe3;display:flex;align-items:center;justify-content:center;font-size:32px;"></div>`}
-      <div style="font-size:12.5px;font-weight:700;margin-top:6px;line-height:1.4;">${esc(it.name)}</div>
-      <div style="font-size:12px;color:#a88a52;">${it.priceNum ? "¥" + it.priceNum.toLocaleString() : "料金は別途"}</div>
+      <div style="font-size:14.5px;font-weight:700;margin-top:6px;line-height:1.4;">${esc(it.name)}</div>
+      <div style="font-size:14px;color:#a88a52;">${it.priceNum ? "¥" + it.priceNum.toLocaleString() : "料金は別途"}</div>
       <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px;">
         <button type="button" class="addon-minus" data-i="${i}" style="width:30px;height:30px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:18px;line-height:1;cursor:pointer;">−</button>
         <span class="addon-qty" style="min-width:18px;font-weight:700;">${q}</span>
@@ -1218,7 +1252,7 @@ function renderColorChips() {
   if (!wrap) return;
   wrap.innerHTML = CREAM_COLORS.map((c) => {
     const on = selectedCreamColors.includes(c.name);
-    return '<button type="button" class="color-chip" data-color="' + c.name + '" aria-pressed="' + on + '" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;margin:0 8px 8px 0;border-radius:999px;background:#fff;cursor:pointer;font-size:13px;border:' + (on ? "2px solid #f0a63a" : "1px solid #d8baa4") + ';' + (on ? "background:#fff7ea;font-weight:700;" : "") + '"><span style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:' + c.css + ';"></span>' + '<span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;"><span>' + c.label + (on ? " ✓" : "") + '</span>' + (c.name.indexOf("その他") === 0 ? "" : '<span style="font-size:10.5px;font-weight:400;color:#8a7a68;">' + c.name + '</span>') + '</span></button>';
+    return '<button type="button" class="color-chip" data-color="' + c.name + '" aria-pressed="' + on + '" style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 6px;margin:0 8px 8px 0;border-radius:999px;background:#fff;cursor:pointer;font-size:15px;border:' + (on ? "2px solid #f0a63a" : "1px solid #d8baa4") + ';' + (on ? "background:#fff7ea;font-weight:700;" : "") + '"><span style="width:22px;height:22px;border-radius:50%;border:1px solid rgba(0,0,0,.15);background:' + c.css + ';"></span>' + '<span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.25;"><span>' + c.label + (on ? " ✓" : "") + '</span>' + (c.name.indexOf("その他") === 0 ? "" : '<span style="font-size:10.5px;font-weight:400;color:#8a7a68;">' + c.name + '</span>') + '</span></button>';
   }).join("");
   wrap.querySelectorAll(".color-chip").forEach((btn) => btn.addEventListener("click", () => {
     const name = btn.dataset.color;
@@ -1277,7 +1311,7 @@ function updateTierScopeNotes() {
     const cb = document.getElementById(id); if (!cb) return;
     const lab = cb.closest("label"); if (!lab) return;
     let note = lab.querySelector(".tier-scope-note");
-    if (!note) { note = document.createElement("span"); note.className = "tier-scope-note"; note.style.cssText = "display:block;font-size:12px;color:#8a6a4a;font-weight:400;"; lab.appendChild(note); }
+    if (!note) { note = document.createElement("span"); note.className = "tier-scope-note"; note.style.cssText = "display:block;font-size:14px;color:#8a6a4a;font-weight:400;"; lab.appendChild(note); }
     note.textContent = n > 1 ? "（" + tierName(activeTier, n) + "だけに付きます。ほかの段は段を切り替えて選んでください）" : "";
   });
 }
@@ -1397,7 +1431,7 @@ function renderTierDiagram() {
   wrap.style.display = "block";
   wrap.innerHTML = `<div style="background:linear-gradient(180deg,#fffdf9,#fbf3e6);border:1px solid #ecd9c4;border-radius:16px;padding:16px;box-shadow:0 4px 16px rgba(120,80,30,.08);">
     <div style="font-weight:700;font-size:14.5px;margin-bottom:2px;">ケーキの種類・色は、下の段（土台）から順に選びます</div>
-    <div style="font-size:12px;color:#6b5a48;margin-bottom:12px;line-height:1.6;">図の段、または右の名前をタップすると、その段を選べます。いま選んでいるのは「<b>${tierName(activeTier, n)}</b>」です。</div>
+    <div style="font-size:14px;color:#6b5a48;margin-bottom:12px;line-height:1.6;">図の段、または右の名前をタップすると、その段を選べます。いま選んでいるのは「<b>${tierName(activeTier, n)}</b>」です。</div>
     <div style="display:flex;gap:10px;align-items:center;">
       <svg id="reserveTierSvg" viewBox="0 0 ${W} ${svgH}" width="${W}" height="${svgH}" style="flex-shrink:0;max-width:46%;height:auto;overflow:visible;"><defs>${defs}</defs>${body}</svg>
       <div style="flex:1;min-width:0;">${rows}</div>
@@ -2317,8 +2351,8 @@ function renderShopPicker() {
     grid.innerHTML = list.length ? list.map((c, i) => {
       const q = shopCutQty[c.name] || 0;
       return card(q > 0, pic(c.img) +
-        '<div style="font-size:13.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(c.name) + "</div>" +
-        '<div style="font-size:13px;color:#a88a52;">' + (c.price ? "¥" + c.price.toLocaleString() + "（税込）" : "価格はお電話で") + "</div>" +
+        '<div style="font-size:15.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(c.name) + "</div>" +
+        '<div style="font-size:14.5px;color:#a88a52;">' + (c.price ? "¥" + c.price.toLocaleString() + "（税込）" : "価格はお電話で") + "</div>" +
         '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:6px;">' +
         '<button type="button" class="shop-minus" data-i="' + i + '" style="width:34px;height:34px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:19px;line-height:1;cursor:pointer;">−</button>' +
         '<span style="min-width:20px;font-weight:700;font-size:16px;">' + q + "</span>" +
@@ -2338,8 +2372,8 @@ function renderShopPicker() {
     grid.innerHTML = addOnCatalog.length ? addOnCatalog.map((it, i) => {
       const q = addOnQty[addOnKey(it)] || 0;
       return card(q > 0, (it.img ? '<img src="' + escape(it.img) + '" alt="" loading="lazy" style="width:88px;height:88px;object-fit:cover;border-radius:10px;display:block;margin:0 auto;">' : "") +
-        '<div style="font-size:13.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(it.name) + "</div>" +
-        '<div style="font-size:13px;color:#a88a52;">' + (it.priceNum ? "¥" + it.priceNum.toLocaleString() + "（税込）" : "価格はお電話で") + "</div>" +
+        '<div style="font-size:15.5px;font-weight:700;margin-top:6px;line-height:1.4;">' + escape(it.name) + "</div>" +
+        '<div style="font-size:14.5px;color:#a88a52;">' + (it.priceNum ? "¥" + it.priceNum.toLocaleString() + "（税込）" : "価格はお電話で") + "</div>" +
         '<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:6px;">' +
         '<button type="button" class="shopadd-minus" data-i="' + i + '" style="width:34px;height:34px;border-radius:50%;border:1px solid #d8baa4;background:#fff;font-size:19px;line-height:1;cursor:pointer;">−</button>' +
         '<span style="min-width:20px;font-weight:700;font-size:16px;">' + q + "</span>" +
@@ -2740,7 +2774,7 @@ function tierSizeLines(data) {
 function tierFieldHtml(i, tierCount, labelSuffix, selectHtml) {
   const tierLabel = tierName(i, tierCount) + "のサイズ";
   return `<div style="margin-bottom:${i < tierCount - 1 ? "10px" : "0"};">
-    ${tierCount > 1 ? `<label class="field__label" style="font-size:12px;">${tierLabel}${labelSuffix || ""}</label>` : ""}
+    ${tierCount > 1 ? `<label class="field__label">${tierLabel}${labelSuffix || ""}</label>` : ""}
     ${selectHtml}
   </div>`;
 }
