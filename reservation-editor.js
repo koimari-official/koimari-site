@@ -68,11 +68,53 @@
       ((v[1] && v[1].list) || []).forEach(function (p) { if (p && p.name) pm[p.name] = Number(p.salePrice) || 0; });
       cutCatalog = arr.filter(function (it) { return it && it.name && (it.visible !== false || (it.topperOk && it.topperWhenHidden)); }).map(function (it) {
         var nm = String(it.name).replace(/<[^>]*>/g, "");
-        return { name: nm, img: it.img || "", price: pm[it.costName || ""] || pm[it.name] || pm[nm] || (Number(String(it.price || "").replace(/[^0-9]/g, "")) || 0) };
+        return { name: nm, img: it.img || "", price: pm[it.costName || ""] || pm[it.name] || pm[nm] || (Number(String(it.price || "").replace(/[^0-9]/g, "")) || 0),
+          shop: it.visible !== false && !!it.img && !it.notForSale }; // 予約フォームの「一緒にご予約」で選べるもの（member.html の shopCutCatalog と同じ）
       });
       return cutCatalog;
     });
   }
+  // 砂糖菓子・オーナメント等と、一緒にご予約（カットケーキ・ロールケーキ）の変更用（2026-11-18オーナー指示：予約No.0040）。
+  // 選べる商品は予約フォーム（member.html）と同じ（非表示・販売しない商品・写真のない商品は出さない）
+  var addOnCatalog = null, rollCatalog = null;
+  function yenNum(v) { return Number(String(v == null ? "" : v).replace(/[^0-9]/g, "")) || 0; }
+  function loadAddOnCatalog() {
+    if (addOnCatalog) return Promise.resolve(addOnCatalog);
+    return getJson("siteImages/cakeAddOns").then(function (v) {
+      var arr = Array.isArray(v) ? v : Object.values(v || {});
+      addOnCatalog = arr.filter(function (it) { return it && it.name && it.visible !== false && it.img && it.name !== "新しい商品" && !it.notForSale; })
+        .map(function (it) { return { name: String(it.name), price: yenNum(it.price) }; });
+      return addOnCatalog;
+    });
+  }
+  function loadRollCatalog() {
+    if (rollCatalog) return Promise.resolve(rollCatalog);
+    return Promise.all([getJson("siteImages/rollcakes"), getJson("koimariContent/costPublicPrices")]).then(function (v) {
+      var arr = Array.isArray(v[0]) ? v[0] : Object.values(v[0] || {}), pm = {};
+      ((v[1] && v[1].list) || []).forEach(function (p) { if (p && p.name) pm[p.name] = Number(p.salePrice) || 0; });
+      rollCatalog = arr.filter(function (it) { return it && it.name && it.visible !== false && !it.notForSale; }).map(function (it) {
+        var nm = String(it.name).replace(/<[^>]*>/g, "");
+        return { name: nm, price: pm[it.costName || ""] || pm[nm] || yenNum(it.price) }; // member.html の rollCatalog と同じ（価格の元 → 商品名 → 商品タブの価格）
+      });
+      return rollCatalog;
+    });
+  }
+  function listOf(v) { return Array.isArray(v) ? v : v && typeof v === "object" ? Object.keys(v).map(function (k) { return v[k]; }) : []; }
+  function addOnItemsOf(r) { return listOf(r.addOns).map(function (a) { return { name: String((a && a.name) || (typeof a === "string" ? a : "")), price: Number(a && a.price) || 0, qty: Number(a && a.qty) || 1 }; }).filter(function (a) { return a.name; }); }
+  function addOnText(list) { return (list || []).map(function (a) { return a.name + (a.qty > 1 ? "×" + a.qty : ""); }).join("・"); }
+  function withListOf(r) { return window.CakePricing && window.CakePricing.extraItemsOf ? window.CakePricing.extraItemsOf(r).map(function (x) { return { category: String(x.category || "カットケーキ"), name: String(x.name), qty: Number(x.qty) || 0, price: Number(x.price) || 0 }; }) : []; }
+  function withText(list) { return (list || []).map(function (x) { return x.name + "×" + Number(x.qty); }).join("、"); }
+  function unitOf(cat) { return cat === "ロールケーキ" ? "本" : "個"; }
+  // 追加用のプルダウン（グループ分け）。値は「グループ|商品名」
+  function addSel(id, groups, placeholder) {
+    var total = groups.reduce(function (n, g) { return n + g.items.length; }, 0);
+    return '<select class="input select re-in" id="' + id + '"><option value="">' + esc(total ? placeholder : "追加できる商品がありません") + "</option>" +
+      groups.filter(function (g) { return g.items.length; }).map(function (g) {
+        var opts = g.items.map(function (c) { return '<option value="' + esc((g.key || "") + "|" + c.name) + '">' + esc(c.name + "（" + (c.price ? yen(c.price) : "価格未登録") + "）") + "</option>"; }).join("");
+        return g.label ? '<optgroup label="' + esc(g.label) + '">' + opts + "</optgroup>" : opts;
+      }).join("") + "</select>";
+  }
+  var QTY_LIST = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 15, 20];
   function isCutRes(r) { var it = (r.items || [])[0] || {}; return it.category === "カットケーキ"; }
   function cutInfo(name) { return (cutCatalog || []).filter(function (x) { return x.name === name; })[0] || null; }
   function cutTotalOf(s) { return (s.cuts || []).reduce(function (a, c) { return a + (Number(c.qty) || 0); }, 0); }
@@ -142,11 +184,13 @@
       omakase: r.omakaseDeco || "",
       fruitExtra: !!r.fruitExtra,
       extraNote: r.extraChargeNote || "",
-      withItems: window.CakePricing && window.CakePricing.extraItemsText ? window.CakePricing.extraItemsText(r, "、") : "", // 一緒にご予約（2026-11-07。この画面では変えない）
+      withItems: withText(withListOf(r)), // 一緒にご予約（2026-11-07。2026-11-18から変更画面で変えられる）
       // 表示用（お客様が選んだ仕様。この画面では変更しない）
       cutCakes: (r.cutCakes || []).map(function (c) { return c.name + "×" + c.qty; }).join("、"),
       toppings: (r.toppings || []).join("・"),
-      addOns: (r.addOns || []).map(function (a) { return (a.name || a) + (a.qty > 1 ? "×" + a.qty : ""); }).join("・"),
+      addOns: addOnText(addOnItemsOf(r)),
+      addOnItems: addOnItemsOf(r), // 砂糖菓子・オーナメント等（変更画面で変えられる。2026-11-18）
+      withList: withListOf(r), // 一緒にご予約（変更画面で変えられる。2026-11-18）
       omakaseWish: r.omakaseWish || "",
       note: r.note || "",
       extraAmount: Number(r.extraCharge) || 0,
@@ -211,7 +255,7 @@
     ra.forEach(function (r) { if (!labelsB[r[0]]) out.push({ label: r[0], from: r[1], to: "—" }); });
     return out;
   }
-  function estimateOf(s, r) { return withItemsEst(withExtra(estimateOfBase(s, r), s), r); }
+  function estimateOf(s, r) { return withItemsEst(withExtra(estimateOfBase(s, r), s), s.withList ? { extraItems: s.withList } : r); }
   // 一緒にご予約の商品（ケーキと一緒のカットケーキ・まとめて受付のロール等。2026-11-07）を金額に足す
   function withItemsEst(est, r) {
     var t = est && !est.needsConsult && window.CakePricing && window.CakePricing.extraItemsTotal ? window.CakePricing.extraItemsTotal(r) : null;
@@ -230,7 +274,7 @@
       creamTopping: s.creamTopping, strawberryAdd: s.strawberryAdd, onsiteAssembly: s.onsiteAssembly,
       colorCreamCount: s.tiers.filter(function (t) { return t.color; }).length,
       messageCount: s.messageCount,
-      addOns: r.addOns || [], toppings: r.toppings || [], topCut: !!r.topCut, cutCakes: r.cutCakes || [],
+      addOns: s.addOnItems || listOf(r.addOns), toppings: r.toppings || [], topCut: !!r.topCut, cutCakes: r.cutCakes || [],
       omakase: s.omakase || "", fruitExtra: !!s.fruitExtra
     }, candleSnapData(s)), priceBase);
   }
@@ -275,6 +319,8 @@
     p.extraChargeNote = s.extraNote || null;
     Object.assign(p, candleSnapData(s));
     p.mousseFlavor = s.tiers.some(function (t) { return t.cream === "ムース"; }) ? (s.mousseFlavor || "イチゴBOX") : null; // グランマニエ（ムース）のいちご／チョコ
+    if (s.addOnItems) p.addOns = s.addOnItems.length ? s.addOnItems.map(function (a) { return { name: a.name, price: Number(a.price) || 0, qty: Number(a.qty) || 1 }; }) : null; // 2026-11-18
+    if (s.withList) p.extraItems = s.withList.length ? s.withList.map(function (x) { return { category: x.category, name: x.name, qty: Number(x.qty) || 1, price: Number(x.price) || 0 }; }) : null;
     if (est && !est.needsConsult) { p.subtotal = est.subtotal; p.estimateLines = est.lines; p.estimateNotes = est.notes; }
     return p;
   }
@@ -322,7 +368,8 @@
       if (Array.isArray(v[3]) && v[3].length) state.staff = v[3].filter(Boolean);
       state.staff = orderStaffByUse(state.staff);
       var go = function () { state.key = key; state.r = v[0] || {}; state.snap = snapshotOf(state.r); state.edit = null; state.editor = ""; state.draft = v[4] && v[4].edit ? v[4] : null; renderView(); };
-      return isCutRes(v[0] || {}) ? loadCutCatalog().then(go, go) : go();
+      var r0 = v[0] || {};
+      return isCutRes(r0) ? loadCutCatalog().then(go, go) : isCakeRes(r0) ? Promise.all([loadCutCatalog(), loadAddOnCatalog(), loadRollCatalog()]).then(go, go) : go();
     }).catch(function (e) { document.getElementById("reBody").innerHTML = '<p style="padding:30px;color:#b03b48;">読み込みに失敗しました：' + esc(e && e.message || e) + "</p>"; });
   }
 
@@ -457,7 +504,11 @@
     var b0 = estimateOf(state.snap, state.r);
     state.baseAuto = b0 && !b0.needsConsult ? b0.subtotal : null;
     if (!state.edit.price && state.told.price) state.edit.price = state.told.price;
-    if (draft && draft.edit) { state.edit = Object.assign(state.edit, JSON.parse(JSON.stringify(draft.edit))); state.edit._priceManual = true; } // 途中の内容から再開
+    if (draft && draft.edit) {
+      state.edit = Object.assign(state.edit, JSON.parse(JSON.stringify(draft.edit))); state.edit._priceManual = true; // 途中の内容から再開
+      if (!draft.edit.addOnItems && draft.edit.addOns === "") state.edit.addOnItems = [];
+      if (!draft.edit.withList && draft.edit.withItems === "") state.edit.withList = [];
+    }
     renderEdit();
     if (draft) {
       var m = document.getElementById("reMemo"); if (m && draft.memo) m.value = draft.memo;
@@ -491,6 +542,19 @@
       var OMK = (window.CakePricing && window.CakePricing.SPEC.omakaseDeco) || {};
       html += field("電話での追加のご注文（選択肢にないもの）", '<input class="input re-in" id="reExtraNote" value="' + esc(e.extraNote || "") + '" placeholder="例：チョコプレート追加、ドライフラワー" style="margin-bottom:6px;"><div class="re-yen"><input type="number" min="0" class="input re-in" id="reExtraAmt" value="' + esc(e.extraAmount || "") + '"> 円（税込・確定金額に加算されます）</div>');
       html += field("おまかせデコレーション", sel("reOmakase", ["", "梅", "竹", "松"], e.omakase || "", function (o) { return o ? o + "（+¥" + Number(OMK[o] || 0).toLocaleString() + "）" : "なし"; }));
+      // 砂糖菓子・オーナメント等（2026-11-18オーナー指示：選んだものの変更・取り消し・追加）
+      var adds = e.addOnItems || [], addNames = adds.map(function (a) { return a.name; });
+      html += '<div class="re-tier"><div class="re-tier__title">砂糖菓子・オーナメント等</div>' +
+        adds.map(function (a, i) { return field(a.name + (a.price ? "（1個 " + yen(a.price) + "）" : "（価格未登録）"), sel("reAddQ" + i, QTY_LIST, a.qty, function (o) { return o ? o + "個" : "0個（取り消す）"; })); }).join("") +
+        field(adds.length ? "別のものを追加" : "追加する", addOnCatalog ? addSel("reAddNew", [{ key: "addon", items: addOnCatalog.filter(function (c) { return addNames.indexOf(c.name) < 0; }) }], "＋ 追加するものを選ぶ") : '<div class="re-told re-told--warn">商品の一覧を読み込めませんでした。画面を開き直してください</div>') + "</div>";
+      // 一緒にご予約（ショートケーキ等のカットケーキ・ロールケーキ。2026-11-18オーナー指示）
+      var withs = e.withList || [], withKeys = withs.map(function (x) { return x.category + "|" + x.name; });
+      html += '<div class="re-tier"><div class="re-tier__title">一緒にご予約（カットケーキ・ロールケーキ）</div>' +
+        withs.map(function (x, i) { var u = unitOf(x.category); return field(x.name + "（" + x.category + "・" + (x.price ? "1" + u + " " + yen(x.price) : "価格未登録") + "）", sel("reWithQ" + i, QTY_LIST, x.qty, function (o) { return o ? o + u : "0" + u + "（取り消す）"; })); }).join("") +
+        field(withs.length ? "別の商品を追加" : "追加する", addSel("reWithNew", [
+          { label: "カットケーキ", key: "カットケーキ", items: (cutCatalog || []).filter(function (c) { return c.shop && withKeys.indexOf("カットケーキ|" + c.name) < 0; }) },
+          { label: "ロールケーキ", key: "ロールケーキ", items: (rollCatalog || []).filter(function (c) { return withKeys.indexOf("ロールケーキ|" + c.name) < 0; }) }
+        ], "＋ 追加する商品を選ぶ")) + "</div>";
     }
     if (e.cuts) {
       e.cuts.forEach(function (c, i) {
@@ -578,6 +642,19 @@
       e.omakase = g("reOmakase") ? g("reOmakase").value : (e.omakase || "");
       e.fruitExtra = g("reFruitExtra") ? g("reFruitExtra").checked : !!e.fruitExtra;
       e.extraNote = g("reExtraNote") ? g("reExtraNote").value : (e.extraNote || ""); e.extraAmount = g("reExtraAmt") ? Number(g("reExtraAmt").value) || 0 : (e.extraAmount || 0);
+      // 砂糖菓子・オーナメント等／一緒にご予約（2026-11-18）
+      e.addOnItems = (e.addOnItems || []).map(function (a, i) { return { name: a.name, price: a.price, qty: g("reAddQ" + i) ? Number(g("reAddQ" + i).value) || 0 : a.qty }; }).filter(function (a) { return a.qty > 0; });
+      var an = g("reAddNew") ? g("reAddNew").value : "";
+      if (an) { var anm = an.slice(an.indexOf("|") + 1), ac = (addOnCatalog || []).filter(function (c) { return c.name === anm; })[0]; if (ac) e.addOnItems.push({ name: ac.name, price: ac.price, qty: 1 }); }
+      e.addOns = addOnText(e.addOnItems);
+      e.withList = (e.withList || []).map(function (x, i) { return { category: x.category, name: x.name, qty: g("reWithQ" + i) ? Number(g("reWithQ" + i).value) || 0 : x.qty, price: x.price }; }).filter(function (x) { return x.qty > 0; });
+      var wn = g("reWithNew") ? g("reWithNew").value : "";
+      if (wn) {
+        var wcat = wn.slice(0, wn.indexOf("|")), wnm = wn.slice(wn.indexOf("|") + 1);
+        var wc = ((wcat === "ロールケーキ" ? rollCatalog : cutCatalog) || []).filter(function (c) { return c.name === wnm; })[0];
+        if (wc) e.withList.push({ category: wcat, name: wc.name, qty: 1, price: Number(wc.price) || 0 });
+      }
+      e.withItems = withText(e.withList);
     }
     if (e.cuts) {
       e.cuts = e.cuts.map(function (c, i) { return { name: c.name, qty: g("reCutQ" + i) ? Number(g("reCutQ" + i).value) || 0 : c.qty, price: c.price }; }).filter(function (c) { return c.qty > 0; });
