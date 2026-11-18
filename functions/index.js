@@ -1649,8 +1649,8 @@ exports.lookupMyContact = onRequest(
 //  ・号数の無い商品（例：グランマニエBOX）や当てはまらない商品は取り込まず、「未対応」として記録する
 const COST_TYPE_ALIASES = { "グランマニエBOX": "ムース" };
 // 原価表の商品名に号数が無い商品の号数（オーナー確認済みのものだけ。原価計算アプリで「グランマニエBOX　4号」と名前に付ければ不要）
-const COST_DEFAULT_SIZE = { "グランマニエBOX": "4号" }; // 2026-10-25オーナー訂正：4号相当（10/07の3号相当は誤り）
-const COST_SIZE_OVERRIDE = { "グランマニエBOX": "4号" };
+const COST_DEFAULT_SIZE = { "グランマニエBOX": "3号" }; // 2026-10-28オーナー指示：3号相当のみ（10/25の4号から戻した。予約フォーム・変更画面も3号のみ）
+const COST_SIZE_OVERRIDE = { "グランマニエBOX": "3号" }; // 2026-11-18：ここが4号のままで、原価計算アプリで保存するたびに料金表のムースが4号に置かれ、3号の予約で金額が出なくなるところだった
 const COST_TYPE_NAMES = ["ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX", "ブルーベリーケーキ", "ムース"];
 function mapCostPricesToPriceTable(list) {
   const sizePrices = {}, typePrices = {}, mapped = [], unmapped = [];
