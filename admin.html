@@ -4294,6 +4294,10 @@ document.getElementById("saveBtn").addEventListener("click", async () => {
     const blockers = [];
     PUBLISH_GUARD_PRODUCT_KEYS.forEach(k => { if (k in changedKeys) blockers.push(...findPublishBlockers(changedKeys[k], false, catLabels[k])); });
     if (alertPublishBlockers(blockers)) return;
+    // 公開前プレビュー：検索・AIにどう読まれるかを見せてから保存（2026-11-19）
+    const previewLines = [];
+    PUBLISH_GUARD_PRODUCT_KEYS.forEach(k => { if (k in changedKeys) previewLines.push(...collectPreviewLines(changedKeys[k], fresh[k], false, catLabels[k])); });
+    if (!confirmPublishPreview(previewLines)) return;
     await window.fbSaveSiteImages(changedKeys);
     workingData = merged;
     savedData = JSON.parse(JSON.stringify(merged));
@@ -7030,6 +7034,41 @@ function alertPublishBlockers(blockers) {
   return true;
 }
 
+// 公開前プレビュー（2026-11-19・同仕様「公開前プレビュー：機械にどう読まれるか。凝ったものでなくてよい」）：
+// 今回の保存で新しく載る／書き換わる商品・作例について、検索・AI向けの静的ページ（catalog.html・llms.txt）に
+// どう載るかを保存前に見せる。規則は書き出し（tools/build-static.mjs の normalize）と同じにしておくこと。
+function publishPreviewEntry(raw, isGallery) {
+  if (!raw || typeof raw !== "object" || raw.visible === false) return null;
+  if (typeof raw.img !== "string" || !raw.img.startsWith("https://")) return null;
+  const str = s => String(s == null ? "" : s);
+  const paras = s => str(s).replace(/<\s*br\s*\/?\s*>/gi, "\n").replace(/<[^>]*>/g, "").split(/\n+/).map(x => x.trim()).filter(Boolean);
+  const name = str(isGallery ? raw.title : raw.name).replace(/<\s*br\s*\/?\s*>/gi, " ").replace(/<[^>]*>/g, "").replace(/\s+/g, " ").trim();
+  if (!name || name === "新しい商品") return null;
+  const descText = (isGallery ? paras([raw.lead, raw.desc].filter(Boolean).join("\n")) : paras(raw.desc)).join(" ");
+  const first = descText.split("。")[0];
+  const alt = (first && first !== descText ? first + "。" : descText).slice(0, 90);
+  return { name, descText, alt: alt ? name + "。" + alt : name };
+}
+// newList のうち、oldList（保存前のサーバーの内容）と読まれ方が違うものだけを並べる
+function collectPreviewLines(newList, oldList, isGallery, label) {
+  const before = new Set((Array.isArray(oldList) ? oldList : []).map(r => publishPreviewEntry(r, isGallery)).filter(Boolean).map(e => JSON.stringify(e)));
+  const lines = [];
+  (Array.isArray(newList) ? newList : []).forEach(r => {
+    const e = publishPreviewEntry(r, isGallery);
+    if (!e || before.has(JSON.stringify(e))) return;
+    const d = e.descText.length > 80 ? e.descText.slice(0, 80) + "…" : e.descText;
+    lines.push(`［${label}］${e.name}\n　写真の説明（alt）：${e.alt}\n　説明文：${d}`);
+  });
+  return lines;
+}
+// 読まれ方が変わるものが無ければ確認なしで進む。キャンセルされたら false
+function confirmPublishPreview(lines) {
+  if (!lines.length) return true;
+  const shown = lines.slice(0, 6);
+  const more = lines.length > shown.length ? `\n\n…ほか${lines.length - shown.length}件` : "";
+  return confirm("【公開前の確認】検索やAIには、次のように読まれます（30分ほどで反映）。\nよければ「OK」で保存してください。\n\n" + shown.join("\n\n") + more);
+}
+
 async function saveByKey(key, data) {
   const contentKey = key.replace(/^koimari_/, "");
   const shape = CONTENT_SHAPES[contentKey] || "array";
@@ -8075,6 +8114,11 @@ function renderGalleryAdmin() {
   document.getElementById("saveGalleryBtn").addEventListener("click", async () => {
     // 登録時のガード：名前・説明文の無い公開中の作例は保存させない（2026-11-18）
     if (alertPublishBlockers(findPublishBlockers(galleryData, true, "オーダーケーキの作例"))) return;
+    // 公開前プレビュー（2026-11-19）：サーバーの今の内容と比べ、読まれ方が変わる作例だけ見せる。
+    // 比較用の取得に失敗したときは確認を省いて保存を続ける（保存そのものは saveByKey が改めて取得・マージする）
+    let galleryBefore = null;
+    try { if (typeof window.fbLoadContentKey === "function") galleryBefore = await window.fbLoadContentKey("gallery"); } catch (e) { console.warn("公開前プレビュー用の取得に失敗（確認を省きます）:", e); }
+    if (Array.isArray(galleryBefore) && !confirmPublishPreview(collectPreviewLines(galleryData, galleryBefore, true, "オーダーケーキの作例"))) return;
     afterSave(await saveByKey(GALLERY_KEY, galleryData), merged => { galleryData = merged; renderGalleryAdmin(); }, "ギャラリーを保存しました（サイトに反映されます）");
   });
 }

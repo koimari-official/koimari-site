@@ -227,10 +227,21 @@ async function main() {
     if (/ハロウィン|限定/.test(it.name)) warnings.push(`名前に季節・限定の語: [${s.label}] ${it.name}`);
   }
 
+  // 自動チェック（2026-11-19・Muse仕様「HP改良仕様_追補_恒久化」）：公開する商品の名前が、
+  // 書き出した商品一覧（catalog.html）に文字として入っているかを確かめ、欠けていれば書き込まずに止める
+  // （llms.txt は商品一覧ページへの案内とカテゴリー別の件数だけを載せる作りなので、商品名は確かめない）
+  const catalogHtml = buildCatalogHtml(sections);
+  const llmsTxt = buildLlmsTxt(sections);
+  const missing = [];
+  for (const s of sections) for (const it of s.items) {
+    if (!catalogHtml.includes(`<h3>${esc(it.name)}</h3>`)) missing.push(`[${s.label}] ${it.name}`);
+  }
+  if (missing.length) throw new Error("商品名が書き出し結果に入っていません（公開を止めました）:\n" + missing.join("\n"));
+
   const changed = [];
-  const catalogChanged = await writeIfChanged("catalog.html", buildCatalogHtml(sections));
+  const catalogChanged = await writeIfChanged("catalog.html", catalogHtml);
   if (catalogChanged) changed.push("catalog.html");
-  if (await writeIfChanged("llms.txt", buildLlmsTxt(sections))) changed.push("llms.txt");
+  if (await writeIfChanged("llms.txt", llmsTxt)) changed.push("llms.txt");
 
   // index.html のメニュー構造化データ（マーカーの間だけ書き換える）
   const START = "<!--AUTO:MENU-JSONLD-START-->";
