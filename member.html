@@ -2208,7 +2208,7 @@ function mqPriceText(t) {
 }
 function renderMultiPicker(grid, label, notice, status, box) {
   label.innerHTML = 'まとめて受付<span class="req-mark">必須</span>';
-  notice.innerHTML = box("お客様が言った順に、商品の<b>＋</b>を押してください。<b>ロールケーキ・カットケーキは何種類でも</b>入れられます。<br>デコレーション・オーダーケーキは<b>1件に1台</b>です（2台目は、登録のあとの「同じお客様でもう1件」から）。<br>飾り・プレート・ろうそくなどの<b>詳しい内容は、あとで</b>予約一覧の「詳細・変更」から入れられます。");
+  notice.innerHTML = box("お客様が言った順に、商品の<b>＋</b>を押してください。<b>ロールケーキ・カットケーキは何種類でも</b>入れられます。<br>デコレーション・オーダーケーキは<b>1件に1台</b>です（2台目は、登録のあとの「同じお客様でもう1件」から）。<br>飾り・プレート・ろうそくなどの<b>詳しい内容は、あとで</b>予約一覧の「詳細・変更」から入れられます。<br><b>ホールケーキ・ロールケーキ</b>には、1台（1本）ごとに<b>ろうそく1袋（5本入）とメッセージプレート1枚を無料</b>でお付けします。");
   if (!mqWorks) { mqWorks = []; loadStaffWorkItems().then(w => { mqWorks = w || []; if (shopMode() === "multi") renderShopPicker(); }).catch(() => {}); }
   const esc2 = (x) => escape(String(x == null ? "" : x));
   const rowsOf = (kind, list) => list.length ? list.map((c, i) => {
@@ -2425,13 +2425,16 @@ function buildShopReservation(base) {
       const w = mq.cake === "order" ? mqWorkPick() : null;
       if (w) d.galleryPick = { name: "オーダーメイド作品 No." + String(w.no).padStart(2, "0") + (staffWorkTitle(w.g) ? "（" + staffWorkTitle(w.g) + "）" : ""), productType: "decorationCake", size: mq.size || "", price: "", img: w.g.img || "" };
       d.detailPending = true; // 詳しい内容は後で（管理画面の「詳細・変更」で入れて確定すると外れる）
-      d.decideLater = ["ケーキの詳しい内容（飾り・プレート・ろうそくなど）"];
+      d.decideLater = ["ケーキの詳しい内容（飾り・プレート・ろうそくなど。ろうそく1袋・プレート1枚は無料）"];
       d.priceNeedsConsult = true; d.priceIsFixed = false;
       rolls.concat(cuts).forEach(x => extra.push(ex(x)));
     } else if (rolls.length) {
       d.type = "デコレーションケーキ予約";
       const r0 = rolls[0];
       d.items = [{ category: "ロールケーキ", image: /^https?:/.test(r0.img || "") ? r0.img : "", size: "ホール", flavor: r0.name, qty: r0.qty, price: r0.price || 0, message: "" }];
+      // ロールケーキもホールケーキと同じく、ろうそく・プレートは後で入れる（1本ごとに各1セット無料。2026-11-21オーナー指示）。
+      // 金額は決まっているので detailPending（詳細未定）にはしない。「詳細・変更」でろうそくかプレートを入れて確定すると外れる
+      d.decideLater = ["ろうそく・プレート（1本ごとに各1セット無料）"];
       rolls.slice(1).concat(cuts).forEach(x => extra.push(ex(x)));
     } else {
       d.type = "カットケーキ予約";

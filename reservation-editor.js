@@ -165,6 +165,8 @@
   function tierName(i, n) { return n <= 1 ? "" : (n - i) + "段目" + (i === 0 ? "（一番下）" : i === n - 1 ? "（一番上）" : ""); }
   function formatNo(n) { return n ? "No." + String(n).padStart(4, "0") : "（採番待ち）"; }
   function isCakeRes(r) { var it = (r.items || [])[0] || {}; return it.category === "デコレーションケーキ"; }
+  // ロールケーキの予約：ろうそく・プレートを「詳細・変更」で入れられるようにする（2026-11-21オーナー指示：1本ごとに各1セット無料）
+  function isRollRes(r) { var it = (r.items || [])[0] || {}; return it.category === "ロールケーキ"; }
 
   // 予約データ → 編集用のまとまった形（スナップショット）。変更履歴にもこの形で保存する。
   function snapshotOf(r) {
@@ -587,6 +589,12 @@
       var tot = cutTotalOf(e);
       html += '<div class="re-told' + (tot < 3 ? " re-told--warn" : "") + '">合計 <b>' + tot + "個</b>" + (tot < 3 ? "（通常は3個からのご予約です。お電話で了承済みの場合のみ確定してください）" : "") + "</div>";
     }
+    if (!cake && !e.cuts && isRollRes(r)) {
+      html += '<div class="re-hint">ロールケーキは1本ごとに、ろうそく1袋（5本入）とメッセージプレート1枚が無料です。</div>';
+      html += field("ナンバーろうそく（番号×本数）", '<input class="input re-in" id="reCandleNums" value="' + esc(e.candleNums || "") + '" placeholder="例：2×1 5×1（「25」と書いても同じ）">');
+      html += field("普通のろうそく", sel("reCandlePlain", [0, 1, 2, 3], e.candlePlain || 0, function (o) { return o ? o + "袋" + (o === 1 ? "（無料）" : "") : "なし"; }));
+      html += field("メッセージプレート", sel("reMsgN", [0, 1, 2, 3], e.messageCount, function (o) { return o ? o + "枚" + (o === 1 ? "（無料）" : "") : "なし"; }) + (e.messageCount ? '<input class="input re-in" id="reMsg" value="' + esc(e.message || "") + '" placeholder="プレートの文字">' : ""));
+    }
     html += field("電話番号（お客様の連絡先）", '<input type="tel" class="input re-in" id="reTel" inputmode="tel" autocomplete="off" value="' + esc(e.tel || "") + '">');
     html += field("お引き取り日", '<input type="date" class="input re-in" id="reDate" value="' + esc(e.pickupDate) + '">');
     html += field("お引き取り時間", sel("reTime", [""].concat(TIMES), e.pickupTime, function (o) { return o || "選択"; }));
@@ -671,6 +679,10 @@
   function readEdit(rerender) {
     var e = state.edit, g = function (id) { return document.getElementById(id); };
     var memo = g("reMemo") ? g("reMemo").value : "", staff = g("reStaff") ? g("reStaff").value : "";
+    if (!g("reTiers") && g("reCandlePlain")) { // ロールケーキの予約（2026-11-21）
+      e.candleNums = g("reCandleNums") ? g("reCandleNums").value : (e.candleNums || ""); e.candlePlain = Number(g("reCandlePlain").value) || 0;
+      e.messageCount = Number(g("reMsgN").value) || 0; e.message = g("reMsg") ? g("reMsg").value : e.message;
+    }
     if (g("reTiers")) {
       var n = Number(g("reTiers").value) || 1;
       e.tiers = e.tiers.map(function (t, i) {
@@ -737,11 +749,22 @@
     var est = isCakeRes(r) || e.cuts ? estimateOf(e, r) : null;
     var patch = patchOf(e, r, est);
     if (!isCakeRes(r) && !e.cuts) { patch = { pickupDate: e.pickupDate, pickupTime: e.pickupTime, finalPickupDate: e.pickupDate, finalPickupTime: e.pickupTime, finalPrice: e.price, priceIsFixed: true }; }
+    if (!isCakeRes(r) && !e.cuts && isRollRes(r)) { // ロールケーキ：ろうそく・プレート（2026-11-21）
+      var cd = candleSnapData(e);
+      Object.keys(cd).forEach(function (k) { patch[k] = cd[k]; });
+      patch.messageCount = e.messageCount || 0;
+      patch["items/0/message"] = e.messageCount ? (e.message || "") : "";
+    }
     if (e.tel && e.tel !== (r.tel || "")) patch.tel = e.tel; // 電話番号の変更（2026-10-24）
     if (r.detailPending) { // 「詳しい内容は後で」で受けた予約：内容を入れて確定したら外す（2026-11-07）
       patch.detailPending = null;
       var later = (r.decideLater || []).filter(function (x) { return String(x).indexOf("ケーキの詳しい内容") !== 0; });
       patch.decideLater = later.length ? later : null;
+    }
+    // ロールケーキの「ろうそく・プレート（後で入れる）」：ろうそくかプレートを入れて確定したら外す（2026-11-21）
+    if ((r.decideLater || []).some(function (x) { return String(x).indexOf("ろうそく・プレート") === 0; }) && (candleSnapData(e).candleNeeded || Number(e.messageCount) > 0)) {
+      var later2 = ((patch.decideLater !== undefined ? patch.decideLater : r.decideLater) || []).filter(function (x) { return String(x).indexOf("ろうそく・プレート") !== 0; });
+      patch.decideLater = later2.length ? later2 : null;
     }
     up[base + "revisions/" + n] = { label: label, savedAt: now, by: staff, byAccount: api.currentUserEmail() || "", memo: memo, changes: changes, snapshot: e };
     Object.keys(patch).forEach(function (k) { up[base + k] = patch[k]; });
