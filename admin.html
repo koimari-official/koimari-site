@@ -6434,10 +6434,11 @@ function resDaySummary(rows) {
     items.forEach((it, i) => {
       const base = (Array.isArray(r.tierSpecs) && r.tierSpecs.length > 1 ? "" : (r.creamType || it.category || ""));
       const k = it.category === "カットケーキ" ? "カット " + it.flavor : it.category === "砂糖菓子・ゼリー菓子" ? it.flavor : it.category === "ロールケーキ" ? "ロール " + (it.flavor || "") :
+        it.category === "焼き菓子・ギフト" && it.flavor ? "焼き菓子・ギフト " + it.flavor : // まとめて受付の焼き菓子・ギフト（2026-11-22）
         (base ? base + " " : "") + (resSizeKey(it.size) || it.category || "") + (r.detailPending ? "（詳細未定）" : "");
       cnt[k] = (cnt[k] || 0) + (Number(it.qty) || 1);
     });
-    if (window.CakePricing) CakePricing.extraItemsOf(r).forEach((x) => { const k = ({ "ロールケーキ": "ロール ", "カットケーキ": "カット ", "ホールケーキ": "ホール " }[x.category] || "") + x.name; cnt[k] = (cnt[k] || 0) + Number(x.qty); }); // ホールケーキ・その他は2026-11-18
+    if (window.CakePricing) CakePricing.extraItemsOf(r).forEach((x) => { const k = ({ "ロールケーキ": "ロール ", "カットケーキ": "カット ", "ホールケーキ": "ホール ", "焼き菓子": "焼き菓子 ", "ギフト": "ギフト " }[x.category] || "") + x.name; cnt[k] = (cnt[k] || 0) + Number(x.qty); }); // ホールケーキ・その他は2026-11-18
   });
   return Object.keys(cnt).sort().map((k) => k + "×" + cnt[k]);
 }

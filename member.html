@@ -2164,7 +2164,29 @@ function shopCutCatalog() {
 }
 // ===== まとめて受付（電話・店頭のスタッフ用。2026-11-07オーナー指示） =====
 // お客様が言った順に＋を押すだけ。ロールケーキ・カットケーキは何種類でも。デコレーション／オーダーケーキは1件に1台で、詳しい内容は後で（予約一覧の「詳細・変更」）
-const mq = { roll: {}, cut: {}, cake: "", size: "", cream: "", work: "" };
+const mq = { roll: {}, cut: {}, baked: {}, gift: {}, cake: "", size: "", cream: "", work: "" };
+// 焼き菓子・ギフト（2026-11-22オーナー指示：オーダーケーキ以外の全メニューを、予約の時に値段つきで入れられるように）。
+// スタッフの受付では、HPの「販売方法」に関係なく選べる（お客様のWeb予約で出すかどうかは「販売方法」の「ご予約可」のまま）。
+// 値段は 原価計算アプリの販売価格（価格の元 → 商品名）→ 商品の「価格」欄
+const bakedRaw = { baked: [], gift: [] };
+function bakedCatalog(k) {
+  return (bakedRaw[k] || []).filter(it => it && it.name && it.visible !== false && !it.notForSale).map(it => {
+    const name = String(it.name).replace(/<[^>]*>/g, "");
+    return { name, img: it.img || "", price: cutPriceMap[it.costName || ""] || cutPriceMap[name] || parseYenNumber(it.price) || 0 };
+  }).filter(c => c.price > 0);
+}
+const MQ_KIND_CAT = { roll: "ロールケーキ", cut: "カットケーキ", baked: "焼き菓子", gift: "ギフト" };
+function mqCatalog(kind) { return kind === "roll" ? rollCatalog() : kind === "cut" ? shopCutCatalog() : bakedCatalog(kind); }
+// デコレーションケーキの基本の値段（号数とクリームで決まる分。飾り・プレートの追加などは「詳細・変更」で）。
+// クリーム未定は生クリームの値段から「〜」。料金表に無い号数（フルオーダー）は 0 ＝金額は後で
+function mqDecoBase() {
+  if (mq.cake !== "deco" || !mq.size) return 0;
+  const tp = currentTypePrices && currentTypePrices[mq.cream];
+  if (tp) return Number(tp[mq.size]) || 0;
+  const b = Number((currentSizePrices || {})[mq.size]) || 0;
+  if (!b) return 0;
+  return mq.cream === "生チョコクリーム" ? b + (Number(currentChocoCreamSurcharge) || 0) : b;
+}
 const MQ_SIZES = ["4号", "5号", "6号", "7号"];
 const MQ_SIZE_FULL = { "4号": "4号(約12cm/3-4名)", "5号": "5号(約15cm/5-6名)", "6号": "6号(約18cm/7-8名)", "7号": "7号(約21cm/9-10名)" };
 const MQ_CREAMS = ["生クリーム", "生チョコクリーム", "ミッシェルBOX", "ガトーショコラBOX", "フルーツタルトBOX", "ストロベリータルトBOX"];
@@ -2185,30 +2207,31 @@ function rollCatalog() {
   return rollRaw.map(it => { const name = String(it.name).replace(/<[^>]*>/g, ""); return { name, img: it.img || "", price: cutPriceMap[it.costName || ""] || cutPriceMap[name] || parseYenNumber(it.price) || 0 }; });
 }
 function mqSel(kind) {
-  const list = kind === "roll" ? rollCatalog() : shopCutCatalog();
-  return list.filter(c => mq[kind][c.name] > 0).map(c => ({ category: kind === "roll" ? "ロールケーキ" : "カットケーキ", name: c.name, img: c.img, price: c.price, qty: mq[kind][c.name] }));
+  return mqCatalog(kind).filter(c => mq[kind][c.name] > 0).map(c => ({ category: MQ_KIND_CAT[kind], name: c.name, img: c.img, price: c.price, qty: mq[kind][c.name] }));
 }
 function mqWorkPick() { return (mqWorks || []).find(w => String(w.no) === String(mq.work)) || null; }
 function mqCakeLine() {
-  if (mq.cake === "deco") return "デコレーションケーキ" + (mq.size ? " " + mq.size : "") + (mq.cream ? " " + mq.cream : "") + "（詳しい内容は後で）";
+  if (mq.cake === "deco") { const b = mqDecoBase(); return "デコレーションケーキ" + (mq.size ? " " + mq.size : "") + (mq.cream ? " " + mq.cream : "") + (b ? " ¥" + b.toLocaleString() + (mq.cream ? "" : "〜") + "（税込）" : "") + "（詳しい内容は後で）"; }
   if (mq.cake === "order") { const w = mqWorkPick(); return (w ? "オーダーメイド作品 No." + String(w.no).padStart(2, "0") + (staffWorkTitle(w.g) ? "（" + staffWorkTitle(w.g) + "）" : "") : "オーダーケーキ（作品No.未選択）") + (mq.size ? " " + mq.size : "") + "（詳しい内容は後で）"; }
   return "";
 }
 function mqTotal() {
-  const lines = mqSel("roll").concat(mqSel("cut"));
+  const lines = mqSel("roll").concat(mqSel("cut"), mqSel("baked"), mqSel("gift"));
   const t = CakePricing.extraItemsTotal({ extraItems: lines });
-  return { lines, count: t.count + (mq.cake ? 1 : 0), subtotal: t.subtotal, priced: t.priced && !mq.cake, unpriced: !t.priced };
+  const deco = mqDecoBase();
+  return { lines, count: t.count + (mq.cake ? 1 : 0), subtotal: t.subtotal + deco, deco, priced: t.priced && !mq.cake, unpriced: !t.priced };
 }
 // 合計の文（価格が分からない商品・ケーキの金額は「〜」や「後で」と書き、確定のように見せない）
 function mqPriceText(t) {
   if (!t.count) return "";
-  if (mq.cake) return (t.subtotal ? yenFixed(t.subtotal) + (t.unpriced ? "〜" : "") + "（税込）＋ケーキの金額" : "ケーキの金額") + "は、詳しい内容が決まってからご案内";
+  if (mq.cake && t.deco) return yenFixed(t.subtotal) + "〜（税込）。飾り・プレートの追加などは、詳しい内容が決まってからご案内";
+  if (mq.cake) return (t.subtotal ?yenFixed(t.subtotal) + (t.unpriced ? "〜" : "") + "（税込）＋ケーキの金額" : "ケーキの金額") + "は、詳しい内容が決まってからご案内";
   if (t.unpriced) return t.subtotal ? yenFixed(t.subtotal) + "〜（税込・価格が未登録の商品は店頭表示中）" : "店頭表示中";
   return yenFixed(t.subtotal) + "（税込）";
 }
 function renderMultiPicker(grid, label, notice, status, box) {
   label.innerHTML = 'まとめて受付<span class="req-mark">必須</span>';
-  notice.innerHTML = box("お客様が言った順に、商品の<b>＋</b>を押してください。<b>ロールケーキ・カットケーキは何種類でも</b>入れられます。<br>デコレーション・オーダーケーキは<b>1件に1台</b>です（2台目は、登録のあとの「同じお客様でもう1件」から）。<br>飾り・プレート・ろうそくなどの<b>詳しい内容は、あとで</b>予約一覧の「詳細・変更」から入れられます。<br><b>ホールケーキ・ロールケーキ</b>には、1台（1本）ごとに<b>ろうそく1袋（5本入）とメッセージプレート1枚を無料</b>でお付けします。");
+  notice.innerHTML = box("お客様が言った順に、商品の<b>＋</b>を押してください。<b>ロールケーキ・カットケーキ・焼き菓子・ギフトは何種類でも</b>入れられます。<br>デコレーション・オーダーケーキは<b>1件に1台</b>です（2台目は、登録のあとの「同じお客様でもう1件」から）。<br>飾り・プレート・ろうそくなどの<b>詳しい内容は、あとで</b>予約一覧の「詳細・変更」から入れられます。<br><b>ホールケーキ・ロールケーキ</b>には、1台（1本）ごとに<b>ろうそく1袋（5本入）とメッセージプレート1枚を無料</b>でお付けします。");
   if (!mqWorks) { mqWorks = []; loadStaffWorkItems().then(w => { mqWorks = w || []; if (shopMode() === "multi") renderShopPicker(); }).catch(() => {}); }
   const esc2 = (x) => escape(String(x == null ? "" : x));
   const rowsOf = (kind, list) => list.length ? list.map((c, i) => {
@@ -2216,7 +2239,8 @@ function renderMultiPicker(grid, label, notice, status, box) {
     return '<div class="mq-row' + (q > 0 ? " on" : "") + '"><div class="mq-name">' + esc2(c.name) + '<span class="mq-price">' + (c.price ? "¥" + c.price.toLocaleString() + "（税込）" : "店頭表示中") + "</span></div>" +
       '<button type="button" class="mq-btn" data-mq="' + kind + '" data-i="' + i + '" data-d="-1" aria-label="1つ減らす">−</button><span class="mq-n">' + q + '</span><button type="button" class="mq-btn" data-mq="' + kind + '" data-i="' + i + '" data-d="1" aria-label="1つ増やす">＋</button></div>';
   }).join("") : '<div class="field__hint">読み込み中です（ギャラリーに登録がないときは出ません）</div>';
-  const rolls = rollCatalog(), cuts = shopCutCatalog();
+  const cats = { roll: rollCatalog(), cut: shopCutCatalog(), baked: bakedCatalog("baked"), gift: bakedCatalog("gift") };
+  const rolls = cats.roll, cuts = cats.cut;
   const chip = (attr, v, on, text) => '<button type="button" class="mq-chip' + (on ? " on" : "") + '" ' + attr + '="' + esc2(v) + '">' + esc2(text || v) + "</button>";
   let cake = '<div class="mq-chips">' + chip("data-mqcake", "", !mq.cake, "なし") + chip("data-mqcake", "deco", mq.cake === "deco", "デコレーションケーキ") + chip("data-mqcake", "order", mq.cake === "order", "オーダーケーキ（作品No.）") + "</div>";
   if (mq.cake === "order") {
@@ -2229,19 +2253,21 @@ function renderMultiPicker(grid, label, notice, status, box) {
   }
   grid.innerHTML = '<div class="mq-sec"><div class="mq-sec__title">ロールケーキ</div>' + rowsOf("roll", rolls) + "</div>" +
     '<div class="mq-sec"><div class="mq-sec__title">カットケーキ<span style="font-size:14px;font-weight:400;">（ほかのケーキと一緒なら1個から・カットケーキだけなら3個から）</span></div>' + rowsOf("cut", cuts) + "</div>" +
+    '<div class="mq-sec"><div class="mq-sec__title">焼き菓子</div>' + rowsOf("baked", cats.baked) + "</div>" +
+    '<div class="mq-sec"><div class="mq-sec__title">ギフト</div>' + rowsOf("gift", cats.gift) + "</div>" +
     '<div class="mq-sec"><div class="mq-sec__title">デコレーション・オーダーケーキ（1台）</div>' + cake + "</div>";
   const t = mqTotal();
   const sum = t.lines.map(x => esc2(x.name) + " × " + x.qty).concat(mq.cake ? [esc2(mqCakeLine())] : []);
   status.innerHTML = sum.length ? '<div class="mq-sum">ご注文：<br>' + sum.join("<br>") + "<br>合計 <b>" + t.count + "点</b>　" + esc2(mqPriceText(t)) + "</div>" : '<div class="mq-sum">＋を押すと、ここにご注文のまとめが出ます（最後に読み上げて確認してください）</div>';
   grid.querySelectorAll("[data-mq]").forEach(b => b.addEventListener("click", () => {
-    const kind = b.dataset.mq, c = (kind === "roll" ? rolls : cuts)[Number(b.dataset.i)];
+    const kind = b.dataset.mq, c = (cats[kind] || [])[Number(b.dataset.i)];
     if (!c) return;
     mq[kind][c.name] = Math.max(0, Math.min(50, (mq[kind][c.name] || 0) + Number(b.dataset.d)));
     renderShopPicker(); updateLivePriceDisplay();
   }));
   grid.querySelectorAll("[data-mqcake]").forEach(b => b.addEventListener("click", () => { mq.cake = b.dataset.mqcake; if (!mq.cake) { mq.size = ""; mq.cream = ""; mq.work = ""; } if (mq.cake !== "deco") mq.cream = ""; if (mq.cake !== "order") mq.work = ""; renderShopPicker(); updateLivePriceDisplay(); }));
-  grid.querySelectorAll("[data-mqsize]").forEach(b => b.addEventListener("click", () => { mq.size = mq.size === b.dataset.mqsize && mq.cake === "order" ? "" : b.dataset.mqsize; renderShopPicker(); }));
-  grid.querySelectorAll("[data-mqcream]").forEach(b => b.addEventListener("click", () => { mq.cream = b.dataset.mqcream; renderShopPicker(); }));
+  grid.querySelectorAll("[data-mqsize]").forEach(b => b.addEventListener("click", () => { mq.size = mq.size === b.dataset.mqsize && mq.cake === "order" ? "" : b.dataset.mqsize; renderShopPicker(); updateLivePriceDisplay(); }));
+  grid.querySelectorAll("[data-mqcream]").forEach(b => b.addEventListener("click", () => { mq.cream = b.dataset.mqcream; renderShopPicker(); updateLivePriceDisplay(); }));
   { const sel = document.getElementById("mqWork"); if (sel) sel.addEventListener("change", () => { mq.work = sel.value; renderShopPicker(); }); }
 }
 // ===== カットケーキも一緒に（1個から。2026-11-07オーナー指示）：デコレーション・オーダー・ロールケーキと一緒のとき =====
@@ -2413,7 +2439,7 @@ function buildShopReservation(base) {
   d.priceNeedsConsult = false;
   d.estimateLines = []; d.estimateNotes = [];
   if (m === "multi") {
-    const rolls = mqSel("roll"), cuts = mqSel("cut"), extra = [];
+    const rolls = mqSel("roll"), cuts = mqSel("cut"), bakes = mqSel("baked").concat(mqSel("gift")), extra = [];
     const ex = (x) => ({ category: x.category, name: x.name, qty: x.qty, price: x.price || 0 });
     d.multiOrder = true;
     d.subtotal = t.subtotal;
@@ -2426,8 +2452,14 @@ function buildShopReservation(base) {
       if (w) d.galleryPick = { name: "オーダーメイド作品 No." + String(w.no).padStart(2, "0") + (staffWorkTitle(w.g) ? "（" + staffWorkTitle(w.g) + "）" : ""), productType: "decorationCake", size: mq.size || "", price: "", img: w.g.img || "" };
       d.detailPending = true; // 詳しい内容は後で（管理画面の「詳細・変更」で入れて確定すると外れる）
       d.decideLater = ["ケーキの詳しい内容（飾り・プレート・ろうそくなど。ろうそく1袋・プレート1枚は無料）"];
-      d.priceNeedsConsult = true; d.priceIsFixed = false;
-      rolls.concat(cuts).forEach(x => extra.push(ex(x)));
+      d.priceIsFixed = false;
+      // デコレーションケーキは号数とクリームで基本の値段を入れる（2026-11-22）。分からない時（オーダー・料金表に無い号数）は今までどおり要確認
+      const deco = mqDecoBase();
+      if (deco) {
+        d.estimateLines = [{ label: "デコレーションケーキ " + mq.size + " " + (mq.cream || "生クリーム") + "（基本）", amount: deco, range: !mq.cream }];
+        d.estimateNotes = ["飾り・プレートの追加などは、詳しい内容が決まってから"];
+      } else d.priceNeedsConsult = true;
+      rolls.concat(cuts, bakes).forEach(x => extra.push(ex(x)));
     } else if (rolls.length) {
       d.type = "デコレーションケーキ予約";
       const r0 = rolls[0];
@@ -2435,11 +2467,16 @@ function buildShopReservation(base) {
       // ロールケーキもホールケーキと同じく、ろうそく・プレートは後で入れる（1本ごとに各1セット無料。2026-11-21オーナー指示）。
       // 金額は決まっているので detailPending（詳細未定）にはしない。「詳細・変更」でろうそくかプレートを入れて確定すると外れる
       d.decideLater = ["ろうそく・プレート（1本ごとに各1セット無料）"];
-      rolls.slice(1).concat(cuts).forEach(x => extra.push(ex(x)));
+      rolls.slice(1).concat(cuts, bakes).forEach(x => extra.push(ex(x)));
+    } else if (!cuts.length && bakes.length) {
+      // 焼き菓子・ギフトだけ（2026-11-22）：お客様のWeb予約の「焼き菓子予約」と同じ種別で、商品ごとに1行
+      d.type = "焼き菓子予約";
+      d.items = bakes.map(c => ({ category: BAKED_GOODS_CATEGORY, image: /^https?:/.test(c.img || "") ? c.img : "", size: "", flavor: c.name, qty: c.qty, price: c.price, message: "" }));
     } else {
       d.type = "カットケーキ予約";
       d.items = cuts.map(c => ({ category: "カットケーキ", image: c.img, size: "", flavor: c.name, qty: c.qty, price: c.price, message: "" }));
       d.cutOrder = { count: cuts.reduce((a, c) => a + c.qty, 0) };
+      bakes.forEach(x => extra.push(ex(x)));
     }
     if (extra.length) d.extraItems = extra;
     return d;
@@ -3124,6 +3161,8 @@ const bakedReservable = { baked: false, gift: false };
   const v = snap.val();
   // 販売方法は複数選択（saleModes）。以前の1つだけの形（saleMode）も読む
   const modesOf = (it) => { const raw = it.saleModes; const a = Array.isArray(raw) ? raw : raw && typeof raw === "object" ? Object.values(raw) : []; return a.length ? a : (it.saleMode ? [it.saleMode] : []); };
+  bakedRaw[k] = Array.isArray(v) ? v : (v ? Object.values(v) : []); // スタッフの「まとめて受付」の焼き菓子・ギフト欄（2026-11-22）
+  try { if (shopMode() === "multi") renderShopPicker(); } catch (e) {}
   bakedReservable[k] = (Array.isArray(v) ? v : (v ? Object.values(v) : [])).some((it) => it && it.name && it.visible !== false && !it.notForSale && modesOf(it).includes("reserve"));
   const ok = bakedReservable.baked || bakedReservable.gift;
   const lab = document.getElementById("reserveTypeBakedOpt"), r = lab && lab.querySelector("input");
@@ -3598,7 +3637,7 @@ function validateReserve(data) {
     { const mw = document.getElementById("reserveMousseFlavorWrap"); setReserveError("reserveMousseFlavorError", ""); if (!isBaked && !isRoll && mw && mw.style.display !== "none" && !document.querySelector('input[name="reserveMousseFlavor"]:checked')) { setReserveError("reserveMousseFlavorError", "グランマニエの種類（イチゴBOX・チョコBOX）をお選びください"); ok = false; } }
     if (!isBaked && !isRoll && !data.decoration) { setReserveError("reserveDecorationError", "飾り付けをお選びください"); ok = false; }
     if (!isBaked && data.candleNeeded && !(data.candleNumbers || []).length && !(Number(data.candlePlainBags) > 0)) { setReserveError("reserveCandleError", "ろうそくの番号か、普通のろうそくの袋数をお選びください"); ok = false; }
-    if (data.type === "焼き菓子予約" && !data.note.trim()) { setReserveError("reserveNoteError", "ご希望の商品をご記入ください"); ok = false; }
+    if (data.type === "焼き菓子予約" && !data.multiOrder && !data.note.trim()) { setReserveError("reserveNoteError", "ご希望の商品をご記入ください"); ok = false; }
     if (!data.pickupDate) { setReserveError("reserveDateError", "引き取り希望日をご入力ください"); ok = false; }
     else {
       const today = new Date(); today.setHours(0,0,0,0);
