@@ -867,8 +867,8 @@ import { initializeAuth, browserLocalPersistence, onAuthStateChanged } from "htt
 const LIFF_ID = "2011059940-hMTBZaUz";
 // 電話受付モード（スタッフ用。2026-10-22）：member.html?phone=1。管理画面でログインしたスタッフだけが使える
 const PHONE_MODE = new URLSearchParams(location.search).get("phone") === "1";
-// まとめて受付・カットケーキも一緒に（2026-11-07）。お客様へのLINEの控え（サーバー側）の対応をデプロイしてから true にする。?multi=1 は試験用
-const MULTI_ORDER_LIVE = false || new URLSearchParams(location.search).get("multi") === "1";
+// まとめて受付・カットケーキも一緒に（2026-11-07）。2026-11-24 サーバー側（通知・お知らせ・LINE・メール）を反映して本番で公開（オーナー承認）。出すのはスタッフの電話受付モードだけ
+const MULTI_ORDER_LIVE = true;
 // ===== 予約フォームの段階表示（2026-10-26 試作・第1段階）=====
 // 手順書：company/operations/product/koimari-reserve-form-redesign-procedure_20261026.md。
 // ?ui=step のとき（標準は下の「番号付きの1ページ」）。
