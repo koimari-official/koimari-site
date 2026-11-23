@@ -2164,7 +2164,7 @@ function shopCutCatalog() {
 }
 // ===== まとめて受付（電話・店頭のスタッフ用。2026-11-07オーナー指示） =====
 // お客様が言った順に＋を押すだけ。ロールケーキ・カットケーキは何種類でも。デコレーション／オーダーケーキは1件に1台で、詳しい内容は後で（予約一覧の「詳細・変更」）
-const mq = { roll: {}, cut: {}, baked: {}, gift: {}, cake: "", size: "", cream: "", work: "", kind: "" };
+const mq = { roll: {}, cut: {}, baked: {}, gift: {}, cake: "", size: "", cream: "", work: "", kind: "", open: "" };
 // デコレーションケーキの種類（2026-11-24オーナー指示：まとめて受付でも種類を並べて選ぶ）。ギャラリーの定番デコ（No.D）と同じ一覧
 let mqDecoKinds = null;
 function mqKindPick() { return (mqDecoKinds || []).find(k => String(k.idx) === String(mq.kind)) || null; }
@@ -2259,11 +2259,18 @@ function renderMultiPicker(grid, label, notice, status, box) {
     cake += '<div class="mq-label">号数' + (mq.cake === "order" ? "（分かれば）" : "") + '</div><div class="mq-chips">' + MQ_SIZES.map(z => chip("data-mqsize", z, mq.size === z)).join("") + "</div>";
     if (mq.cake === "deco") cake += '<div class="mq-label">クリーム</div><div class="mq-chips">' + MQ_CREAMS.map(c => chip("data-mqcream", c, mq.cream === c)).join("") + chip("data-mqcream", "", !mq.cream, "あとで決める") + "</div>";
   }
-  grid.innerHTML = '<div class="mq-sec"><div class="mq-sec__title">ロールケーキ</div>' + rowsOf("roll", rolls) + "</div>" +
-    '<div class="mq-sec"><div class="mq-sec__title">カットケーキ<span style="font-size:14px;font-weight:400;">（ほかのケーキと一緒なら1個から・カットケーキだけなら3個から）</span></div>' + rowsOf("cut", cuts) + "</div>" +
-    '<div class="mq-sec"><div class="mq-sec__title">焼き菓子</div>' + rowsOf("baked", cats.baked) + "</div>" +
-    '<div class="mq-sec"><div class="mq-sec__title">ギフト</div>' + rowsOf("gift", cats.gift) + "</div>" +
-    '<div class="mq-sec"><div class="mq-sec__title">デコレーション・オーダーケーキ（1台）</div>' + cake + "</div>";
+  // カテゴリーを先に選び、選んだカテゴリーの商品だけを出す（2026-11-24オーナー指示）。選んだ数はカテゴリーのボタンに出す
+  const nOf = (k) => Object.values(mq[k] || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+  const MQ_TABS = [["roll", "ロールケーキ"], ["cut", "カットケーキ"], ["baked", "焼き菓子"], ["gift", "ギフト"], ["cake", "デコレーション・オーダー"]];
+  const tabs = '<div class="mq-label">カテゴリーを選んでください</div><div class="mq-chips">' + MQ_TABS.map(([k, t]) => { const n = k === "cake" ? (mq.cake ? 1 : 0) : nOf(k); return chip("data-mqopen", k, mq.open === k, t + (n ? "（" + n + "）" : "")); }).join("") + "</div>";
+  const secs = {
+    roll: '<div class="mq-sec"><div class="mq-sec__title">ロールケーキ</div>' + rowsOf("roll", rolls) + "</div>",
+    cut: '<div class="mq-sec"><div class="mq-sec__title">カットケーキ<span style="font-size:14px;font-weight:400;">（ほかのケーキと一緒なら1個から・カットケーキだけなら3個から）</span></div>' + rowsOf("cut", cuts) + "</div>",
+    baked: '<div class="mq-sec"><div class="mq-sec__title">焼き菓子</div>' + rowsOf("baked", cats.baked) + "</div>",
+    gift: '<div class="mq-sec"><div class="mq-sec__title">ギフト</div>' + rowsOf("gift", cats.gift) + "</div>",
+    cake: '<div class="mq-sec"><div class="mq-sec__title">デコレーション・オーダーケーキ（1台）</div>' + cake + "</div>",
+  };
+  grid.innerHTML = tabs + (secs[mq.open] || "");
   const t = mqTotal();
   const sum = t.lines.map(x => esc2(x.name) + " × " + x.qty).concat(mq.cake ? [esc2(mqCakeLine())] : []);
   status.innerHTML = sum.length ? '<div class="mq-sum">ご注文：<br>' + sum.join("<br>") + "<br>合計 <b>" + t.count + "点</b>　" + esc2(mqPriceText(t)) + "</div>" : '<div class="mq-sum">＋を押すと、ここにご注文のまとめが出ます（最後に読み上げて確認してください）</div>';
@@ -2273,6 +2280,7 @@ function renderMultiPicker(grid, label, notice, status, box) {
     mq[kind][c.name] = Math.max(0, Math.min(50, (mq[kind][c.name] || 0) + Number(b.dataset.d)));
     renderShopPicker(); updateLivePriceDisplay();
   }));
+  grid.querySelectorAll("[data-mqopen]").forEach(b => b.addEventListener("click", () => { mq.open = mq.open === b.dataset.mqopen ? "" : b.dataset.mqopen; renderShopPicker(); }));
   grid.querySelectorAll("[data-mqcake]").forEach(b => b.addEventListener("click", () => { mq.cake = b.dataset.mqcake; if (!mq.cake) { mq.size = ""; mq.cream = ""; mq.work = ""; } if (mq.cake !== "deco") { mq.cream = ""; mq.kind = ""; } if (mq.cake !== "order") mq.work = ""; renderShopPicker(); updateLivePriceDisplay(); }));
   grid.querySelectorAll("[data-mqsize]").forEach(b => b.addEventListener("click", () => { mq.size = mq.size === b.dataset.mqsize && mq.cake === "order" ? "" : b.dataset.mqsize; renderShopPicker(); updateLivePriceDisplay(); }));
   grid.querySelectorAll("[data-mqcream]").forEach(b => b.addEventListener("click", () => { mq.cream = b.dataset.mqcream; const k = mqKindPick(); if (k && (k.c.spec || {}).cream !== mq.cream) mq.kind = ""; renderShopPicker(); updateLivePriceDisplay(); }));
