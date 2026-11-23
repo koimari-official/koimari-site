@@ -1,5 +1,5 @@
 name: build-static
-# 公開データ（商品・作例）から catalog.html / llms.txt / メニュー構造化データを自動更新する。価格は載せない。
+# 公開データ（商品・作例・よくあるご質問）から catalog.html / llms.txt / メニュー構造化データ / faq.html の静的Q&A・FAQPage構造化データを自動更新する。価格は載せない。
 on:
   schedule:
     - cron: "*/30 * * * *"
@@ -20,10 +20,10 @@ jobs:
       - run: node tools/build-static.mjs
       - name: 差分があるときだけコミット
         run: |
-          if [ -n "$(git status --porcelain catalog.html llms.txt index.html sitemap.xml)" ]; then
+          if [ -n "$(git status --porcelain catalog.html llms.txt index.html sitemap.xml faq.html)" ]; then
             git config user.name "koimari-bot"
             git config user.email "actions@users.noreply.github.com"
-            git add catalog.html llms.txt index.html sitemap.xml
+            git add catalog.html llms.txt index.html sitemap.xml faq.html
             git commit -m "auto: 商品一覧・構造化データを更新"
             git push
           fi

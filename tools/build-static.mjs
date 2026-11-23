@@ -204,6 +204,52 @@ async function writeIfChanged(rel, content) {
   return true;
 }
 
+// ===== よくあるご質問（faq.html）=====
+// 管理画面で編集した koimariContent/faq を、faq.html の初期HTML（マーカーの間）と FAQPage 構造化データに書き出す。
+// 画面ではこれまでどおり JS が最新データで描き直す（描き直すときに静的な中身は消えるので、二重には出ない）。
+// 値段（円・¥）を含む答えは、静的HTML・構造化データに入れない（価格はWebに新規公開しない：Muse引継ぎ記録 §5）。画面には出る
+const PRICE_RE = /[0-9０-９][0-9０-９,，]*\s*円|[¥￥]\s*[0-9０-９]/;
+const faqText = (s) => String(s ?? "").replace(/<\s*br\s*\/?\s*>/gi, "\n").replace(/<[^>]*>/g, "").trim();
+function replaceBetween(html, start, end, inner, file) {
+  const a = html.indexOf(start);
+  const b = html.indexOf(end);
+  if (a < 0 || b < a) throw new Error(`${file} に ${start} のマーカーがありません`);
+  return html.slice(0, a) + start + inner + html.slice(b);
+}
+async function buildFaq() {
+  const data = await fetchJson(`${DB}/koimariContent/faq.json`);
+  const cats = (Array.isArray(data) ? data : Object.values(data || {})).filter((c) => c && c.category);
+  const warnings = [];
+  const out = [];
+  let skipped = 0;
+  for (const c of cats) {
+    const items = (Array.isArray(c.items) ? c.items : Object.values(c.items || {}))
+      .map((it) => ({ q: faqText(it && it.q), a: faqText(it && it.a) }))
+      .filter((it) => it.q && it.a);
+    const ok = items.filter((it) => { if (PRICE_RE.test(it.q + it.a)) { skipped++; return false; } return true; });
+    items.forEach((it) => { if (/ハロウィン/.test(it.q + it.a)) warnings.push("FAQに季節が過ぎた可能性のある質問: " + it.q); });
+    if (ok.length) out.push({ category: plain(c.category), items: ok });
+  }
+  const count = out.reduce((n, c) => n + c.items.length, 0);
+  if (count < 5) throw new Error("FAQの公開数が少なすぎる（" + count + "件）。取得の異常とみなして中止");
+  const staticHtml = out.map((c) =>
+    `<section class="faq-cat"><h2 class="faq-cat__title">${esc(c.category)}</h2>` +
+    c.items.map((it) => `<div class="faq-item open"><div class="faq-item__q">${esc(it.q)}</div><div class="faq-item__a">${esc(it.a).replace(/\n/g, "<br>")}</div></div>`).join("") +
+    `</section>`).join("\n");
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    url: SITE + "faq.html",
+    mainEntity: out.flatMap((c) => c.items.map((it) => ({ "@type": "Question", name: it.q, acceptedAnswer: { "@type": "Answer", text: it.a } }))),
+  };
+  let html = await readFile(path.join(ROOT, "faq.html"), "utf8");
+  html = replaceBetween(html, "<!--AUTO:FAQ-STATIC-START-->", "<!--AUTO:FAQ-STATIC-END-->", "\n" + staticHtml + "\n", "faq.html");
+  html = replaceBetween(html, "<!--AUTO:FAQ-JSONLD-START-->", "<!--AUTO:FAQ-JSONLD-END-->", `\n<script type="application/ld+json" id="koimari-faq-jsonld">${jsonForHtml(jsonLd)}</script>\n`, "faq.html");
+  for (const c of out) for (const it of c.items) if (!html.includes(esc(it.q))) throw new Error("FAQの質問が書き出し結果に入っていません: " + it.q);
+  console.log(`FAQ：静的に出した質問 ${count}件／値段を含むため静的には出さなかった質問 ${skipped}件`);
+  return { changed: await writeIfChanged("faq.html", html), warnings };
+}
+
 async function main() {
   const sections = [];
   let hiddenCount = 0;
@@ -263,6 +309,11 @@ async function main() {
     if (!re.test(sm)) throw new Error("sitemap.xml に catalog.html の行がありません");
     if (await writeIfChanged("sitemap.xml", sm.replace(re, `$1${today}$2`))) changed.push("sitemap.xml");
   }
+
+  // faq.html の静的Q&A＋FAQPage構造化データ（2026-11-23・Muse「SEO/MEO/AIO全面更新」§9-4）
+  const faqResult = await buildFaq();
+  if (faqResult.changed) changed.push("faq.html");
+  faqResult.warnings.forEach((w) => warnings.push(w));
 
   console.log("カテゴリー別の公開数：" + sections.map((s) => `${s.label} ${s.items.length}`).join(" / "));
   console.log(`出さなかったもの（非表示・写真なし等）：${hiddenCount}件`);
