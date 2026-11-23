@@ -2164,7 +2164,11 @@ function shopCutCatalog() {
 }
 // ===== まとめて受付（電話・店頭のスタッフ用。2026-11-07オーナー指示） =====
 // お客様が言った順に＋を押すだけ。ロールケーキ・カットケーキは何種類でも。デコレーション／オーダーケーキは1件に1台で、詳しい内容は後で（予約一覧の「詳細・変更」）
-const mq = { roll: {}, cut: {}, baked: {}, gift: {}, cake: "", size: "", cream: "", work: "" };
+const mq = { roll: {}, cut: {}, baked: {}, gift: {}, cake: "", size: "", cream: "", work: "", kind: "" };
+// デコレーションケーキの種類（2026-11-24オーナー指示：まとめて受付でも種類を並べて選ぶ）。ギャラリーの定番デコ（No.D）と同じ一覧
+let mqDecoKinds = null;
+function mqKindPick() { return (mqDecoKinds || []).find(k => String(k.idx) === String(mq.kind)) || null; }
+function mqKindName(k) { return String((k && k.c && k.c.name) || "").replace(/<[^>]*>/g, ""); }
 // 焼き菓子・ギフト（2026-11-22オーナー指示：オーダーケーキ以外の全メニューを、予約の時に値段つきで入れられるように）。
 // スタッフの受付では、HPの「販売方法」に関係なく選べる（お客様のWeb予約で出すかどうかは「販売方法」の「ご予約可」のまま）。
 // 値段は 原価計算アプリの販売価格（価格の元 → 商品名）→ 商品の「価格」欄
@@ -2211,7 +2215,7 @@ function mqSel(kind) {
 }
 function mqWorkPick() { return (mqWorks || []).find(w => String(w.no) === String(mq.work)) || null; }
 function mqCakeLine() {
-  if (mq.cake === "deco") { const b = mqDecoBase(); return "デコレーションケーキ" + (mq.size ? " " + mq.size : "") + (mq.cream ? " " + mq.cream : "") + (b ? " ¥" + b.toLocaleString() + (mq.cream ? "" : "〜") + "（税込）" : "") + "（詳しい内容は後で）"; }
+  if (mq.cake === "deco") { const b = mqDecoBase(), k = mqKindPick(); return "デコレーションケーキ" + (k ? " " + staffCakeNo(k.c.no) + " " + mqKindName(k) : "") + (mq.size ? " " + mq.size : "") + (mq.cream ? " " + mq.cream : "") + (b ? " ¥" + b.toLocaleString() + (mq.cream ? "" : "〜") + "（税込）" : "") + "（詳しい内容は後で）"; }
   if (mq.cake === "order") { const w = mqWorkPick(); return (w ? "オーダーメイド作品 No." + String(w.no).padStart(2, "0") + (staffWorkTitle(w.g) ? "（" + staffWorkTitle(w.g) + "）" : "") : "オーダーケーキ（作品No.未選択）") + (mq.size ? " " + mq.size : "") + "（詳しい内容は後で）"; }
   return "";
 }
@@ -2232,6 +2236,7 @@ function mqPriceText(t) {
 function renderMultiPicker(grid, label, notice, status, box) {
   label.innerHTML = 'まとめて受付<span class="req-mark">必須</span>';
   notice.innerHTML = box("お客様が言った順に、商品の<b>＋</b>を押してください。<b>ロールケーキ・カットケーキ・焼き菓子・ギフトは何種類でも</b>入れられます。<br>デコレーション・オーダーケーキは<b>1件に1台</b>です（2台目は、登録のあとの「同じお客様でもう1件」から）。<br>飾り・プレート・ろうそくなどの<b>詳しい内容は、あとで</b>予約一覧の「詳細・変更」から入れられます。<br><b>ホールケーキ・ロールケーキ</b>には、1台（1本）ごとに<b>ろうそく1袋（5本入）とメッセージプレート1枚を無料</b>でお付けします。");
+  if (!mqDecoKinds) { mqDecoKinds = []; loadStaffGalleryItems().then(a => { mqDecoKinds = a || []; if (shopMode() === "multi") renderShopPicker(); }).catch(() => {}); }
   if (!mqWorks) { mqWorks = []; loadStaffWorkItems().then(w => { mqWorks = w || []; if (shopMode() === "multi") renderShopPicker(); }).catch(() => {}); }
   const esc2 = (x) => escape(String(x == null ? "" : x));
   const rowsOf = (kind, list) => list.length ? list.map((c, i) => {
@@ -2246,6 +2251,9 @@ function renderMultiPicker(grid, label, notice, status, box) {
   if (mq.cake === "order") {
     cake += '<div class="mq-label">作品No.</div><select id="mqWork" class="input select" style="font-size:18px;padding:12px;"><option value="">' + (mqWorks && mqWorks.length ? "選んでください" : "読み込み中…") + "</option>" +
       (mqWorks || []).map(w => '<option value="' + w.no + '"' + (String(w.no) === String(mq.work) ? " selected" : "") + ">作品No." + String(w.no).padStart(2, "0") + "　" + esc2(staffWorkTitle(w.g) || "（作品名なし）") + "</option>").join("") + "</select>";
+  }
+  if (mq.cake === "deco") {
+    cake += '<div class="mq-label">種類（ギャラリーの番号）</div><div class="mq-chips">' + (mqDecoKinds && mqDecoKinds.length ? mqDecoKinds.map(k => chip("data-mqkind", String(k.idx), String(mq.kind) === String(k.idx), staffCakeNo(k.c.no).replace("No.", "") + " " + mqKindName(k))).join("") : '<span class="field__hint">読み込み中…</span>') + chip("data-mqkind", "", !mq.kind, "あとで決める・ほかの種類") + "</div>";
   }
   if (mq.cake) {
     cake += '<div class="mq-label">号数' + (mq.cake === "order" ? "（分かれば）" : "") + '</div><div class="mq-chips">' + MQ_SIZES.map(z => chip("data-mqsize", z, mq.size === z)).join("") + "</div>";
@@ -2265,9 +2273,15 @@ function renderMultiPicker(grid, label, notice, status, box) {
     mq[kind][c.name] = Math.max(0, Math.min(50, (mq[kind][c.name] || 0) + Number(b.dataset.d)));
     renderShopPicker(); updateLivePriceDisplay();
   }));
-  grid.querySelectorAll("[data-mqcake]").forEach(b => b.addEventListener("click", () => { mq.cake = b.dataset.mqcake; if (!mq.cake) { mq.size = ""; mq.cream = ""; mq.work = ""; } if (mq.cake !== "deco") mq.cream = ""; if (mq.cake !== "order") mq.work = ""; renderShopPicker(); updateLivePriceDisplay(); }));
+  grid.querySelectorAll("[data-mqcake]").forEach(b => b.addEventListener("click", () => { mq.cake = b.dataset.mqcake; if (!mq.cake) { mq.size = ""; mq.cream = ""; mq.work = ""; } if (mq.cake !== "deco") { mq.cream = ""; mq.kind = ""; } if (mq.cake !== "order") mq.work = ""; renderShopPicker(); updateLivePriceDisplay(); }));
   grid.querySelectorAll("[data-mqsize]").forEach(b => b.addEventListener("click", () => { mq.size = mq.size === b.dataset.mqsize && mq.cake === "order" ? "" : b.dataset.mqsize; renderShopPicker(); updateLivePriceDisplay(); }));
-  grid.querySelectorAll("[data-mqcream]").forEach(b => b.addEventListener("click", () => { mq.cream = b.dataset.mqcream; renderShopPicker(); updateLivePriceDisplay(); }));
+  grid.querySelectorAll("[data-mqcream]").forEach(b => b.addEventListener("click", () => { mq.cream = b.dataset.mqcream; const k = mqKindPick(); if (k && (k.c.spec || {}).cream !== mq.cream) mq.kind = ""; renderShopPicker(); updateLivePriceDisplay(); }));
+  // 種類を選ぶと、その種類のクリームと参考の号数を入れる（号数は後から変えられる）
+  grid.querySelectorAll("[data-mqkind]").forEach(b => b.addEventListener("click", () => {
+    mq.kind = b.dataset.mqkind; const k = mqKindPick(), sp = (k && k.c.spec) || {};
+    if (k) { if (sp.cream) mq.cream = sp.cream; const z = String(sp.size || "").match(/^(\d+号)/) || String(k.c.desc || "").match(/参考画像(\d+号)/); if (z && MQ_SIZES.includes(z[1])) mq.size = z[1]; }
+    renderShopPicker(); updateLivePriceDisplay();
+  }));
   { const sel = document.getElementById("mqWork"); if (sel) sel.addEventListener("change", () => { mq.work = sel.value; renderShopPicker(); }); }
 }
 // ===== カットケーキも一緒に（1個から。2026-11-07オーナー指示）：デコレーション・オーダー・ロールケーキと一緒のとき =====
@@ -2449,6 +2463,8 @@ function buildShopReservation(base) {
       d.items = [{ category: "デコレーションケーキ", image: "", size: MQ_SIZE_FULL[mq.size] || "", flavor: "", message: "" }];
       if (mq.cake === "deco" && mq.cream) d.creamType = mq.cream;
       const w = mq.cake === "order" ? mqWorkPick() : null;
+      const kp = mq.cake === "deco" ? mqKindPick() : null;
+      if (kp) { d.galleryPick = { name: mqKindName(kp), productType: "decorationCake", size: mq.size || "", price: "", img: kp.c.img || "", no: Number(kp.c.no) }; if (/^https?:/.test(kp.c.img || "")) d.items[0].image = kp.c.img; const sp = kp.c.spec || {}; if (sp.creamSub) d.creamTypeSub = sp.creamSub; if (sp.decoration) d.decoration = sp.decoration; }
       if (w) d.galleryPick = { name: "オーダーメイド作品 No." + String(w.no).padStart(2, "0") + (staffWorkTitle(w.g) ? "（" + staffWorkTitle(w.g) + "）" : ""), productType: "decorationCake", size: mq.size || "", price: "", img: w.g.img || "" };
       d.detailPending = true; // 詳しい内容は後で（管理画面の「詳細・変更」で入れて確定すると外れる）
       d.decideLater = ["ケーキの詳しい内容（飾り・プレート・ろうそくなど。ろうそく1袋・プレート1枚は無料）"];
@@ -2456,7 +2472,7 @@ function buildShopReservation(base) {
       // デコレーションケーキは号数とクリームで基本の値段を入れる（2026-11-22）。分からない時（オーダー・料金表に無い号数）は今までどおり要確認
       const deco = mqDecoBase();
       if (deco) {
-        d.estimateLines = [{ label: "デコレーションケーキ " + mq.size + " " + (mq.cream || "生クリーム") + "（基本）", amount: deco, range: !mq.cream }];
+        d.estimateLines = [{ label: "デコレーションケーキ " + (kp ? mqKindName(kp) + " " : "") + mq.size + (kp && mqKindName(kp).includes(mq.cream) ? "" : " " + (mq.cream || "生クリーム")) + "（基本）", amount: deco, range: !mq.cream }];
         d.estimateNotes = ["飾り・プレートの追加などは、詳しい内容が決まってから"];
       } else d.priceNeedsConsult = true;
       rolls.concat(cuts, bakes).forEach(x => extra.push(ex(x)));
