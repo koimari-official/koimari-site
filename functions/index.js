@@ -174,6 +174,23 @@ async function markAiReplySent(userId, now) {
     console.warn("lastAiReplyAt更新失敗:", err);
   }
 }
+// やり取りの途中はAIが黙る（2026-11-25オーナー指示）。スタッフが手で返事をしている最中に、
+// お客様の「ありがとうございます」等へ毎回AIが割り込んで会話が分かりにくくなっていたため。
+// お客様の前のメッセージから2時間以内なら「やり取りの途中」とみなしてAIは返さない（2時間あいた最初の1通にだけ返す）。
+// リッチメニューのボタン・予約のひも付け等の決まった返事は、この判定より前で毎回返す。
+const AI_CHAT_QUIET_MS = 2 * 60 * 60 * 1000;
+async function isMidConversation(userId, now) {
+  if (!userId) return false;
+  const ref = admin.database().ref(`koimariOps/lastCustomerMsgAt/${userId}`);
+  try {
+    const last = (await ref.once("value")).val();
+    await ref.set(now.getTime());
+    return !!last && now.getTime() - last < AI_CHAT_QUIET_MS;
+  } catch (err) {
+    console.warn("lastCustomerMsgAt取得失敗:", err);
+    return false;
+  }
+}
 // 会話の最初の1通にだけ添える、あいさつ+季節の一言（getSeasonCareLineと同じ、確定済みのトーンを流用）。
 // 「暑いのに/寒いのにすみません」という詫びではなく、温かみ・感謝を伝える方向（2026-08-19確定分針を踏襲）。
 function buildChatGreetingPrefix(now) {
@@ -596,6 +613,7 @@ exports.lineWebhook = onRequest(
         ]);
         const now = new Date();
         const userId = (event.source && event.source.userId) || null;
+        if (await isMidConversation(userId, now)) continue; // やり取りの途中はAIは返さない（2026-11-25）
         const todayStatus = computeTodayStatus(holidaysSnap.val(), now);
         const faqKnowledgeText = buildFaqKnowledgeText(faqSnap.val());
         // 大量のメッセージでAIの利用料を使われないよう、1人あたりの回数を制限する（2026-10-23）
@@ -632,10 +650,10 @@ exports.lineWebhook = onRequest(
 // 15分おきに全予約を確認し、各リマインダー段階の時間帯に入った未送信のものへLINEプッシュメッセージを送る。
 // 「4日以上前に予約した人だけ3日前通知が届く」は、3日前の時点でその予約がまだ存在しない
 // （まだ予約していない）人には自然に届かないため、時間帯判定だけで意図通りになる。
+// 2026-11-25オーナー指示：前日（24時間前）の1回だけにする。3日前・1時間前はやめた
+// （LINEの無料通数が月200通のため。12月のクリスマス予約で上限に届かないように）。文面の関数は残してある。
 const REMINDER_STAGES = [
-  { key: "threeDay", minHours: 66, maxHours: 78 },
   { key: "oneDay", minHours: 20, maxHours: 28 },
-  { key: "oneHour", minHours: 0, maxHours: 2 },
 ];
 // いま送るリマインダーの段階（2026-10-24）。送信済みの印（reminderSent/段階）は「どの日時に向けて送ったか」で持つ。
 // お引き取り日時が変わったら、新しい日時に向けて送り直す（以前は true だけで、日時を変えた後の案内が届かなかった）。
@@ -1893,7 +1911,7 @@ const COUPON_TRIGGER_TEXT = "クーポンについて教えてください";
 // koimariOps/richMenuIds/version と一致しなくなった時点でensureRichMenuが自動的に
 // 作り直す（画像だけ差し替えてこの値を更新し忘れると、古いデザインのままになる）。
 // 詳しい変更手順は assets/richmenu-src/README.md を参照。
-const RICHMENU_VERSION = "2026-10-08-shop-page-v1";
+const RICHMENU_VERSION = "2026-11-25-newlogo-gmap-v1";
 
 async function lineApi(method, url, accessToken, body, isBinary) {
   const headers = { Authorization: `Bearer ${accessToken}` };
@@ -1921,7 +1939,8 @@ const RICHMENU_AREAS = [
   { bounds: { x: 1667, y: 0, width: 833, height: 843 }, action: { type: "uri", uri: GALLERY_URL } },
   { bounds: { x: 0, y: 843, width: 833, height: 843 }, action: { type: "message", text: COUPON_TRIGGER_TEXT } },
   { bounds: { x: 833, y: 843, width: 834, height: 843 }, action: { type: "uri", uri: SHOP_INFO_URL } },
-  { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "message", text: STAMP_CARD_TRIGGER_TEXT } },
+  // 2026-11-25オーナー指示：工事中のスタンプカードをやめ「Googleマップ 口コミ」（地図ピンの絵・Googleマップの店舗ページ）に。店舗情報の絵は新ロゴに
+  { bounds: { x: 1667, y: 843, width: 833, height: 843 }, action: { type: "uri", uri: STORE_MAP_URL } },
 ];
 
 // リッチメニューが未設定、デザインのバージョンが古い、または旧仕様(2分割/3分割切替)のものが
