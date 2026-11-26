@@ -9546,6 +9546,7 @@ function initCakeSizePricesPanel() {
   if (saveBtn && !saveBtn.dataset.bound) {
     saveBtn.dataset.bound = "1";
     saveBtn.addEventListener("click", () => {
+      if (document.body.classList.contains("store-mode")) { showToast("店舗用アカウントでは単価を変更できません", "error"); return; } // 2026-11-26
       const changes = priceTableChangeSummary();
       if (!changes.length) { showToast("書き換えた単価はありません"); return; }
       if (!confirm("次の単価を変更します。よろしいですか？\n\n" + changes.join("\n"))) return;
@@ -9758,6 +9759,14 @@ function applyStoreMode() {
       ".store-mode #cfSavePrices,.store-mode #cfPricesSavedNote,.store-mode #optPhotoAdmin,.store-mode #panel-priceTable .cost-app-link{display:none!important}.store-mode #panel-priceTable input,.store-mode #panel-priceTable select,.store-mode #panel-priceTable textarea,.store-mode #panel-priceTable button{pointer-events:none;background:transparent}.store-mode #panel-priceTable .pt-store-ro{display:block!important}.store-mode #panel-priceTable .panel__desc{display:none!important}" +
       "#storeMoreToggle{border:1px dashed var(--color-line);background:transparent;border-radius:999px;padding:6px 14px;margin:4px 6px;font-size:13px;color:var(--color-text-soft);cursor:pointer}";
     document.head.appendChild(st);
+  }
+  // 料金表は見るだけ：入力欄をすべて無効にする。表を作り直したときも無効のまま（2026-11-26オーナー指示「間違って書き換えない仕様に」）
+  const ptPanel = document.getElementById("panel-priceTable");
+  if (ptPanel && !ptPanel.dataset.storeLocked) {
+    ptPanel.dataset.storeLocked = "1";
+    const lockPt = () => ptPanel.querySelectorAll("input,select,textarea,button").forEach((el) => { if (!el.disabled) el.disabled = true; });
+    lockPt();
+    new MutationObserver(lockPt).observe(ptPanel, { childList: true, subtree: true });
   }
   const notifyTab = document.querySelector('.tab[data-panel="notify"]');
   if (notifyTab && !document.getElementById("storeMoreToggle")) {
