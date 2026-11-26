@@ -1893,6 +1893,8 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
       <div id="ptTable"></div>
       <div id="optPhotoAdmin" style="margin:24px 0;"></div>
       <div style="position:sticky;bottom:0;background:var(--color-bg,#fff);padding:14px 0;border-top:1px solid var(--color-line);margin-top:10px;">
+        <span id="ptLockNote" style="font-size:13px;color:var(--color-text-soft);margin-right:10px;">間違って書き換えないよう、ふだんは鍵がかかっています。</span>
+        <button class="btn btn--ghost" id="ptEditToggle" type="button">単価を編集する</button>
         <button class="btn" id="cfSavePrices">保存して反映</button>
         <span id="cfPricesSavedNote" style="margin-left:14px;font-size:13px;color:var(--color-text-soft);"></span>
       </div>
@@ -9542,6 +9544,36 @@ function initCakeSizePricesPanel() {
     Object.keys(SO.multiTier).forEach((k, i) => { const s = {}; const p = n("cso_mt_" + i + "_price"), mn = n("cso_mt_" + i + "_min"), sf = n("cso_mt_" + i + "_soft"); if (p) s.price = p; if (mn) s.min = mn; if (sf) s.soft = sf; if (Object.keys(s).length) o.multiTier[k] = s; });
     return o;
   }
+  // 料金表の鍵（2026-11-26オーナー指示「間違って入力内容を書き換えない仕様に・編集ボタンを」）
+  // ふだんは全欄を無効。「単価を編集する」を押したときだけ書き換えられる。保存したら、またはやめたら鍵に戻る。店舗用アカウントは常に鍵（ボタンも出さない）
+  const ptPanelEl = document.getElementById("panel-priceTable");
+  if (ptPanelEl && !ptPanelEl.dataset.lockBound) {
+    ptPanelEl.dataset.lockBound = "1";
+    window.__ptEditing = false;
+    const lockFields = () => ptPanelEl.querySelectorAll("#ptTable input,#ptTable select,#ptTable textarea,#ptTable button,#optPhotoAdmin input,#optPhotoAdmin select,#optPhotoAdmin textarea,#optPhotoAdmin button");
+    window.ptApplyLock = () => {
+      const locked = !window.__ptEditing || document.body.classList.contains("store-mode");
+      lockFields().forEach((el) => { if (el.disabled !== locked) el.disabled = locked; });
+      const t = document.getElementById("ptEditToggle"), sv = document.getElementById("cfSavePrices"), ln = document.getElementById("ptLockNote");
+      const setText = (el, v) => { if (el && el.textContent !== v) el.textContent = v; }; // 同じ文字を入れ直すと監視が再発火して止まらなくなるため
+      setText(t, locked ? "単価を編集する" : "編集をやめる");
+      if (sv) sv.style.display = locked ? "none" : "";
+      setText(ln, locked ? "間違って書き換えないよう、ふだんは鍵がかかっています。" : "編集中です。書き換えたら「保存して反映」を押してください。");
+    };
+    window.ptSetEditing = (on) => { window.__ptEditing = !!on; window.ptApplyLock(); };
+    new MutationObserver(() => window.ptApplyLock()).observe(ptPanelEl, { childList: true, subtree: true });
+    const tg = document.getElementById("ptEditToggle");
+    if (tg) tg.addEventListener("click", () => {
+      if (!window.__ptEditing) { window.ptSetEditing(true); return; }
+      const changed = ptPanelEl.querySelectorAll("#ptTable .pt-input.pt-changed");
+      if (changed.length) {
+        if (!confirm("保存していない書き換えが" + changed.length + "か所あります。元の単価に戻して編集をやめますか？")) return;
+        changed.forEach((el) => { el.value = el.dataset.orig != null ? el.dataset.orig : el.value; el.classList.remove("pt-changed"); });
+      }
+      window.ptSetEditing(false);
+    });
+    window.ptApplyLock();
+  }
   const saveBtn = document.getElementById("cfSavePrices");
   if (saveBtn && !saveBtn.dataset.bound) {
     saveBtn.dataset.bound = "1";
@@ -9578,6 +9610,7 @@ function initCakeSizePricesPanel() {
         const note = document.getElementById("cfPricesSavedNote");
         if (note) { note.textContent = "保存しました（予約フォームに反映済み）"; setTimeout(() => { note.textContent = ""; }, 4000); }
         document.querySelectorAll("#ptTable .pt-input").forEach(el => { el.classList.remove("pt-changed"); el.dataset.orig = el.value; });
+        if (typeof window.ptSetEditing === "function") window.ptSetEditing(false); // 保存したら鍵に戻す
       }).catch(err => {
         console.warn("料金の保存失敗:", err);
         showToast("保存に失敗しました: " + (err && err.message ? err.message : String(err)), "error");
@@ -9756,18 +9789,11 @@ function applyStoreMode() {
     const not = STORE_MAIN_TABS.concat(STORE_MORE_TABS).map((p) => ":not([data-panel=" + p + "])").join("");
     st.textContent = ".store-mode .tab" + not + ",.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}" +
       STORE_MORE_TABS.map((p) => ".store-mode:not(.store-more-open) .tab[data-panel=" + p + "]").join(",") + "{display:none!important}" +
-      ".store-mode #cfSavePrices,.store-mode #cfPricesSavedNote,.store-mode #optPhotoAdmin,.store-mode #panel-priceTable .cost-app-link{display:none!important}.store-mode #panel-priceTable input,.store-mode #panel-priceTable select,.store-mode #panel-priceTable textarea,.store-mode #panel-priceTable button{pointer-events:none;background:transparent}.store-mode #panel-priceTable .pt-store-ro{display:block!important}.store-mode #panel-priceTable .panel__desc{display:none!important}" +
+      ".store-mode #cfSavePrices,.store-mode #cfPricesSavedNote,.store-mode #ptEditToggle,.store-mode #ptLockNote,.store-mode #optPhotoAdmin,.store-mode #panel-priceTable .cost-app-link{display:none!important}.store-mode #panel-priceTable input,.store-mode #panel-priceTable select,.store-mode #panel-priceTable textarea,.store-mode #panel-priceTable button{pointer-events:none;background:transparent}.store-mode #panel-priceTable .pt-store-ro{display:block!important}.store-mode #panel-priceTable .panel__desc{display:none!important}" +
       "#storeMoreToggle{border:1px dashed var(--color-line);background:transparent;border-radius:999px;padding:6px 14px;margin:4px 6px;font-size:13px;color:var(--color-text-soft);cursor:pointer}";
     document.head.appendChild(st);
   }
-  // 料金表は見るだけ：入力欄をすべて無効にする。表を作り直したときも無効のまま（2026-11-26オーナー指示「間違って書き換えない仕様に」）
-  const ptPanel = document.getElementById("panel-priceTable");
-  if (ptPanel && !ptPanel.dataset.storeLocked) {
-    ptPanel.dataset.storeLocked = "1";
-    const lockPt = () => ptPanel.querySelectorAll("input,select,textarea,button").forEach((el) => { if (!el.disabled) el.disabled = true; });
-    lockPt();
-    new MutationObserver(lockPt).observe(ptPanel, { childList: true, subtree: true });
-  }
+  if (typeof window.ptApplyLock === "function") window.ptApplyLock();
   const notifyTab = document.querySelector('.tab[data-panel="notify"]');
   if (notifyTab && !document.getElementById("storeMoreToggle")) {
     const btn = document.createElement("button"); btn.type = "button"; btn.id = "storeMoreToggle";
