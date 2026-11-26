@@ -1889,7 +1889,6 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-priceTable">
       <div class="panel__head"><h2 class="panel__title">料金表（単価）</h2></div>
       <p class="panel__desc">LINE予約フォームの自動見積もりに使っている<strong>現在の単価の一覧</strong>です（すべて税込）。数字を書き換えて「保存して反映」を押すと、予約フォームの見積もりに即時反映されます。書き換えた欄は黄色になり、保存前に変更内容を確認できます。</p>
-      <p class="pt-store-ro" style="display:none;font-weight:700;margin:6px 0 12px;">この画面は見るだけです。単価の変更はオーナー・マネージャーにお伝えください。</p>
       <div id="ptTable"></div>
       <div id="optPhotoAdmin" style="margin:24px 0;"></div>
       <div style="position:sticky;bottom:0;background:var(--color-bg,#fff);padding:14px 0;border-top:1px solid var(--color-line);margin-top:10px;">
@@ -9545,14 +9544,14 @@ function initCakeSizePricesPanel() {
     return o;
   }
   // 料金表の鍵（2026-11-26オーナー指示「間違って入力内容を書き換えない仕様に・編集ボタンを」）
-  // ふだんは全欄を無効。「単価を編集する」を押したときだけ書き換えられる。保存したら、またはやめたら鍵に戻る。店舗用アカウントは常に鍵（ボタンも出さない）
+  // ふだんは全欄を無効。「単価を編集する」を押したときだけ書き換えられる。保存したら、またはやめたら鍵に戻る。店舗用アカウントも同じ（オプション写真・原価計算アプリへのリンクは出さない）
   const ptPanelEl = document.getElementById("panel-priceTable");
   if (ptPanelEl && !ptPanelEl.dataset.lockBound) {
     ptPanelEl.dataset.lockBound = "1";
     window.__ptEditing = false;
     const lockFields = () => ptPanelEl.querySelectorAll("#ptTable input,#ptTable select,#ptTable textarea,#ptTable button,#optPhotoAdmin input,#optPhotoAdmin select,#optPhotoAdmin textarea,#optPhotoAdmin button");
     window.ptApplyLock = () => {
-      const locked = !window.__ptEditing || document.body.classList.contains("store-mode");
+      const locked = !window.__ptEditing; // 店舗用アカウントも編集ボタンで変更できる（2026-11-26オーナー指示）
       lockFields().forEach((el) => { if (el.disabled !== locked) el.disabled = locked; });
       const t = document.getElementById("ptEditToggle"), sv = document.getElementById("cfSavePrices"), ln = document.getElementById("ptLockNote");
       const setText = (el, v) => { if (el && el.textContent !== v) el.textContent = v; }; // 同じ文字を入れ直すと監視が再発火して止まらなくなるため
@@ -9578,7 +9577,6 @@ function initCakeSizePricesPanel() {
   if (saveBtn && !saveBtn.dataset.bound) {
     saveBtn.dataset.bound = "1";
     saveBtn.addEventListener("click", () => {
-      if (document.body.classList.contains("store-mode")) { showToast("店舗用アカウントでは単価を変更できません", "error"); return; } // 2026-11-26
       const changes = priceTableChangeSummary();
       if (!changes.length) { showToast("書き換えた単価はありません"); return; }
       if (!confirm("次の単価を変更します。よろしいですか？\n\n" + changes.join("\n"))) return;
@@ -9773,7 +9771,7 @@ function initQuoteBuilder() {
 
 const STORE_ACCOUNTS = ["sankyu00002@gmail.com"];
 // 店舗アカウントでいつも出すタブと、「その他の設定」を開いたときだけ出すタブ（2026-10-27・10-28オーナー指示）
-const STORE_MAIN_TABS = ["reservations", "kitchen", "calendar", "notify", "storeGallery", "priceTable"]; // 料金表（単価）は見るだけ（2026-11-26オーナー指示）
+const STORE_MAIN_TABS = ["reservations", "kitchen", "calendar", "notify", "storeGallery", "priceTable"]; // 料金表（単価）：店舗用も「単価を編集する」で変更できる（2026-11-26オーナー指示）
 // 旧：["reservations", "kitchen", "calendar", "notify", "storeGallery"] // ギャラリー（商品を見る）：予約を受けるとき・新商品の確認用（2026-10-28オーナー指示）
 // ギャラリーは開いたときに初めて読み込む（ほかの画面を使っている間は読み込まない）
 (function () {
@@ -9789,7 +9787,7 @@ function applyStoreMode() {
     const not = STORE_MAIN_TABS.concat(STORE_MORE_TABS).map((p) => ":not([data-panel=" + p + "])").join("");
     st.textContent = ".store-mode .tab" + not + ",.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}" +
       STORE_MORE_TABS.map((p) => ".store-mode:not(.store-more-open) .tab[data-panel=" + p + "]").join(",") + "{display:none!important}" +
-      ".store-mode #cfSavePrices,.store-mode #cfPricesSavedNote,.store-mode #ptEditToggle,.store-mode #ptLockNote,.store-mode #optPhotoAdmin,.store-mode #panel-priceTable .cost-app-link{display:none!important}.store-mode #panel-priceTable input,.store-mode #panel-priceTable select,.store-mode #panel-priceTable textarea,.store-mode #panel-priceTable button{pointer-events:none;background:transparent}.store-mode #panel-priceTable .pt-store-ro{display:block!important}.store-mode #panel-priceTable .panel__desc{display:none!important}" +
+      ".store-mode #optPhotoAdmin,.store-mode #panel-priceTable .cost-app-link{display:none!important}" +
       "#storeMoreToggle{border:1px dashed var(--color-line);background:transparent;border-radius:999px;padding:6px 14px;margin:4px 6px;font-size:13px;color:var(--color-text-soft);cursor:pointer}";
     document.head.appendChild(st);
   }

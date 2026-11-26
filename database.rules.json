@@ -181,6 +181,27 @@
       },
       "faq": {
         ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "cakeCutContainerFee": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "cakeCreamToppingPrice": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "cakeChocoCreamSurcharge": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "cakeCandleBagPriceNumber": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "cakeCandleBagPricePlain": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "cakeMessagePlatePrice": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
+      },
+      "cakeSpecOverrides": {
+        ".write": "auth != null && auth.token.koimariAdmin === 'store'"
       }
     },
     "aiReviewQueue": {
