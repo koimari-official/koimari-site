@@ -462,7 +462,7 @@
       '<div class="re-contact">' + (r.tel ? '<a href="tel:' + esc(String(r.tel).replace(/[^0-9+]/g, "")) + '">' + esc(r.tel) + "</a>" : "") + (r.furigana ? "　" + esc(r.furigana) : "") + (r.channel === "LINE" ? '　<span class="re-tag">LINE</span>' : "") + (revs.length > 1 ? '　<span class="re-tag re-tag--rev">修正' + (revs.length - 1) + "まで反映</span>" : "") + "</div></div>";
     html += '<div class="re-grid"><div class="re-media">' + imageHtml(r, s) + (r.lineUserId ? '<label class="re-btn re-btn--ghost re-upload">確定のケーキ画像をLINEで送る<input type="file" accept="image/*" id="reSendImage" hidden></label><p class="re-hint">仕様が確定したケーキの写真を、お客様のLINEにお送りします。</p>' : "") + "</div>";
     html += '<div class="re-info"><h3 class="re-sec">現在のご予約内容</h3><table class="re-table">' + rowsOf(s).map(function (row) { return "<tr><th>" + esc(row[0]) + "</th><td>" + esc(row[1]) + "</td></tr>"; }).join("") + "</table>";
-    if (r.note) html += '<div class="re-note"><b>お客様の備考</b><br>' + esc(r.note) + "</div>";
+    if (r.note) html += '<div class="re-note"><b>備考</b><br>' + esc(r.note) + "</div>";
     if (state.draft) {
       var d = state.draft, at = fmtLocal(d.updatedAt || d.startedAt);
       html += '<div class="re-note" style="border-color:#e0a83a;background:#fff4dc;"><b>途中で止まっている変更があります</b><br>' + esc(d.by || "担当者不明") + "さん・" + esc(at) +
@@ -615,6 +615,8 @@
       html += field("普通のろうそく", sel("reCandlePlain", [0, 1, 2, 3], e.candlePlain || 0, function (o) { return o ? o + "袋" + (o === 1 ? "（無料）" : "") : "なし"; }));
       html += field("メッセージプレート", sel("reMsgN", [0, 1, 2, 3], e.messageCount, function (o) { return o ? o + "枚" + (o === 1 ? "（無料）" : "") : "なし"; }) + (e.messageCount ? '<input class="input re-in" id="reMsg" value="' + esc(e.message || "") + '" placeholder="プレートの文字">' : ""));
     }
+    // 備考もお店で書き直せる（2026-11-26オーナー指示。変更するとお客様のLINEに変更前・変更後が届く）
+    html += field("備考", '<textarea class="input re-in" id="reNote" rows="3" style="resize:vertical;">' + esc(e.note || "") + "</textarea>");
     html += field("電話番号（お客様の連絡先）", '<input type="tel" class="input re-in" id="reTel" inputmode="tel" autocomplete="off" value="' + esc(e.tel || "") + '">');
     html += field("お引き取り日", '<input type="date" class="input re-in" id="reDate" value="' + esc(e.pickupDate) + '">');
     html += field("お引き取り時間", sel("reTime", [""].concat(TIMES), e.pickupTime, function (o) { return o || "選択"; }));
@@ -739,6 +741,7 @@
       if (add) e.cuts.push({ name: add, qty: 1, price: (cutInfo(add) || {}).price || 0 });
     }
     e.pickupDate = g("reDate").value; e.pickupTime = g("reTime").value;
+    if (g("reNote")) e.note = g("reNote").value; // 備考（2026-11-26）
     // 電話番号：全角の数字・ハイフンは半角に直す
     if (g("reTel")) e.tel = g("reTel").value.replace(/[０-９]/g, function (c) { return String.fromCharCode(c.charCodeAt(0) - 0xFEE0); }).replace(/[－ー―‐]/g, "-").trim();
     e.price = Number(g("rePrice").value) || 0; e.priceIsRange = false;
@@ -776,6 +779,7 @@
       patch["items/0/message"] = e.messageCount ? (e.message || "") : "";
     }
     if (e.tel && e.tel !== (r.tel || "")) patch.tel = e.tel; // 電話番号の変更（2026-10-24）
+    if ((e.note || "") !== (r.note || "")) patch.note = e.note || null; // 備考の変更（2026-11-26）
     if (r.detailPending) { // 「詳しい内容は後で」で受けた予約：内容を入れて確定したら外す（2026-11-07）
       patch.detailPending = null;
       var later = (r.decideLater || []).filter(function (x) { return String(x).indexOf("ケーキの詳しい内容") !== 0; });
