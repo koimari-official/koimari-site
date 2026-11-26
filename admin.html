@@ -1889,6 +1889,7 @@ main { max-width: 1240px; margin: 0 auto; padding: 40px 26px 80px; }
     <section class="panel" id="panel-priceTable">
       <div class="panel__head"><h2 class="panel__title">料金表（単価）</h2></div>
       <p class="panel__desc">LINE予約フォームの自動見積もりに使っている<strong>現在の単価の一覧</strong>です（すべて税込）。数字を書き換えて「保存して反映」を押すと、予約フォームの見積もりに即時反映されます。書き換えた欄は黄色になり、保存前に変更内容を確認できます。</p>
+      <p class="pt-store-ro" style="display:none;font-weight:700;margin:6px 0 12px;">この画面は見るだけです。単価の変更はオーナー・マネージャーにお伝えください。</p>
       <div id="ptTable"></div>
       <div id="optPhotoAdmin" style="margin:24px 0;"></div>
       <div style="position:sticky;bottom:0;background:var(--color-bg,#fff);padding:14px 0;border-top:1px solid var(--color-line);margin-top:10px;">
@@ -9738,7 +9739,8 @@ function initQuoteBuilder() {
 
 const STORE_ACCOUNTS = ["sankyu00002@gmail.com"];
 // 店舗アカウントでいつも出すタブと、「その他の設定」を開いたときだけ出すタブ（2026-10-27・10-28オーナー指示）
-const STORE_MAIN_TABS = ["reservations", "kitchen", "calendar", "notify", "storeGallery"]; // ギャラリー（商品を見る）：予約を受けるとき・新商品の確認用（2026-10-28オーナー指示）
+const STORE_MAIN_TABS = ["reservations", "kitchen", "calendar", "notify", "storeGallery", "priceTable"]; // 料金表（単価）は見るだけ（2026-11-26オーナー指示）
+// 旧：["reservations", "kitchen", "calendar", "notify", "storeGallery"] // ギャラリー（商品を見る）：予約を受けるとき・新商品の確認用（2026-10-28オーナー指示）
 // ギャラリーは開いたときに初めて読み込む（ほかの画面を使っている間は読み込まない）
 (function () {
   const f = document.getElementById("storeGalleryFrame");
@@ -9753,6 +9755,7 @@ function applyStoreMode() {
     const not = STORE_MAIN_TABS.concat(STORE_MORE_TABS).map((p) => ":not([data-panel=" + p + "])").join("");
     st.textContent = ".store-mode .tab" + not + ",.store-mode .tab-group-label,.store-mode #clearRes,.store-mode .rc-del,.store-mode #trashToggleRes,.store-mode #exportRes{display:none!important}" +
       STORE_MORE_TABS.map((p) => ".store-mode:not(.store-more-open) .tab[data-panel=" + p + "]").join(",") + "{display:none!important}" +
+      ".store-mode #cfSavePrices,.store-mode #cfPricesSavedNote,.store-mode #optPhotoAdmin,.store-mode #panel-priceTable .cost-app-link{display:none!important}.store-mode #panel-priceTable input,.store-mode #panel-priceTable select,.store-mode #panel-priceTable textarea,.store-mode #panel-priceTable button{pointer-events:none;background:transparent}.store-mode #panel-priceTable .pt-store-ro{display:block!important}.store-mode #panel-priceTable .panel__desc{display:none!important}" +
       "#storeMoreToggle{border:1px dashed var(--color-line);background:transparent;border-radius:999px;padding:6px 14px;margin:4px 6px;font-size:13px;color:var(--color-text-soft);cursor:pointer}";
     document.head.appendChild(st);
   }
