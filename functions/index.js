@@ -1913,7 +1913,11 @@ function buildStoreReservationEmailText(data, flagLines) {
   const isCakeBody = item.category === "デコレーションケーキ";
   const isRoll = item.category === "ロールケーキ";
   const chan = data.channel === "LINE" ? "LINE公式アカウント" : (data.channel || "電話") + (data.phoneTakenBy ? "（受付：" + data.phoneTakenBy + "）" : "");
+  const items = Array.isArray(data.items) ? data.items : [];
+  const productLines = items.map((it, i) => (items.length > 1 ? (items.length - i) + "段目: " : "") + (it.category || "") + (it.size ? " / " + it.size : "")).join("、");
+  const jst = data.submittedAt ? new Date(new Date(data.submittedAt).getTime() + 9 * 3600000).toISOString().replace("T", " ").slice(0, 16) : "";
   const detail = [
+    storeMailLine("商品・サイズ", productLines),
     storeMailLine("お名前（ふりがな）", data.furigana),
     storeMailLine("メールアドレス", data.email),
     storeMailLine("種別", data.type),
@@ -1928,12 +1932,11 @@ function buildStoreReservationEmailText(data, flagLines) {
       storeMailLine("メッセージプレートの文字（1枚目）", item.message),
       storeMailLine("領収書", data.receiptNeeded ? "必要（宛名: " + (data.receiptName || "") + "）" : "不要"),
     ]),
-    storeMailLine("受付の経路", chan),
-    storeMailLine("受信日時", data.submittedAt ? String(data.submittedAt).replace("T", " ").slice(0, 16) + "（UTC）" : ""),
+    storeMailLine("受信日時", jst),
   ].filter(Boolean);
   return [
     ...(flagLines.length ? [...flagLines, ""] : []),
-    buildStaffNotifyText(data),
+    buildStaffNotifyText(data).replace(/^受付経路: .*$/m, "受付経路: " + chan), // 電話受付も「こいまりHP」と出るため、経路を正しく直す
     "",
     "―― ご予約の詳しい内容 ――",
     ...detail,
