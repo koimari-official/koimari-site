@@ -1901,6 +1901,110 @@ exports.sendCustomerReservationEmail = onValueCreated(
   }
 );
 
+// ===== お店宛ての新規予約・法人ご相談の通知メール（2026-11-28 Formspreeから移行）=====
+// Formspree無料枠（月50件）が上限に近づいたため、通知メールをサーバーのGmail送信（無料）に移した。
+// 送り先はオーナー指定の sankyu00002（以前のFormspreeは noritate.official 宛てだった）。
+// 送れなかったときは emailSent:false を書き、管理画面の「⚠ メール未送信」に出す＋スタッフへ通知する。
+const STORE_NOTIFY_TO = "sankyu00002@gmail.com";
+function storeMailLine(label, v) { return (v === undefined || v === null || v === "") ? null : "■ " + label + "：" + v; }
+function buildStoreReservationEmailText(data, flagLines) {
+  const isKids = data.category === "kidsManager";
+  const item = (data.items || [])[0] || {};
+  const isCakeBody = item.category === "デコレーションケーキ";
+  const isRoll = item.category === "ロールケーキ";
+  const chan = data.channel === "LINE" ? "LINE公式アカウント" : (data.channel || "電話") + (data.phoneTakenBy ? "（受付：" + data.phoneTakenBy + "）" : "");
+  const detail = [
+    storeMailLine("お名前（ふりがな）", data.furigana),
+    storeMailLine("メールアドレス", data.email),
+    storeMailLine("種別", data.type),
+    ...(isKids ? [
+      storeMailLine("お子様のお名前", data.childName), storeMailLine("学年・年齢", data.grade),
+      storeMailLine("お菓子作り経験", data.bakingExperience), storeMailLine("参加人数", data.participantCount ? data.participantCount + "名" : ""),
+    ] : [
+      storeMailLine("ご利用シーン", data.occasion === "その他" ? data.occasionOther : data.occasion),
+      ...(isCakeBody ? [storeMailLine("クリームの種類", data.creamType ? data.creamType + (data.creamTypeSub ? "（" + data.creamTypeSub + "）" : "") : ""), storeMailLine("飾り付け", data.decoration)] : []),
+      storeMailLine("生クリームたっぷり乗せ", data.creamTopping ? "あり" : null),
+      ...((isCakeBody || isRoll) ? [storeMailLine("ろうそく", candleTextOf(data)), storeMailLine("メッセージプレート", data.messageCount > 0 ? data.messageCount + "枚" + (data.messageCount > 1 ? "（2枚目以降有料）" : "") : "なし")] : []),
+      storeMailLine("メッセージプレートの文字（1枚目）", item.message),
+      storeMailLine("領収書", data.receiptNeeded ? "必要（宛名: " + (data.receiptName || "") + "）" : "不要"),
+    ]),
+    storeMailLine("受付の経路", chan),
+    storeMailLine("受信日時", data.submittedAt ? String(data.submittedAt).replace("T", " ").slice(0, 16) + "（UTC）" : ""),
+  ].filter(Boolean);
+  return [
+    ...(flagLines.length ? [...flagLines, ""] : []),
+    buildStaffNotifyText(data),
+    "",
+    "―― ご予約の詳しい内容 ――",
+    ...detail,
+    "",
+    "※このメールは自動送信です（ケーキ屋こいまり 予約システム）。",
+  ].join("\n");
+}
+async function markStoreEmailFailed(path, title, body) {
+  try { await admin.database().ref(path + "/emailSent").set(false); } catch (e) { console.error("emailSent:falseの記録に失敗:", e.message); }
+  try { await pushToStaff({ title, body, tag: "storemail-" + Date.now(), url: ADMIN_RES_URL, kind: "new" }); } catch (e) { console.error("スタッフ通知にも失敗:", e.message); }
+}
+exports.notifyStoreReservationEmail = onValueCreated(
+  { ref: "/reservations/{pushId}", instance: "koimari-tasting-default-rtdb", region: "asia-southeast1", secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, VAPID_PRIVATE_KEY] },
+  async (event) => {
+    const raw = event.data.val();
+    if (!raw) return;
+    const id = event.params.pushId;
+    // 予約番号は notifyStaffOnNewReservation が振る。重ねて振らないよう、付くのを少し待って読む
+    let reservationNo = raw.reservationNo || null;
+    for (let i = 0; i < 6 && !reservationNo; i++) {
+      await new Promise((r) => setTimeout(r, 1000));
+      reservationNo = (await admin.database().ref("reservations/" + id + "/reservationNo").once("value")).val();
+    }
+    const data = Object.assign({}, raw, { reservationNo });
+    let flagLines = [];
+    try { flagLines = customerFlagLines(data, (await admin.database().ref("customerFlags").once("value")).val()); } catch (e) { console.warn("要注意のお客様の確認に失敗:", e.message); }
+    const via = data.channel === "LINE" ? "LINE" : "電話";
+    try {
+      const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } });
+      await transporter.sendMail({
+        from: `"こいまり 予約通知" <${GMAIL_USER.value()}>`,
+        to: STORE_NOTIFY_TO,
+        replyTo: data.email || undefined,
+        subject: `【こいまり】${via}新規ご予約: ${data.name || ""} 様 (${data.type || ""})`,
+        text: buildStoreReservationEmailText(data, flagLines),
+      });
+      await admin.database().ref("reservations/" + id + "/emailSent").set(true);
+    } catch (err) {
+      console.error("お店宛て予約通知メールの送信に失敗:", err);
+      await markStoreEmailFailed("reservations/" + id, "予約の通知メールが送れませんでした", (data.name || "お客様") + " 様のご予約は保存済みです。管理画面で確認してください");
+    }
+  }
+);
+exports.notifyStoreCorporateEmail = onValueCreated(
+  { ref: "/corporate/{id}", instance: "koimari-tasting-default-rtdb", region: "asia-southeast1", secrets: [GMAIL_USER, GMAIL_APP_PASSWORD, VAPID_PRIVATE_KEY] },
+  async (event) => {
+    const d = event.data.val();
+    if (!d) return;
+    const text = [
+      "こいまりHPの法人ご相談フォームから、ご相談が届きました。",
+      "",
+      storeMailLine("会社名", d.company), storeMailLine("部署", d.department), storeMailLine("ご担当者名", d.name), storeMailLine("役職", d.position),
+      storeMailLine("電話", d.tel), storeMailLine("メール", d.email), storeMailLine("ご用途", d.purpose), storeMailLine("数量", d.quantity),
+      storeMailLine("ご予算", d.budget), storeMailLine("グレード", d.grade), storeMailLine("納期", d.deadline),
+      storeMailLine("対応希望", (d.addons || []).join(", ")), storeMailLine("ご相談内容", d.message),
+      storeMailLine("受信日時", d.submittedAt ? String(d.submittedAt).replace("T", " ").slice(0, 16) + "（UTC）" : ""),
+      "",
+      "管理画面：" + ADMIN_RESERVATIONS_URL,
+      "※このメールは自動送信です。",
+    ].filter((x) => x !== null).join("\n");
+    try {
+      const transporter = nodemailer.createTransport({ service: "gmail", auth: { user: GMAIL_USER.value(), pass: GMAIL_APP_PASSWORD.value() } });
+      await transporter.sendMail({ from: `"こいまり 法人ご相談通知" <${GMAIL_USER.value()}>`, to: STORE_NOTIFY_TO, replyTo: d.email || undefined, subject: `【こいまり 法人ご相談】${d.company || ""} ${d.name || ""}様 (${d.purpose || ""})`, text });
+      await admin.database().ref("corporate/" + event.params.id + "/emailSent").set(true);
+    } catch (err) {
+      console.error("法人ご相談の通知メールの送信に失敗:", err);
+      await markStoreEmailFailed("corporate/" + event.params.id, "法人ご相談の通知メールが送れませんでした", (d.company || "") + " " + (d.name || "") + " 様のご相談は保存済みです。管理画面で確認してください");
+    }
+  }
+);
+
 // ===== リッチメニュー（2026-08-31、6分割を常時表示する方式に変更） =====
 // クーポンの有無でメニュー全体を切り替える方式（旧仕様）は廃止。常に
 // 「季節限定メニュー/ご予約/ギャラリー/クーポン/店舗情報/スタンプカード」の6分割を表示する。

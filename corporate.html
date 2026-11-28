@@ -762,8 +762,13 @@ form.addEventListener("submit", async (e) => {
   //   保存後に別途update()で書き戻すことはできない（権限エラーになる）。そのため結果は必ず最初の
   //   保存に含める。8秒でメール送信を諦めてもご相談内容の保存は続行し、その場合はemailSent:falseとして
   //   記録することで、管理画面で「メール未送信」を確実に検知できるようにする。
-  const emailSent = await withTimeout(sendToFormspree(data), 8000, "メール通知").catch(() => false);
-  data.emailSent = !!emailSent;
+  // 2026-11-28：お店宛ての通知メールはサーバー（notifyStoreCorporateEmail）から sankyu00002 へ送る。
+  // Formspreeは月50件の上限があるため止めた。戻すときだけ USE_FORMSPREE を true にする（12/5まではコードを残す）
+  const USE_FORMSPREE = false;
+  if (USE_FORMSPREE) {
+    const emailSent = await withTimeout(sendToFormspree(data), 8000, "メール通知").catch(() => false);
+    data.emailSent = !!emailSent;
+  }
 
   // Firebase保存（管理画面に表示される正式な記録）の成否のみで「送信完了」を判定する。
   // 12秒でタイムアウトさせ、通信不良時でも画面が「送信中」のまま止まらないようにする。

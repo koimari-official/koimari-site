@@ -4588,8 +4588,13 @@ function setupReserveForm(uid, displayName) {
         return;
       }
     } catch (e) { /* 確認できない場合は受け付ける */ }
-    const emailSent = await withTimeout(sendReserveToFormspree(data), 8000, "メール通知").catch(() => false);
-    data.emailSent = !!emailSent;
+    // 2026-11-28：お店宛ての通知メールはサーバー（notifyStoreReservationEmail）から sankyu00002 へ送る。
+    // Formspreeは月50件の上限があるため止めた。戻すときだけ USE_FORMSPREE を true にする（12/5まではコードを残す）
+    const USE_FORMSPREE = false;
+    if (USE_FORMSPREE) {
+      const emailSent = await withTimeout(sendReserveToFormspree(data), 8000, "メール通知").catch(() => false);
+      data.emailSent = !!emailSent;
+    }
 
     // 参考画像（2026-10-31オーナー指示）：ギャラリーで選んでいなくても、号数違いでも同じ仕様（クリーム・飾り）の定番ケーキがあれば、
     // その写真を参考画像として予約に残す（管理画面・受付LINEで表示）。照合は予約完了画面の写真と同じ refCakeForData
